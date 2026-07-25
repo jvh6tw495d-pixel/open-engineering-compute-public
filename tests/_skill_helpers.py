@@ -48,6 +48,7 @@ def write_skill_dir(
     skip_input_schema: bool = False,
     skip_output_schema: bool = False,
     input_schema_raw: str | None = None,
+    implementation_code: str | None = None,
 ) -> Path:
     """Write a minimal skill directory under ``base / name`` and return its path.
 
@@ -75,9 +76,10 @@ def write_skill_dir(
         )
 
     if not skip_entrypoint:
-        (skill_dir / "implementation.py").write_text(
-            "def execute(inputs):\n    return inputs\n", encoding="utf-8"
+        code = implementation_code or (
+            "def execute(inputs):\n    return {'result': inputs, 'diagnostics': {}}\n"
         )
+        (skill_dir / "implementation.py").write_text(code, encoding="utf-8")
 
     if input_schema_raw is not None:
         (skill_dir / "input.schema.json").write_text(input_schema_raw, encoding="utf-8")
