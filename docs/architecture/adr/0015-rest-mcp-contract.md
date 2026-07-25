@@ -152,3 +152,35 @@ deferred to the same future hardening sprint as OS-level sandboxing.
   a universal `Engine` constructor step, since eagerly building every
   skill's validators is wasted work for `oec run`'s single-skill,
   single-process lifetime.
+
+## Amendment (post-Sprint 07, holistic review)
+
+A holistic review of the whole repo against the master handbook, run
+after Sprint 07 closed, flagged two divergences from plan section 13.3
+this ADR's original text didn't call out:
+
+1. **No `/v1` prefix.** The routes this ADR designed (`/skills`,
+   `/skills/{id}`, `/skills/{id}/run`) were unversioned; the handbook's
+   own examples put every REST resource under `/v1`. Fixed by
+   reprefixing every route except `/health` (the handbook itself lists
+   `/health` bare — an unversioned liveness check is the accepted
+   convention). This is a breaking path change, made deliberately now,
+   before any real adopter exists, since making it later would be one.
+2. **No dry-run validation endpoint.** The handbook names
+   `POST /v1/skills/{id}/validate` as a distinct resource from
+   `/run` — check whether inputs would pass without paying for (or
+   risking) a real execution. Added, backed by a new public
+   `oec.execution.service.run_input_validators()` — the exact
+   validator list and crash-handling `ExecutionService.execute()`
+   itself uses, extracted out of that private method so `/validate`
+   and `/run` can share it instead of `/validate` re-implementing
+   validation rules (the ADR 0005 violation this project keeps
+   watching for).
+
+Deliberately still not implemented, and not part of this amendment:
+the handbook's `/v1/executions` + `/v1/executions/{run_id}` resource
+pair (needs execution persistence the Alpha doesn't have — synchronous
+one-shot execution is what the handbook itself mandates for the Alpha)
+and `POST /v1/reports` (needs a report-generation module that is still
+an empty scaffold). Both remain tracked gaps, not silent omissions —
+see `docs/api/README.md`.

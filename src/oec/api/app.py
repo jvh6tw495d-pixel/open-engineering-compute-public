@@ -15,6 +15,13 @@ scientific outcomes the caller reads from ``body.status``, not
 transport failures. ``404``/``422`` are reserved for requests that
 never reached the pipeline at all (unknown skill, a body that doesn't
 even parse).
+
+Routes live under ``/v1`` per the master handbook §13.3 (``/health`` is
+the one deliberate exception — an unversioned liveness check is the
+common convention, and the handbook itself lists it bare). A holistic
+review at the end of Sprint 07 flagged the missing prefix as worth
+fixing before any real adopter exists, since changing paths afterward
+is a breaking change this project would rather not make.
 """
 
 from __future__ import annotations
@@ -29,12 +36,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from oec import __version__
 from oec.errors import OECError, SkillNotFoundError
+from oec.execution.factory import build_validators
 from oec.execution.models import ExecutionResult
+from oec.execution.service import run_input_validators
 from oec.sdk import Engine
+from oec.validation.base import Severity
 
 
 class RunRequest(BaseModel):
-    """Body of ``POST /skills/{skill_id}/run``."""
+    """Body of ``POST /v1/skills/{skill_id}/run``."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -43,6 +53,15 @@ class RunRequest(BaseModel):
     seed: int | None = None
     trace_id: str | None = None
     requested_by: str | None = None
+
+
+class ValidateRequest(BaseModel):
+    """Body of ``POST /v1/skills/{skill_id}/validate``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    inputs: dict[str, Any] = Field(default_factory=dict)
+    version: str | None = None
 
 
 def _engine(request: Request) -> Engine:
@@ -69,7 +88,7 @@ def create_app(skills_root: str | Path = "skills") -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok", "oec_version": __version__}
 
-    @app.get("/skills")
+    @app.get("/v1/skills")
     def list_skills(
         request: Request,
         domain: str | None = None,
@@ -81,7 +100,7 @@ def create_app(skills_root: str | Path = "skills") -> FastAPI:
         )
         return [manifest.model_dump(mode="json", by_alias=True) for manifest in manifests]
 
-    @app.get("/skills/{skill_id}")
+    @app.get("/v1/skills/{skill_id}")
     def get_skill(request: Request, skill_id: str, version: str | None = None) -> dict[str, Any]:
         try:
             skill = _engine(request).registry.get_skill(skill_id, version)
@@ -89,7 +108,32 @@ def create_app(skills_root: str | Path = "skills") -> FastAPI:
             raise HTTPException(status_code=404, detail=exc.message) from exc
         return skill.manifest.model_dump(mode="json", by_alias=True)
 
-    @app.post("/skills/{skill_id}/run", response_model=ExecutionResult)
+    @app.post("/v1/skills/{skill_id}/validate")
+    def validate_skill_inputs(
+        request: Request, skill_id: str, body: ValidateRequest
+    ) -> dict[str, Any]:
+        """Run only the input-validation layers, without executing the skill.
+
+        Reuses :func:`~oec.execution.service.run_input_validators` --
+        the exact same validator list and crash-handling ``execute()``
+        would use -- so "would this be INVALID" here always agrees with
+        what a real ``run`` would classify (ADR 0005: no re-implemented
+        validation rules).
+        """
+        try:
+            skill = _engine(request).registry.get_skill(skill_id, body.version)
+        except SkillNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=exc.message) from exc
+
+        input_validators, _ = build_validators(skill)
+        outcomes = run_input_validators(input_validators, skill, dict(body.inputs))
+        valid = not any(outcome.severity is Severity.ERROR for outcome in outcomes)
+        return {
+            "valid": valid,
+            "outcomes": [outcome.model_dump(mode="json") for outcome in outcomes],
+        }
+
+    @app.post("/v1/skills/{skill_id}/run", response_model=ExecutionResult)
     def run_skill(request: Request, skill_id: str, body: RunRequest) -> ExecutionResult:
         try:
             return _engine(request).run(

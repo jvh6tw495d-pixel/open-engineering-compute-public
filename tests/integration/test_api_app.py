@@ -26,32 +26,34 @@ def client() -> Iterator[TestClient]:
 
 
 def test_health(client: TestClient) -> None:
+    """/health stays unversioned per the handbook §13.3 -- the one
+    deliberate exception to the /v1 prefix everything else uses."""
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
 
 
 def test_list_skills(client: TestClient) -> None:
-    response = client.get("/skills")
+    response = client.get("/v1/skills")
     assert response.status_code == 200
     ids = [manifest["id"] for manifest in response.json()]
     assert "mathematics.solve_root" in ids
 
 
 def test_list_skills_filters_by_domain(client: TestClient) -> None:
-    response = client.get("/skills", params={"domain": "mathematics"})
+    response = client.get("/v1/skills", params={"domain": "mathematics"})
     assert response.status_code == 200
     assert all(manifest["domain"] == "mathematics" for manifest in response.json())
 
 
 def test_list_skills_filters_by_tag(client: TestClient) -> None:
-    response = client.get("/skills", params={"tag": "mvp"})
+    response = client.get("/v1/skills", params={"tag": "mvp"})
     assert response.status_code == 200
     assert all("mvp" in manifest["tags"] for manifest in response.json())
 
 
 def test_get_skill(client: TestClient) -> None:
-    response = client.get("/skills/mathematics.solve_root")
+    response = client.get("/v1/skills/mathematics.solve_root")
     assert response.status_code == 200
     body = response.json()
     assert body["id"] == "mathematics.solve_root"
@@ -59,13 +61,59 @@ def test_get_skill(client: TestClient) -> None:
 
 
 def test_get_skill_unknown_returns_404(client: TestClient) -> None:
-    response = client.get("/skills/mathematics.not_a_real_skill")
+    response = client.get("/v1/skills/mathematics.not_a_real_skill")
+    assert response.status_code == 404
+
+
+def test_validate_valid_inputs(client: TestClient) -> None:
+    response = client.post(
+        "/v1/skills/mathematics.solve_root/validate",
+        json={"inputs": {"expression": "x**2 - 2", "bracket": [0, 2]}},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is True
+    assert body["outcomes"] == []
+
+
+def test_validate_invalid_inputs_reports_outcomes_without_executing(client: TestClient) -> None:
+    """The whole point of a dry-run validate endpoint: an INVALID input
+    is reported in-band as validation outcomes, not executed -- no
+    result/diagnostics/provenance, unlike /run."""
+    response = client.post(
+        "/v1/skills/mathematics.solve_root/validate",
+        json={"inputs": {"expression": "x**2 - 2", "bracket": [0, 2], "unexpected_field": True}},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is False
+    assert len(body["outcomes"]) >= 1
+    assert any(outcome["severity"] == "error" for outcome in body["outcomes"])
+
+
+def test_validate_agrees_with_run_on_invalid_status(client: TestClient) -> None:
+    """/validate and /run must agree on whether inputs are valid --
+    both go through oec.execution.service.run_input_validators with the
+    exact same validator list (ADR 0005: no re-implemented rules)."""
+    bad_inputs = {"expression": "x**2 - 2", "bracket": [0, 2], "unexpected_field": True}
+
+    validate_response = client.post(
+        "/v1/skills/mathematics.solve_root/validate", json={"inputs": bad_inputs}
+    )
+    run_response = client.post("/v1/skills/mathematics.solve_root/run", json={"inputs": bad_inputs})
+
+    assert validate_response.json()["valid"] is False
+    assert run_response.json()["status"] == "INVALID"
+
+
+def test_validate_unknown_skill_returns_404(client: TestClient) -> None:
+    response = client.post("/v1/skills/mathematics.not_a_real_skill/validate", json={"inputs": {}})
     assert response.status_code == 404
 
 
 def test_run_skill_verified_result_returns_200(client: TestClient) -> None:
     response = client.post(
-        "/skills/mathematics.solve_root/run",
+        "/v1/skills/mathematics.solve_root/run",
         json={"inputs": {"expression": "x**2 - 2", "bracket": [0, 2]}},
     )
     assert response.status_code == 200
@@ -80,7 +128,7 @@ def test_run_skill_invalid_status_still_returns_200(client: TestClient) -> None:
     a transport failure (ADR 0015 §1: only unknown skill / unparseable
     body get a non-200)."""
     response = client.post(
-        "/skills/mathematics.solve_root/run",
+        "/v1/skills/mathematics.solve_root/run",
         json={"inputs": {"expression": "x**2 - 2", "bracket": [0, 2], "unexpected_field": True}},
     )
     assert response.status_code == 200
@@ -88,7 +136,7 @@ def test_run_skill_invalid_status_still_returns_200(client: TestClient) -> None:
 
 
 def test_run_skill_unknown_skill_returns_404(client: TestClient) -> None:
-    response = client.post("/skills/mathematics.not_a_real_skill/run", json={"inputs": {}})
+    response = client.post("/v1/skills/mathematics.not_a_real_skill/run", json={"inputs": {}})
     assert response.status_code == 404
 
 
@@ -97,7 +145,7 @@ def test_run_skill_malformed_body_returns_422(client: TestClient) -> None:
     request (RunRequest forbids extras) -- distinct from a skill-level
     INVALID, which still returns 200 (see test above)."""
     response = client.post(
-        "/skills/mathematics.solve_root/run",
+        "/v1/skills/mathematics.solve_root/run",
         json={"inputs": {"expression": "x**2 - 2", "bracket": [0, 2]}, "not_a_real_field": True},
     )
     assert response.status_code == 422
@@ -105,7 +153,7 @@ def test_run_skill_malformed_body_returns_422(client: TestClient) -> None:
 
 def test_run_skill_forwards_provenance_fields(client: TestClient) -> None:
     response = client.post(
-        "/skills/mathematics.solve_root/run",
+        "/v1/skills/mathematics.solve_root/run",
         json={
             "inputs": {"expression": "x - 1", "bracket": [0, 2]},
             "trace_id": "my-trace-id",

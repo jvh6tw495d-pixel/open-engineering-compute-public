@@ -81,7 +81,7 @@ class ExecutionService:
         skill = self._registry.get_skill(request.skill_id, request.skill_version)
         normalized_inputs = dict(request.inputs)
 
-        outcomes = self._run_input_validators(skill, normalized_inputs)
+        outcomes = run_input_validators(self._input_validators, skill, normalized_inputs)
 
         implementation_failed = False
         result: dict[str, Any] = {}
@@ -170,17 +170,6 @@ class ExecutionService:
             duration_ms=duration_ms,
         )
 
-    def _run_input_validators(
-        self, skill: LoadedSkill, normalized_inputs: dict[str, Any]
-    ) -> list[ValidationOutcome]:
-        outcomes: list[ValidationOutcome] = []
-        for validator in self._input_validators:
-            try:
-                outcomes.extend(validator.validate(skill, normalized_inputs))
-            except Exception as exc:  # noqa: BLE001 -- a crashing validator must not crash the service
-                outcomes.append(_validator_crash_outcome(validator, exc))
-        return outcomes
-
     def _run_result_validators(
         self,
         skill: LoadedSkill,
@@ -197,6 +186,29 @@ class ExecutionService:
             except Exception as exc:  # noqa: BLE001 -- a crashing validator must not crash the service
                 outcomes.append(_validator_crash_outcome(result_validator, exc))
         return outcomes
+
+
+def run_input_validators(
+    validators: list[InputValidator], skill: LoadedSkill, normalized_inputs: dict[str, Any]
+) -> list[ValidationOutcome]:
+    """Run every input validator against ``normalized_inputs``.
+
+    A crashing validator becomes an `ERROR`-severity outcome instead of
+    propagating (fail closed — same rule `execute()` itself applies).
+    Public and standalone (not an `ExecutionService` method) so a caller
+    that wants "would this input pass validation" *without* executing
+    the skill — e.g. the REST API's `POST /v1/skills/{id}/validate` —
+    can reuse the exact same validator-crash handling `execute()` uses,
+    rather than duplicating it (ADR 0005: interfaces don't re-implement
+    validation rules).
+    """
+    outcomes: list[ValidationOutcome] = []
+    for validator in validators:
+        try:
+            outcomes.extend(validator.validate(skill, normalized_inputs))
+        except Exception as exc:  # noqa: BLE001 -- a crashing validator must not crash the caller
+            outcomes.append(_validator_crash_outcome(validator, exc))
+    return outcomes
 
 
 def _validator_crash_outcome(validator: object, exc: Exception) -> ValidationOutcome:

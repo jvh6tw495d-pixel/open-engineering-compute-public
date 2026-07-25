@@ -53,7 +53,7 @@ def test_sdk_cli_rest_mcp_agree_on_scientific_content() -> None:
 
     # 3. REST
     with TestClient(create_app(skills_root="skills")) as client:
-        rest_response = client.post(f"/skills/{_SKILL_ID}/run", json={"inputs": _INPUTS})
+        rest_response = client.post(f"/v1/skills/{_SKILL_ID}/run", json={"inputs": _INPUTS})
     assert rest_response.status_code == 200
     rest_body = rest_response.json()
 
@@ -125,7 +125,7 @@ def test_sdk_cli_rest_mcp_agree_on_invalid_status() -> None:
     cli_body = json.loads(cli_result.stdout)
 
     with TestClient(create_app(skills_root="skills")) as client:
-        rest_response = client.post(f"/skills/{_SKILL_ID}/run", json={"inputs": bad_inputs})
+        rest_response = client.post(f"/v1/skills/{_SKILL_ID}/run", json={"inputs": bad_inputs})
     rest_body = rest_response.json()
 
     mcp_result = call_tool(engine, _SKILL_ID, bad_inputs)
