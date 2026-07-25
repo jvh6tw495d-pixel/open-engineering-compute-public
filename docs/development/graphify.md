@@ -75,25 +75,12 @@ Artifacts generated in `graphify-out/`:
 
 ## Versioning decision
 
-`graphify-out/` is **not committed** to Git for now (see `.gitignore`). It is
-fully regenerable from source via `graphify update .`, and per section 31.5
-of the master plan, generated artifacts should only be versioned after an
-explicit decision evaluating size, stability, absolute paths, and sensitive
-data. Findings from that evaluation, at the end of Sprint 00:
-
-- **Size:** ~275 KB total — not a concern.
-- **Absolute paths:** none found in `graph.json` (`grep -c "OneDrive" graph.json` → `0`).
-- **Sensitive data:** none — the corpus is source code, docs, and ADRs
-  already meant for the repository.
-- **Stability:** the graph is rebuilt on every structural change, and the
-  `cache/` subdirectory in particular is pure local cache with no reason to
-  version.
-
-Given the graph is cheap to regenerate and changes on every commit, keeping
-it gitignored (as with `.pytest_cache/`, `.mypy_cache/`) avoids noisy diffs.
-This decision is revisited if the graph is later needed as a stable,
-shareable artifact (e.g. for onboarding docs shipped in the public repo) —
-at that point it becomes an explicit ADR, per the plan's requirement.
+`graphify-out/` is **not committed** to Git (see `.gitignore`). This is now
+a formal decision — see
+[ADR 0010](../architecture/adr/0010-graphify-artifacts-not-versioned.md)
+for the full evaluation (size, stability, absolute paths, sensitive data)
+required by master plan section 31.5 before generated artifacts can be
+excluded from or included in version control.
 
 ## Update policy
 
