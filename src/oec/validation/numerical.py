@@ -2,9 +2,19 @@
 
 Does **not** re-decide convergence — that is a separate input to
 :func:`~oec.execution.status.compute_status` (ADR 0007). This layer only
-surfaces warning-level signals already present in ``diagnostics`` (near
-iteration limits, poor conditioning, residual above tolerance) so a
-converged-but-shaky result can become ``CONVERGED_WITH_WARNINGS``.
+surfaces warning-level signals already present in ``diagnostics``/
+``normalized_inputs`` (near iteration limits, poor conditioning,
+residual above tolerance) so a converged-but-shaky result can become
+``CONVERGED_WITH_WARNINGS``.
+
+Field names are read with fallbacks across the shapes real skills
+actually use (ADR 0014): ``iterations``/``n_iterations``,
+``residual``/``abs_error``/the max of a ``residuals`` list, and
+``max_iterations``/``tolerance`` read from the *caller's inputs*
+(``normalized_inputs``) since no skill echoes either back into
+``diagnostics`` — reading them from ``diagnostics`` alone (the original
+Sprint 03 shape) meant these checks could never fire for any of the six
+skills shipped through Sprint 05, an independent review caught.
 """
 
 from __future__ import annotations
@@ -27,14 +37,14 @@ class NumericalDiagnosticsValidator:
         result: dict[str, Any],
         diagnostics: dict[str, Any],
     ) -> list[ValidationOutcome]:
-        del skill, normalized_inputs, result  # interface contract; unused here
+        del skill, result  # interface contract; unused here
         outcomes: list[ValidationOutcome] = []
 
-        iterations = diagnostics.get("iterations")
-        max_iterations = diagnostics.get("max_iterations")
+        iterations = _first_number(diagnostics, "iterations", "n_iterations")
+        max_iterations = _first_number(normalized_inputs, "max_iterations")
         if (
-            isinstance(iterations, int | float)
-            and isinstance(max_iterations, int | float)
+            iterations is not None
+            and max_iterations is not None
             and max_iterations > 0
             and iterations >= 0.9 * max_iterations
         ):
@@ -61,13 +71,16 @@ class NumericalDiagnosticsValidator:
                 )
             )
 
-        residual = diagnostics.get("residual")
-        tolerance = diagnostics.get("tolerance")
-        if (
-            isinstance(residual, int | float)
-            and isinstance(tolerance, int | float)
-            and abs(residual) > tolerance
-        ):
+        residual = _first_number(diagnostics, "residual", "abs_error")
+        if residual is None:
+            residuals = diagnostics.get("residuals")
+            if isinstance(residuals, list) and residuals:
+                magnitudes = [abs(r) for r in residuals if isinstance(r, int | float)]
+                residual = max(magnitudes) if magnitudes else None
+        tolerance = _first_number(normalized_inputs, "tolerance") or _first_number(
+            diagnostics, "tolerance"
+        )
+        if residual is not None and tolerance is not None and abs(residual) > tolerance:
             outcomes.append(
                 ValidationOutcome(
                     layer=self.layer,
@@ -78,3 +91,12 @@ class NumericalDiagnosticsValidator:
             )
 
         return outcomes
+
+
+def _first_number(mapping: dict[str, Any], *keys: str) -> float | None:
+    """The first of ``keys`` present in ``mapping`` with a numeric (non-bool) value."""
+    for key in keys:
+        value = mapping.get(key)
+        if isinstance(value, int | float) and not isinstance(value, bool):
+            return float(value)
+    return None
