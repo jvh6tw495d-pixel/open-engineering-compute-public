@@ -3,7 +3,7 @@
 Living summary of OEC's structure. Updated at the end of each sprint (see
 `docs/development/graphify.md` for the tool used to help maintain it).
 
-## Main components (as of Sprint 05)
+## Main components (as of Sprint 06)
 
 | Component | Path | Status |
 |---|---|---|
@@ -12,15 +12,17 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
 | Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest`, `MethodRef` (`iterative: bool`, ADR 0013) |
 | Execution models | `src/oec/execution/models.py` | implemented |
 | Skill Loader/Registry/Lifecycle | `src/oec/skills/{loader,registry,lifecycle}/` | implemented |
-| CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}` |
+| CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}`, `oec run` (ADR 0014) |
+| **Public Python SDK** | `src/oec/sdk.py` | **implemented** — see below |
+| **Validator factory** | `src/oec/execution/factory.py` | **implemented** — see below |
 | Units kernel | `src/oec/kernel/units/` | implemented, not yet wired into a real skill's schema |
-| **Numerics kernel** | `src/oec/kernel/numerics/{expressions,root_finding}.py` | **implemented** — see below |
-| **Optimization kernel** | `src/oec/kernel/optimization/{diagnostics,scalar,constrained,curve_fit}.py` | **implemented** — see below |
+| Numerics kernel | `src/oec/kernel/numerics/{expressions,root_finding}.py` | implemented |
+| Optimization kernel | `src/oec/kernel/optimization/{diagnostics,scalar,constrained,curve_fit}.py` | implemented |
 | Engineering Kernel (rest) | `src/oec/kernel/{statistics,uncertainty}` | empty, scaffolded |
 | Validation Engine | `src/oec/validation/{base,schema,dimensions,mathematical,physical,numerical,invariants,golden}.py` | implemented |
 | Execution Service | `src/oec/execution/{service,runner,sandbox,status,provenance}.py` | implemented |
 | Testing SDK | `src/oec/testing.py` | implemented |
-| **MVP skills (6 of 12 planned math skills)** | `skills/mathematics/{solve_root,interpolate,integrate,optimize_scalar,optimize_constrained,curve_fit}/` | **implemented** — see below |
+| MVP skills (6 of 12 planned math skills) | `skills/mathematics/{solve_root,interpolate,integrate,optimize_scalar,optimize_constrained,curve_fit}/` | implemented |
 | REST API | `src/oec/api/` | empty, scaffolded for Sprint 07 |
 | MCP adapter | `src/oec/mcp/` | empty, scaffolded for Sprint 07 |
 
@@ -75,6 +77,55 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
   `diagnostics.converged = False`, with `params`/`residuals`/
   `covariance` falling back to the initial guess (documented, not
   silently approximated as something better).
+
+### Validator auto-discovery and the `oec` SDK (Sprint 06, new; ADR 0014)
+
+- **`src/oec/execution/factory.py`** — `build_validators(skill) ->
+  (input_validators, result_validators)`: reads
+  `skill.manifest.validation` (`ValidationPolicy`) and assembles the
+  right validator list. `schema`/`dimensional`/`numerical` map to
+  shared validator classes; `mathematical` discovers the skill's own
+  `validation.py` class by introspection (defined in that module,
+  has a `layer` `ClassVar` and a callable `validate` — duck-typed,
+  since `InputValidator`/`ResultValidator` aren't `@runtime_checkable`);
+  `physical` stays documentation-only (no shared `PhysicalValidator`
+  exists — a skill needing physical checks calls
+  `oec.validation.physical`'s helpers from its own `validation.py`, the
+  same pattern `mathematical` already used). `InvariantValidator` is
+  always included, not policy-gated — a structural guarantee, not an
+  opt-out layer. Replaced every `tests/integration/test_*_end_to_end.py`'s
+  hand-built `ExecutionService(input_validators=[SchemaValidator(),
+  <SkillSpecificValidator>()], ...)` with `build_validators(skill)` —
+  all 26 tests across the six skills pass unchanged, the regression
+  guard that auto-discovery reproduces the prior hand-wiring exactly.
+- **`src/oec/sdk.py`** — `Engine`/`run()`: the public "import direto em
+  Python" surface deferred since Sprint 03, distinct from
+  `oec.testing` (a test-authoring helper, not a runtime facade).
+  `ExecutionService` still binds one fixed validator list per instance
+  (Sprint 03 design, unchanged); `Engine` owns one `ExecutionService`
+  per `(skill_id, version)`, built lazily via `build_validators` and
+  cached, so a long-lived `Engine` (the CLI's process, or a future
+  REST server) assembles each skill's validators once, not once per
+  call. Tolerates individual broken-skill registration failures
+  (`Engine.registration_failures`) rather than refusing to construct —
+  mirrors the CLI's existing `skills list`/`inspect` tolerance.
+- **`oec run <skill_id>`** (`src/oec/cli/main.py`): built on `Engine`.
+  Reads inputs from exactly one of `--input-file`/`--input`/stdin.
+  Exit code reflects `ExecutionStatus` (frozen in ADR 0014): `0` for a
+  usable result (`VERIFIED`/`VALIDATED`/`CONVERGED_WITH_WARNINGS`/
+  `APPROXIMATE`), `2` for `INCONCLUSIVE`, `3` for `INVALID`, `4` for
+  `FAILED`, `1` for a CLI-level error that never produced a result at
+  all (unknown skill, malformed `--input` JSON).
+- **`NumericalDiagnosticsValidator` fixed** (`src/oec/validation/numerical.py`):
+  an independent review of Sprint 05 found its key names
+  (`iterations`/`max_iterations`/`residual`/`tolerance`, all read from
+  `diagnostics`) matched **zero** of the six shipped skills' actual
+  diagnostics shapes — `max_iterations`/`tolerance` are caller
+  *inputs*, never echoed into `diagnostics`, so `CONVERGED_WITH_WARNINGS`
+  was practically unreachable since Sprint 03. Now reads
+  `normalized_inputs` for `max_iterations`/`tolerance` and falls back
+  across the real key names skills use (`n_iterations`, `abs_error`,
+  a `residuals` list's max magnitude).
 
 ### `oec.testing` — a small public testing SDK
 
@@ -178,24 +229,36 @@ below.
 ## Entrypoints
 
 - `oec` console script → `oec.cli.main:app` (`version`,
-  `skills list/inspect/validate`). No `oec run` yet (Sprint 06).
-  `ExecutionService` is exercised via direct Python import in tests and
-  `tests/integration/`, e.g. `oec skills list --skills-root skills` now
-  lists all 6 real MVP skills, not just the loader test fixture.
+  `skills list/inspect/validate`, `run` — new this sprint, ADR 0014).
+  `oec run mathematics.solve_root --input '{"expression": "x**2 - 2",
+  "bracket": [0, 2]}'` executes through the real `Engine`/
+  `ExecutionService`/sandboxed subprocess, not a mock. `oec skills list
+  --skills-root skills` lists all 6 real MVP skills.
+- **`oec.sdk.Engine`/`oec.sdk.run`** (new this sprint) — the public
+  Python SDK; `import oec; result = oec.sdk.run("mathematics.solve_root",
+  {...}, skills_root="skills")` or a longer-lived
+  `oec.sdk.Engine(skills_root="skills")` for repeated calls.
 - No HTTP or MCP entrypoint yet (Sprint 07).
 
 ## Execution flow (current state)
 
 Unchanged pipeline shape from Sprint 03 (`resolve → input validators →
 sandbox → result validators → compute_status → provenance`), now proven
-against six real skills:
+against six real skills — and, as of this sprint, validators are
+assembled via `oec.execution.factory.build_validators` (ADR 0014)
+instead of hand-wired per test:
 `tests/integration/test_solve_root_end_to_end.py`,
 `test_interpolate_end_to_end.py`, `test_integrate_end_to_end.py`,
 `test_optimize_scalar_end_to_end.py`,
 `test_optimize_constrained_end_to_end.py`,
-`test_curve_fit_end_to_end.py` each wire the real `SchemaValidator` +
-the skill's own `validation.py` validator into a real
-`ExecutionService` and execute through the actual sandboxed subprocess.
+`test_curve_fit_end_to_end.py` each resolve the skill, call
+`build_validators(skill)`, and execute through the actual sandboxed
+subprocess. `tests/integration/test_sdk_engine.py` exercises the same
+auto-discovery path through `Engine` directly, and
+`tests/installation/test_installation_smoke.py` (new, opt-in/slow —
+`uv run pytest -m slow --no-cov`) proves the installed `oec` console
+script works end to end from a real wheel install, not just the source
+tree.
 
 `QuantityValue`/`normalize()`/`x-oec-unit` remain unused by any real
 skill — all six MVP math skills are dimensionless by design (see each
@@ -236,14 +299,23 @@ picture with the electrical skills (Sprint 08).
   needed), which in turn required moving `tests/_skill_helpers.py`'s
   `sys.path`-dependent helper into the properly-installed `oec.testing`
   package.
-- **No per-skill validator auto-discovery yet** — `ExecutionService`
-  does not read `skill.yaml`'s `validation:` block to automatically
-  assemble a skill's validator list; whoever constructs the service
-  must explicitly include a skill's own `validation.py` validator (see
-  every `tests/integration/test_*_end_to_end.py`). Deferred
-  deliberately: three skills weren't enough to know what the right
-  auto-wiring convention should look like; still deferred at six —
-  Sprint 06 candidate now that there's more precedent.
+- **Validator auto-discovery landed this sprint** (Sprint 06, ADR
+  0014) — `build_validators(skill)` reads `skill.manifest.validation`
+  and discovers the skill's own `validation.py` validator by
+  introspection; see "Validator auto-discovery and the `oec` SDK"
+  above. `ExecutionService` itself is unchanged — it still binds one
+  fixed validator list per instance; `Engine` is what builds the right
+  list per skill and caches the resulting service.
+- **`physical: true` stays documentation-only** (ADR 0014) — no shared
+  `PhysicalValidator` class exists (unlike `dimensional`, which already
+  has `DimensionalValidator`); a skill needing physical-limit checks
+  calls `oec.validation.physical`'s helpers from its own
+  `validation.py`. Revisit only if a future skill needs a *shared,
+  cross-skill* physical check, not before.
+- **`oec run`'s exit codes are frozen by ADR 0014**: `0` for a usable
+  result, `2`/`INCONCLUSIVE`, `3`/`INVALID`, `4`/`FAILED`, `1` for a
+  CLI-level error that never produced an `ExecutionResult` (unknown
+  skill, malformed `--input` JSON).
 - **Grok's autonomous CLI launch was blocked this sprint** (Sprint 05):
   `grok -p ... --always-approve` and `--permission-mode auto` were both
   denied by this environment's own permission classifier, unrelated to
@@ -258,7 +330,6 @@ picture with the electrical skills (Sprint 08).
 
 ## Known structural debt
 
-- Validator auto-discovery from `skill.yaml` (see Decisions above).
 - `runner.py`'s `main()`/`__main__` still not instrumented by coverage
   across the subprocess boundary (known since Sprint 03).
 - `SkillLifecycle.validate_transition` still not called anywhere at
@@ -271,3 +342,8 @@ picture with the electrical skills (Sprint 08).
 - `mathematics.curve_fit` has no per-point weighting (`sigma`) or
   `tolerance` override — documented as an explicit MVP scope decision
   in its `skill.md`, not an oversight.
+- No shared `PhysicalValidator` (see "physical stays documentation-only"
+  above) — no skill has needed one yet; revisit when one does.
+- `NumericalDiagnosticsValidator`'s `condition_number` check is still
+  forward-looking — no shipped skill reports `condition_number` yet
+  (left in place for a future linear-algebra skill, not removed).
