@@ -23,7 +23,7 @@ _BASE_KWARGS = {
     "title": "Property Fixture",
     "entrypoint": {"module": "implementation", "function": "execute"},
     "schemas": {"input": "input.schema.json", "output": "output.schema.json"},
-    "method": {"id": "identity", "version": "1"},
+    "method": {"id": "identity", "version": "1", "iterative": False},
 }
 
 

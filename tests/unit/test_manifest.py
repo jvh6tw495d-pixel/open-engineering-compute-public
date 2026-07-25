@@ -1,9 +1,9 @@
 import pytest
 from pydantic import ValidationError
 
-from oec.common import VersionedRef
 from oec.skills.schemas.manifest import (
     EntrypointSpec,
+    MethodRef,
     SchemaRefs,
     SkillManifest,
     SkillStatus,
@@ -19,7 +19,9 @@ def _base_manifest_kwargs() -> dict:
         "title": "Voltage Drop",
         "entrypoint": EntrypointSpec(module="implementation", function="execute"),
         "schemas": SchemaRefs(input="input.schema.json", output="output.schema.json"),
-        "method": VersionedRef(id="three_phase_impedance_voltage_drop", version="0.1.0"),
+        "method": MethodRef(
+            id="three_phase_impedance_voltage_drop", version="0.1.0", iterative=False
+        ),
     }
 
 
@@ -73,6 +75,14 @@ def test_validation_policy_accepts_schema_alias_from_yaml_shape() -> None:
     assert manifest.validation.schema_layer is False
 
 
+def test_method_iterative_flag_is_required() -> None:
+    """ADR 0013: a method must declare whether it's iterative -- no default."""
+    kwargs = _base_manifest_kwargs()
+    kwargs["method"] = {"id": "three_phase_impedance_voltage_drop", "version": "0.1.0"}
+    with pytest.raises(ValidationError):
+        SkillManifest(**kwargs)
+
+
 def test_schema_refs_holds_input_and_output_paths() -> None:
     refs = SchemaRefs(input="input.schema.json", output="output.schema.json")
     assert refs.input == "input.schema.json"
@@ -89,7 +99,11 @@ def test_manifest_parses_from_plan_shaped_yaml_dict() -> None:
         "title": "Voltage Drop",
         "entrypoint": {"module": "implementation", "function": "execute"},
         "schemas": {"input": "input.schema.json", "output": "output.schema.json"},
-        "method": {"id": "three_phase_impedance_voltage_drop", "version": "0.1.0"},
+        "method": {
+            "id": "three_phase_impedance_voltage_drop",
+            "version": "0.1.0",
+            "iterative": False,
+        },
         "execution": {
             "deterministic": True,
             "timeout_seconds": 5,

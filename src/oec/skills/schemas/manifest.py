@@ -13,7 +13,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from oec.common import SEMVER_PATTERN, VersionedRef
+from oec.common import SEMVER_PATTERN
 
 _SKILL_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$")
 
@@ -44,6 +44,24 @@ class SchemaRefs(BaseModel):
 
     input: str
     output: str
+
+
+class MethodRef(BaseModel):
+    """The numerical method a skill uses, and whether it converges iteratively.
+
+    ``iterative`` is required, not inferred: it is what lets
+    :func:`oec.execution.status.compute_status` tell "an exact method has
+    no convergence concept" apart from "an iterative method's
+    implementation forgot to report ``diagnostics['converged']``" — the
+    two are indistinguishable from a missing dict key alone. See
+    ``docs/architecture/adr/0013-method-convergence-declaration.md``.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    id: str
+    version: str
+    iterative: bool
 
 
 class ExecutionPolicy(BaseModel):
@@ -82,7 +100,7 @@ class SkillManifest(BaseModel):
     description: str = ""
     entrypoint: EntrypointSpec
     schemas: SchemaRefs
-    method: VersionedRef
+    method: MethodRef
     execution: ExecutionPolicy = ExecutionPolicy()
     validation: ValidationPolicy = ValidationPolicy()
     references: list[str] = []

@@ -8,11 +8,11 @@ from typing import Any
 
 import pytest
 
-from oec.common import VersionedRef
 from oec.skills.loader.frontmatter import SkillFrontMatter
 from oec.skills.loader.models import LoadedSkill
 from oec.skills.schemas.manifest import (
     EntrypointSpec,
+    MethodRef,
     SchemaRefs,
     SkillManifest,
     SkillStatus,
@@ -31,7 +31,7 @@ def _make_skill(*, input_schema: dict[str, Any] | None = None) -> LoadedSkill:
             title="Dimensional test skill",
             entrypoint=EntrypointSpec(module="implementation", function="execute"),
             schemas=SchemaRefs(input="input.schema.json", output="output.schema.json"),
-            method=VersionedRef(id="test", version="1"),
+            method=MethodRef(id="test", version="1", iterative=False),
         ),
         front_matter=SkillFrontMatter(
             id="test.dimensional_skill",

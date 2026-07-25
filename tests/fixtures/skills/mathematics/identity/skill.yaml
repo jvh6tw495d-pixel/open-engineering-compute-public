@@ -15,6 +15,7 @@ schemas:
 method:
   id: identity
   version: "1"
+  iterative: false
 
 execution:
   deterministic: true

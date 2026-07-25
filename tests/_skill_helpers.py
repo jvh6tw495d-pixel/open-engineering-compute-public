@@ -22,7 +22,7 @@ DEFAULT_MANIFEST: dict[str, Any] = {
     "title": "Identity",
     "entrypoint": {"module": "implementation", "function": "execute"},
     "schemas": {"input": "input.schema.json", "output": "output.schema.json"},
-    "method": {"id": "identity", "version": "1"},
+    "method": {"id": "identity", "version": "1", "iterative": False},
 }
 
 DEFAULT_FRONT_MATTER: dict[str, Any] = {
