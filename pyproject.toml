@@ -1,0 +1,79 @@
+[project]
+name = "oec"
+version = "0.1.0"
+description = "Open Engineering Compute — an open framework for executable, versioned and auditable engineering skills."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Open Engineering Compute contributors" }]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+  "pydantic>=2.7",
+  "numpy>=1.26",
+  "scipy>=1.13",
+  "sympy>=1.12",
+  "pint>=0.23",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.111", "uvicorn>=0.30"]
+cli = ["typer>=0.12", "rich>=13.7"]
+mcp = ["mcp>=1.0"]
+
+[project.scripts]
+oec = "oec.cli.main:app"
+
+[dependency-groups]
+dev = [
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+  "hypothesis>=6.108",
+  "pre-commit>=3.7",
+  "bandit>=1.7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/oec"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "N"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["oec"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src/oec"]
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=oec --cov-report=term-missing --cov-report=xml"
+
+[tool.coverage.run]
+source = ["src/oec"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 0
+show_missing = true
+
+[tool.bandit]
+targets = ["src/oec"]
