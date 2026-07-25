@@ -26,3 +26,8 @@ raw/
 
 .DS_Store
 Thumbs.db
+
+# ADR 0008: the master planning handbook is an external, private-adjacent
+# reference document. It must never enter this repo, tracked or not.
+OEC_MASTER_HANDBOOK.md
+OEC_PLANO_MESTRE_CLAUDE_CODE_GRAPHIFY_SPRINTS_v2.md
