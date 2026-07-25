@@ -11,7 +11,9 @@ import json
 import math
 from typing import Any
 
+import anyio
 import pytest
+from mcp import types as mcp_types
 
 from oec.mcp.server import (
     LIST_SKILLS_TOOL_NAME,
@@ -123,10 +125,44 @@ def test_build_server_registers_handlers(engine: Engine) -> None:
     server = build_server(engine)
     assert server.name == "oec"
     # Handlers are registered on the low-level Server request map.
-    from mcp import types as mcp_types
-
     assert mcp_types.ListToolsRequest in server.request_handlers
     assert mcp_types.CallToolRequest in server.request_handlers
+
+
+def test_registered_handler_reports_invalid_input_in_band(engine: Engine) -> None:
+    """Regression guard (independent review of Sprint 07): the mcp SDK's
+    call_tool() decorator pre-validates `arguments` against the tool's
+    inputSchema *before* the handler runs, by default -- for a schema
+    violation, that short-circuits straight to a bare isError=True
+    result with no ExecutionResult at all, silently diverging from
+    ADR 0005 (the SDK/CLI/REST all deliver a schema violation as an
+    in-band ExecutionStatus.INVALID, not a transport-level error).
+    build_server() registers with validate_input=False specifically so
+    OEC's own pipeline stays the source of truth for INVALID -- this
+    test drives the actual registered handler (server.request_handlers),
+    not the inner call_tool() function directly, which is exactly the
+    layer the original bug lived in and every other test in this file
+    bypasses."""
+    server = build_server(engine)
+    handler = server.request_handlers[mcp_types.CallToolRequest]
+
+    request = mcp_types.CallToolRequest(
+        params=mcp_types.CallToolRequestParams(
+            name="mathematics.solve_root",
+            arguments={
+                "expression": "x**2 - 2",
+                "bracket": [0, 2],
+                "unexpected_field": True,  # violates input.schema.json's additionalProperties
+            },
+        )
+    )
+    server_result = anyio.run(handler, request)
+
+    result = server_result.root
+    assert isinstance(result, mcp_types.CallToolResult)
+    assert result.isError is False
+    payload = json.loads(result.content[0].text)
+    assert payload["status"] == "INVALID"
 
 
 def test_run_stdio_server_warms_and_starts(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -160,6 +196,18 @@ def test_call_tool_oec_error_from_run_is_error_result(
     payload = _parse_content(result)
     assert payload["code"] == "skill_not_found"
     assert "message" in payload
+
+
+def test_call_tool_non_dict_arguments_fails_gracefully(engine: Engine) -> None:
+    """call_tool() is a public, directly-callable surface whose whole
+    point is 'never raise' -- a non-dict `arguments` (not reachable
+    through the real MCP transport, which types this as dict | None,
+    but reachable if called directly, as this test does) must not crash
+    it (independent review of Sprint 07)."""
+    result = call_tool(engine, "mathematics.solve_root", ["not", "a", "dict"])  # type: ignore[arg-type]
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "error" in payload
 
 
 def test_exports_from_package() -> None:

@@ -77,6 +77,18 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
         payload = [m.model_dump(mode="json", by_alias=True) for m in manifests]
         return CallToolResult(content=[_json_text(payload)], isError=False)
 
+    if not isinstance(arguments, dict):
+        # Not reachable through the real MCP transport today (the
+        # protocol layer types tool-call arguments as dict | None, and
+        # `handle_call_tool` already normalizes None to {}) -- guarded
+        # anyway since this function is a public, directly-callable
+        # surface whose whole point is "never raise, always return a
+        # result" (independent review of Sprint 07).
+        return _error_result(
+            f"'arguments' must be an object, got {type(arguments).__name__}",
+            details={"tool": name},
+        )
+
     try:
         engine.registry.get_skill(name)
     except OECError:
@@ -115,9 +127,23 @@ def build_server(engine: Engine) -> Server[Any, Any]:
     async def list_tools() -> list[Tool]:
         return build_tools(engine)
 
-    @server.call_tool()  # type: ignore
-    async def handle_call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
-        return call_tool(engine, name, arguments)
+    # validate_input=False: the mcp SDK otherwise pre-validates `arguments`
+    # against the tool's inputSchema *before* the handler runs, using a
+    # bare jsonschema check that short-circuits straight to an
+    # isError=True result with no ExecutionResult at all. Since each
+    # tool's inputSchema is the skill's own input.schema.json (ADR 0015
+    # §2), that framework-level rejection is exactly the schema-layer
+    # subset of ExecutionStatus.INVALID -- but delivered as a transport
+    # error instead of the in-band, structured outcome the SDK/CLI/REST
+    # all give it, breaking ADR 0005 conformance for invalid inputs
+    # specifically (independent review of Sprint 07 caught this: the
+    # conformance test called call_tool() directly, bypassing this
+    # framework layer entirely, so it never exercised the divergence).
+    # Disabling it hands classification back to OEC's own pipeline,
+    # which is the actual source of truth for what's INVALID.
+    @server.call_tool(validate_input=False)  # type: ignore
+    async def handle_call_tool(name: str, arguments: dict[str, Any] | None) -> CallToolResult:
+        return call_tool(engine, name, arguments or {})
 
     return server
 
