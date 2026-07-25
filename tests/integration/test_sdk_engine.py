@@ -47,11 +47,11 @@ def test_engine_caches_execution_service_per_skill() -> None:
     across repeated calls to the same skill, not rebuilt per call."""
     engine = sdk.Engine(skills_root="skills")
     engine.run("mathematics.solve_root", {"expression": "x - 1", "bracket": [0, 2]})
-    service_after_first = engine._services[("mathematics.solve_root", "0.1.0")]  # noqa: SLF001
+    service_after_first = engine._services[("mathematics.solve_root", "0.1.0")]
     engine.run("mathematics.solve_root", {"expression": "x - 2", "bracket": [0, 3]})
-    service_after_second = engine._services[("mathematics.solve_root", "0.1.0")]  # noqa: SLF001
+    service_after_second = engine._services[("mathematics.solve_root", "0.1.0")]
     assert service_after_first is service_after_second
-    assert len(engine._services) == 1  # noqa: SLF001
+    assert len(engine._services) == 1
 
 
 def test_engine_unknown_skill_raises() -> None:
@@ -107,10 +107,10 @@ def test_engine_warm_builds_every_skill_service_up_front() -> None:
     run() call -- required for REST/MCP so a skill's validator-discovery
     failure surfaces at startup, not on that skill's first request."""
     engine = sdk.Engine(skills_root="skills")
-    assert len(engine._services) == 0  # noqa: SLF001
+    assert len(engine._services) == 0
     engine.warm()
-    manifests = engine._registry.list_skills(include_retired=True)  # noqa: SLF001
-    assert len(engine._services) == len(manifests)  # noqa: SLF001
+    manifests = engine.registry.list_skills(include_retired=True)
+    assert len(engine._services) == len(manifests)
     assert len(manifests) >= 6  # the six MVP math skills, at minimum
 
 

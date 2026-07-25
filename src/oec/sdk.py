@@ -44,8 +44,8 @@ class Engine:
     """
 
     def __init__(self, skills_root: str | Path = "skills") -> None:
-        self._registry = SkillRegistry()
-        report = self._registry.register_all(Path(skills_root))
+        self.registry = SkillRegistry()
+        report = self.registry.register_all(Path(skills_root))
         # A broken skill directory (e.g. one under active development)
         # does not stop every other skill from running -- mirrors the CLI's
         # existing `skills list`/`inspect` behavior, which also tolerates
@@ -69,7 +69,7 @@ class Engine:
         first request.
         """
         with self._lock:
-            for manifest in self._registry.list_skills(include_retired=True):
+            for manifest in self.registry.list_skills(include_retired=True):
                 self._get_or_build_service_locked(manifest.id, manifest.version)
 
     def run(
@@ -92,7 +92,7 @@ class Engine:
         concurrent callers, an explicit Alpha-stage tradeoff.
         """
         with self._lock:
-            skill = self._registry.get_skill(skill_id, skill_version)
+            skill = self.registry.get_skill(skill_id, skill_version)
             service = self._get_or_build_service_locked(skill.manifest.id, skill.manifest.version)
 
             request_kwargs: dict[str, Any] = {
@@ -114,10 +114,10 @@ class Engine:
         cache_key = (skill_id, skill_version)
         service = self._services.get(cache_key)
         if service is None:
-            skill = self._registry.get_skill(skill_id, skill_version)
+            skill = self.registry.get_skill(skill_id, skill_version)
             input_validators, result_validators = build_validators(skill)
             service = ExecutionService(
-                self._registry,
+                self.registry,
                 input_validators=input_validators,
                 result_validators=result_validators,
             )
