@@ -19,6 +19,7 @@ repos:
           - pint>=0.23
           - jsonschema>=4.20
           - types-jsonschema>=4.20
+          - scipy-stubs>=1.13
         args: [--config-file=pyproject.toml]
         pass_filenames: false
 

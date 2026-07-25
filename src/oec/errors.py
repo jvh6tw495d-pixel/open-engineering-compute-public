@@ -92,3 +92,13 @@ class UnitError(OECValidationError):
     unit it is being normalized or compared against."""
 
     default_code = "unit_incompatible"
+
+
+class NumericalDomainError(OECValidationError):
+    """Raised when a numerical method's kernel call is malformed at the
+    mathematical domain level (e.g. a root-finding bracket that doesn't
+    actually bracket a sign change, an unknown method name). Distinct
+    from non-convergence, which is a valid diagnostic outcome (ADR 0007),
+    not an error the kernel raises."""
+
+    default_code = "numerical_domain_invalid"
