@@ -1,0 +1,13 @@
+{
+  "description": "Root of x^2 - 2 in [0, 2] (sqrt(2)), method auto-selected as brentq",
+  "input": {
+    "expression": "x**2 - 2",
+    "bracket": [0, 2]
+  },
+  "expected_output": {
+    "root": 1.4142135623730951,
+    "method": "brentq",
+    "iterations": 8,
+    "residual": 1.1723955140041653e-13
+  }
+}

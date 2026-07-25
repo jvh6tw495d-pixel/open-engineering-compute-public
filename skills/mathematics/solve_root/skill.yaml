@@ -1,0 +1,40 @@
+id: mathematics.solve_root
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Solve Root
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: scalar_root_finding
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Brent, R. P. (1973). Algorithms for Minimization Without Derivatives. Prentice-Hall, Chapter 4."
+  - "Burden, R. L., Faires, J. D. (2011). Numerical Analysis, 9th ed., Chapter 2."
+  - "SciPy documentation: scipy.optimize.brentq, bisect, newton"
+
+tags:
+  - mvp
+  - root-finding

@@ -1,0 +1,13 @@
+{
+  "description": "Same root as basic.json, but from an initial guess instead of a bracket (method auto-selected as secant)",
+  "input": {
+    "expression": "x**2 - 2",
+    "initial_guess": 1.0
+  },
+  "expected_output": {
+    "root": 1.414213562373095,
+    "method": "secant",
+    "iterations": 6,
+    "residual": 4.440892098500626e-16
+  }
+}
