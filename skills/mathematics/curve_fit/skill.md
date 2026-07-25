@@ -22,6 +22,17 @@ find `p*` minimizing `Σᵢ (yᵢ - f(xᵢ; p*))²` — ordinary (unweighted)
 nonlinear least squares. There is no support for per-point weighting
 (`sigma` in SciPy's terms) in this MVP — see "Known limitations".
 
+# Supported problem classes
+
+- **Unconstrained nonlinear least squares**: no `bounds` given; solved
+  by Levenberg-Marquardt (`lm`).
+- **Bounded nonlinear least squares**: `bounds` given on some or all
+  parameters; solved by Trust Region Reflective (`trf`, the default
+  bounded method) or `dogbox` if explicitly requested.
+
+See "Official methodology" below for the exact `lm`/`trf`/`dogbox`
+selection rule.
+
 # Required inputs
 
 - `model` (string): `f(x; parameter_names...)`. The independent
