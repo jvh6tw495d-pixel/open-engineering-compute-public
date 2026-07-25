@@ -3,7 +3,7 @@
 Living summary of OEC's structure. Updated at the end of each sprint (see
 `docs/development/graphify.md` for the tool used to help maintain it).
 
-## Main components (as of Sprint 06)
+## Main components (as of Sprint 07)
 
 | Component | Path | Status |
 |---|---|---|
@@ -12,9 +12,9 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
 | Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest`, `MethodRef` (`iterative: bool`, ADR 0013) |
 | Execution models | `src/oec/execution/models.py` | implemented |
 | Skill Loader/Registry/Lifecycle | `src/oec/skills/{loader,registry,lifecycle}/` | implemented |
-| CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}`, `oec run` (ADR 0014) |
-| **Public Python SDK** | `src/oec/sdk.py` | **implemented** — see below |
-| **Validator factory** | `src/oec/execution/factory.py` | **implemented** — see below |
+| CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}`, `oec run` (ADR 0014), `oec server {api,mcp}` (ADR 0015) |
+| Public Python SDK | `src/oec/sdk.py` | implemented — `Engine` now serializes executions and supports `.warm()` (ADR 0015) |
+| Validator factory | `src/oec/execution/factory.py` | implemented |
 | Units kernel | `src/oec/kernel/units/` | implemented, not yet wired into a real skill's schema |
 | Numerics kernel | `src/oec/kernel/numerics/{expressions,root_finding}.py` | implemented |
 | Optimization kernel | `src/oec/kernel/optimization/{diagnostics,scalar,constrained,curve_fit}.py` | implemented |
@@ -23,8 +23,8 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
 | Execution Service | `src/oec/execution/{service,runner,sandbox,status,provenance}.py` | implemented |
 | Testing SDK | `src/oec/testing.py` | implemented |
 | MVP skills (6 of 12 planned math skills) | `skills/mathematics/{solve_root,interpolate,integrate,optimize_scalar,optimize_constrained,curve_fit}/` | implemented |
-| REST API | `src/oec/api/` | empty, scaffolded for Sprint 07 |
-| MCP adapter | `src/oec/mcp/` | empty, scaffolded for Sprint 07 |
+| **REST API** | `src/oec/api/app.py` | **implemented** — see below |
+| **MCP server** | `src/oec/mcp/server.py` | **implemented** — see below |
 
 ### Numerics kernel, module by module
 
@@ -126,6 +126,62 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
   `normalized_inputs` for `max_iterations`/`tolerance` and falls back
   across the real key names skills use (`n_iterations`, `abs_error`,
   a `residuals` list's max magnitude).
+
+### REST API and MCP server (Sprint 07, new; ADR 0015)
+
+Both are thin adapters over one shared, warmed `oec.sdk.Engine` — no
+new validator-wiring story, no scientific-content reshaping (ADR 0005).
+
+- **`src/oec/api/app.py`** — `create_app(skills_root)` returns a
+  FastAPI app; a `lifespan` handler builds and `.warm()`s one `Engine`
+  for the app's whole lifetime. `GET /health`, `GET /skills` (wraps
+  `registry.search`), `GET /skills/{skill_id}` (404 on miss), `POST
+  /skills/{skill_id}/run`. Status codes are transport-only: `200` with
+  the full `ExecutionResult` body even for `INVALID`/`FAILED`/
+  `INCONCLUSIVE` (those are scientific outcomes read from `body.status`,
+  not transport failures); `404` unresolvable skill; `422` a request
+  body that doesn't even parse (`RunRequest` forbids extra fields).
+  `oec server api --host --port` launches it via `uvicorn.run()`.
+- **`src/oec/mcp/server.py`** — `build_tools(engine)` returns one MCP
+  `Tool` per registered skill (name = skill id, `inputSchema` = that
+  skill's own real `input.schema.json`, not a hand-written copy) plus a
+  fixed `list_skills` discovery tool. `call_tool(engine, name,
+  arguments)` dispatches by name and returns the full `ExecutionResult`
+  JSON as a single text content block. Uses the **low-level** MCP
+  `Server` API, not the `FastMCP` convenience wrapper — `FastMCP`
+  derives a tool's schema from a Python function's type annotations and
+  cannot accept an arbitrary pre-built JSON Schema dict, which is
+  exactly what's needed here. `run_stdio_server(skills_root)` is the
+  entrypoint (`oec server mcp`): builds + warms an `Engine`, serves over
+  stdio. Built by Grok in an isolated worktree in parallel with the REST
+  API (Claude Code) — the first successful Grok parallel handoff since
+  Sprint 04 (blocked by the environment's permission classifier in
+  Sprints 05 and 06; see "Decisions").
+- **`oec.sdk.Engine` now serializes every execution through one lock**
+  (`threading.Lock`, added this sprint): at most one skill subprocess
+  runs at a time per `Engine` instance, regardless of how many
+  concurrent REST/MCP callers share it. Direct consequence of ADR 0012's
+  own forward-reference ("execução síncrona no Alpha... revisit if
+  Sprint 07's REST API needs to run many executions concurrently") —
+  with zero OS-level resource isolation per subprocess, unbounded
+  concurrency is a resource-exhaustion risk this project has no
+  sandboxing story for yet. Also fixes a real bug: the `_services` cache
+  was previously a plain `dict` with no protection against concurrent
+  first-calls to the same skill racing to build it.
+- **`Engine.warm()`** (added this sprint) — eagerly builds every
+  registered skill's `ExecutionService`/validators at startup instead
+  of lazily on first call, so a skill's validator-discovery failure
+  (`SkillEntrypointError`, ADR 0014) surfaces at server boot, not
+  mid-request. Optional for `oec run` (one skill, one process — nothing
+  to warm ahead of that); required for REST/MCP's startup hook.
+- **`tests/integration/test_adr0005_conformance.py`** — the acceptance
+  bar ADR 0005 names for every interface, exercised across all four
+  (SDK, CLI, REST, MCP) at once for the first time: the same
+  `ExecutionRequest` must agree on status, numeric result, method
+  identity, and `diagnostics.converged`, for both a converged case and
+  an `INVALID` case (confirming transport-level differences — CLI exit
+  code, HTTP status, MCP `isError` — are still allowed to differ while
+  the scientific content doesn't).
 
 ### `oec.testing` — a small public testing SDK
 
@@ -234,11 +290,15 @@ below.
   "bracket": [0, 2]}'` executes through the real `Engine`/
   `ExecutionService`/sandboxed subprocess, not a mock. `oec skills list
   --skills-root skills` lists all 6 real MVP skills.
-- **`oec.sdk.Engine`/`oec.sdk.run`** (new this sprint) — the public
-  Python SDK; `import oec; result = oec.sdk.run("mathematics.solve_root",
+- **`oec.sdk.Engine`/`oec.sdk.run`** — the public Python SDK;
+  `import oec; result = oec.sdk.run("mathematics.solve_root",
   {...}, skills_root="skills")` or a longer-lived
   `oec.sdk.Engine(skills_root="skills")` for repeated calls.
-- No HTTP or MCP entrypoint yet (Sprint 07).
+- **`oec server api`/`oec server mcp`** (new this sprint, ADR 0015) —
+  REST (`uvicorn`) and MCP (stdio) servers, both requiring their
+  respective optional extras (`uv sync --extra api` / `--extra mcp`);
+  `oec.cli.main` imports `fastapi`/`uvicorn`/`mcp` lazily inside each
+  command so the base install (no extras) never needs them.
 
 ## Execution flow (current state)
 
@@ -316,17 +376,34 @@ picture with the electrical skills (Sprint 08).
   result, `2`/`INCONCLUSIVE`, `3`/`INVALID`, `4`/`FAILED`, `1` for a
   CLI-level error that never produced an `ExecutionResult` (unknown
   skill, malformed `--input` JSON).
-- **Grok's autonomous CLI launch was blocked this sprint** (Sprint 05):
+- **Grok's autonomous CLI launch was blocked in Sprints 05 and 06**:
   `grok -p ... --always-approve` and `--permission-mode auto` were both
-  denied by this environment's own permission classifier, unrelated to
-  Grok itself — it had worked in Sprint 04. `math.optimize_constrained`
-  and `math.curve_fit` (planned as a Claude Code / Grok parallel split,
-  per the same pattern that worked for `interpolate`/`integrate`) were
-  both built by Claude Code solo instead, sequentially, directly on
-  `main` (no worktree needed without a second parallel agent). Not a
-  structural repo issue — flagged here so a future sprint's
-  orchestration plan doesn't assume Grok delegation is unconditionally
-  available in every environment.
+  denied by this environment's own permission classifier both times,
+  unrelated to Grok itself — it had worked in Sprint 04. Both sprints'
+  work was built by Claude Code solo instead. **A cheap re-probe at the
+  start of Sprint 07 Fase B (`grok -p "print ok" --permission-mode
+  auto`, ~2 minutes) succeeded** — the block was not permanent/
+  environment-fixed. Grok built the MCP server (Track 2) in an isolated
+  worktree while Claude Code built the REST API (Track 1) in parallel,
+  the first successful Grok handoff since Sprint 04. Lesson for future
+  sprints: re-probe cheaply each time rather than assuming either
+  "always blocked" or "always available" from the last sprint's result.
+- **`oec.sdk.Engine.run()` serializes all executions through one lock**
+  (ADR 0015) — see "REST API and MCP server" above. This is an
+  Alpha-stage concurrency bound, not a performance target; revisit only
+  alongside real OS-level sandboxing (ADR 0012's deferred hardening
+  sprint), which is the actual prerequisite for safe concurrent
+  execution, not a locking strategy change.
+- **REST status codes are transport-only** (ADR 0015 §1) — `200` even
+  for `INVALID`/`FAILED`/`INCONCLUSIVE`. Deliberately diverges from
+  `oec run`'s exit-code model (ADR 0014), because HTTP responses always
+  have a body to inspect while a shell exit code is the only signal
+  available without one.
+- **MCP exposes one tool per skill** (ADR 0015 §2), not a single
+  generic `run_skill(skill_id, inputs)` tool — makes every skill a
+  self-describing MCP tool with its own real input schema, matching the
+  project's skill-first thesis (ADR 0001), at the cost of the tool list
+  growing with the skill catalog (6 tools today).
 
 ## Known structural debt
 
@@ -337,8 +414,13 @@ picture with the electrical skills (Sprint 08).
 - Development telemetry (plan section 19: cost per accepted task) still
   not implemented — flagged by the independent Sprint 00-02 review,
   still open.
-- No `docs/skills/`, `docs/api/`, `docs/mcp/`, `docs/integrations/`,
-  `docs/contributing/`, `docs/concepts/` content yet.
+- No `docs/skills/`, `docs/integrations/`, `docs/contributing/`,
+  `docs/concepts/` content yet (`docs/api/`, `docs/mcp/` landed this
+  sprint).
+- No authentication or rate-limiting on the REST API/MCP server (ADR
+  0015 §4, explicit MVP scope decision) — do not expose either to an
+  untrusted network as shipped. The concurrency lock (`Engine.run()`)
+  is a resource-exhaustion floor, not access control.
 - `mathematics.curve_fit` has no per-point weighting (`sigma`) or
   `tolerance` override — documented as an explicit MVP scope decision
   in its `skill.md`, not an oversight.
