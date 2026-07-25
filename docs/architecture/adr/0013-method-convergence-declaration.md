@@ -66,3 +66,35 @@ required declarations, not one guessed from the other's absence.
   update `iterative` for a different method gets a loud `FAILED` on the
   first real execution that omits `diagnostics["converged"]`, not a
   silently wrong `VERIFIED` months later.
+
+## Amendment (Sprint 05, independent review)
+
+`math.integrate` (Sprint 04) exposed a real gap: it has two internal
+modes under one manifest — an adaptive function mode and an exact,
+closed-form tabulated mode — but `method.iterative` is a single
+skill-level flag. Declaring `iterative: true` (correct for the adaptive
+mode) meant the tabulated mode's exact, deterministic result got
+`VALIDATED` instead of `VERIFIED`, even though `mathematics.interpolate`
+— an equally exact, closed-form computation — correctly gets `VERIFIED`.
+Same mathematical honesty, different status, purely because of which
+skill happened to house the computation.
+
+Fix: `diagnostics["converged"]` may now be **present but explicitly
+`null`**, meaning "this specific call was exact, not iterative" —
+distinct from the key being *missing entirely*, which is still the
+contract violation this ADR defines (`FAILED`). This makes the
+convergence signal per-call, not just per-skill:
+
+- Key entirely absent, `method.iterative: true` → `FAILED` (unchanged:
+  a genuinely iterative method must always report *something*).
+- Key present, value `true`/`false` → the call was iterative and either
+  converged or didn't → `VALIDATED`/`INCONCLUSIVE` territory (unchanged).
+- Key present, value `null` → this call, though it belongs to a skill
+  capable of iterative methods, was itself computed exactly → treated
+  identically to an `iterative: false` skill's result → eligible for
+  `VERIFIED`.
+
+`method.iterative: true` still means what it always meant — "this skill
+can run an iterative method and must not silently omit convergence
+reporting" — it no longer forces every call from that skill into the
+weaker status tier when a specific call happens to be exact.

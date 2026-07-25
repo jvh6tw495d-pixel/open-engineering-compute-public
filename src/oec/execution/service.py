@@ -118,7 +118,13 @@ class ExecutionService:
                             "timed_out": False,
                         }
                     else:
-                        converged = bool(diagnostics["converged"])
+                        raw_converged = diagnostics["converged"]
+                        # A present-but-null value means "this specific call was
+                        # exact, not iterative" (e.g. integrate's tabulated mode
+                        # under a skill whose *other* mode is adaptive) -- see
+                        # ADR 0013's amendment. Only an entirely missing key is
+                        # the contract violation handled above.
+                        converged = None if raw_converged is None else bool(raw_converged)
 
         status = compute_status(
             outcomes,
