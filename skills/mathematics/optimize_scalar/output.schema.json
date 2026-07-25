@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.optimize_scalar output",
+  "type": "object",
+  "properties": {
+    "x": { "type": "number" },
+    "fun": { "type": "number" },
+    "method": { "type": "string", "enum": ["bounded", "brent", "golden"] },
+    "iterations": { "type": "integer", "minimum": 0 },
+    "function_evaluations": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["x", "fun", "method", "iterations", "function_evaluations"],
+  "additionalProperties": false
+}

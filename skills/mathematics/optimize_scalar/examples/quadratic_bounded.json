@@ -1,0 +1,15 @@
+{
+  "description": "Minimize (x-3)^2 on [0, 10]; the unconstrained global minimum (x=3) lies inside the bounds, so bounded Brent finds it exactly.",
+  "input": {
+    "expression": "(x - 3)**2",
+    "bounds": [0, 10],
+    "method": "bounded"
+  },
+  "expected_output": {
+    "x": 3.0,
+    "fun": 0.0,
+    "method": "bounded",
+    "iterations": 6,
+    "function_evaluations": 6
+  }
+}
