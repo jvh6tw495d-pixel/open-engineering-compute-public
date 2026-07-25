@@ -17,11 +17,13 @@ dependencies = [
   "scipy>=1.13",
   "sympy>=1.12",
   "pint>=0.23",
+  "pyyaml>=6.0",
+  "typer>=0.12",
+  "rich>=13.7",
 ]
 
 [project.optional-dependencies]
 api = ["fastapi>=0.111", "uvicorn>=0.30"]
-cli = ["typer>=0.12", "rich>=13.7"]
 mcp = ["mcp>=1.0"]
 
 [project.scripts]
@@ -36,6 +38,7 @@ dev = [
   "hypothesis>=6.108",
   "pre-commit>=3.7",
   "bandit>=1.7",
+  "types-PyYAML>=6.0",
 ]
 
 [build-system]
