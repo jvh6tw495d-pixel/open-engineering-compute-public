@@ -7,9 +7,6 @@
   },
   "expected_output": {
     "x": [0.0, 0.0],
-    "fun": 0.0,
-    "method": "SLSQP",
-    "iterations": 2,
-    "function_evaluations": 7
+    "fun": 0.0
   }
 }

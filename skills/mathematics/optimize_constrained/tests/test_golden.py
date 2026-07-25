@@ -34,9 +34,16 @@ def _golden_from_example(filename: str, *, tolerance: float = 1e-6) -> GoldenCas
 
 
 def test_unconstrained_quadratic_matches_example() -> None:
+    """Only x/fun are checked against the golden case -- the independently
+    known values. method/iterations/function_evaluations are this
+    implementation's own observed diagnostics, not pinned here: tying a
+    mathematical correctness check to SciPy's exact internal call count
+    is a false-regression risk with no correctness signal (independent
+    review of Sprint 05)."""
     golden = _golden_from_example("unconstrained_quadratic.json", tolerance=1e-6)
     out = implementation.execute(golden.inputs)
-    assert_matches_golden(out["result"], golden)
+    assert_matches_golden({"x": out["result"]["x"], "fun": out["result"]["fun"]}, golden)
+    assert out["result"]["method"] == "SLSQP"
     assert out["diagnostics"]["converged"] is True
     assert out["diagnostics"]["feasible"] is None  # SLSQP + no constraints: nothing measured
 
@@ -46,7 +53,7 @@ def test_constrained_quadratic_matches_example() -> None:
     fun=0.5, independent of SciPy (see skill.md 'Worked examples')."""
     golden = _golden_from_example("constrained_quadratic.json", tolerance=1e-6)
     out = implementation.execute(golden.inputs)
-    assert_matches_golden(out["result"], golden)
+    assert_matches_golden({"x": out["result"]["x"], "fun": out["result"]["fun"]}, golden)
     assert out["diagnostics"]["converged"] is True
     assert out["diagnostics"]["feasible"] is True
     assert out["diagnostics"]["constraint_violation"] < 1e-6

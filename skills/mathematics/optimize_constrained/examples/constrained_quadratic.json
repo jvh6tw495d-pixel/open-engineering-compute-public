@@ -11,9 +11,6 @@
   },
   "expected_output": {
     "x": [0.5, 0.5],
-    "fun": 0.5,
-    "method": "SLSQP",
-    "iterations": 3,
-    "function_evaluations": 10
+    "fun": 0.5
   }
 }

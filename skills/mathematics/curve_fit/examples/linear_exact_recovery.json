@@ -8,8 +8,6 @@
     "initial_guess": [1.0, 1.0]
   },
   "expected_output": {
-    "params": [2.0, 1.0],
-    "method": "lm",
-    "function_evaluations": 7
+    "params": [2.0, 1.0]
   }
 }

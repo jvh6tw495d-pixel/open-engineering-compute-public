@@ -1,13 +1,10 @@
 {
-  "description": "Minimize (x-2)^2 with no bounds; method omitted, auto-selects unbounded brent (no bracket given).",
+  "description": "Minimize (x-2)^2 with no bounds; method omitted, auto-selects unbounded brent (no bracket given). The closed-form minimum is x=2, fun=0 exactly.",
   "input": {
     "expression": "(x - 2)**2"
   },
   "expected_output": {
-    "x": 1.9999999999999998,
-    "fun": 4.930380657631324e-32,
-    "method": "brent",
-    "iterations": 4,
-    "function_evaluations": 8
+    "x": 2.0,
+    "fun": 0.0
   }
 }

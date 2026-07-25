@@ -32,17 +32,27 @@ def _golden_from_example(filename: str, *, tolerance: float = 1e-6) -> GoldenCas
 
 
 def test_quadratic_bounded_matches_example() -> None:
-    """Global minimum of an unconstrained quadratic, found by bounded Brent."""
+    """Global minimum of an unconstrained quadratic, found by bounded Brent.
+
+    Only x/fun are checked against the golden case -- they're the
+    independently-derivable values. method/iterations/function_evaluations
+    are this implementation's own observed diagnostics (recorded in
+    skill.md's worked examples for reference, not asserted here): pinning
+    a solver's internal call count in a golden test ties a mathematical
+    correctness check to SciPy's exact internals, which can change across
+    versions with zero change in correctness (independent review)."""
     golden = _golden_from_example("quadratic_bounded.json")
-    actual = implementation.execute(golden.inputs)["result"]
-    assert_matches_golden(actual, golden)
-    assert implementation.execute(golden.inputs)["diagnostics"]["converged"] is True
+    out = implementation.execute(golden.inputs)
+    assert_matches_golden({"x": out["result"]["x"], "fun": out["result"]["fun"]}, golden)
+    assert out["result"]["method"] == "bounded"
+    assert out["diagnostics"]["converged"] is True
 
 
 def test_quadratic_unbounded_brent_matches_example() -> None:
     golden = _golden_from_example("quadratic_unbounded_brent.json")
-    actual = implementation.execute(golden.inputs)["result"]
-    assert_matches_golden(actual, golden)
+    out = implementation.execute(golden.inputs)
+    assert_matches_golden({"x": out["result"]["x"], "fun": out["result"]["fun"]}, golden)
+    assert out["result"]["method"] == "brent"
 
 
 def test_double_well_left_local_minimum() -> None:

@@ -36,9 +36,15 @@ def _golden_from_example(filename: str, *, tolerance: float = 1e-6) -> GoldenCas
 
 
 def test_linear_exact_recovery_matches_example() -> None:
+    """Only params is checked against the golden case -- the
+    independently known true parameters. method/function_evaluations
+    are this implementation's own observed diagnostics, not pinned here:
+    tying a mathematical correctness check to SciPy's exact internal
+    call count is a false-regression risk with no correctness signal
+    (independent review of Sprint 05)."""
     golden = _golden_from_example("linear_exact_recovery.json", tolerance=1e-6)
     out = implementation.execute(golden.inputs)
-    assert_matches_golden(out["result"], golden)
+    assert_matches_golden({"params": out["result"]["params"]}, golden)
     assert out["diagnostics"]["converged"] is True
     assert all(abs(r) < 1e-6 for r in out["diagnostics"]["residuals"])
 
@@ -46,7 +52,7 @@ def test_linear_exact_recovery_matches_example() -> None:
 def test_sinusoid_exact_recovery_matches_example() -> None:
     golden = _golden_from_example("sinusoid_exact_recovery.json", tolerance=1e-4)
     out = implementation.execute(golden.inputs)
-    assert_matches_golden(out["result"], golden)
+    assert_matches_golden({"params": out["result"]["params"]}, golden)
     assert out["diagnostics"]["converged"] is True
     assert all(abs(r) < 1e-4 for r in out["diagnostics"]["residuals"])
 

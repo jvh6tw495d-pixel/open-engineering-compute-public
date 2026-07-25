@@ -7,9 +7,6 @@
   },
   "expected_output": {
     "x": 3.0,
-    "fun": 0.0,
-    "method": "bounded",
-    "iterations": 6,
-    "function_evaluations": 6
+    "fun": 0.0
   }
 }
