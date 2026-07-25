@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-engineering-compute.local/schemas/method-change-proposal.json",
+  "title": "Method Change Proposal",
+  "description": "Open Science proposal to change an OEC skill's methodology, formulation, validation, or references. Never applied automatically to a stable skill.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposal_id",
+    "schema_version",
+    "status",
+    "target_skill_id",
+    "target_skill_version",
+    "title",
+    "summary",
+    "rationale",
+    "proposed_changes",
+    "evidence",
+    "author",
+    "created_at"
+  ],
+  "properties": {
+    "proposal_id": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Stable identifier for this proposal (e.g. mcp-2026-001)."
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted",
+        "under_review",
+        "approved",
+        "rejected",
+        "experimental_landed",
+        "closed"
+      ],
+      "description": "Human-driven workflow state. experimental_landed means a non-stable experimental version was produced; stable is never written by this pipeline alone."
+    },
+    "target_skill_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "target_skill_version": {
+      "type": "string",
+      "description": "Semver of the skill version this proposal critiques or extends."
+    },
+    "title": { "type": "string", "minLength": 5 },
+    "summary": { "type": "string", "minLength": 10 },
+    "rationale": {
+      "type": "string",
+      "minLength": 20,
+      "description": "Scientific or engineering justification."
+    },
+    "proposed_changes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "description"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "methodology",
+            "formulation",
+            "validation",
+            "references",
+            "assumptions",
+            "limits",
+            "implementation",
+            "other"
+          ]
+        },
+        "description": { "type": "string", "minLength": 10 },
+        "new_method_id": { "type": "string" },
+        "new_method_version": { "type": "string" },
+        "affects_public_contract": {
+          "type": "boolean",
+          "description": "If true, a stable skill requires a major version bump after human approval."
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "citation"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "reference",
+              "benchmark",
+              "golden_case",
+              "counterexample",
+              "review_note",
+              "other"
+            ]
+          },
+          "citation": { "type": "string", "minLength": 3 },
+          "url": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "benchmark_plan": {
+      "type": "string",
+      "description": "How the experimental implementation will be compared (optional at draft)."
+    },
+    "human_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reviewer": { "type": "string" },
+        "decision": {
+          "type": "string",
+          "enum": ["approve", "reject", "request_changes"]
+        },
+        "notes": { "type": "string" },
+        "reviewed_at": { "type": "string" }
+      }
+    },
+    "experimental_skill_version": {
+      "type": "string",
+      "description": "If experimental_landed, the new experimental skill version id created (never auto-stable)."
+    },
+    "author": { "type": "string", "minLength": 1 },
+    "created_at": {
+      "type": "string",
+      "description": "ISO-8601 timestamp."
+    },
+    "updated_at": { "type": "string" }
+  }
+}

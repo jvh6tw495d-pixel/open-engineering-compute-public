@@ -1,0 +1,17 @@
+{
+  "$schema_comment": "Placeholder for a remote/streamable OEC MCP endpoint. Alpha ships stdio only (ADR 0015); fill this in when Streamable HTTP is enabled.",
+  "mcpServers": {
+    "oec-remote": {
+      "url": "https://oec.example.internal/mcp",
+      "transport": "streamable-http",
+      "headers": {
+        "Authorization": "Bearer ${OEC_MCP_TOKEN}"
+      }
+    }
+  },
+  "notes": [
+    "Not supported in the private Alpha stdio-only build.",
+    "When enabled, still treat the server as untrusted-network-unsafe until auth/rate-limit land.",
+    "Prefer local-mcp.example.json for development."
+  ]
+}

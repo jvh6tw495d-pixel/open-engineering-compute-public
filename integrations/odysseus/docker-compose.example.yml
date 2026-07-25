@@ -1,0 +1,22 @@
+# Optional sidecar: run OEC MCP over stdio is host-local; this compose
+# file instead exposes the thin REST API (same Engine, ADR 0005) for
+# hosts that prefer HTTP during development.
+#
+#   docker compose -f integrations/odysseus/docker-compose.example.yml up
+#
+# Then point tools at http://localhost:8080/v1/...
+# MCP stdio remains the primary Odysseus path (see local-mcp.example.json).
+
+services:
+  oec-api:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ../..:/app
+    command: >
+      bash -lc "pip install -e '.[api]' &&
+      oec server api --host 0.0.0.0 --port 8080 --skills-root skills"
+    ports:
+      - "8080:8080"
+    environment:
+      PYTHONUNBUFFERED: "1"
