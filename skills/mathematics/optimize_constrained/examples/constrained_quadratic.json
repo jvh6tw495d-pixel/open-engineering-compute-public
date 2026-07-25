@@ -1,0 +1,19 @@
+{
+  "description": "Classic textbook example: minimize x^2 + y^2 subject to x+y >= 1. By symmetry of the objective and the constraint, the constrained minimum lies on x=y at the constraint boundary x+y=1, i.e. (0.5, 0.5), fun=0.5 -- derivable independently via Lagrange multipliers (grad f = lambda * grad g at the active constraint).",
+  "input": {
+    "variables": ["x", "y"],
+    "expression": "x**2 + y**2",
+    "x0": [0.0, 0.0],
+    "bounds": [[-10, 10], [-10, 10]],
+    "constraints": [
+      { "type": "ineq", "expression": "x + y - 1" }
+    ]
+  },
+  "expected_output": {
+    "x": [0.5, 0.5],
+    "fun": 0.5,
+    "method": "SLSQP",
+    "iterations": 3,
+    "function_evaluations": 10
+  }
+}

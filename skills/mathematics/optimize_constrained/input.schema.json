@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.optimize_constrained input",
+  "type": "object",
+  "properties": {
+    "variables": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "decision variable names, in order; referenced by expression and constraints[].expression"
+    },
+    "expression": {
+      "type": "string",
+      "minLength": 1,
+      "description": "f(variables...) to minimize, using the names declared in 'variables'"
+    },
+    "x0": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1,
+      "description": "initial guess; same length and order as 'variables'"
+    },
+    "bounds": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": ["number", "null"] },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "description": "[lo, hi] per variable, same length/order as 'variables'; null means unbounded on that side"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["eq", "ineq"] },
+          "expression": {
+            "type": "string",
+            "minLength": 1,
+            "description": "g(variables...); type=eq means g(x)==0, type=ineq means g(x)>=0 (SciPy's convention)"
+          }
+        },
+        "required": ["type", "expression"],
+        "additionalProperties": false
+      }
+    },
+    "method": {
+      "type": "string",
+      "enum": ["SLSQP", "trust-constr"]
+    },
+    "tolerance": { "type": "number", "exclusiveMinimum": 0 },
+    "max_iterations": { "type": "integer", "exclusiveMinimum": 0 }
+  },
+  "required": ["variables", "expression", "x0"],
+  "additionalProperties": false
+}

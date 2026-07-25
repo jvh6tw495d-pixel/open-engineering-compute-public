@@ -1,0 +1,41 @@
+id: mathematics.optimize_constrained
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Optimize Constrained
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: constrained_minimization
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Nocedal, J., Wright, S. J. (2006). Numerical Optimization, 2nd ed., Chapter 18 (SQP methods)."
+  - "Himmelblau, D. M. (1972). Applied Nonlinear Programming. McGraw-Hill (source of the four-minima test function used in this skill's multi-minima golden cases)."
+  - "SciPy documentation: scipy.optimize.minimize (method='SLSQP', method='trust-constr')."
+
+tags:
+  - mvp
+  - optimization
+  - constrained

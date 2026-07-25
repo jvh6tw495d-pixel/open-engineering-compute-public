@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.optimize_constrained output",
+  "type": "object",
+  "properties": {
+    "x": { "type": "array", "items": { "type": "number" } },
+    "fun": { "type": "number" },
+    "method": { "type": "string", "enum": ["SLSQP", "trust-constr"] },
+    "iterations": { "type": "integer", "minimum": 0 },
+    "function_evaluations": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["x", "fun", "method", "iterations", "function_evaluations"],
+  "additionalProperties": false
+}
