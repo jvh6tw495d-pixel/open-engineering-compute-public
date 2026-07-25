@@ -47,7 +47,10 @@ def test_tabulated_x_squared_matches_example() -> None:
     golden = _golden_from_example("tabulated_x_squared.json")
     actual = implementation.execute(golden.inputs)["result"]
     assert_matches_golden(actual, golden)
-    assert implementation.execute(golden.inputs)["diagnostics"]["converged"] is True
+    # ADR 0013 amendment: tabulated mode is exact, so `converged` is a
+    # present-but-null "not applicable" signal, not `True` -- eligible
+    # for VERIFIED just like an iterative:false skill's result.
+    assert implementation.execute(golden.inputs)["diagnostics"]["converged"] is None
     assert implementation.execute(golden.inputs)["diagnostics"]["method"] == "simpson"
 
 
@@ -82,7 +85,26 @@ def test_tabulated_trapezoid_two_points_of_linear() -> None:
     out = implementation.execute(golden.inputs)
     assert_matches_golden(out["result"], golden)
     assert out["diagnostics"]["method"] == "trapezoid"
-    assert out["diagnostics"]["converged"] is True
+    assert out["diagnostics"]["converged"] is None
+
+
+def test_quadpack_problem_is_reported_not_masked() -> None:
+    """A genuinely hard integrand (oscillatory near 0, tight tolerance)
+    makes QUADPACK hit its subdivision limit -- converged must be False
+    and the reason must be surfaced, not hidden behind a small abs_error
+    (independent review of Sprint 04: relying on abs_error<=tolerance
+    alone is a false-convergence risk for exactly this class of integrand)."""
+    out = implementation.execute(
+        {
+            "expression": "sin(1/x)",
+            "bounds": [0.0001, 1.0],
+            "epsabs": 1e-14,
+            "epsrel": 1e-14,
+        }
+    )
+    assert out["diagnostics"]["converged"] is False
+    assert "quadpack_message" in out["diagnostics"]
+    assert "subdivisions" in out["diagnostics"]["quadpack_message"]
 
 
 def test_function_sin_uses_math_pi_bound() -> None:

@@ -61,7 +61,7 @@ def test_tabulated_simpson_exact_on_quadratic(n: int, a: float, width: float) ->
     out = implementation.execute({"x": xs, "y": ys})
     expected = (b**3 - a**3) / 3.0
     assert out["result"]["mode"] == "tabulated"
-    assert out["diagnostics"]["converged"] is True
+    assert out["diagnostics"]["converged"] is None  # exact, per-call (ADR 0013 amendment)
     assert out["diagnostics"]["method"] == "simpson"
     assert math.isclose(out["result"]["value"], expected, rel_tol=1e-9, abs_tol=1e-9)
 
@@ -83,7 +83,7 @@ def test_tabulated_two_points_uses_trapezoid(a: float, b: float, ya: float, yb: 
     out = implementation.execute({"x": [a, b], "y": [ya, yb]})
     expected = (b - a) * (ya + yb) / 2.0
     assert out["diagnostics"]["method"] == "trapezoid"
-    assert out["diagnostics"]["converged"] is True
+    assert out["diagnostics"]["converged"] is None  # exact, per-call (ADR 0013 amendment)
     assert math.isclose(out["result"]["value"], expected, rel_tol=1e-9, abs_tol=1e-9)
 
 

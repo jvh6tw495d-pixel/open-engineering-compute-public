@@ -64,10 +64,13 @@ def test_integrate_tabulated_simpson_end_to_end() -> None:
             },
         )
     )
-    assert result.status is ExecutionStatus.VALIDATED
+    # Tabulated mode is exact -- ADR 0013 amendment: a present-but-null
+    # `converged` is eligible for VERIFIED, not held to VALIDATED just
+    # because the skill also has an adaptive function mode.
+    assert result.status is ExecutionStatus.VERIFIED
     assert math.isclose(result.result["value"], 1.0 / 3.0, rel_tol=1e-9, abs_tol=1e-9)
     assert result.result["mode"] == "tabulated"
-    assert result.diagnostics["converged"] is True
+    assert result.diagnostics["converged"] is None
     assert result.diagnostics["method"] == "simpson"
 
 
