@@ -7,6 +7,8 @@ test_*_end_to_end.py files -- this is what those would collapse into).
 from __future__ import annotations
 
 import math
+import shutil
+from pathlib import Path
 
 import pytest
 
@@ -54,6 +56,24 @@ def test_engine_unknown_skill_raises() -> None:
     engine = sdk.Engine(skills_root="skills")
     with pytest.raises(SkillNotFoundError):
         engine.run("mathematics.not_a_real_skill", {})
+
+
+def test_engine_tolerates_broken_sibling_skill(tmp_path: Path) -> None:
+    """A broken skill directory elsewhere under skills_root must not
+    prevent Engine from running an unrelated, healthy skill -- mirrors
+    `oec skills list`'s existing tolerance for individual registration
+    failures (src/oec/cli/main.py::_load_registry)."""
+    skills_copy = tmp_path / "skills"
+    shutil.copytree("skills", skills_copy)
+    broken_dir = skills_copy / "mathematics" / "broken_skill"
+    broken_dir.mkdir()
+    (broken_dir / "skill.yaml").write_text("not: [valid, skill, yaml: shape", encoding="utf-8")
+
+    engine = sdk.Engine(skills_root=skills_copy)
+
+    assert len(engine.registration_failures) == 1
+    result = engine.run("mathematics.solve_root", {"expression": "x - 1", "bracket": [0, 2]})
+    assert result.status is ExecutionStatus.VALIDATED
 
 
 def test_module_level_run_convenience() -> None:

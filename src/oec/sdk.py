@@ -38,12 +38,14 @@ class Engine:
     def __init__(self, skills_root: str | Path = "skills") -> None:
         self._registry = SkillRegistry()
         report = self._registry.register_all(Path(skills_root))
-        if report.failures:
-            failed = ", ".join(f"{f.path}: {f.error}" for f in report.failures)
-            raise report.failures[0].error.__class__(
-                f"{len(report.failures)} skill(s) under {skills_root!r} failed to load: {failed}",
-                details={"skills_root": str(skills_root)},
-            )
+        # A broken skill directory (e.g. one under active development)
+        # does not stop every other skill from running -- mirrors the CLI's
+        # existing `skills list`/`inspect` behavior, which also tolerates
+        # individual registration failures rather than refusing to start.
+        # A caller who wants to know what failed can inspect this list;
+        # attempting to *run* one of the failed skills still raises, via
+        # SkillRegistry.get_skill's own SkillNotFoundError.
+        self.registration_failures = report.failures
         self._services: dict[tuple[str, str], ExecutionService] = {}
 
     def run(

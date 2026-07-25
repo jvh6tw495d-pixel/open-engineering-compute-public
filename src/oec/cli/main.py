@@ -1,16 +1,18 @@
-"""OEC command-line interface — a thin adapter over the Skill Registry.
+"""OEC command-line interface — a thin adapter over the Skill Registry
+and the ``oec`` SDK facade.
 
 Per ADR 0005 (thin interface adapters), this module holds no scientific or
 validation logic of its own: it only translates CLI arguments into
-`SkillRegistry` calls and formats the result as JSON or human-readable
-text. Only ``version`` and the ``skills`` subcommands (list/inspect/
-validate) exist so far — ``run``/``validate`` for executions arrive with
-the Execution Service in Sprint 03, and ``server api``/``server mcp``
-arrive in Sprint 07.
+`SkillRegistry`/`oec.sdk.Engine` calls and formats the result as JSON or
+human-readable text. ``version``, the ``skills`` subcommands (list/
+inspect/validate), and ``run`` (ADR 0014) exist so far — ``server api``/
+``server mcp`` arrive in Sprint 07.
 """
 
 from __future__ import annotations
 
+import json
+import sys
 from pathlib import Path
 from typing import Annotated, NoReturn
 
@@ -20,7 +22,22 @@ from rich.table import Table
 
 from oec import __version__
 from oec.errors import OECError
+from oec.execution.models import ExecutionResult, ExecutionStatus
+from oec.sdk import Engine
 from oec.skills.registry.registry import SkillRegistry
+
+_STATUS_EXIT_CODES: dict[ExecutionStatus, int] = {
+    ExecutionStatus.VERIFIED: 0,
+    ExecutionStatus.VALIDATED: 0,
+    ExecutionStatus.CONVERGED_WITH_WARNINGS: 0,
+    ExecutionStatus.APPROXIMATE: 0,
+    ExecutionStatus.INCONCLUSIVE: 2,
+    ExecutionStatus.INVALID: 3,
+    ExecutionStatus.FAILED: 4,
+}
+"""``ExecutionStatus`` -> process exit code (ADR 0014). Exit code ``1`` is
+reserved for CLI-level errors that never produced an ``ExecutionResult``
+at all (unknown skill id, malformed ``--input`` JSON, bad ``--skills-root``)."""
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 skills_app = typer.Typer(no_args_is_help=True)
@@ -159,6 +176,91 @@ def skills_validate(
     except OECError as exc:
         _fail(exc)
     console.print(f"[green]OK[/green]: {skill_id} is valid")
+
+
+@app.command("run")
+def run_skill(
+    skill_id: str,
+    version: VersionOption = None,
+    skills_root: SkillsRootOption = Path("skills"),
+    input_file: Annotated[
+        Path | None, typer.Option("--input-file", help="Read inputs from a JSON file.")
+    ] = None,
+    input_json: Annotated[
+        str | None, typer.Option("--input", help="Inputs as a JSON object string.")
+    ] = None,
+    seed: Annotated[int | None, typer.Option(help="Seed to record in provenance.")] = None,
+    trace_id: Annotated[str | None, typer.Option(help="Trace id to record in provenance.")] = None,
+    requested_by: Annotated[
+        str | None, typer.Option(help="Requester identity to record in provenance.")
+    ] = None,
+    as_json: JsonOption = False,
+) -> None:
+    """Execute a skill and print its result.
+
+    Inputs come from exactly one of --input-file, --input, or stdin (in
+    that precedence order) -- never guessed from which happens to be
+    non-empty. Exit code reflects ExecutionStatus (ADR 0014): 0 for a
+    usable result (VERIFIED/VALIDATED/CONVERGED_WITH_WARNINGS/
+    APPROXIMATE), 2 for INCONCLUSIVE, 3 for INVALID, 4 for FAILED, and 1
+    for a CLI-level error (unknown skill, malformed --input JSON) that
+    never produced a result at all.
+    """
+    if input_file is not None and input_json is not None:
+        error_console.print("[bold red]error[/bold red]: pass only one of --input-file/--input")
+        raise typer.Exit(code=1)
+
+    if input_file is not None:
+        raw_inputs = input_file.read_text(encoding="utf-8")
+    elif input_json is not None:
+        raw_inputs = input_json
+    else:
+        raw_inputs = sys.stdin.read()
+
+    try:
+        inputs = json.loads(raw_inputs)
+    except json.JSONDecodeError as exc:
+        error_console.print(f"[bold red]error[/bold red]: malformed JSON input: {exc}")
+        raise typer.Exit(code=1) from exc
+    if not isinstance(inputs, dict):
+        error_console.print("[bold red]error[/bold red]: input JSON must be an object")
+        raise typer.Exit(code=1)
+
+    try:
+        engine = Engine(skills_root=skills_root)
+        result = engine.run(
+            skill_id,
+            inputs,
+            skill_version=version,
+            seed=seed,
+            trace_id=trace_id,
+            requested_by=requested_by,
+        )
+    except OECError as exc:
+        _fail(exc)
+
+    if as_json:
+        console.print_json(data=result.model_dump(mode="json"))
+    else:
+        _print_run_summary(result)
+
+    raise typer.Exit(code=_STATUS_EXIT_CODES[result.status])
+
+
+def _print_run_summary(result: ExecutionResult) -> None:
+    status_color = "green" if _STATUS_EXIT_CODES[result.status] == 0 else "red"
+    console.print(
+        f"[bold {status_color}]{result.status.value}[/bold {status_color}] "
+        f"{result.skill.id} v{result.skill.version}"
+    )
+    if result.result:
+        console.print("result:")
+        console.print_json(data=result.result)
+    if result.diagnostics:
+        console.print("diagnostics:")
+        console.print_json(data=result.diagnostics)
+    for warning in result.warnings:
+        console.print(f"[yellow]warning[/yellow]: {warning}")
 
 
 if __name__ == "__main__":

@@ -106,3 +106,177 @@ def test_skills_validate_unknown_skill_exits_nonzero(tmp_path: Path) -> None:
         app, ["skills", "validate", "mathematics.unknown", "--skills-root", str(tmp_path)]
     )
     assert result.exit_code == 1
+
+
+# --- `oec run` (ADR 0014) ---------------------------------------------
+#
+# write_skill_dir's default manifest has no explicit "validation" block,
+# so ValidationPolicy's defaults apply -- including mathematical=true,
+# which would make build_validators require a validation.py the fixture
+# doesn't create. Every run-command test below disables mathematical
+# explicitly, matching how the fixture's implementation.py is a trivial
+# passthrough with no domain-specific checks of its own.
+_NO_EXTRA_VALIDATION = {
+    "validation": {
+        "schema": True,
+        "dimensional": False,
+        "mathematical": False,
+        "physical": False,
+        "numerical": False,
+    }
+}
+
+
+def test_run_command_verified_result_exits_zero(tmp_path: Path) -> None:
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "mathematics.identity",
+            "--skills-root",
+            str(tmp_path),
+            "--input",
+            '{"value": 42}',
+        ],
+    )
+    assert result.exit_code == 0
+    assert "VERIFIED" in result.stdout
+    assert '"value": 42' in result.stdout
+
+
+def test_run_command_json_emits_machine_readable_output(tmp_path: Path) -> None:
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "mathematics.identity",
+            "--skills-root",
+            str(tmp_path),
+            "--input",
+            "{}",
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0
+    assert '"status": "VERIFIED"' in result.stdout
+
+
+def test_run_command_reads_input_from_file(tmp_path: Path) -> None:
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    input_file = tmp_path / "input.json"
+    input_file.write_text('{"value": 7}', encoding="utf-8")
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "mathematics.identity",
+            "--skills-root",
+            str(tmp_path),
+            "--input-file",
+            str(input_file),
+        ],
+    )
+    assert result.exit_code == 0
+    assert '"value": 7' in result.stdout
+
+
+def test_run_command_reads_input_from_stdin(tmp_path: Path) -> None:
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    result = runner.invoke(
+        app,
+        ["run", "mathematics.identity", "--skills-root", str(tmp_path)],
+        input='{"value": 9}',
+    )
+    assert result.exit_code == 0
+    assert '"value": 9' in result.stdout
+
+
+def test_run_command_rejects_both_input_file_and_input(tmp_path: Path) -> None:
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    input_file = tmp_path / "input.json"
+    input_file.write_text("{}", encoding="utf-8")
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "mathematics.identity",
+            "--skills-root",
+            str(tmp_path),
+            "--input",
+            "{}",
+            "--input-file",
+            str(input_file),
+        ],
+    )
+    assert result.exit_code == 1
+
+
+def test_run_command_malformed_json_input_exits_one(tmp_path: Path) -> None:
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    result = runner.invoke(
+        app,
+        ["run", "mathematics.identity", "--skills-root", str(tmp_path), "--input", "not json"],
+    )
+    assert result.exit_code == 1
+
+
+def test_run_command_non_object_json_input_exits_one(tmp_path: Path) -> None:
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    result = runner.invoke(
+        app, ["run", "mathematics.identity", "--skills-root", str(tmp_path), "--input", "[1, 2]"]
+    )
+    assert result.exit_code == 1
+
+
+def test_run_command_unknown_skill_exits_one(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app, ["run", "mathematics.unknown", "--skills-root", str(tmp_path), "--input", "{}"]
+    )
+    assert result.exit_code == 1
+
+
+def test_run_command_invalid_status_exits_three(tmp_path: Path) -> None:
+    write_skill_dir(
+        tmp_path,
+        manifest_overrides=_NO_EXTRA_VALIDATION,
+        input_schema_raw='{"type": "object", "required": ["value"], "additionalProperties": false}',
+    )
+    result = runner.invoke(
+        app, ["run", "mathematics.identity", "--skills-root", str(tmp_path), "--input", "{}"]
+    )
+    assert result.exit_code == 3
+    assert "INVALID" in result.stdout
+
+
+def test_run_command_failed_status_exits_four(tmp_path: Path) -> None:
+    write_skill_dir(
+        tmp_path,
+        manifest_overrides=_NO_EXTRA_VALIDATION,
+        implementation_code="def execute(inputs):\n    raise ValueError('boom')\n",
+    )
+    result = runner.invoke(
+        app, ["run", "mathematics.identity", "--skills-root", str(tmp_path), "--input", "{}"]
+    )
+    assert result.exit_code == 4
+    assert "FAILED" in result.stdout
+
+
+def test_run_command_inconclusive_status_exits_two(tmp_path: Path) -> None:
+    write_skill_dir(
+        tmp_path,
+        manifest_overrides={
+            **_NO_EXTRA_VALIDATION,
+            "method": {"id": "test", "version": "1", "iterative": True},
+        },
+        implementation_code=(
+            "def execute(inputs):\n"
+            "    return {'result': inputs, 'diagnostics': {'converged': False}}\n"
+        ),
+    )
+    result = runner.invoke(
+        app, ["run", "mathematics.identity", "--skills-root", str(tmp_path), "--input", "{}"]
+    )
+    assert result.exit_code == 2
+    assert "INCONCLUSIVE" in result.stdout
