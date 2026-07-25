@@ -333,3 +333,25 @@ def test_server_api_command_builds_app_and_calls_uvicorn_run(monkeypatch) -> Non
     assert captured["host"] == "0.0.0.0"
     assert captured["port"] == 9999
     assert type(captured["app"]).__name__ == type(create_app()).__name__
+
+
+# --- `oec server mcp` (ADR 0015) ----------------------------------------
+
+
+def test_server_mcp_command_calls_run_stdio_server(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """Patches oec.mcp.run_stdio_server (which would otherwise block
+    forever serving over stdio) to confirm the command wires it up with
+    the right skills_root instead of actually starting a server."""
+    import oec.mcp
+
+    captured: dict[str, object] = {}
+
+    def _fake_run_stdio_server(*, skills_root: object) -> None:
+        captured["skills_root"] = skills_root
+
+    monkeypatch.setattr(oec.mcp, "run_stdio_server", _fake_run_stdio_server)
+
+    result = runner.invoke(app, ["server", "mcp", "--skills-root", "skills"])
+
+    assert result.exit_code == 0
+    assert str(captured["skills_root"]) == "skills"

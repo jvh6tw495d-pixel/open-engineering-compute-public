@@ -297,5 +297,27 @@ def server_api(
     uvicorn.run(create_app(skills_root=skills_root), host=host, port=port)
 
 
+@server_app.command("mcp")
+def server_mcp(skills_root: SkillsRootOption = Path("skills")) -> None:
+    """Run the MCP server (ADR 0015) over stdio.
+
+    Requires the ``mcp`` extra (``uv sync --extra mcp`` /
+    ``pip install 'oec[mcp]'``) — the ``mcp`` package is an optional
+    dependency, not part of the base install.
+    """
+    try:
+        from oec.mcp import run_stdio_server
+    except ImportError as exc:
+        error_console.print(
+            "[bold red]error[/bold red]: the MCP server requires the 'mcp' extra "
+            "(uv sync --extra mcp / pip install 'oec[mcp]')"
+        )
+        if _debug:
+            raise
+        raise typer.Exit(code=1) from exc
+
+    run_stdio_server(skills_root=skills_root)
+
+
 if __name__ == "__main__":
     app()

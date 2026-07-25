@@ -14,16 +14,8 @@ uv sync --extra mcp
 
 ## Run
 
-Once Sprint 07 Fase C wires the CLI:
-
 ```bash
 oec server mcp --skills-root skills
-```
-
-Until then, call the entrypoint directly (stdio transport):
-
-```bash
-uv run python -c "from oec.mcp import run_stdio_server; run_stdio_server()"
 ```
 
 Or from Python:
