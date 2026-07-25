@@ -20,6 +20,7 @@ repos:
           - jsonschema>=4.20
           - types-jsonschema>=4.20
           - scipy-stubs>=1.13
+          - mcp>=1.0
         args: [--config-file=pyproject.toml]
         pass_filenames: false
 
