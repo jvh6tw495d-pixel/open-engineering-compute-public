@@ -85,3 +85,10 @@ class ExecutionError(OECError):
     """Raised when a skill implementation fails during execution."""
 
     default_code = "execution_error"
+
+
+class UnitError(OECValidationError):
+    """Raised when a quantity's unit is dimensionally incompatible with the
+    unit it is being normalized or compared against."""
+
+    default_code = "unit_incompatible"
