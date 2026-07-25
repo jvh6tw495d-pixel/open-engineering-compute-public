@@ -6,11 +6,12 @@ this layer checks that an input shaped as ``{"value": …, "unit": …}`` is
 dimensionally compatible with that expected unit via
 :func:`~oec.kernel.units.normalize.is_compatible`.
 
-The full link between declared schemas and dimensional validation will
-be revisited when the first real skills (Sprint 04+) define their
-``input.schema.json`` files in earnest; until then this layer only
-inspects values that already look like :class:`~oec.kernel.units.quantity.QuantityValue`
-dicts and optional ``x-oec-unit`` annotations.
+This is the *only* place that check happens (ADR 0016): once this
+validator reports no `ERROR` outcome, `ExecutionService.execute()`
+trusts every ``x-oec-unit`` field is convertible and hands the actual
+conversion to :func:`oec.execution.normalization.apply_dimensional_normalization`
+-- a pure, non-failing transform that never re-checks compatibility
+itself, so a mismatch is reported exactly once, here.
 """
 
 from __future__ import annotations
@@ -21,10 +22,9 @@ from pydantic import ValidationError
 
 from oec.kernel.units.normalize import is_compatible
 from oec.kernel.units.quantity import QuantityValue
+from oec.kernel.units.schema import declared_units, is_quantity_dict
 from oec.skills.loader.models import LoadedSkill
 from oec.validation.base import Severity, ValidationOutcome
-
-_QUANTITY_KEYS = frozenset({"value", "unit"})
 
 
 class DimensionalValidator:
@@ -38,10 +38,11 @@ class DimensionalValidator:
         properties = skill.input_schema.get("properties")
         if not isinstance(properties, dict):
             properties = {}
+        expected_units = declared_units(properties)
 
         outcomes: list[ValidationOutcome] = []
         for field, raw in normalized_inputs.items():
-            if not _is_quantity_dict(raw):
+            if not is_quantity_dict(raw):
                 continue
 
             try:
@@ -58,11 +59,8 @@ class DimensionalValidator:
                 )
                 continue
 
-            field_schema = properties.get(field)
-            if not isinstance(field_schema, dict):
-                continue
-            expected_unit = field_schema.get("x-oec-unit")
-            if not isinstance(expected_unit, str):
+            expected_unit = expected_units.get(field)
+            if expected_unit is None:
                 continue
 
             if not is_compatible(quantity.unit, expected_unit):
@@ -83,7 +81,3 @@ class DimensionalValidator:
                 )
 
         return outcomes
-
-
-def _is_quantity_dict(value: object) -> bool:
-    return isinstance(value, dict) and set(value.keys()) == _QUANTITY_KEYS

@@ -24,10 +24,15 @@ crashing the whole execution (found in the Sprint 03 review: a single
 buggy validator used to take the entire service down instead of
 producing a classified ``INVALID``/``FAILED`` result).
 
-Input normalization is currently a passthrough: no real skill yet
-declares ``QuantityValue``-shaped inputs. Wiring
-``oec.kernel.units.normalize`` into this step is deferred until a real
-skill's input schema needs it — see ``docs/development/codebase-map.md``.
+Dimensional normalization (ADR 0016) happens between "run input
+validators" and "execute": once no input validator reports an `ERROR`
+— which, for a skill with ``validation.dimensional: true``, means
+`DimensionalValidator` already confirmed every ``x-oec-unit``-declared
+field is convertible — `apply_dimensional_normalization` converts those
+fields to their canonical unit before the sandboxed implementation ever
+sees them. A skill's implementation therefore never does its own unit
+math: whatever unit its schema declares via ``x-oec-unit`` is the unit
+it always receives.
 """
 
 from __future__ import annotations
@@ -39,6 +44,7 @@ from typing import Any
 
 from oec.common import VersionedRef
 from oec.execution.models import ExecutionRequest, ExecutionResult
+from oec.execution.normalization import apply_dimensional_normalization
 from oec.execution.provenance import SandboxReport, build_provenance
 from oec.execution.sandbox import run_in_sandbox
 from oec.execution.status import compute_status
@@ -89,6 +95,9 @@ class ExecutionService:
         converged: bool | None = None
 
         if not any(outcome.severity is Severity.ERROR for outcome in outcomes):
+            if skill.manifest.validation.dimensional:
+                normalized_inputs = apply_dimensional_normalization(skill, normalized_inputs)
+
             sandbox_result = run_in_sandbox(
                 skill_path=skill.path,
                 module=skill.manifest.entrypoint.module,

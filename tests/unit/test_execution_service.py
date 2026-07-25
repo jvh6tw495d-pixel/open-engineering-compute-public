@@ -7,6 +7,7 @@ from oec.skills.loader.models import LoadedSkill
 from oec.skills.registry.registry import SkillRegistry
 from oec.testing import write_skill_dir
 from oec.validation.base import Severity, ValidationOutcome
+from oec.validation.dimensions import DimensionalValidator
 
 
 class _FakeInputValidator:
@@ -245,6 +246,66 @@ def test_provenance_reports_the_sandbox_honestly(tmp_path: Path) -> None:
     }
     assert result.provenance["trace_id"] == result.provenance["trace_id"]  # present, non-empty
     assert result.provenance["trace_id"]
+
+
+def test_dimensional_normalization_runs_before_the_implementation(tmp_path: Path) -> None:
+    """ADR 0016: the skill's entrypoint receives the canonical-unit value
+    -- not whatever unit the caller submitted -- because normalization
+    happens centrally in ExecutionService, not inside the skill."""
+    registry = _registry_with_identity(
+        tmp_path,
+        input_schema_raw=(
+            '{"type": "object", "properties": {"voltage": '
+            '{"type": "object", "properties": {"value": {"type": "number"}, '
+            '"unit": {"type": "string"}}, "x-oec-unit": "V"}}}'
+        ),
+    )
+    service = ExecutionService(registry)
+
+    result = service.execute(
+        ExecutionRequest(
+            skill_id="mathematics.identity", inputs={"voltage": {"value": 0.38, "unit": "kV"}}
+        )
+    )
+
+    assert result.status is ExecutionStatus.VERIFIED
+    assert result.normalized_inputs["voltage"] == {"value": 380.0, "unit": "V"}
+    assert result.result["voltage"] == {
+        "value": 380.0,
+        "unit": "V",
+    }, "the identity skill echoes back whatever it actually received as inputs"
+    assert result.inputs["voltage"] == {
+        "value": 0.38,
+        "unit": "kV",
+    }, "the original submitted unit is preserved in .inputs regardless of normalization"
+
+
+def test_dimensionally_incompatible_input_is_invalid_without_executing(tmp_path: Path) -> None:
+    marker = tmp_path / "should_not_run"
+    registry = _registry_with_identity(
+        tmp_path,
+        input_schema_raw=(
+            '{"type": "object", "properties": {"voltage": '
+            '{"type": "object", "properties": {"value": {"type": "number"}, '
+            '"unit": {"type": "string"}}, "x-oec-unit": "V"}}}'
+        ),
+        implementation_code=(
+            f"from pathlib import Path\n"
+            f"def execute(inputs):\n"
+            f"    Path(r'{marker}').write_text('ran')\n"
+            f"    return {{'result': inputs, 'diagnostics': {{}}}}\n"
+        ),
+    )
+    service = ExecutionService(registry, input_validators=[DimensionalValidator()])
+
+    result = service.execute(
+        ExecutionRequest(
+            skill_id="mathematics.identity", inputs={"voltage": {"value": 10.0, "unit": "A"}}
+        )
+    )
+
+    assert result.status is ExecutionStatus.INVALID
+    assert not marker.exists(), "an incompatible unit must never reach the implementation"
 
 
 def test_run_id_is_unique_across_executions(tmp_path: Path) -> None:
