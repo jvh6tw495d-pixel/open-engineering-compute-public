@@ -1,0 +1,16 @@
+{
+  "description": "Single-phase load: 1000 W active power at 230 V, 0.8 power factor, no efficiency loss (default 1.0). I = P/(V*PF).",
+  "input": {
+    "power": { "value": 1000, "unit": "W" },
+    "power_type": "active",
+    "voltage": { "value": 230, "unit": "V" },
+    "phase_count": 1,
+    "power_factor": 0.8
+  },
+  "expected_output": {
+    "current": { "value": 5.434782608695652, "unit": "A" },
+    "electrical_power": { "value": 1000.0, "unit": "W" },
+    "phase_count": 1,
+    "power_type": "active"
+  }
+}

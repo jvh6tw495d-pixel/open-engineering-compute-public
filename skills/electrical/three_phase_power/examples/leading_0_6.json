@@ -1,0 +1,16 @@
+{
+  "description": "Leading power factor (capacitive load): 220 V, 20 A, 0.6 leading -- another 3-4-5 triangle (sin(acos(0.6)) = 0.8 exactly). Leading must yield a NEGATIVE reactive_power, opposite sign from the lagging case.",
+  "input": {
+    "voltage_line_to_line": { "value": 220, "unit": "V" },
+    "current_line": { "value": 20, "unit": "A" },
+    "power_factor": 0.6,
+    "power_factor_type": "leading"
+  },
+  "expected_output": {
+    "active_power": { "value": 4572.614131981835, "unit": "W" },
+    "reactive_power": { "value": -6096.818842642447, "unit": "var" },
+    "apparent_power": { "value": 7621.023553303059, "unit": "VA" },
+    "power_factor": 0.6,
+    "power_factor_type": "leading"
+  }
+}

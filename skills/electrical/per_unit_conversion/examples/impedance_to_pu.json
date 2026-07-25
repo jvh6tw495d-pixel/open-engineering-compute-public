@@ -1,0 +1,21 @@
+{
+  "description": "Three-phase: V_base=13.8 kV, S_base=100 MVA, Z=0.5 ohm. Z_base=V^2/S=1.9044 ohm; Z_pu=0.5/1.9044.",
+  "input": {
+    "operation": "to_per_unit",
+    "quantity_kind": "impedance",
+    "phase_count": 3,
+    "voltage_base": { "value": 13.8, "unit": "kV" },
+    "power_base": { "value": 100, "unit": "MVA" },
+    "value": { "value": 0.5, "unit": "ohm" }
+  },
+  "expected_output": {
+    "value_pu": 0.26254988447805083,
+    "impedance_base": { "value": 1.9044, "unit": "ohm" },
+    "current_base": { "value": 4183.697602823375, "unit": "A" },
+    "new_impedance_base": null,
+    "new_current_base": null,
+    "operation": "to_per_unit",
+    "quantity_kind": "impedance",
+    "phase_count": 3
+  }
+}

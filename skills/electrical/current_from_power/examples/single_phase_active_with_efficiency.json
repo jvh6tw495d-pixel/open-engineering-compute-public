@@ -1,0 +1,17 @@
+{
+  "description": "A 750 W (output) motor at 90% efficiency, 230 V, 0.85 power factor -- the current drawn reflects the ELECTRICAL input power (750/0.9 W), not the mechanical output alone. electrical_power = power/efficiency, I = electrical_power/(V*PF).",
+  "input": {
+    "power": { "value": 750, "unit": "W" },
+    "power_type": "active",
+    "voltage": { "value": 230, "unit": "V" },
+    "phase_count": 1,
+    "power_factor": 0.85,
+    "efficiency": 0.9
+  },
+  "expected_output": {
+    "current": { "value": 4.262574595055413, "unit": "A" },
+    "electrical_power": { "value": 833.3333333333333, "unit": "W" },
+    "phase_count": 1,
+    "power_type": "active"
+  }
+}

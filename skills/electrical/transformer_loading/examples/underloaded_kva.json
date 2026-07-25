@@ -1,0 +1,15 @@
+{
+  "description": "1000 kVA nameplate, 800 kVA load -> 80% loading, 200 kVA headroom, no overload warning at default 100% threshold.",
+  "input": {
+    "rated_apparent_power": { "value": 1000, "unit": "kVA" },
+    "load_type": "apparent_power",
+    "load_apparent_power": { "value": 800, "unit": "kVA" }
+  },
+  "expected_output": {
+    "load_apparent_power": { "value": 800000.0, "unit": "VA" },
+    "loading_percent": 80.0,
+    "headroom": { "value": 200000.0, "unit": "VA" },
+    "overload_warning": false,
+    "overload_threshold_percent": 100.0
+  }
+}

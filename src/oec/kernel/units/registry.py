@@ -19,3 +19,10 @@ from __future__ import annotations
 import pint
 
 ureg: pint.UnitRegistry = pint.UnitRegistry()  # type: ignore[type-arg]
+
+# Reactive power uses the same physical dimension as watt / volt-ampere.
+# Pint does not ship a ``var`` unit; electrical skills need it as both an
+# accepted input label (convertible via ADR 0016) and an output unit string.
+# Defining it once on the shared registry (ADR 0011) keeps every Quantity
+# built from this instance comparable.
+ureg.define("var = watt")

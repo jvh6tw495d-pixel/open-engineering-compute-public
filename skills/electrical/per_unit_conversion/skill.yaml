@@ -1,0 +1,40 @@
+id: electrical.per_unit_conversion
+version: 0.1.0
+status: experimental
+domain: electrical
+title: Per-Unit Conversion
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: classical_per_unit
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: true
+  physical: true
+  numerical: true
+
+references:
+  - "Glover, J. D., Sarma, M. S., Overbye, T. (2012). Power System Analysis and Design, 5th ed., Cengage — per-unit system and change of base."
+  - "Grainger, J. J., Stevenson, W. D. (1994). Power System Analysis, McGraw-Hill, Chapter 3."
+
+tags:
+  - mvp
+  - per-unit
+  - power-systems

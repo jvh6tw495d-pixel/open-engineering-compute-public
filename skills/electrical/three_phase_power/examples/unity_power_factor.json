@@ -1,0 +1,16 @@
+{
+  "description": "Unity power factor (PF=1, purely resistive load): reactive power must be exactly zero regardless of power_factor_type.",
+  "input": {
+    "voltage_line_to_line": { "value": 400, "unit": "V" },
+    "current_line": { "value": 5, "unit": "A" },
+    "power_factor": 1.0,
+    "power_factor_type": "lagging"
+  },
+  "expected_output": {
+    "active_power": { "value": 3464.1016151377544, "unit": "W" },
+    "reactive_power": { "value": 0.0, "unit": "var" },
+    "apparent_power": { "value": 3464.1016151377544, "unit": "VA" },
+    "power_factor": 1.0,
+    "power_factor_type": "lagging"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "description": "Single-phase load given as 1840 W active at 230 V, PF 0.8 -> I = P/(V*PF) = 10 A; same drop as single_phase_current.json.",
+  "input": {
+    "load_type": "power",
+    "phase_count": 1,
+    "voltage_reference": { "value": 230, "unit": "V" },
+    "power_factor": 0.8,
+    "power_factor_type": "lagging",
+    "length": { "value": 50, "unit": "m" },
+    "power": { "value": 1840, "unit": "W" },
+    "resistance_per_length": { "value": 0.001, "unit": "ohm/m" }
+  },
+  "expected_output": {
+    "voltage_drop": { "value": 0.8, "unit": "V" },
+    "voltage_drop_percent": 0.34782608695652173,
+    "current_used": { "value": 10.0, "unit": "A" },
+    "resistance_per_length_used": { "value": 0.001, "unit": "ohm/m" },
+    "reactance_per_length_used": { "value": 0.0, "unit": "ohm/m" },
+    "phase_count": 1,
+    "power_factor_type": "lagging"
+  }
+}

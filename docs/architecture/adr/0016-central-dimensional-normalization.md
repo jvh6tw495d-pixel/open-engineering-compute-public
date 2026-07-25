@@ -118,3 +118,28 @@ original unit is never lost), `.normalized_inputs` is what the skill's
 - This does not touch `QuantityValue`, `normalize()`, or the shared
   Pint registry (ADR 0011) — only where in the pipeline `normalize()`
   gets called from.
+
+## Amendment (Sprint 08 Fase B, `electrical.per_unit_conversion`)
+
+`per_unit_conversion`'s `value` field is a deliberate, narrow exception
+to "implementation.py never converts units itself." Its canonical unit
+depends on the sibling `quantity_kind` field (`ohm`/`V`/`A`/`W`) — a
+single static `x-oec-unit` in `input.schema.json` cannot express a
+unit that varies per-request, so this field falls entirely outside the
+`x-oec-unit`/`apply_dimensional_normalization` mechanism this ADR
+defines. Instead, `PerUnitConversionValidator`
+(`skills/electrical/per_unit_conversion/validation.py`) checks
+`value`'s convertibility to `quantity_kind`'s expected unit as part of
+its own cross-field checks (the pre-ADR-0016 pattern every skill used
+for dimensional-adjacent checks), and `implementation.py` calls
+`oec.kernel.units.normalize.normalize()` directly once that check has
+already passed — the same "validate first, trust and convert after"
+shape this ADR's core mechanism uses, just run by the skill itself
+rather than by `ExecutionService`.
+
+This is the one skill through Sprint 08 that needs it: every other
+electrical skill's dimensional fields have a fixed unit knowable from
+the schema alone. If a future skill needs the same shape again, prefer
+this documented pattern over inventing a new one; if it becomes common
+enough to be worth a shared abstraction, that is a new ADR, not a
+silent convention.

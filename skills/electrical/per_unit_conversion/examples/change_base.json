@@ -1,0 +1,22 @@
+{
+  "description": "Change Z_pu=0.1 from (100 MVA, 13.8 kV) to (50 MVA, 13.8 kV): new = 0.1 * (50/100) * 1^2 = 0.05.",
+  "input": {
+    "operation": "change_base",
+    "phase_count": 3,
+    "voltage_base": { "value": 13800, "unit": "V" },
+    "power_base": { "value": 100, "unit": "MVA" },
+    "value_pu": 0.1,
+    "new_voltage_base": { "value": 13800, "unit": "V" },
+    "new_power_base": { "value": 50, "unit": "MVA" }
+  },
+  "expected_output": {
+    "value_pu": 0.05,
+    "impedance_base": { "value": 1.9044, "unit": "ohm" },
+    "current_base": { "value": 4183.697602823375, "unit": "A" },
+    "new_impedance_base": { "value": 3.8088000000000006, "unit": "ohm" },
+    "new_current_base": { "value": 2091.8488014116874, "unit": "A" },
+    "operation": "change_base",
+    "quantity_kind": "impedance",
+    "phase_count": 3
+  }
+}

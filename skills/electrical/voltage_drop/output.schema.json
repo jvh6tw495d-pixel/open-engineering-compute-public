@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.voltage_drop output",
+  "type": "object",
+  "properties": {
+    "voltage_drop": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "V" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "Absolute voltage drop (single-phase: along the circuit; three-phase: line-to-line). Negative means a voltage rise (possible for strongly leading loads with non-zero reactance)."
+    },
+    "voltage_drop_percent": {
+      "type": "number",
+      "description": "100 * voltage_drop / voltage_reference"
+    },
+    "current_used": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "A" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "Current actually used in the drop formula (input current, or current derived from power)."
+    },
+    "resistance_per_length_used": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "ohm/m" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "reactance_per_length_used": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "ohm/m" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "phase_count": { "type": "integer", "enum": [1, 3] },
+    "power_factor_type": { "type": "string", "enum": ["lagging", "leading"] }
+  },
+  "required": [
+    "voltage_drop",
+    "voltage_drop_percent",
+    "current_used",
+    "resistance_per_length_used",
+    "reactance_per_length_used",
+    "phase_count",
+    "power_factor_type"
+  ],
+  "additionalProperties": false
+}

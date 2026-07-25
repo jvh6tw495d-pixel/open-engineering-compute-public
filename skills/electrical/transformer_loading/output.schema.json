@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.transformer_loading output",
+  "type": "object",
+  "properties": {
+    "load_apparent_power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "VA" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "Operating apparent power used for the ratio (from input, or derived as S_rated * I_load/I_rated)."
+    },
+    "loading_percent": {
+      "type": "number",
+      "description": "100 * S_load / S_rated"
+    },
+    "headroom": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "VA" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "S_rated - S_load (negative when overloaded)."
+    },
+    "overload_warning": {
+      "type": "boolean",
+      "description": "True when loading_percent >= overload_threshold_percent."
+    },
+    "overload_threshold_percent": { "type": "number" }
+  },
+  "required": [
+    "load_apparent_power",
+    "loading_percent",
+    "headroom",
+    "overload_warning",
+    "overload_threshold_percent"
+  ],
+  "additionalProperties": false
+}
