@@ -18,8 +18,7 @@ def _base_manifest_kwargs() -> dict:
         "domain": "electrical",
         "title": "Voltage Drop",
         "entrypoint": EntrypointSpec(module="implementation", function="execute"),
-        "input_schema": "input.schema.json",
-        "output_schema": "output.schema.json",
+        "schemas": SchemaRefs(input="input.schema.json", output="output.schema.json"),
         "method": VersionedRef(id="three_phase_impedance_voltage_drop", version="0.1.0"),
     }
 
@@ -27,9 +26,9 @@ def _base_manifest_kwargs() -> dict:
 def test_valid_manifest_constructs_with_defaults() -> None:
     manifest = SkillManifest(**_base_manifest_kwargs())
     assert manifest.status is SkillStatus.EXPERIMENTAL
-    assert manifest.execution_policy.deterministic is True
-    assert manifest.execution_policy.network_access is False
-    assert manifest.validation_policy.schema_layer is True
+    assert manifest.execution.deterministic is True
+    assert manifest.execution.network_access is False
+    assert manifest.validation.schema_layer is True
     assert manifest.references == []
     assert manifest.tags == []
 
@@ -63,7 +62,7 @@ def test_validation_policy_accepts_schema_alias_from_yaml_shape() -> None:
     kwargs = _base_manifest_kwargs()
     manifest = SkillManifest(
         **kwargs,
-        validation_policy={
+        validation={
             "schema": False,
             "dimensional": True,
             "mathematical": True,
@@ -71,10 +70,41 @@ def test_validation_policy_accepts_schema_alias_from_yaml_shape() -> None:
             "numerical": True,
         },
     )
-    assert manifest.validation_policy.schema_layer is False
+    assert manifest.validation.schema_layer is False
 
 
 def test_schema_refs_holds_input_and_output_paths() -> None:
     refs = SchemaRefs(input="input.schema.json", output="output.schema.json")
     assert refs.input == "input.schema.json"
     assert refs.output == "output.schema.json"
+
+
+def test_manifest_parses_from_plan_shaped_yaml_dict() -> None:
+    """The exact nested shape shown in the master plan's skill.yaml example (section 8.2)."""
+    raw = {
+        "id": "electrical.voltage_drop",
+        "version": "0.1.0",
+        "status": "experimental",
+        "domain": "electrical",
+        "title": "Voltage Drop",
+        "entrypoint": {"module": "implementation", "function": "execute"},
+        "schemas": {"input": "input.schema.json", "output": "output.schema.json"},
+        "method": {"id": "three_phase_impedance_voltage_drop", "version": "0.1.0"},
+        "execution": {
+            "deterministic": True,
+            "timeout_seconds": 5,
+            "network_access": False,
+            "filesystem_access": False,
+        },
+        "validation": {
+            "schema": True,
+            "dimensional": True,
+            "mathematical": True,
+            "physical": True,
+            "numerical": True,
+        },
+    }
+    manifest = SkillManifest(**raw)
+    assert manifest.schemas.input == "input.schema.json"
+    assert manifest.execution.timeout_seconds == 5
+    assert manifest.validation.schema_layer is True

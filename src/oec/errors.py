@@ -53,6 +53,25 @@ class SkillManifestError(SkillError):
     default_code = "skill_manifest_invalid"
 
 
+class SkillFrontMatterError(SkillError):
+    """Raised when ``skill.md`` front matter is missing, malformed, or disagrees
+    with the ``skill.yaml`` manifest for the same skill."""
+
+    default_code = "skill_frontmatter_invalid"
+
+
+class SkillEntrypointError(SkillError):
+    """Raised when a skill's entrypoint module or declared schema files are missing."""
+
+    default_code = "skill_entrypoint_invalid"
+
+
+class SkillVersionConflictError(SkillError):
+    """Raised when two skill directories declare the same id and version."""
+
+    default_code = "skill_version_conflict"
+
+
 class OECValidationError(OECError):
     """Raised when input, dimensional, mathematical, or physical validation fails.
 

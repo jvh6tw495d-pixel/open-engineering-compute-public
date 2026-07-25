@@ -2,9 +2,12 @@ from oec.errors import (
     ExecutionError,
     OECError,
     OECValidationError,
+    SkillEntrypointError,
     SkillError,
+    SkillFrontMatterError,
     SkillManifestError,
     SkillNotFoundError,
+    SkillVersionConflictError,
 )
 
 
@@ -28,6 +31,9 @@ def test_subclasses_have_distinct_default_codes() -> None:
     assert SkillError("x").code == "skill_error"
     assert SkillNotFoundError("x").code == "skill_not_found"
     assert SkillManifestError("x").code == "skill_manifest_invalid"
+    assert SkillFrontMatterError("x").code == "skill_frontmatter_invalid"
+    assert SkillEntrypointError("x").code == "skill_entrypoint_invalid"
+    assert SkillVersionConflictError("x").code == "skill_version_conflict"
     assert OECValidationError("x").code == "validation_error"
     assert ExecutionError("x").code == "execution_error"
 
@@ -37,6 +43,9 @@ def test_all_oec_exceptions_are_catchable_as_oec_error() -> None:
         SkillError,
         SkillNotFoundError,
         SkillManifestError,
+        SkillFrontMatterError,
+        SkillEntrypointError,
+        SkillVersionConflictError,
         OECValidationError,
         ExecutionError,
     ):

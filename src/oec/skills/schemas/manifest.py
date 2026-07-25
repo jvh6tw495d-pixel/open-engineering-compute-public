@@ -81,11 +81,10 @@ class SkillManifest(BaseModel):
     title: str
     description: str = ""
     entrypoint: EntrypointSpec
-    input_schema: str
-    output_schema: str
+    schemas: SchemaRefs
     method: VersionedRef
-    execution_policy: ExecutionPolicy = ExecutionPolicy()
-    validation_policy: ValidationPolicy = ValidationPolicy()
+    execution: ExecutionPolicy = ExecutionPolicy()
+    validation: ValidationPolicy = ValidationPolicy()
     references: list[str] = []
     tags: list[str] = []
 
