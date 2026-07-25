@@ -1,32 +1,32 @@
 """End-to-end: mathematics.curve_fit through the real, sandboxed
 ExecutionService -- registry -> validators -> subprocess -> status ->
 provenance. Mirrors ``test_optimize_scalar_end_to_end.py``.
+
+Validators are assembled via ``oec.execution.factory.build_validators``
+(ADR 0014) from the skill's own manifest -- this is also the regression
+guard that auto-discovery reproduces exactly the hand-wired validator
+list this test used through Sprint 05.
 """
 
 import math
 from pathlib import Path
 
+from oec.execution.factory import build_validators
 from oec.execution.models import ExecutionRequest, ExecutionStatus
 from oec.execution.service import ExecutionService
 from oec.skills.registry.registry import SkillRegistry
-from oec.testing import load_skill_module
-from oec.validation.invariants import InvariantValidator
-from oec.validation.numerical import NumericalDiagnosticsValidator
-from oec.validation.schema import SchemaValidator
 
 _SKILLS_ROOT = Path("skills")
-_CURVE_FIT_DIR = _SKILLS_ROOT / "mathematics" / "curve_fit"
-_CurveFitValidator = load_skill_module(_CURVE_FIT_DIR, "validation").CurveFitValidator
 
 
 def _service() -> ExecutionService:
     registry = SkillRegistry()
     report = registry.register_all(_SKILLS_ROOT)
     assert not report.failures, f"skill(s) failed to load: {report.failures}"
+    skill = registry.get_skill("mathematics.curve_fit")
+    input_validators, result_validators = build_validators(skill)
     return ExecutionService(
-        registry,
-        input_validators=[SchemaValidator(), _CurveFitValidator()],
-        result_validators=[InvariantValidator(), NumericalDiagnosticsValidator()],
+        registry, input_validators=input_validators, result_validators=result_validators
     )
 
 
