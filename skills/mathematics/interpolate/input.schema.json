@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.interpolate input",
+  "type": "object",
+  "properties": {
+    "x": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "description": "Strictly increasing abscissae of the known samples"
+    },
+    "y": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "description": "Ordinates of the known samples (same length as x)"
+    },
+    "query_points": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1,
+      "description": "Abscissae at which to evaluate the interpolant"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["linear", "cubic_spline", "pchip"],
+      "description": "Required: no auto-selection (see skill.md Official methodology)"
+    }
+  },
+  "required": ["x", "y", "query_points", "method"],
+  "additionalProperties": false
+}

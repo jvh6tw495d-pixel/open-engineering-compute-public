@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.interpolate output",
+  "type": "object",
+  "properties": {
+    "values": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1,
+      "description": "Interpolated ordinates, one per query_point, same order"
+    }
+  },
+  "required": ["values"],
+  "additionalProperties": false
+}

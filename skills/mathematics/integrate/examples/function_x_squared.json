@@ -1,0 +1,11 @@
+{
+  "description": "∫_0^1 x**2 dx = 1/3; reference from closed form / mpmath.quad",
+  "input": {
+    "expression": "x**2",
+    "bounds": [0.0, 1.0]
+  },
+  "expected_output": {
+    "value": 0.3333333333333333,
+    "mode": "function"
+  }
+}

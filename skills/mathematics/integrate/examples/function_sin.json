@@ -1,0 +1,11 @@
+{
+  "description": "∫_0^π sin(x) dx = 2 exactly; reference from closed form / mpmath.quad",
+  "input": {
+    "expression": "sin(x)",
+    "bounds": [0.0, 3.141592653589793]
+  },
+  "expected_output": {
+    "value": 2.0,
+    "mode": "function"
+  }
+}

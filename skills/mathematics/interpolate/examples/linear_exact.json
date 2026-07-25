@@ -1,0 +1,12 @@
+{
+  "description": "Piecewise-linear interpolant of y=2x (exact for linear data); independent closed-form reference",
+  "input": {
+    "x": [0.0, 1.0, 2.0, 3.0],
+    "y": [0.0, 2.0, 4.0, 6.0],
+    "query_points": [0.5, 1.5, 2.5],
+    "method": "linear"
+  },
+  "expected_output": {
+    "values": [1.0, 3.0, 5.0]
+  }
+}
