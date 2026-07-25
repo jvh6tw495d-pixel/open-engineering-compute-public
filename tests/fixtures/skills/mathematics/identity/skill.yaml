@@ -1,0 +1,34 @@
+id: mathematics.identity
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Identity
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: identity
+  version: "1"
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: false
+  physical: false
+  numerical: false
+
+tags:
+  - fixture
+  - loader-smoke-test
