@@ -1,18 +1,33 @@
-"""Test-only helper for writing minimal, overridable skill directories on disk.
+"""Testing utilities for skill authors and OEC's own test suite (plan section 8).
 
-Used by loader, registry, CLI, and property-based tests to construct valid
-and deliberately-broken skill directories without hand-writing YAML/JSON
-in every test. Lives directly under ``tests/`` (rather than ``tests/unit``)
-so it is importable from every test subpackage — see ``tests/conftest.py``.
+Not part of the runtime execution path — see ``oec.execution.runner``
+for how a skill's ``implementation.py`` is loaded when actually
+executed (in a sandboxed subprocess). This module is a small, public
+testing SDK: it's what lets a skill's own
+``tests/test_golden.py``/``test_properties.py``/``test_validation.py``
+import their sibling ``implementation.py``/``validation.py`` directly
+(``load_skill_module``, without ``sys.path`` tricks or collisions
+between skills that both happen to have an ``implementation.py``), and
+what lets any test — a skill author's or OEC's own — construct a
+throwaway skill directory on disk without hand-writing YAML/JSON
+(``write_skill_dir``).
+
+Importable from anywhere regardless of pytest's import mode or a test
+file's location, because it's part of the installed ``oec`` package,
+not a ``sys.path``-dependent sibling file.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import json
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 import yaml
+
+from oec.errors import SkillEntrypointError
 
 DEFAULT_MANIFEST: dict[str, Any] = {
     "id": "mathematics.identity",
@@ -34,6 +49,26 @@ DEFAULT_FRONT_MATTER: dict[str, Any] = {
 }
 
 
+def load_skill_module(skill_dir: Path, module_name: str) -> ModuleType:
+    """Import ``<skill_dir>/<module_name>.py`` under a name unique to this skill dir."""
+    skill_dir = skill_dir.resolve()
+    module_file = skill_dir / f"{module_name}.py"
+    if not module_file.is_file():
+        raise SkillEntrypointError(
+            f"skill module not found: {module_file}", details={"path": str(module_file)}
+        )
+
+    unique_name = f"oec_skill_test_{abs(hash(str(skill_dir)))}_{module_name}"
+    spec = importlib.util.spec_from_file_location(unique_name, module_file)
+    if spec is None or spec.loader is None:
+        raise SkillEntrypointError(
+            f"cannot load skill module from {module_file}", details={"path": str(module_file)}
+        )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def write_skill_dir(
     base: Path,
     *,
@@ -52,8 +87,8 @@ def write_skill_dir(
 ) -> Path:
     """Write a minimal skill directory under ``base / name`` and return its path.
 
-    Starts from a valid ``mathematics.identity`` skill and applies the
-    given overrides/omissions, so each test only has to spell out what
+    Starts from a valid ``mathematics.identity``-shaped skill and applies
+    the given overrides/omissions, so a test only has to spell out what
     makes it different from a valid skill.
     """
     skill_dir = base / name

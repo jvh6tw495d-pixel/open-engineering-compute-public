@@ -1,11 +1,11 @@
 from pathlib import Path
 from typing import Any, ClassVar
 
-from _skill_helpers import write_skill_dir
 from oec.execution.models import ExecutionRequest, ExecutionStatus
 from oec.execution.service import ExecutionService
 from oec.skills.loader.models import LoadedSkill
 from oec.skills.registry.registry import SkillRegistry
+from oec.testing import write_skill_dir
 from oec.validation.base import Severity, ValidationOutcome
 
 

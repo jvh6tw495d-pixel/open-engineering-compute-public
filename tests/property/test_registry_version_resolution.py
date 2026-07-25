@@ -4,8 +4,8 @@ from pathlib import Path
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from _skill_helpers import write_skill_dir
 from oec.skills.registry.registry import SkillRegistry
+from oec.testing import write_skill_dir
 
 _VERSION_TUPLES = st.lists(
     st.tuples(

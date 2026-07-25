@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from _skill_helpers import write_skill_dir
 from oec.errors import SkillNotFoundError, SkillVersionConflictError
 from oec.skills.registry.registry import SkillRegistry, discover_skill_dirs
+from oec.testing import write_skill_dir
 
 
 def test_register_loads_and_indexes_a_skill(tmp_path: Path) -> None:

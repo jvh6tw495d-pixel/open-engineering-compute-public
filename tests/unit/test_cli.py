@@ -2,9 +2,9 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from _skill_helpers import write_skill_dir
 from oec import __version__
 from oec.cli.main import app
+from oec.testing import write_skill_dir
 
 runner = CliRunner()
 

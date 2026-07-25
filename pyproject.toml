@@ -70,8 +70,8 @@ files = ["src/oec"]
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "--cov=oec --cov-report=term-missing --cov-report=xml"
+testpaths = ["tests", "skills"]
+addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml"
 
 [tool.coverage.run]
 source = ["src/oec"]

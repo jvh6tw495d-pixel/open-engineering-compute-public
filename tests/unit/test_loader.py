@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from _skill_helpers import write_skill_dir
 from oec.errors import SkillEntrypointError, SkillFrontMatterError, SkillManifestError
 from oec.skills.loader.loader import load_skill
+from oec.testing import write_skill_dir
 
 
 def test_loads_a_valid_skill_directory(tmp_path: Path) -> None:
