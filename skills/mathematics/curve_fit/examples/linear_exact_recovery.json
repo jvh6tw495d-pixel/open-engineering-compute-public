@@ -1,0 +1,15 @@
+{
+  "description": "y = 2x + 1, noiseless (data generated from known true parameters -- exact recovery is the independent oracle, not a separate solver: the ground truth is known by construction).",
+  "input": {
+    "model": "a*x + b",
+    "parameter_names": ["a", "b"],
+    "x": [0.0, 1.0, 2.0, 3.0, 4.0],
+    "y": [1.0, 3.0, 5.0, 7.0, 9.0],
+    "initial_guess": [1.0, 1.0]
+  },
+  "expected_output": {
+    "params": [2.0, 1.0],
+    "method": "lm",
+    "function_evaluations": 7
+  }
+}
