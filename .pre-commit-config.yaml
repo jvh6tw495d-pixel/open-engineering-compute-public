@@ -20,6 +20,8 @@ repos:
           - jsonschema>=4.20
           - types-jsonschema>=4.20
           - scipy-stubs>=1.13
+          - fastapi>=0.111
+          - uvicorn>=0.30
         args: [--config-file=pyproject.toml]
         pass_filenames: false
 

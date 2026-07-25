@@ -302,3 +302,34 @@ def test_run_command_inconclusive_status_exits_two(tmp_path: Path) -> None:
     )
     assert result.exit_code == 2
     assert "INCONCLUSIVE" in result.stdout
+
+
+# --- `oec server api` (ADR 0015) ---------------------------------------
+
+
+def test_server_api_command_builds_app_and_calls_uvicorn_run(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """Patches uvicorn.run (which would otherwise block forever serving)
+    to confirm the command wires create_app up with the right
+    skills_root/host/port instead of actually starting a server."""
+    import uvicorn
+
+    from oec.api.app import create_app
+
+    captured: dict[str, object] = {}
+
+    def _fake_run(app: object, *, host: str, port: int) -> None:
+        captured["app"] = app
+        captured["host"] = host
+        captured["port"] = port
+
+    monkeypatch.setattr(uvicorn, "run", _fake_run)
+
+    result = runner.invoke(
+        app,
+        ["server", "api", "--skills-root", "skills", "--host", "0.0.0.0", "--port", "9999"],
+    )
+
+    assert result.exit_code == 0
+    assert captured["host"] == "0.0.0.0"
+    assert captured["port"] == 9999
+    assert type(captured["app"]).__name__ == type(create_app()).__name__

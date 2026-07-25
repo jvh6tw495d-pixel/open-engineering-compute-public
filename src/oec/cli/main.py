@@ -5,8 +5,8 @@ Per ADR 0005 (thin interface adapters), this module holds no scientific or
 validation logic of its own: it only translates CLI arguments into
 `SkillRegistry`/`oec.sdk.Engine` calls and formats the result as JSON or
 human-readable text. ``version``, the ``skills`` subcommands (list/
-inspect/validate), and ``run`` (ADR 0014) exist so far — ``server api``/
-``server mcp`` arrive in Sprint 07.
+inspect/validate), ``run`` (ADR 0014), and ``server api``/``server mcp``
+(ADR 0015) launch the REST/MCP interfaces built on the same `Engine`.
 """
 
 from __future__ import annotations
@@ -42,6 +42,8 @@ at all (unknown skill id, malformed ``--input`` JSON, bad ``--skills-root``)."""
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 skills_app = typer.Typer(no_args_is_help=True)
 app.add_typer(skills_app, name="skills")
+server_app = typer.Typer(no_args_is_help=True)
+app.add_typer(server_app, name="server")
 
 console = Console()
 error_console = Console(stderr=True)
@@ -265,6 +267,34 @@ def _print_run_summary(result: ExecutionResult) -> None:
         console.print_json(data=result.diagnostics)
     for warning in result.warnings:
         console.print(f"[yellow]warning[/yellow]: {warning}")
+
+
+@server_app.command("api")
+def server_api(
+    skills_root: SkillsRootOption = Path("skills"),
+    host: Annotated[str, typer.Option(help="Host/interface to bind.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="Port to bind.")] = 8000,
+) -> None:
+    """Run the REST API (ADR 0015) with uvicorn.
+
+    Requires the ``api`` extra (``uv sync --extra api`` /
+    ``pip install 'oec[api]'``) — ``fastapi``/``uvicorn`` are optional
+    dependencies, not part of the base install.
+    """
+    try:
+        import uvicorn
+
+        from oec.api.app import create_app
+    except ImportError as exc:
+        error_console.print(
+            "[bold red]error[/bold red]: the REST API requires the 'api' extra "
+            "(uv sync --extra api / pip install 'oec[api]')"
+        )
+        if _debug:
+            raise
+        raise typer.Exit(code=1) from exc
+
+    uvicorn.run(create_app(skills_root=skills_root), host=host, port=port)
 
 
 if __name__ == "__main__":
