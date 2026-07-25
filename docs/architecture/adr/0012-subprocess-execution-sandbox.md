@@ -111,3 +111,18 @@ over-engineering for the Alpha.
   skill-authored code. This keeps the "don't execute untrusted code
   without need" boundary from ADR/plan section 4.7 auditable at a single
   file.
+
+## Amendment (Sprint 04, independent review)
+
+An independent review of Sprint 03 flagged that plan section 4.7 also
+requires a memory limit, which this ADR's original text did not mention
+as a gap — only network/filesystem isolation was called out. Correcting
+that omission here rather than pretending it was already covered:
+**memory is not limited either.** A skill that allocates unboundedly can
+still exhaust the host. `SandboxReport` now carries
+`memory_limit_enforced: false` alongside the network/filesystem fields,
+for the same reason those exist — so `ExecutionResult.provenance` never
+implies a guarantee this sprint doesn't deliver. Real memory limiting
+(POSIX `resource.setrlimit`, Windows Job Object memory caps) is deferred
+to the same future hardening sprint as network/filesystem isolation —
+it needs the same threat-model exercise, not a partial fix now.

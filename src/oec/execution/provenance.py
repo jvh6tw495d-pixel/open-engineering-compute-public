@@ -34,6 +34,7 @@ class SandboxReport(BaseModel):
     timeout_enforced: bool
     network_isolation_enforced: bool
     filesystem_isolation_enforced: bool
+    memory_limit_enforced: bool
 
 
 class QuantityProvenance(BaseModel):

@@ -7,6 +7,7 @@ def _sandbox() -> SandboxReport:
         timeout_enforced=True,
         network_isolation_enforced=False,
         filesystem_isolation_enforced=False,
+        memory_limit_enforced=False,
     )
 
 
@@ -21,6 +22,7 @@ def test_build_provenance_reports_the_sandbox_honestly() -> None:
         "timeout_enforced": True,
         "network_isolation_enforced": False,
         "filesystem_isolation_enforced": False,
+        "memory_limit_enforced": False,
     }
 
 
