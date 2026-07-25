@@ -3,12 +3,12 @@
 Living summary of OEC's structure. Updated at the end of each sprint (see
 `docs/development/graphify.md` for the tool used to help maintain it).
 
-## Main components (as of Sprint 01)
+## Main components (as of Sprint 02)
 
 | Component | Path | Status |
 |---|---|---|
 | Shared value objects | `src/oec/common.py` | implemented — `VersionedRef` |
-| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` + 8 subclasses |
+| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` + 9 subclasses |
 | Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest` + nested specs, nested `schemas`/`execution`/`validation` shape matches plan section 8.2 |
 | Execution models | `src/oec/execution/models.py` | implemented — `ExecutionRequest`, `ExecutionResult`, `ExecutionStatus` |
 | Skill front matter parser | `src/oec/skills/loader/frontmatter.py` | implemented — `SkillFrontMatter`, `parse_front_matter` |
@@ -16,7 +16,8 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
 | Skill Registry | `src/oec/skills/registry/registry.py` | implemented — `SkillRegistry`, `discover_skill_dirs`, `RegistrationReport` |
 | Skill Lifecycle | `src/oec/skills/lifecycle/lifecycle.py` | implemented — `is_loadable_by_default`, `validate_transition` |
 | CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}` |
-| Engineering Kernel | `src/oec/kernel/{numerics,optimization,statistics,uncertainty,units}` | empty packages, scaffolded for Sprint 02+ |
+| Units kernel | `src/oec/kernel/units/{registry,quantity,serialization,normalize}.py` | implemented — `QuantityValue`, `normalize`, `is_compatible`, single shared Pint `ureg` |
+| Engineering Kernel (rest) | `src/oec/kernel/{numerics,optimization,statistics,uncertainty}` | empty packages, scaffolded for Sprint 04+ |
 | Validation Engine | `src/oec/validation/` | empty package, scaffolded for Sprint 03 |
 | Execution Service | `src/oec/execution/` | only models so far; service lands in Sprint 03 |
 | REST API | `src/oec/api/` | empty package, scaffolded for Sprint 07 |
@@ -25,10 +26,10 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
 
 ## Dependencies (declared, not all wired yet)
 
-- Core: `pydantic>=2.7`, `numpy`, `scipy`, `sympy`, `pint` (units engine
-  arrives in Sprint 02; not imported anywhere yet), `pyyaml` (parses
-  `skill.yaml` and `skill.md` front matter), `typer`/`rich` (CLI — now
-  core dependencies, not an optional extra, since the CLI ships from
+- Core: `pydantic>=2.7`, `numpy`, `scipy`, `sympy`, `pint` (units engine —
+  **now implemented and imported**, `src/oec/kernel/units/`), `pyyaml`
+  (parses `skill.yaml` and `skill.md` front matter), `typer`/`rich` (CLI
+  — core dependency, not an optional extra, since the CLI ships from
   Sprint 01 onward).
 - Optional extras: `api` (fastapi, uvicorn), `mcp` (mcp SDK) — declared in
   `pyproject.toml` but unused until Sprint 07.
@@ -65,32 +66,57 @@ Service's job, arriving in Sprint 03. The loader deliberately stops at
 "the manifest, front matter, and declared artifacts are internally
 consistent," not "the implementation actually runs."
 
+Physical quantities can now be normalized independently of any skill:
+
+```text
+QuantityValue(value, unit)                     -- public shape, Pint-validated at construction
+        ↓ normalize(quantity, to_unit=...)
+                ↓ to_pint(quantity) -- via the single shared `ureg`
+                ↓ .to(to_unit)      -- raises UnitError on dimensional mismatch
+        ↓ NormalizedQuantity(original=..., normalized=...)
+```
+
+`QuantityValue` and `normalize()` are not wired into `SkillManifest`,
+`ExecutionRequest`, or the loader yet — `inputs`/`result` on those models
+are still plain `dict[str, Any]`. Wiring typed quantities into a skill's
+actual input/output schema is Sprint 03/04 work, once the Validation
+Engine and the first real skills exist to consume them.
+
 ## Modules touched this sprint
 
-`src/oec/skills/{loader,registry,lifecycle}/*`, `src/oec/cli/main.py`,
-`src/oec/errors.py` (4 new subclasses), `src/oec/skills/schemas/manifest.py`
-(reshaped to the plan's nested `schemas`/`execution`/`validation` YAML
-shape), `tests/unit/{test_loader,test_registry,test_lifecycle,
-test_frontmatter,test_cli}.py`, `tests/property/*`,
-`tests/fixtures/skills/mathematics/identity/*` (the Sprint 01 example
-skill), `tests/_skill_helpers.py` + `tests/conftest.py` (shared test
-fixture-writer, importable from every test subpackage).
+`src/oec/kernel/units/{registry,quantity,serialization,normalize}.py`
+(new), `src/oec/errors.py` (+`UnitError`), `pyproject.toml`
+(`fail_under` raised to 90), `tests/unit/{test_quantity,
+test_serialization,test_normalize}.py`,
+`tests/property/test_units_properties.py`,
+`docs/architecture/adr/{0010,0011}-*.md`.
 
 ## Areas of highest coupling
 
-- `write_skill_dir()` (test helper) and `load_skill()` are now the graph's
-  highest-degree nodes (39 and 28 edges per Graphify) — expected, since
-  nearly every Sprint 01 test exercises the loader through that one
-  helper. Not a production coupling concern; worth remembering if the
-  helper ever needs to change shape, since it will touch ~50 tests.
-- `oec.skills.schemas.manifest.SkillManifest` is now imported by loader,
+- `write_skill_dir()` (test helper) and `load_skill()` remain the
+  graph's highest-degree nodes — expected, unrelated to this sprint's
+  units work, which is deliberately self-contained (`kernel/units/` has
+  no dependents yet outside its own tests).
+- `oec.skills.schemas.manifest.SkillManifest` is imported by loader,
   registry, lifecycle, and CLI — the busiest production node, as
   expected for a skill-first architecture (ADR 0001).
+- `oec.kernel.units.registry.ureg` is a deliberate single point of
+  coupling by design (ADR 0011) — every quantity conversion in the
+  kernel must go through it; that is the point, not a smell.
 
 ## Known structural debt
 
-- `oec.errors` still has no dedicated timeout or dimensional-mismatch
-  error — deferred until Sprint 02/03 code actually raises them.
+- `QuantityValue` is not yet referenced by `SkillManifest`,
+  `ExecutionRequest`/`ExecutionResult`, or any JSON Schema — a skill's
+  `inputs`/`result` are still untyped `dict[str, Any]`. Sprint 03
+  (Validation Engine) is where dimensional validation actually gets
+  applied to a skill's declared inputs; Sprint 02 only builds the
+  primitive it will use.
+- No curated allow-list of engineering units — Pint's full default unit
+  set is available, including units no skill will ever need (see ADR
+  0011). Deferred until real skills reveal what is actually used.
+- `oec.errors` still has no dedicated timeout error — deferred until
+  Sprint 03 code (Execution Service) actually raises it.
 - The loader checks only that the entrypoint `.py` file exists and that
   the schema files are syntactically valid JSON; it does not validate
   the JSON Schemas against the JSON Schema meta-schema, and it does not
