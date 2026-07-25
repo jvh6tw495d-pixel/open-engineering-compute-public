@@ -3,21 +3,22 @@
 Living summary of OEC's structure. Updated at the end of each sprint (see
 `docs/development/graphify.md` for the tool used to help maintain it).
 
-## Main components (as of Sprint 00)
+## Main components (as of Sprint 01)
 
 | Component | Path | Status |
 |---|---|---|
 | Shared value objects | `src/oec/common.py` | implemented — `VersionedRef` |
-| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` and 5 subclasses |
-| Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest` + nested specs |
+| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` + 8 subclasses |
+| Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest` + nested specs, nested `schemas`/`execution`/`validation` shape matches plan section 8.2 |
 | Execution models | `src/oec/execution/models.py` | implemented — `ExecutionRequest`, `ExecutionResult`, `ExecutionStatus` |
-| Skill Loader | `src/oec/skills/loader/` | empty package, scaffolded for Sprint 01 |
-| Skill Registry | `src/oec/skills/registry/` | empty package, scaffolded for Sprint 01 |
-| Skill Lifecycle | `src/oec/skills/lifecycle/` | empty package, scaffolded for Sprint 01 |
-| Engineering Kernel | `src/oec/kernel/{numerics,optimization,statistics,uncertainty,units}` | empty packages, scaffolded for Sprints 02+ |
+| Skill front matter parser | `src/oec/skills/loader/frontmatter.py` | implemented — `SkillFrontMatter`, `parse_front_matter` |
+| Skill Loader | `src/oec/skills/loader/{loader.py,models.py}` | implemented — `load_skill`, `LoadedSkill`; never imports skill Python code |
+| Skill Registry | `src/oec/skills/registry/registry.py` | implemented — `SkillRegistry`, `discover_skill_dirs`, `RegistrationReport` |
+| Skill Lifecycle | `src/oec/skills/lifecycle/lifecycle.py` | implemented — `is_loadable_by_default`, `validate_transition` |
+| CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}` |
+| Engineering Kernel | `src/oec/kernel/{numerics,optimization,statistics,uncertainty,units}` | empty packages, scaffolded for Sprint 02+ |
 | Validation Engine | `src/oec/validation/` | empty package, scaffolded for Sprint 03 |
 | Execution Service | `src/oec/execution/` | only models so far; service lands in Sprint 03 |
-| Python SDK / CLI | `src/oec/cli/` | empty package, scaffolded for Sprint 06 |
 | REST API | `src/oec/api/` | empty package, scaffolded for Sprint 07 |
 | MCP adapter | `src/oec/mcp/` | empty package, scaffolded for Sprint 07 |
 | Reports | `src/oec/reports/` | empty package, not yet scheduled in detail |
@@ -25,54 +26,87 @@ Living summary of OEC's structure. Updated at the end of each sprint (see
 ## Dependencies (declared, not all wired yet)
 
 - Core: `pydantic>=2.7`, `numpy`, `scipy`, `sympy`, `pint` (units engine
-  arrives in Sprint 02; not imported anywhere yet).
-- Optional extras: `api` (fastapi, uvicorn), `cli` (typer, rich), `mcp`
-  (mcp SDK) — declared in `pyproject.toml` but unused until their
-  respective sprints.
+  arrives in Sprint 02; not imported anywhere yet), `pyyaml` (parses
+  `skill.yaml` and `skill.md` front matter), `typer`/`rich` (CLI — now
+  core dependencies, not an optional extra, since the CLI ships from
+  Sprint 01 onward).
+- Optional extras: `api` (fastapi, uvicorn), `mcp` (mcp SDK) — declared in
+  `pyproject.toml` but unused until Sprint 07.
 - Dev/quality: ruff, mypy, pytest, pytest-cov, hypothesis, pre-commit,
-  bandit.
+  bandit, `types-PyYAML`.
 
 ## Entrypoints
 
-- `oec` console script → `oec.cli.main:app` — **declared, not yet
-  implemented**. Running `oec` today will fail; this is expected until
-  Sprint 06.
-- No HTTP or MCP entrypoint exists yet.
+- `oec` console script → `oec.cli.main:app` — **implemented**. Try:
+  `uv run oec skills list --skills-root tests/fixtures/skills`.
+- No HTTP or MCP entrypoint exists yet (Sprint 07).
 
 ## Execution flow (current state)
 
-Nothing executes yet — this sprint only established the data contracts
-(`SkillManifest`, `ExecutionRequest`, `ExecutionResult`) that every later
-component will pass around. There is no loader, no registry, and no
-execution pipeline wiring them together yet; that is the entire scope of
-Sprint 01 and Sprint 03.
+A skill directory can now be discovered, loaded, validated, and inspected
+end to end:
+
+```text
+SkillRegistry.register_all(root)
+        ↓ discover_skill_dirs (rglob for skill.yaml)
+        ↓ load_skill(path) per directory
+                ↓ parse skill.yaml -> SkillManifest (pydantic)
+                ↓ parse skill.md front matter -> SkillFrontMatter
+                ↓ cross-check the two agree (id/version/status/domain/title)
+                ↓ check entrypoint .py file exists (never imported)
+                ↓ check + parse input/output JSON Schema files
+        ↓ LoadedSkill stored in registry, indexed by id -> version
+registry.get_skill(id[, version]) / .list_skills() / .search() / .validate()
+        ↑ consumed by `oec skills list/inspect/validate`
+```
+
+No skill is ever *executed* yet — that is still the Skill Execution
+Service's job, arriving in Sprint 03. The loader deliberately stops at
+"the manifest, front matter, and declared artifacts are internally
+consistent," not "the implementation actually runs."
 
 ## Modules touched this sprint
 
-All of `src/oec/` (new), all of `tests/unit/` (new), all ADRs 0001–0005
-(new), all `.github/` workflow and template files (new).
+`src/oec/skills/{loader,registry,lifecycle}/*`, `src/oec/cli/main.py`,
+`src/oec/errors.py` (4 new subclasses), `src/oec/skills/schemas/manifest.py`
+(reshaped to the plan's nested `schemas`/`execution`/`validation` YAML
+shape), `tests/unit/{test_loader,test_registry,test_lifecycle,
+test_frontmatter,test_cli}.py`, `tests/property/*`,
+`tests/fixtures/skills/mathematics/identity/*` (the Sprint 01 example
+skill), `tests/_skill_helpers.py` + `tests/conftest.py` (shared test
+fixture-writer, importable from every test subpackage).
 
 ## Areas of highest coupling
 
-- `oec.common.VersionedRef` is imported by both
-  `oec.skills.schemas.manifest` (as `SkillManifest.method`) and
-  `oec.execution.models` (as `ExecutionResult.skill` / `.method`). This is
-  intentional reuse (used 3 times) rather than premature abstraction, and
-  Graphify's own report independently flagged it as the highest-degree
-  node in the graph (19 edges) — worth keeping an eye on as the loader and
-  registry start depending on it too.
+- `write_skill_dir()` (test helper) and `load_skill()` are now the graph's
+  highest-degree nodes (39 and 28 edges per Graphify) — expected, since
+  nearly every Sprint 01 test exercises the loader through that one
+  helper. Not a production coupling concern; worth remembering if the
+  helper ever needs to change shape, since it will touch ~50 tests.
+- `oec.skills.schemas.manifest.SkillManifest` is now imported by loader,
+  registry, lifecycle, and CLI — the busiest production node, as
+  expected for a skill-first architecture (ADR 0001).
 
 ## Known structural debt
 
-- `oec.errors` currently only defines the root hierarchy; skill-loading,
-  validation-layer, and execution-pipeline errors that Sprint 01–03 need
-  (e.g. a dedicated timeout error, a dimensional-mismatch error) are not
-  yet modeled as distinct subclasses — deferred until the code that raises
-  them exists, to avoid speculative error types.
-- `ValidationPolicy.schema_layer` uses a Pydantic alias (`schema`) because
-  `schema` collides with a deprecated `BaseModel` method name under mypy
-  strict mode. Documented inline in `manifest.py`; revisit if a cleaner
-  Pydantic v2 idiom emerges.
+- `oec.errors` still has no dedicated timeout or dimensional-mismatch
+  error — deferred until Sprint 02/03 code actually raises them.
+- The loader checks only that the entrypoint `.py` file exists and that
+  the schema files are syntactically valid JSON; it does not validate
+  the JSON Schemas against the JSON Schema meta-schema, and it does not
+  import or introspect the entrypoint function. Both are intentional
+  (plan section 4.7: don't execute untrusted code without need) and both
+  become real work in Sprint 03 (Validation Engine, Execution Service).
+- `SkillLifecycle.validate_transition` is implemented and tested but not
+  yet called from anywhere at runtime — there is no code path today that
+  changes a skill's status, so it is exercised only directly by
+  `tests/unit/test_lifecycle.py`. It will be wired in once a
+  re-registration/update flow exists.
+- The experimental example skill (`tests/fixtures/skills/mathematics/identity`)
+  intentionally lives under `tests/fixtures/`, not the top-level `skills/`
+  catalog — it is a loader/registry test fixture, not one of the MVP
+  skills from plan section 14. `skills/mathematics/` and
+  `skills/electrical/` remain empty until Sprint 04 and Sprint 08.
 - No `docs/skills/`, `docs/api/`, `docs/mcp/`, `docs/integrations/`,
   `docs/contributing/`, `docs/concepts/` content yet — directories exist,
   content is scheduled per-sprint as the corresponding component lands.
