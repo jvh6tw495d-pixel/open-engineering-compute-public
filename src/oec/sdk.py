@@ -5,13 +5,13 @@ This is the "import direto em Python" surface deferred from Sprint 03
 (``docs/sprints/sprint-03-execution-validation.md``) — distinct from
 :mod:`oec.testing`, which stays a test-authoring helper
 (``load_skill_module``, ``write_skill_dir``), not a runtime execution
-facade. :class:`Engine` is what ``oec run`` (the CLI) is built on top
-of, and what a script/notebook/service embedding OEC should use instead
-of the lower-level pieces this module wraps.
+facade. :class:`Engine` is what ``oec run`` (the CLI), the REST API, and
+the MCP server are all built on top of.
 """
 
 from __future__ import annotations
 
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +33,14 @@ class Engine:
     time that skill is run and cached after that — the registry scan and
     validator discovery both happen at most once per skill per
     ``Engine`` instance, not once per call.
+
+    :meth:`run` serializes every execution through a single lock (ADR
+    0015): with zero OS-level resource isolation per skill subprocess
+    (ADR 0012), the only safe concurrency bound for the Alpha is
+    "one skill executes at a time," matching the plan's own
+    synchronous execution model — and it incidentally makes the
+    ``_services`` cache safe under concurrent callers (the REST API,
+    the MCP server) without a separate lock for that.
     """
 
     def __init__(self, skills_root: str | Path = "skills") -> None:
@@ -47,6 +55,22 @@ class Engine:
         # SkillRegistry.get_skill's own SkillNotFoundError.
         self.registration_failures = report.failures
         self._services: dict[tuple[str, str], ExecutionService] = {}
+        self._lock = threading.Lock()
+
+    def warm(self) -> None:
+        """Eagerly build every registered skill's ``ExecutionService``.
+
+        Optional for a short-lived caller (``oec run`` executes one
+        skill and exits — there is nothing to warm ahead of that);
+        required for a long-lived one (REST/MCP, ADR 0015) so a skill's
+        validator-discovery failure (:class:`~oec.errors.SkillEntrypointError`,
+        ADR 0014 — e.g. an ambiguous or missing ``validation.py``
+        validator) surfaces at server startup, not on that skill's
+        first request.
+        """
+        with self._lock:
+            for manifest in self._registry.list_skills(include_retired=True):
+                self._get_or_build_service_locked(manifest.id, manifest.version)
 
     def run(
         self,
@@ -62,12 +86,35 @@ class Engine:
 
         Raises whatever :meth:`~oec.skills.registry.registry.SkillRegistry.get_skill`
         raises (e.g. :class:`~oec.errors.SkillNotFoundError`) if the
-        skill or version can't be resolved.
+        skill or version can't be resolved. Blocks until any other
+        execution already in progress on this ``Engine`` finishes (see
+        the class docstring and ADR 0015) — safe but not fast under
+        concurrent callers, an explicit Alpha-stage tradeoff.
         """
-        skill = self._registry.get_skill(skill_id, skill_version)
-        cache_key = (skill.manifest.id, skill.manifest.version)
+        with self._lock:
+            skill = self._registry.get_skill(skill_id, skill_version)
+            service = self._get_or_build_service_locked(skill.manifest.id, skill.manifest.version)
+
+            request_kwargs: dict[str, Any] = {
+                "skill_id": skill.manifest.id,
+                "skill_version": skill.manifest.version,
+                "inputs": inputs,
+            }
+            if seed is not None:
+                request_kwargs["seed"] = seed
+            if trace_id is not None:
+                request_kwargs["trace_id"] = trace_id
+            if requested_by is not None:
+                request_kwargs["requested_by"] = requested_by
+
+            return service.execute(ExecutionRequest(**request_kwargs))
+
+    def _get_or_build_service_locked(self, skill_id: str, skill_version: str) -> ExecutionService:
+        """Must only be called while holding ``self._lock``."""
+        cache_key = (skill_id, skill_version)
         service = self._services.get(cache_key)
         if service is None:
+            skill = self._registry.get_skill(skill_id, skill_version)
             input_validators, result_validators = build_validators(skill)
             service = ExecutionService(
                 self._registry,
@@ -75,20 +122,7 @@ class Engine:
                 result_validators=result_validators,
             )
             self._services[cache_key] = service
-
-        request_kwargs: dict[str, Any] = {
-            "skill_id": skill.manifest.id,
-            "skill_version": skill.manifest.version,
-            "inputs": inputs,
-        }
-        if seed is not None:
-            request_kwargs["seed"] = seed
-        if trace_id is not None:
-            request_kwargs["trace_id"] = trace_id
-        if requested_by is not None:
-            request_kwargs["requested_by"] = requested_by
-
-        return service.execute(ExecutionRequest(**request_kwargs))
+        return service
 
 
 def run(
