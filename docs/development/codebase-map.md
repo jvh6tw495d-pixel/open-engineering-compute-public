@@ -3,172 +3,166 @@
 Living summary of OEC's structure. Updated at the end of each sprint (see
 `docs/development/graphify.md` for the tool used to help maintain it).
 
-## Main components (as of Sprint 03)
+## Main components (as of Sprint 04)
 
 | Component | Path | Status |
 |---|---|---|
 | Shared value objects | `src/oec/common.py` | implemented — `VersionedRef` |
-| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` + 10 subclasses |
-| Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest` + nested specs |
-| Execution models | `src/oec/execution/models.py` | implemented — `ExecutionRequest`, `ExecutionResult`, `ExecutionStatus` |
-| Skill front matter parser | `src/oec/skills/loader/frontmatter.py` | implemented |
-| Skill Loader | `src/oec/skills/loader/{loader.py,models.py}` | implemented — never imports skill Python code |
-| Skill Registry | `src/oec/skills/registry/registry.py` | implemented |
-| Skill Lifecycle | `src/oec/skills/lifecycle/lifecycle.py` | implemented |
+| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` + 12 subclasses |
+| Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest`, `MethodRef` (`iterative: bool`, ADR 0013) |
+| Execution models | `src/oec/execution/models.py` | implemented |
+| Skill Loader/Registry/Lifecycle | `src/oec/skills/{loader,registry,lifecycle}/` | implemented |
 | CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}` |
-| Units kernel | `src/oec/kernel/units/{registry,quantity,serialization,normalize}.py` | implemented |
-| Engineering Kernel (rest) | `src/oec/kernel/{numerics,optimization,statistics,uncertainty}` | empty, scaffolded for Sprint 04+ |
-| **Validation Engine** | `src/oec/validation/{base,schema,dimensions,mathematical,physical,numerical,invariants,golden}.py` | **implemented** — see below |
-| **Execution Service** | `src/oec/execution/{service,runner,sandbox,status,provenance}.py` | **implemented** — see below |
-| REST API | `src/oec/api/` | empty package, scaffolded for Sprint 07 |
-| MCP adapter | `src/oec/mcp/` | empty package, scaffolded for Sprint 07 |
-| Reports | `src/oec/reports/` | empty package, not yet scheduled in detail |
+| Units kernel | `src/oec/kernel/units/` | implemented, not yet wired into a real skill's schema |
+| **Numerics kernel** | `src/oec/kernel/numerics/{expressions,root_finding}.py` | **implemented** — see below |
+| Engineering Kernel (rest) | `src/oec/kernel/{optimization,statistics,uncertainty}` | empty, scaffolded |
+| Validation Engine | `src/oec/validation/{base,schema,dimensions,mathematical,physical,numerical,invariants,golden}.py` | implemented |
+| Execution Service | `src/oec/execution/{service,runner,sandbox,status,provenance}.py` | implemented |
+| **Testing SDK** | `src/oec/testing.py` | **implemented** — see below |
+| **MVP skills (3 of 12)** | `skills/mathematics/{solve_root,interpolate,integrate}/` | **implemented** — see below |
+| REST API | `src/oec/api/` | empty, scaffolded for Sprint 07 |
+| MCP adapter | `src/oec/mcp/` | empty, scaffolded for Sprint 07 |
 
-### Validation Engine, module by module
+### Numerics kernel, module by module
 
-- `base.py` — the frozen contract: `Severity`, `ValidationOutcome`,
-  `InputValidator`/`ResultValidator` protocols. Both take a full
-  `LoadedSkill`, not just its manifest, so the schema layer can read
-  parsed `input_schema`/`output_schema`.
-- `schema.py` — `SchemaValidator` (`InputValidator`): JSON Schema
-  (`jsonschema.Draft202012Validator`) against `normalized_inputs`.
-- `dimensions.py` — `DimensionalValidator` (`InputValidator`): validates
-  `{value, unit}`-shaped inputs as `QuantityValue`; checks compatibility
-  against an optional `x-oec-unit` JSON Schema extension via
-  `oec.kernel.units.normalize.is_compatible`.
-- `mathematical.py` / `physical.py` — **not** pipeline-wired validators;
-  reusable pure functions (`require_nonzero`, `require_bracket`,
-  `require_positive`, `require_above_absolute_zero`, etc.) that a real
-  skill's own `validation.py` (plan section 8, arriving Sprint 04+) will
-  call. What JSON Schema already expresses (`minimum`/`maximum`/etc.)
-  belongs in `schema.py`, not here — deliberately not duplicated.
-- `numerical.py` — `NumericalDiagnosticsValidator` (`ResultValidator`):
-  non-fatal `WARNING`s from `diagnostics` (near iteration limit, poor
-  conditioning, residual above tolerance). Never re-decides convergence
-  — that's `compute_status`'s job via a separate `converged` argument.
-- `invariants.py` — `InvariantValidator` (`ResultValidator`): no
-  NaN/Infinity anywhere in `result`; `result` conforms to
-  `output_schema` if declared.
-- `golden.py` — `GoldenCase` + `assert_matches_golden` /
-  `diff_against_golden`: development-time regression testing (plan
-  section 12.6), never part of the runtime pipeline.
+- `expressions.py` — `compile_expression()`: parses a user-submitted
+  `f(x)` string into a safe callable. Never calls `eval()`/`exec()`
+  (plan section 4.7 is an absolute prohibition, not "prohibited unless
+  careful") — walks a whitelisted `ast` tree once, then *interprets*
+  that validated tree directly. A SciPy/SymPy-`parse_expr`-based
+  approach was tried and rejected during development: even sandboxed,
+  it still accepted `().__class__.__bases__[0].__subclasses__()`, a
+  known Python sandbox escape, because SymPy's parser is itself built
+  on `eval()`.
+- `root_finding.py` — `find_root_bracketed` (brentq/bisect),
+  `find_root_from_guess` (secant/newton), `select_default_method()` (the
+  explicit, documented method-selection rule — plan section 4.4). All
+  return the same `RootFindingDiagnostics` shape regardless of method.
 
-### Execution Service, module by module
+### `oec.testing` — a small public testing SDK
 
-- `runner.py` — runs *inside* the sandboxed subprocess (ADR 0012). The
-  only file in the codebase that ever imports a skill's Python code.
-  Invoked as `python -m oec.execution.runner`, stdin/stdout JSON
-  protocol: `{"result": ..., "diagnostics": ...}` or it's a contract
-  violation (`RunnerContractError`).
-- `sandbox.py` — parent-side `run_in_sandbox()`: launches the runner via
-  `subprocess.run(..., timeout=...)`. Real, cross-platform timeout
-  enforcement; network/filesystem isolation explicitly not enforced
-  (ADR 0012) and reported as such, never implied.
-- `status.py` — `compute_status()`: the only implementation of ADR
-  0007's precedence table (`implementation_failed` → any `ERROR` → not
-  converged → any `WARNING` → exact-or-converged-clean).
-- `provenance.py` — `build_provenance()`: `oec_version`, cached
-  `git_commit`, `trace_id`, `requested_by`, `seed`, a `SandboxReport`
-  (what was *actually* enforced, not what the manifest declared), and
-  per-field original/normalized units.
-- `service.py` — `ExecutionService`: resolve → input validators →
-  sandbox execution (skipped entirely if any input validator reports an
-  `ERROR`) → result validators → `compute_status` → `build_provenance` →
-  `ExecutionResult`. Validators are constructor-injected
-  (`list[InputValidator]`/`list[ResultValidator]`) — this module has no
-  import-time dependency on any concrete validator layer.
+- `load_skill_module(skill_dir, module_name)` — dynamically imports a
+  skill's sibling `implementation.py`/`validation.py` under a name
+  unique to that skill directory. Needed because every skill package
+  has a same-named `implementation.py`; a naive dynamic import would
+  have the second skill's tests import the first skill's cached module
+  when a single `pytest` run covers many skills.
+- `write_skill_dir(...)` — writes a minimal, overridable skill directory
+  to disk (used by OEC's own loader/registry/CLI tests, and available to
+  any third-party skill author's tests too).
+- Moved here from `tests/_skill_helpers.py` this sprint after adding a
+  skill's own test suite surfaced a real pytest collision (see "Decisions").
+
+### MVP math skills (plan section 14.1, 3 of 6 math skills done)
+
+All three follow the same package layout (`skill.md`, `skill.yaml`,
+`input.schema.json`, `output.schema.json`, `implementation.py`,
+`validation.py`, `references.md`, `examples/`, `tests/`), established by
+`solve_root` and copied by `interpolate`/`integrate`.
+
+- **`mathematics.solve_root`** — brentq/bisect/secant/newton.
+  `method.iterative: true`. Method selection: bracket → brentq;
+  initial_guess only → secant; `newton` requires an explicit derivative.
+  5 golden cases, all sourced from `mpmath.findroot` (independent of the
+  SciPy solvers under test) — includes the Burden & Faires textbook
+  cubic and the Dottie number (`cos(x)=x`).
+- **`mathematics.interpolate`** — linear (`numpy.interp`)/cubic_spline/
+  pchip. `method.iterative: false` (closed-form construction+evaluation,
+  no convergence concept). `method` is **required**, no auto-select —
+  documented in `skill.md` as a deliberate choice: the three methods are
+  philosophically different (robust/smooth/shape-preserving), none is
+  "more correct" by default. Extrapolation outside `[min(x), max(x)]` is
+  a `WARNING`, not an `ERROR`.
+- **`mathematics.integrate`** — two mutually exclusive modes: function
+  (`expression` + `bounds` → `scipy.integrate.quad`, adaptive) XOR
+  tabulated (`x`/`y` → Simpson if ≥3 points else trapezoid, auto-selected
+  by point count). `method.iterative: true` for the *whole* skill (a
+  static, manifest-level declaration — can't vary by input), because
+  function mode is genuinely adaptive; the tabulated path always reports
+  `diagnostics["converged"] = true` (a fixed-formula computation given
+  samples has no iteration to fail), satisfying ADR 0013 either way.
+
+All three built on `oec.kernel.numerics`, none reimplement solving logic
+in `implementation.py`. `interpolate`/`integrate` were built by Grok in
+an isolated git worktree in parallel with this sprint's closing work,
+after `solve_root` (built solo) established the template — zero file
+overlap, independently gated before merge (402 tests, 97.30% coverage,
+matched exactly what was reported).
 
 ## Dependencies (declared, not all wired yet)
 
-- Core: `pydantic>=2.7`, `numpy`, `scipy`, `sympy`, `pint`, `pyyaml`,
-  `typer`/`rich`, `jsonschema>=4.20` (new this sprint — JSON Schema
-  validation for `schema.py`/`invariants.py`).
-- Optional extras: `api` (fastapi, uvicorn), `mcp` (mcp SDK) — unused
-  until Sprint 07.
+- Core: `pydantic`, `numpy`, `scipy`, `sympy` (still unused directly —
+  the safe expression evaluator uses stdlib `ast`, not SymPy), `pint`,
+  `pyyaml`, `typer`/`rich`, `jsonschema`.
 - Dev/quality: ruff, mypy, pytest, pytest-cov, hypothesis, pre-commit,
-  bandit, `types-PyYAML`, `types-jsonschema`.
+  bandit, `types-PyYAML`, `types-jsonschema`, `scipy-stubs` (new this
+  sprint, for `oec.kernel.numerics.root_finding`'s mypy strict pass).
+- `pytest` now runs with `--import-mode=importlib` and
+  `testpaths = ["tests", "skills"]` (see "Decisions").
 
 ## Entrypoints
 
-- `oec` console script → `oec.cli.main:app` — implemented (`version`,
-  `skills list/inspect/validate`). No `oec run` yet — that's Sprint 06
-  (Python SDK/CLI) scope; `ExecutionService` is exercised via the SDK
-  surface (direct Python import) and tests only for now.
-- No HTTP or MCP entrypoint exists yet (Sprint 07).
+- `oec` console script → `oec.cli.main:app` (`version`,
+  `skills list/inspect/validate`). No `oec run` yet (Sprint 06).
+  `ExecutionService` is exercised via direct Python import in tests and
+  `tests/integration/`, e.g. `oec skills list --skills-root skills` now
+  lists all 3 real MVP skills, not just the loader test fixture.
+- No HTTP or MCP entrypoint yet (Sprint 07).
 
 ## Execution flow (current state)
 
-The full pipeline now runs end to end, in a real subprocess:
+Unchanged pipeline shape from Sprint 03 (`resolve → input validators →
+sandbox → result validators → compute_status → provenance`), now proven
+against real skills, not just a trivial fixture:
+`tests/integration/test_solve_root_end_to_end.py`,
+`test_interpolate_end_to_end.py`, `test_integrate_end_to_end.py` each
+wire the real `SchemaValidator` + the skill's own `validation.py`
+validator into a real `ExecutionService` and execute through the actual
+sandboxed subprocess.
 
-```text
-ExecutionService.execute(ExecutionRequest)
-        ↓ registry.get_skill(id[, version])           -- LoadedSkill
-        ↓ input_validators: list[InputValidator]        (e.g. SchemaValidator)
-                ↓ any ERROR? -> skip execution entirely, status=INVALID
-        ↓ run_in_sandbox(...)                            -- ADR 0012, real timeout
-                ↓ oec.execution.runner in a subprocess    -- only place that imports skill code
-        ↓ result_validators: list[ResultValidator]       (e.g. InvariantValidator)
-        ↓ compute_status(outcomes, implementation_failed, converged)   -- ADR 0007
-        ↓ build_provenance(...)                          -- honest sandbox report
-        ↓ ExecutionResult
-```
+`QuantityValue`/`normalize()`/`x-oec-unit` remain unused by any real
+skill — all three MVP math skills are dimensionless by design (see each
+skill's "Units and dimensions" section in `skill.md`). Units enter the
+picture with the electrical skills (Sprint 08).
 
-Proven, not just designed: `tests/integration/test_full_validation_wiring.py`
-wires the real `SchemaValidator`/`InvariantValidator`/
-`NumericalDiagnosticsValidator` (built independently by Grok in an
-isolated worktree) into `ExecutionService` (built independently in this
-tree) with zero adjustment on either side — both halves only ever
-depended on `oec.validation.base`'s frozen protocols.
+## Decisions
 
-`QuantityValue`/`normalize()` are still not wired into any real skill's
-input schema (no MVP skill exists yet — Sprint 04). `dimensions.py`'s
-`x-oec-unit` convention is ready for when one does.
-
-## Modules touched this sprint
-
-`src/oec/execution/{service,runner,sandbox,status,provenance}.py`,
-`src/oec/validation/{base,schema,dimensions,mathematical,physical,
-numerical,invariants,golden}.py`, `docs/architecture/adr/{0007,0012}-*.md`,
-`tests/unit/test_{runner,sandbox,execution_service,golden,
-validation_base,validation_schema,validation_dimensions,
-validation_mathematical,validation_physical,validation_numerical,
-validation_invariants}.py`, `tests/integration/`,
-`tests/fixtures/skills/mathematics/identity/implementation.py` (updated
-to the runner's return-value contract), `tests/_skill_helpers.py`
-(`implementation_code` override).
-
-## Areas of highest coupling
-
-- `oec.validation.base` is now imported by every validator layer *and*
-  `oec.execution.service` — the busiest module in the codebase by
-  design (it's the frozen contract everything else is built against,
-  per ADR-adjacent Sprint 03 planning).
-- `oec.execution.runner` is intentionally the *only* importer of
-  skill-authored code — this is a deliberate security boundary (ADR
-  0012), not incidental coupling.
-- `oec.kernel.units.registry.ureg` remains the single shared Pint
-  instance (ADR 0011); `physical.py`'s `require_above_absolute_zero`
-  now also depends on it directly.
+- **`SkillManifest.method` is now `MethodRef`, not `VersionedRef`**
+  (ADR 0013): a method must declare `iterative: bool` explicitly. Fixed
+  a real bug an independent review caught before any skill existed to
+  trigger it — an iterative method's implementation forgetting to
+  report `diagnostics["converged"]` was indistinguishable from an exact
+  method with no convergence concept, both silently producing the
+  strongest status (`VERIFIED`).
+- **`ExecutionService` validator calls are now individually
+  try/excepted** — a crashing validator becomes an `ERROR`-severity
+  outcome (fail closed) instead of taking down the whole service.
+- **`--import-mode=importlib`** — every skill's own test suite uses the
+  same file names (`test_golden.py`/`test_properties.py`/
+  `test_validation.py`, per plan section 8), which collided with each
+  other and with `tests/unit/test_golden.py` under pytest's default
+  rootless import mode (requires unique basenames). Switched to
+  `importlib` mode (resolves by full path, no basename uniqueness
+  needed), which in turn required moving `tests/_skill_helpers.py`'s
+  `sys.path`-dependent helper into the properly-installed `oec.testing`
+  package.
+- **No per-skill validator auto-discovery yet** — `ExecutionService`
+  does not read `skill.yaml`'s `validation:` block to automatically
+  assemble a skill's validator list; whoever constructs the service
+  must explicitly include a skill's own `validation.py` validator (see
+  every `tests/integration/test_*_end_to_end.py`). Deferred
+  deliberately: three skills aren't enough to know what the right
+  auto-wiring convention should look like. Sprint 05/06 candidate.
 
 ## Known structural debt
 
-- No MVP skill (math or electrical) exists yet, so `QuantityValue`,
-  `dimensions.py`'s `x-oec-unit`, and `mathematical.py`/`physical.py`'s
-  helper functions are all tested in isolation but never exercised by a
-  real skill's actual `validation.py`. That's Sprint 04.
-- Network/filesystem isolation is declared in `ExecutionPolicy` but not
-  enforced (ADR 0012, deliberate, documented, reported honestly in
-  every `ExecutionResult.provenance.sandbox`). Real OS-level isolation
-  is a future hardening-sprint concern.
-- `runner.py`'s `main()`/`__main__` block shows as uncovered in the
-  parent process's coverage report — it genuinely runs (via
-  `test_sandbox.py`'s subprocess-level tests) but in a *child* process
-  coverage.py doesn't instrument from the parent run. Would need
-  `COVERAGE_PROCESS_START` subprocess coverage hooks to fix; not worth
-  the setup cost given the module's logic is otherwise fully covered via
-  direct unit tests of `_run`/`_load_entrypoint`.
+- Validator auto-discovery from `skill.yaml` (see Decisions above).
+- `runner.py`'s `main()`/`__main__` still not instrumented by coverage
+  across the subprocess boundary (known since Sprint 03).
 - `SkillLifecycle.validate_transition` still not called anywhere at
-  runtime (same debt noted since Sprint 01) — no re-registration flow
-  exists yet.
+  runtime (known since Sprint 01).
+- Development telemetry (plan section 19: cost per accepted task) still
+  not implemented — flagged by the independent Sprint 00-02 review,
+  still open.
 - No `docs/skills/`, `docs/api/`, `docs/mcp/`, `docs/integrations/`,
   `docs/contributing/`, `docs/concepts/` content yet.
