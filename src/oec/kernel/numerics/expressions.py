@@ -25,7 +25,7 @@ from __future__ import annotations
 import ast
 import math
 import operator
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from oec.errors import OECValidationError
 
@@ -86,26 +86,65 @@ def compile_expression(expression: str, *, symbol: str = "x") -> Callable[[float
             f"invalid expression syntax: {exc}", details={"expression": expression}
         ) from exc
 
-    validated = _validate_node(tree.body, symbol)
+    validated = _validate_node(tree.body, frozenset({symbol}))
 
     def evaluate(value: float) -> float:
-        return _eval_node(validated, symbol, value)
+        return _eval_node(validated, {symbol: value})
 
     return evaluate
 
 
-def _validate_node(node: ast.AST, symbol: str) -> ast.expr:
+def compile_expression_vector(
+    expression: str, *, symbols: tuple[str, ...]
+) -> Callable[[Sequence[float]], float]:
+    """Parse ``expression`` (a function of the named ``symbols``, in order)
+    into a safe callable of a value vector.
+
+    Same restricted-AST grammar and safety guarantee as
+    :func:`compile_expression`, generalized to more than one independent
+    variable — used for multi-variable objectives and constraints (e.g.
+    ``mathematics.optimize_constrained``). ``symbols`` must be non-empty
+    and duplicate-free; a name outside ``symbols``/the allowed constants
+    is rejected exactly as an unknown name is in the scalar case.
+    """
+    if not expression.strip():
+        raise ExpressionError("expression must not be empty")
+    if not symbols:
+        raise ExpressionError("symbols must not be empty")
+    if len(set(symbols)) != len(symbols):
+        raise ExpressionError(f"duplicate symbol names: {symbols}")
+
+    try:
+        tree = ast.parse(expression, mode="eval")
+    except SyntaxError as exc:
+        raise ExpressionError(
+            f"invalid expression syntax: {exc}", details={"expression": expression}
+        ) from exc
+
+    validated = _validate_node(tree.body, frozenset(symbols))
+
+    def evaluate(values: Sequence[float]) -> float:
+        if len(values) != len(symbols):
+            raise ExpressionError(
+                f"expected {len(symbols)} values for symbols {symbols}, got {len(values)}"
+            )
+        return _eval_node(validated, dict(zip(symbols, values, strict=True)))
+
+    return evaluate
+
+
+def _validate_node(node: ast.AST, symbols: frozenset[str]) -> ast.expr:
     if isinstance(node, ast.BinOp):
         if type(node.op) not in _BINOPS:
             raise ExpressionError(f"operator {type(node.op).__name__} is not allowed")
-        _validate_node(node.left, symbol)
-        _validate_node(node.right, symbol)
+        _validate_node(node.left, symbols)
+        _validate_node(node.right, symbols)
         return node
 
     if isinstance(node, ast.UnaryOp):
         if type(node.op) not in _UNARYOPS:
             raise ExpressionError(f"unary operator {type(node.op).__name__} is not allowed")
-        _validate_node(node.operand, symbol)
+        _validate_node(node.operand, symbols)
         return node
 
     if isinstance(node, ast.Call):
@@ -114,11 +153,11 @@ def _validate_node(node: ast.AST, symbol: str) -> ast.expr:
         if node.keywords:
             raise ExpressionError("keyword arguments are not allowed")
         for arg in node.args:
-            _validate_node(arg, symbol)
+            _validate_node(arg, symbols)
         return node
 
     if isinstance(node, ast.Name):
-        if node.id != symbol and node.id not in _ALLOWED_CONSTANTS:
+        if node.id not in symbols and node.id not in _ALLOWED_CONSTANTS:
             raise ExpressionError(f"unknown name {node.id!r}")
         return node
 
@@ -130,14 +169,14 @@ def _validate_node(node: ast.AST, symbol: str) -> ast.expr:
     raise ExpressionError(f"expression element {type(node).__name__} is not allowed")
 
 
-def _eval_node(node: ast.expr, symbol: str, value: float) -> float:
+def _eval_node(node: ast.expr, bindings: dict[str, float]) -> float:
     if isinstance(node, ast.BinOp):
-        left = _eval_node(node.left, symbol, value)
-        right = _eval_node(node.right, symbol, value)
+        left = _eval_node(node.left, bindings)
+        right = _eval_node(node.right, bindings)
         return _BINOPS[type(node.op)](left, right)
 
     if isinstance(node, ast.UnaryOp):
-        return _UNARYOPS[type(node.op)](_eval_node(node.operand, symbol, value))
+        return _UNARYOPS[type(node.op)](_eval_node(node.operand, bindings))
 
     if isinstance(node, ast.Call):
         if not isinstance(node.func, ast.Name):
@@ -145,11 +184,11 @@ def _eval_node(node: ast.expr, symbol: str, value: float) -> float:
             # (not via `assert`, which is stripped under -O) rather than trusted blindly.
             raise ExpressionError("only calls to a fixed set of math functions are allowed")
         func = _ALLOWED_FUNCTIONS[node.func.id]
-        args = [_eval_node(arg, symbol, value) for arg in node.args]
+        args = [_eval_node(arg, bindings) for arg in node.args]
         return float(func(*args))
 
     if isinstance(node, ast.Name):
-        return value if node.id == symbol else _ALLOWED_CONSTANTS[node.id]
+        return bindings[node.id] if node.id in bindings else _ALLOWED_CONSTANTS[node.id]
 
     if isinstance(node, ast.Constant) and isinstance(node.value, int | float):
         return float(node.value)
