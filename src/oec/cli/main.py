@@ -211,7 +211,11 @@ def run_skill(
         raise typer.Exit(code=1)
 
     if input_file is not None:
-        raw_inputs = input_file.read_text(encoding="utf-8")
+        try:
+            raw_inputs = input_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            error_console.print(f"[bold red]error[/bold red]: cannot read --input-file: {exc}")
+            raise typer.Exit(code=1) from exc
     elif input_json is not None:
         raw_inputs = input_json
     else:

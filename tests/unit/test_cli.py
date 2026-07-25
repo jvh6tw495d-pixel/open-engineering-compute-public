@@ -182,6 +182,28 @@ def test_run_command_reads_input_from_file(tmp_path: Path) -> None:
     assert '"value": 7' in result.stdout
 
 
+def test_run_command_missing_input_file_exits_one_cleanly(tmp_path: Path) -> None:
+    """Regression guard (independent review of Sprint 06, Finding 1): a
+    nonexistent --input-file must produce a clean CLI error, not a raw
+    FileNotFoundError traceback -- read_text() used to run outside any
+    OECError-handling try/except."""
+    write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "mathematics.identity",
+            "--skills-root",
+            str(tmp_path),
+            "--input-file",
+            str(tmp_path / "does_not_exist.json"),
+        ],
+    )
+    assert result.exit_code == 1
+    assert "cannot read --input-file" in result.output
+    assert "Traceback" not in result.output
+
+
 def test_run_command_reads_input_from_stdin(tmp_path: Path) -> None:
     write_skill_dir(tmp_path, manifest_overrides=_NO_EXTRA_VALIDATION)
     result = runner.invoke(

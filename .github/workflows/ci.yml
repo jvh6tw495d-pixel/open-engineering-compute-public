@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # Nightly, catches a packaging regression (pip install oec broken)
+    # that the fast gate below can't see -- see the "installation-smoke"
+    # job's own comment for why this can't just run on every push.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
 
 jobs:
   lint-type-test:
@@ -37,3 +43,31 @@ jobs:
 
       - name: Build package
         run: uv build
+
+  installation-smoke:
+    # Deselected from the default `pytest -q` gate (pyproject.toml's
+    # addopts sets `-m "not slow"`) because it builds a real wheel and
+    # installs it into a throwaway venv on every run -- too slow for
+    # every push/PR. Runs nightly (and on manual dispatch) instead of
+    # never, so a packaging regression (a botched [project.scripts]
+    # entry point, a runtime dep declared in the wrong group, a
+    # hatchling misconfig) is caught here, not by a real user running
+    # `pip install oec` (independent review of Sprint 06, Finding 2).
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --all-extras --all-groups
+
+      - name: Installation smoke test
+        run: uv run pytest -m slow --no-cov
