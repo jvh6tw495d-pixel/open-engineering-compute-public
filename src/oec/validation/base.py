@@ -14,7 +14,7 @@ from typing import Any, ClassVar, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
-from oec.skills.schemas.manifest import SkillManifest
+from oec.skills.loader.models import LoadedSkill
 
 
 class Severity(StrEnum):
@@ -42,13 +42,15 @@ class InputValidator(Protocol):
     Runs against normalized inputs *before* the skill's implementation
     executes; an :data:`Severity.ERROR` outcome from any input validator
     means the implementation never runs at all (plan section 4.5, layers
-    1-6).
+    1-6). Receives the full :class:`LoadedSkill` (not just its manifest)
+    because the schema layer needs the parsed ``input_schema``/
+    ``output_schema`` JSON Schemas, not only the manifest.
     """
 
     layer: ClassVar[str]
 
     def validate(
-        self, manifest: SkillManifest, normalized_inputs: dict[str, Any]
+        self, skill: LoadedSkill, normalized_inputs: dict[str, Any]
     ) -> list[ValidationOutcome]: ...
 
 
@@ -64,7 +66,7 @@ class ResultValidator(Protocol):
 
     def validate(
         self,
-        manifest: SkillManifest,
+        skill: LoadedSkill,
         normalized_inputs: dict[str, Any],
         result: dict[str, Any],
         diagnostics: dict[str, Any],
