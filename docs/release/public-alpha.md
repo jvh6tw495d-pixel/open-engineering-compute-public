@@ -59,11 +59,17 @@ Do not ship, even in history:
 
 ## Definition of Done (Alpha)
 
-- [ ] Fresh git history
-- [ ] No private remotes in incubation
-- [ ] Forbidden-name gate green
-- [ ] Tests green; package installable
-- [ ] SECURITY / CONTRIBUTING / CHANGELOG / CODE_OF_CONDUCT present
-- [ ] MCP path demonstrated (stdio)
-- [ ] Open Science stable-guard tested
-- [ ] Graphify regenerated if published as a dev aid (artifacts not required in git — ADR 0010)
+Local public tree prepared **2026-07-26** at
+`../open-engineering-compute-public-2026-07-26` (sibling of incubation;
+**no remote, no push**).
+
+- [x] Fresh git history (1 commit: `chore: initial public alpha import`)
+- [x] No private remotes in incubation
+- [x] Forbidden-name gate green (649 files in public tree)
+- [x] Tests green in public tree (`800 passed`); `uv sync --all-extras` works
+- [x] SECURITY / CONTRIBUTING / CHANGELOG / CODE_OF_CONDUCT present
+- [x] MCP path documented (`docs/mcp` + `integrations/odysseus`)
+- [x] Open Science package present with stable-guard tests
+- [ ] Graphify regenerated in public tree if desired (optional; ADR 0010)
+- [ ] **Human review** of docs/licenses before any public remote
+- [ ] **Public remote + push** (explicit human step — not automated)
