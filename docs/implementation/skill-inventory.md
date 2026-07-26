@@ -1,43 +1,45 @@
-# Skill inventory (Phase A baseline)
+# Skill inventory
 
-**Generated for:** Phase A0
-**Date:** 2026-07-25
+**Updated:** 2026-07-26 (priorities 1–2 / S11–S15 + agents S20–S22)
 **Registry root:** `skills/`
-**IDs:** real package IDs (`mathematics.*`, `electrical.*`) — not `math.*`
 
 ## Summary
 
-| Domain | Count | Status |
+| Domain | Count | Notes |
 |---|---|---|
-| mathematics | 6 | experimental @ 0.1.0 |
-| electrical | 6 | experimental @ 0.1.0 |
-| **Total** | **12** | all loadable |
+| mathematics | 6 | SciPy scalar methods |
+| electrical | 6 | closed-form + Pint |
+| timeseries | 8 | + detect_outliers, clip, normalize, rolling |
+| linear | 2 | solve_system + matrix_properties |
+| numerical | 2 | ode_ivp, root_system |
+| statistics | 2 | describe + monte_carlo |
+| optimization | 2 | LP / MILP via HiGHS |
+| energy | 2 | balance, load_metrics |
+| battery | 1 | soc_step (generic coulomb counting) |
+| **Total** | **31** | experimental @ 0.1.0 |
 
-## Mathematics
+## New in priorities 1–2
 
-| Skill ID | Version | Method ID | Iterative | Effective backend | Package tests | Integration e2e |
-|---|---|---|---|---|---|---|
-| `mathematics.solve_root` | 0.1.0 | `scalar_root_finding` | yes | SciPy (`brentq`/`bisect`/`secant`/`newton`) + AST expressions | golden, properties, validation | `test_solve_root_end_to_end.py` |
-| `mathematics.interpolate` | 0.1.0 | `scalar_interpolation` | no | NumPy / SciPy interpolate | golden, properties, validation | `test_interpolate_end_to_end.py` |
-| `mathematics.integrate` | 0.1.0 | `scalar_integration` | yes* | SciPy `quad` / NumPy trapz-simpson path | golden, properties, validation | `test_integrate_end_to_end.py` |
-| `mathematics.optimize_scalar` | 0.1.0 | `scalar_minimization` | yes | SciPy `minimize_scalar` | golden, properties, validation | `test_optimize_scalar_end_to_end.py` |
-| `mathematics.optimize_constrained` | 0.1.0 | `constrained_minimization` | yes | SciPy `minimize` (SLSQP / trust-constr) | golden, properties, validation | `test_optimize_constrained_end_to_end.py` |
-| `mathematics.curve_fit` | 0.1.0 | `nonlinear_least_squares` | yes | SciPy `curve_fit` | golden, properties, validation | `test_curve_fit_end_to_end.py` |
+| Skill ID | Method | Backend merit |
+|---|---|---|
+| `timeseries.detect_outliers` | z-score / IQR | NumPy + pandas |
+| `timeseries.clip` | clip bounds | pandas |
+| `timeseries.normalize` | minmax / zscore | NumPy |
+| `timeseries.rolling` | rolling agg | pandas |
+| `linear.matrix_properties` | rank/cond/eig/SVD | NumPy linalg |
+| `statistics.monte_carlo` | sample mean E[f(X)] | NumPy RNG + AST |
 
-\*Function mode is adaptive; tabulated mode is closed-form but manifest declares iterative at skill level.
+## Agents (outside core wheel)
 
-## Electrical
+| Agent | Sprint | Harness |
+|---|---|---|
+| Optimization Specialist | G / S8′ | OPS → `optimization.*` |
+| Scientific Reviewer | G / S9′ | audit OPS + ExecutionResult |
+| Applied Mathematics | S20 | `SkillSpecialist` demos |
+| Time-Series | S21 | `SkillSpecialist` demos |
+| Energy | S22 | public energy skills only |
 
-| Skill ID | Version | Method ID | Iterative | Effective backend | Package tests | Integration e2e |
-|---|---|---|---|---|---|---|
-| `electrical.three_phase_power` | 0.1.0 | `balanced_three_phase_power` | no | Closed-form (+ Pint normalize) | golden, properties, validation | `test_three_phase_power_end_to_end.py` |
-| `electrical.current_from_power` | 0.1.0 | `current_from_power` | no | Closed-form (+ Pint) | golden, properties, validation | `test_current_from_power_end_to_end.py` |
-| `electrical.voltage_drop` | 0.1.0 | `conductor_voltage_drop` | no | Closed-form (+ Pint) | golden, properties, validation | `test_voltage_drop_end_to_end.py` |
-| `electrical.power_factor_correction` | 0.1.0 | `capacitor_bank_sizing` | no | Closed-form (+ Pint) | golden, properties, validation | `test_power_factor_correction_end_to_end.py` |
-| `electrical.transformer_loading` | 0.1.0 | `apparent_power_loading` | no | Closed-form (+ Pint) | golden, properties, validation | `test_transformer_loading_end_to_end.py` |
-| `electrical.per_unit_conversion` | 0.1.0 | `classical_per_unit` | no | Closed-form (+ Pint) | golden, properties, validation | `test_per_unit_conversion_end_to_end.py` |
-
-## How to call (all skills)
+## How to call
 
 | Interface | Entry |
 |---|---|
@@ -46,9 +48,8 @@
 | REST | `POST /v1/skills/{skill_id}/run` |
 | MCP | tool name = skill id; plus `list_skills` |
 
-## Notes for Phase A
+## Notes
 
-- Merit of numerical methods: **SciPy/NumPy** (math skills). OEC governs contracts.
-- Electrical skills: classical identities; units via **Pint** / ADR 0016.
-- No LP/MILP/HiGHS skills yet (post–Phase A).
-- Provenance today: `oec_version`, `git_commit`, `trace_id`, sandbox flags, optional `units` — **missing** `input_hash` and explicit `backends[]` (Phase A1).
+- Merit of numerical methods: **SciPy / NumPy / pandas / HiGHS**. OEC governs contracts.
+- Agents never invent numbers; narrative uses only `ExecutionResult`.
+- Private dispatch / commercial BTM methodology stays out of public skills.

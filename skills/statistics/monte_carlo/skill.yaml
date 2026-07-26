@@ -1,0 +1,40 @@
+id: statistics.monte_carlo
+version: 0.1.0
+status: experimental
+domain: statistics
+title: Monte Carlo Mean Estimator
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: numpy_monte_carlo_mean
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 60
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "NumPy RNG sample mean"
+  - "OEC restricted-AST expressions"
+
+tags:
+  - mvp
+  - statistics
+  - monte_carlo

@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamps",
+    "values"
+  ],
+  "properties": {
+    "timestamps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "zscore",
+        "iqr"
+      ]
+    },
+    "threshold": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  }
+}

@@ -158,8 +158,52 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "power_unit": "kW",
         "energy_unit": "kWh",
     },
-    # Phase E
+    # S11 quality
+    "timeseries.detect_outliers": {
+        "timestamps": [
+            "2024-01-01T00:00:00",
+            "2024-01-01T01:00:00",
+            "2024-01-01T02:00:00",
+            "2024-01-01T03:00:00",
+            "2024-01-01T04:00:00",
+        ],
+        "values": [1.0, 2.0, 100.0, 2.5, 1.5],
+        "method": "iqr",
+        "threshold": 1.5,
+    },
+    "timeseries.clip": {
+        "timestamps": [
+            "2024-01-01T00:00:00",
+            "2024-01-01T01:00:00",
+            "2024-01-01T02:00:00",
+        ],
+        "values": [1.0, 50.0, 2.0],
+        "lower": 0.0,
+        "upper": 10.0,
+    },
+    "timeseries.normalize": {
+        "timestamps": [
+            "2024-01-01T00:00:00",
+            "2024-01-01T01:00:00",
+            "2024-01-01T02:00:00",
+        ],
+        "values": [0.0, 5.0, 10.0],
+        "method": "minmax",
+    },
+    "timeseries.rolling": {
+        "timestamps": [
+            "2024-01-01T00:00:00",
+            "2024-01-01T01:00:00",
+            "2024-01-01T02:00:00",
+            "2024-01-01T03:00:00",
+        ],
+        "values": [1.0, 2.0, 3.0, 4.0],
+        "window": 2,
+        "how": "mean",
+    },
+    # Phase E + S13
     "linear.solve_system": {"A": [[2.0, 0.0], [0.0, 2.0]], "b": [2.0, 4.0]},
+    "linear.matrix_properties": {"A": [[2.0, 0.0], [0.0, 3.0]]},
     "numerical.root_system": {
         "variables": ["x", "y"],
         "equations": ["x + y - 3", "x - y - 1"],
@@ -173,6 +217,14 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "t_eval": [0.0, 0.5, 1.0],
     },
     "statistics.describe": {"values": [1.0, 2.0, 3.0, 4.0]},
+    # S15
+    "statistics.monte_carlo": {
+        "expression": "x**2",
+        "n_samples": 2000,
+        "low": 0.0,
+        "high": 1.0,
+        "seed": 42,
+    },
     # Phase F
     "energy.balance": {
         "energy_in": [10.0, 5.0],

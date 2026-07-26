@@ -1,0 +1,15 @@
+{
+  "description": "Matrix Properties (rank, cond, eig, SVD)",
+  "input": {
+    "A": [
+      [
+        2.0,
+        0.0
+      ],
+      [
+        0.0,
+        3.0
+      ]
+    ]
+  }
+}

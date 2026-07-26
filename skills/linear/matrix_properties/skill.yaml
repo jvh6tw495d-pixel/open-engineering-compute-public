@@ -1,0 +1,39 @@
+id: linear.matrix_properties
+version: 0.1.0
+status: experimental
+domain: linear
+title: Matrix Properties (rank, cond, eig, SVD)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: numpy_matrix_analysis
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "NumPy linalg.matrix_rank / cond / eigvals / svd"
+
+tags:
+  - mvp
+  - linear
+  - linalg
