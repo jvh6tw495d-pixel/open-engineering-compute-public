@@ -17,6 +17,26 @@ definition, official methodology, mathematical formulation, units, schemas,
 assumptions, applicability limits, deterministic implementation, validations,
 tests, references, version and provenance.
 
+## SciPy is the math engine — OEC is governance
+
+**OEC is not a competitor to SciPy and does not claim SciPy’s mathematical
+merit.** For numerical work (roots, quadrature, interpolation, optimization,
+curve fitting, …) OEC uses **SciPy** (and **NumPy** where appropriate) as the
+computational engine. **Pint** handles units.
+
+What OEC contributes on top is **governance and methodology** for engineering
+and applied work:
+
+- which method is used, when, and under which assumptions;
+- versioned skill contracts (schemas, limits, references);
+- validation, diagnostics policy, and provenance (`run_id`, skill/method versions);
+- the same procedure via SDK, CLI, REST, and MCP — including for agents.
+
+In short: **SciPy computes; OEC contextualizes and governs** so engineers,
+physicists, mathematicians, and researchers can trust *which* procedure ran.
+
+See [docs/concepts/mathematical-engine-and-governance.md](docs/concepts/mathematical-engine-and-governance.md).
+
 ## Quick start
 
 ```bash
@@ -74,7 +94,16 @@ uv run mypy
 uv run bandit -c pyproject.toml -r src/oec
 ```
 
+## Acknowledgments
+
+Numerical methods are provided by the **[SciPy](https://scipy.org/)** and
+**[NumPy](https://numpy.org/)** communities; unit handling by
+**[Pint](https://pint.readthedocs.io/)**. OEC’s contribution is the skill
+contract, validation, and execution governance around those engines — not
+ownership of the underlying mathematics.
+
 ## License
 
-Apache-2.0 (provisional — see `LICENSE`). Community docs: `CONTRIBUTING.md`,
-`CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md`.
+Apache-2.0 (provisional — see `LICENSE`). SciPy, NumPy, and Pint remain under
+their own licenses (see dependency metadata). Community docs:
+`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md`.

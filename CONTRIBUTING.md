@@ -4,6 +4,14 @@ Thank you for considering a contribution. OEC is **skill-first**:
 changes to methodology belong in versioned skills with tests, not in
 silent interface logic.
 
+## SciPy and numerical credit
+
+OEC applies **governance** (contracts, validation, provenance, interfaces)
+around numerical engines — primarily **SciPy**. Do **not** present wrappers
+as novel OEC algorithms. Skill docs and `references.md` must attribute the
+upstream SciPy/NumPy entry points. See
+[docs/concepts/mathematical-engine-and-governance.md](docs/concepts/mathematical-engine-and-governance.md).
+
 ## Development setup
 
 ```bash
