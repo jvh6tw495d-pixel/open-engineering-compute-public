@@ -1,9 +1,12 @@
 # OEC — Plano de implementação (análise + execução)
 
-**Status:** plano de execução revisado (pós-análise)
-**Data:** 2026-07-25
+**Status:** Alpha S0′–S9′ + Roadmap B S10–S26 **entregues no código** (2026-07-26)
+**Data original:** 2026-07-25 · **Reconciliado:** 2026-07-26 (pós-review Opus F4)
 **Fonte analisada:** proposta “Plano de Construção por Etapas e Sprints”
-**Baseline real:** repositório de incubação OEC (12 skills, interfaces SDK/CLI/REST/MCP)
+**Baseline atual:** ~40 skills; agentes Optimization/Reviewer/Math/TS/Energy; HiGHS+SciPy+pandas
+**Decisões de processo:** [ADR 0018](../architecture/adr/0018-roadmap-sequencing-and-pandas-core.md)
+**Relatório de fecho:** [gpt-plan-completion-report.md](gpt-plan-completion-report.md)
+**Métricas de agentes:** `benchmarks/agent_metrics.py`
 
 ---
 
@@ -63,9 +66,9 @@ Auditoria rápida do repo (2026-07-25):
 | 6 math + 6 electrical skills | **Existem** (várias ainda uncommitted no working tree) |
 | Testes (~696) + coverage ~96% | **Existem** |
 | Graphify, ADRs, prep Public Alpha | **Existem** |
-| HiGHS / pandas / adapters de backend plugáveis | **Não** |
-| OPS | **Não** |
-| Camada de agentes no repo | **Não** (só integração Odysseus/MCP host) |
+| HiGHS / pandas / adapters de backend plugáveis | **Sim** (HiGHS extra; pandas **core** — ADR 0018) |
+| OPS | **Sim** (v0.1) |
+| Camada de agentes no repo | **Sim** (`agents/`, fora do wheel core) |
 
 **IDs reais das skills:** `mathematics.*` e `electrical.*` (não `math.*`).
 
@@ -274,16 +277,16 @@ Desejável no Alpha, obrigatório no release notes:
 
 **Definition of Done do Alpha (release forte):**
 
-- [ ] Contratos estáveis documentados (sem `status: success`)
-- [ ] Unidades + normalização (já) + gaps de proveniência fechados
-- [ ] SciPy/SymPy/Pint + **HiGHS**
-- [ ] OPS v0.1
-- [ ] LP + MILP + diagnóstico de inviabilidade
-- [ ] Optimization Specialist v0.1
-- [ ] Scientific Reviewer v0.1
-- [ ] API, CLI, MCP verdes no gate
-- [ ] Zero referências proprietárias no tree público
-- [ ] README: SciPy/HiGHS = motor; OEC = governança; agentes = formulação
+- [x] Contratos estáveis documentados (sem `status: success`) — ADR 0007
+- [x] Unidades + normalização + proveniência (`input_hash`, `backends[]`) — ADR 0016/0017
+- [x] SciPy/SymPy/Pint + **HiGHS** (`highspy` extra `optimization`)
+- [x] OPS v0.1
+- [x] LP + MILP + diagnóstico (`optimization.check_feasibility`, `scenario_batch`)
+- [x] Optimization Specialist v0.1
+- [x] Scientific Reviewer v0.1
+- [x] API, CLI, MCP verdes no gate
+- [x] Zero referências proprietárias no tree público (`check_forbidden_names`)
+- [x] README / docs: SciPy/HiGHS = motor; OEC = governança; agentes = formulação
 
 ### 5.2 Detalhamento dos sprints Alpha
 
@@ -427,11 +430,13 @@ Só iniciar com Alpha estável e métricas mínimas (OPS válido 1ª tentativa, 
 
 ### Agentes
 
-- % OPS válido na 1ª tentativa (golden prompts)
+Medidas pelo harness `benchmarks/agent_metrics.py` (pytest `tests/unit/test_agent_metrics.py`):
+
+- % OPS válido na 1ª tentativa (golden demos diet/knapsack)
 - % classificação LP/MILP correta
 - % hipóteses explícitas no OPS
-- **taxa de dados inventados = 0** em testes controlados
-- % erros capturados pelo reviewer
+- **taxa de dados inventados = 0** em testes controlados (narrativa só com valores do `ExecutionResult`)
+- % erros capturados pelo reviewer (OPS inválido + claim forjado)
 
 ### Separação
 

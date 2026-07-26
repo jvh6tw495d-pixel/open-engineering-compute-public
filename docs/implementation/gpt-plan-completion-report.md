@@ -32,16 +32,20 @@ Not versioned (ADR 0010).
 Vault: `…/AELE Energia/Obesidian/Comercial Aele/OEC/`
 Notes: home, plano GPT, status, catálogo, agentes, graphify, revisão Opus.
 
-## Opus review (independent)
+## Opus review #1 (independent)
 
-Full text: `~/.claude/plans/rev-o-reposit-rio-oec-lucky-wozniak.md` and Obsidian `07 - Revisao Opus GPT Plan`.
+Full text: Obsidian `07 - Revisao Opus GPT Plan`.
 
-**Summary:** code delivered **more** than the plan required. Remaining gaps are process/docs/metrics, not missing skill sprints:
+**Summary:** code delivered **more** than the plan required. Remaining gaps were process/docs/metrics.
 
-1. Alpha freeze sequencing violated (B before formal STOP) — ratify in ADR/note
-2. Agent metrics harness empty (`benchmarks/`)
-3. pandas is a core dependency
-4. Plan checkboxes stale
-5. Minor coverage thin spots
+## Corrections after Opus #1
 
-**Public Alpha:** skill plan closed enough; release still needs public-tree procedure + metrics + doc reconciliation.
+| Finding | Fix |
+|---|---|
+| F1 sequencing | **ADR 0018** — ratify B-on-incubation; Public Alpha = new tree |
+| F2 agent metrics | **`benchmarks/agent_metrics.py`** + `tests/unit/test_agent_metrics.py` |
+| F3 pandas core | **ADR 0018** — pandas stays core; extras only HiGHS/API/MCP |
+| F4 plan drift | DoD checkboxes + §1.2 table in `OEC_IMPLEMENTATION_PLAN.md` |
+| F5 convert coverage | `tests/unit/test_ops_convert.py` |
+
+**Public Alpha remaining:** `prepare_public_alpha` sibling tree + human review (not a skill gap).
