@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-import pandas as pd  # type: ignore[import-untyped]
+import pandas as pd
 
 
 def _apply_timezone(idx: pd.DatetimeIndex, timezone: str | None) -> pd.DatetimeIndex:

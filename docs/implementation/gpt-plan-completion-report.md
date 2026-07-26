@@ -29,7 +29,7 @@ Not versioned (ADR 0010).
 
 ## Obsidian
 
-Vault: `…/AELE Energia/Obesidian/Comercial Aele/OEC/`
+Vault: local Obsidian folder `OEC/` (outside the public tree; absolute path not recorded here).
 Notes: home, plano GPT, status, catálogo, agentes, graphify, revisão Opus.
 
 ## Opus review #1 (independent)

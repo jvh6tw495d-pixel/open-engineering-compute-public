@@ -29,6 +29,7 @@ INCLUDE: tuple[str, ...] = (
     "integrations",
     "scripts",
     "benchmarks",
+    "agents",  # outside core wheel, still part of public agent-ready product
     ".github",
     "pyproject.toml",
     "uv.lock",
