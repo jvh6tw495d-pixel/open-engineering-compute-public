@@ -68,6 +68,18 @@ uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
 |---|---|---|
 | Odysseus (MCP host) | `integrations/odysseus/` | config + tutorial; core has zero Odysseus deps |
 | Open Science | `integrations/open_science/` | Method Change Proposals; **never** auto-mutates `stable` skills |
+| **Agents (Phase G)** | `agents/` | Optimization Specialist + Scientific Reviewer — formulate/review only; numbers from OEC |
+
+```python
+from agents.optimization_specialist.specialist import OptimizationSpecialist
+from agents.scientific_reviewer.reviewer import ScientificReviewer
+
+spec = OptimizationSpecialist(skills_root="skills")
+report = spec.run_demo("diet")          # or execute_ops(ops_dict)
+review = ScientificReviewer().review(report.ops, report.execution)
+assert review.passed
+print(report.narrative)                 # cites run_id / objective from ExecutionResult only
+```
 
 ## MVP skills
 

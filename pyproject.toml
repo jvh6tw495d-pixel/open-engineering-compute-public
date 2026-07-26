@@ -73,7 +73,14 @@ files = ["src/oec"]
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "skills", "integrations/odysseus/tests", "integrations/open_science/tests"]
+testpaths = [
+  "tests",
+  "skills",
+  "integrations/odysseus/tests",
+  "integrations/open_science/tests",
+  "agents",
+]
+pythonpath = ["."]
 addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml -m \"not slow\""
 markers = [
   "slow: builds/installs a real wheel into a throwaway venv (deselected by default; run with `uv run pytest -m slow --no-cov`)",
