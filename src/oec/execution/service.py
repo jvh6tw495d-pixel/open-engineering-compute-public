@@ -43,6 +43,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from oec.common import VersionedRef
+from oec.execution.limits import InputLimits, check_input_limits
 from oec.execution.models import ExecutionRequest, ExecutionResult
 from oec.execution.normalization import apply_dimensional_normalization
 from oec.execution.provenance import SandboxReport, build_provenance
@@ -68,10 +69,12 @@ class ExecutionService:
         *,
         input_validators: list[InputValidator] | None = None,
         result_validators: list[ResultValidator] | None = None,
+        input_limits: InputLimits | None = None,
     ) -> None:
         self._registry = registry
         self._input_validators = input_validators or []
         self._result_validators = result_validators or []
+        self._input_limits = input_limits or InputLimits()
 
     def execute(self, request: ExecutionRequest) -> ExecutionResult:
         """Execute ``request`` and return a structured, auditable result.
@@ -87,7 +90,10 @@ class ExecutionService:
         skill = self._registry.get_skill(request.skill_id, request.skill_version)
         normalized_inputs = dict(request.inputs)
 
-        outcomes = run_input_validators(self._input_validators, skill, normalized_inputs)
+        # Phase A2: reject pathological payloads before schema/domain work.
+        outcomes = check_input_limits(request.inputs, self._input_limits)
+        if not any(outcome.severity is Severity.ERROR for outcome in outcomes):
+            outcomes.extend(run_input_validators(self._input_validators, skill, normalized_inputs))
 
         implementation_failed = False
         result: dict[str, Any] = {}

@@ -10,8 +10,8 @@ Ranked for **Phase A only**. Items that only matter for OPS/HiGHS/agents are lis
 | D-A1-02 | No explicit backend name/version in provenance | Cannot prove SciPy/Pint versions per run | A1 |
 | D-A1-03 | ExecutionResult contract not in `docs/contracts/` | Agents/humans guess shape | A1 |
 | D-A1-04 | Skill versioning policy not written | Breaking schema changes ambiguous | A1 |
-| D-A2-01 | No hard limits on payload / array length | Hang / resource risk via API/CLI | A2 |
-| D-A2-02 | Sandbox overclaim risk | Docs must not claim OS isolation | A2 |
+| D-A2-01 | No hard limits on payload / array length | **Done A2** — `oec.execution.limits` | A2 ✓ |
+| D-A2-02 | Sandbox overclaim risk | **Done A2** — `docs/contracts/execution-limits-and-sandbox.md` | A2 ✓ |
 | D-A3-01 | ADR 0005 sample only math | Electrical path less proven across 4 UIs | A3 |
 | D-A3-02 | No automated multi-skill contract test | Drift of top-level result keys | A3 |
 
