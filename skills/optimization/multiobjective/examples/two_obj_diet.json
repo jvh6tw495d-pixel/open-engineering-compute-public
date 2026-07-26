@@ -1,0 +1,55 @@
+{
+  "description": "Multiobjective Weighted Sum (LP)",
+  "input": {
+    "ops": {
+      "ops_version": "0.1.0",
+      "problem_class": "lp",
+      "sense": "min",
+      "variables": [
+        {
+          "name": "x",
+          "kind": "continuous",
+          "lower": 0,
+          "upper": 1
+        },
+        {
+          "name": "y",
+          "kind": "continuous",
+          "lower": 0,
+          "upper": 1
+        }
+      ],
+      "constraints": [
+        {
+          "name": "cover",
+          "coeffs": {
+            "x": 1,
+            "y": 1
+          },
+          "sense": ">=",
+          "rhs": 1
+        }
+      ],
+      "objective": {
+        "coeffs": {
+          "x": 1,
+          "y": 1
+        }
+      }
+    },
+    "objectives": [
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 2,
+        "y": 0
+      }
+    ],
+    "weights": [
+      0.5,
+      0.5
+    ]
+  }
+}

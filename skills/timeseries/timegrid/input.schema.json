@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "start",
+    "end",
+    "freq"
+  ],
+  "properties": {
+    "start": {
+      "type": "string"
+    },
+    "end": {
+      "type": "string"
+    },
+    "freq": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timezone": {
+      "type": "string"
+    }
+  }
+}

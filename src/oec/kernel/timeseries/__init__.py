@@ -12,9 +12,11 @@ from oec.kernel.timeseries.quality import (
     normalize_series,
     rolling_window,
 )
+from oec.kernel.timeseries.timegrid import build_timegrid
 
 __all__ = [
     "align_series",
+    "build_timegrid",
     "clip_series",
     "detect_outliers",
     "fill_missing",

@@ -1,0 +1,34 @@
+{
+  "description": "Quadratic Program (SciPy SLSQP)",
+  "input": {
+    "Q": [
+      [
+        2.0,
+        0.0
+      ],
+      [
+        0.0,
+        2.0
+      ]
+    ],
+    "c": [
+      -2.0,
+      -4.0
+    ],
+    "bounds": [
+      [
+        0.0,
+        null
+      ],
+      [
+        0.0,
+        null
+      ]
+    ],
+    "x0": [
+      0.0,
+      0.0
+    ],
+    "sense": "min"
+  }
+}

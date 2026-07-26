@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "expression",
+    "variables",
+    "x0"
+  ],
+  "properties": {
+    "expression": {
+      "type": "string"
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "x0": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    },
+    "bounds": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "expression"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "ineq"
+            ]
+          },
+          "expression": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "SLSQP",
+        "trust-constr"
+      ]
+    }
+  }
+}

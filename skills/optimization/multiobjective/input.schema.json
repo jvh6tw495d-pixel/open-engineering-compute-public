@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ops",
+    "objectives",
+    "weights"
+  ],
+  "properties": {
+    "ops": {
+      "type": "object"
+    },
+    "objectives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "number"
+        }
+      },
+      "minItems": 1
+    },
+    "weights": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0
+      },
+      "minItems": 1
+    }
+  }
+}

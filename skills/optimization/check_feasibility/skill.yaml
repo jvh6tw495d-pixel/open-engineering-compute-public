@@ -1,0 +1,40 @@
+id: optimization.check_feasibility
+version: 0.1.0
+status: experimental
+domain: optimization
+title: Check LP/MILP Feasibility
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: highs_feasibility
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "HiGHS feasibility solve"
+  - "OPS v0.1"
+
+tags:
+  - mvp
+  - optimization
+  - feasibility

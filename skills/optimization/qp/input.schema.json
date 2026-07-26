@@ -1,0 +1,84 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "Q",
+    "c"
+  ],
+  "properties": {
+    "Q": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "minItems": 1
+    },
+    "c": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    },
+    "x0": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "bounds": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "A_ub": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "b_ub": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "A_eq": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "b_eq": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "sense": {
+      "type": "string",
+      "enum": [
+        "min",
+        "max"
+      ]
+    }
+  }
+}

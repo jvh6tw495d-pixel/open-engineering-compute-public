@@ -1,0 +1,11 @@
+{
+  "description": "Simple Returns from Prices",
+  "input": {
+    "prices": [
+      100.0,
+      110.0,
+      105.0,
+      120.0
+    ]
+  }
+}

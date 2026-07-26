@@ -238,6 +238,99 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "capacity": 100.0,
     },
     "energy.load_metrics": {"power_values": [10.0, 20.0, 15.0, 5.0]},
+    # S7′
+    "optimization.check_feasibility": {
+        "ops": {
+            "ops_version": "0.1.0",
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+                {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+            ],
+            "constraints": [
+                {
+                    "name": "cover",
+                    "coeffs": {"x": 1, "y": 1},
+                    "sense": ">=",
+                    "rhs": 1,
+                }
+            ],
+            "objective": {"coeffs": {"x": 1, "y": 1}},
+        }
+    },
+    "optimization.scenario_batch": {
+        "ops": {
+            "ops_version": "0.1.0",
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+                {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+            ],
+            "constraints": [
+                {
+                    "name": "cover",
+                    "coeffs": {"x": 1, "y": 1},
+                    "sense": ">=",
+                    "rhs": 1,
+                }
+            ],
+            "objective": {"coeffs": {"x": 1, "y": 1}},
+        },
+        "path": "constraint:cover.rhs",
+        "values": [0.5, 1.0, 1.5],
+    },
+    # S10
+    "timeseries.timegrid": {
+        "start": "2024-01-01T00:00:00",
+        "end": "2024-01-01T03:00:00",
+        "freq": "1h",
+    },
+    # S19
+    "finance.simple_returns": {"prices": [100.0, 110.0, 105.0, 120.0]},
+    "finance.max_drawdown": {"prices": [100.0, 120.0, 90.0, 110.0]},
+    "finance.var_historical": {
+        "returns": [-0.02, -0.01, 0.0, 0.01, 0.02, -0.05, 0.03, -0.015],
+        "confidence": 0.95,
+    },
+    # S23–S26
+    "optimization.qp": {
+        "Q": [[2.0, 0.0], [0.0, 2.0]],
+        "c": [-2.0, -4.0],
+        "bounds": [[0.0, None], [0.0, None]],
+        "x0": [0.0, 0.0],
+        "sense": "min",
+    },
+    "optimization.nlp": {
+        "expression": "(1-x)**2 + 100*(y-x**2)**2",
+        "variables": ["x", "y"],
+        "x0": [0.0, 0.0],
+        "bounds": [[-2.0, 2.0], [-2.0, 2.0]],
+        "method": "SLSQP",
+    },
+    "optimization.multiobjective": {
+        "ops": {
+            "ops_version": "0.1.0",
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+                {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+            ],
+            "constraints": [
+                {
+                    "name": "cover",
+                    "coeffs": {"x": 1, "y": 1},
+                    "sense": ">=",
+                    "rhs": 1,
+                }
+            ],
+            "objective": {"coeffs": {"x": 1, "y": 1}},
+        },
+        "objectives": [{"x": 1, "y": 1}, {"x": 2, "y": 0}],
+        "weights": [0.5, 0.5],
+    },
 }
 
 _REQUIRED_KEYS = frozenset(

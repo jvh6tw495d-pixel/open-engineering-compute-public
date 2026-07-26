@@ -1,0 +1,25 @@
+{
+  "description": "Nonlinear Program (SciPy constrained)",
+  "input": {
+    "expression": "(1-x)**2 + 100*(y-x**2)**2",
+    "variables": [
+      "x",
+      "y"
+    ],
+    "x0": [
+      0.0,
+      0.0
+    ],
+    "bounds": [
+      [
+        -2.0,
+        2.0
+      ],
+      [
+        -2.0,
+        2.0
+      ]
+    ],
+    "method": "SLSQP"
+  }
+}
