@@ -167,6 +167,9 @@ Sem agentes, o OEC é **infra**. Com agentes, vira **infraestrutura de computaç
 
 \*function mode adaptativo; tabulated mode exato.
 
+> **Snapshot S0′ (histórico):** esta tabela §2.1 lista as **12 skills** do baseline Alpha.
+> Inventário vivo (pós Roadmap B): `docs/implementation/skill-inventory.md` (~40 skills, 5 agentes).
+
 ### 2.2 Interfaces
 
 - SDK: `oec.sdk.Engine` / `run`
@@ -174,10 +177,11 @@ Sem agentes, o OEC é **infra**. Com agentes, vira **infraestrutura de computaç
 - REST: `/v1/...`
 - MCP: uma tool por skill + `list_skills`
 
-### 2.3 Backends instalados (core)
+### 2.3 Backends instalados (core) — reconciliado 2026-07-26 (ADR 0018)
 
-- NumPy, SciPy, SymPy, Pint — **sim**
-- pandas, HiGHS — **não** (Alpha LP/MILP deve adicionar HiGHS; pandas só se timeseries entrar)
+- NumPy, SciPy, SymPy, Pint, **pandas** — **sim** (core)
+- **HiGHS** (`highspy`) — **extra** `oec[optimization]` (não core)
+- Ver inventário actual: `docs/implementation/skill-inventory.md` (~40 skills)
 
 ### 2.4 Débitos relevantes para o plano
 

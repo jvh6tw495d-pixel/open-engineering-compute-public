@@ -71,3 +71,27 @@ def test_binary_default_bounds() -> None:
     assert variables[0].lower == 0.0
     assert variables[0].upper == 1.0
     assert variables[0].kind == "binary"
+
+
+def test_constraints_converted() -> None:
+    problem = validate_ops(
+        {
+            "ops_version": OPS_SCHEMA_VERSION,
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+                {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+            ],
+            "constraints": [
+                {"name": "cover", "coeffs": {"x": 1.0, "y": 2.0}, "sense": ">=", "rhs": 1.5},
+            ],
+            "objective": {"coeffs": {"x": 1, "y": 1}},
+        }
+    )
+    _variables, constraints, _sense = ops_to_linear_parts(problem)
+    assert len(constraints) == 1
+    assert constraints[0].name == "cover"
+    assert constraints[0].coeffs == {"x": 1.0, "y": 2.0}
+    assert constraints[0].sense == ">="
+    assert constraints[0].rhs == 1.5
