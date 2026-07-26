@@ -148,6 +148,7 @@ class ExecutionService:
             trace_id=request.trace_id,
             requested_by=request.requested_by,
             seed=request.seed,
+            inputs=request.inputs,
             sandbox=SandboxReport(
                 timeout_enforced=True,
                 network_isolation_enforced=False,

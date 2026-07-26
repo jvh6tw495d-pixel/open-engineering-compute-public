@@ -1,5 +1,11 @@
 from oec import __version__ as oec_version
-from oec.execution.provenance import QuantityProvenance, SandboxReport, build_provenance
+from oec.execution.provenance import (
+    QuantityProvenance,
+    SandboxReport,
+    build_provenance,
+    hash_inputs,
+    installed_backends,
+)
 
 
 def _sandbox() -> SandboxReport:
@@ -53,3 +59,33 @@ def test_build_provenance_preserves_original_units() -> None:
 def test_build_provenance_git_commit_is_a_string_or_none() -> None:
     record = build_provenance(trace_id="abc", requested_by=None, seed=None, sandbox=_sandbox())
     assert record["git_commit"] is None or isinstance(record["git_commit"], str)
+
+
+def test_hash_inputs_is_stable_under_key_reordering() -> None:
+    a = hash_inputs({"b": 1, "a": {"z": 2, "y": 3}})
+    b = hash_inputs({"a": {"y": 3, "z": 2}, "b": 1})
+    assert a == b
+    assert len(a) == 64
+
+
+def test_build_provenance_includes_input_hash_from_inputs() -> None:
+    inputs = {"expression": "x**2 - 2", "bracket": [0, 2]}
+    record = build_provenance(
+        trace_id="abc", requested_by=None, seed=None, sandbox=_sandbox(), inputs=inputs
+    )
+    assert record["input_hash"] == hash_inputs(inputs)
+
+
+def test_build_provenance_empty_inputs_hash_is_stable() -> None:
+    record = build_provenance(trace_id="abc", requested_by=None, seed=None, sandbox=_sandbox())
+    assert record["input_hash"] == hash_inputs({})
+
+
+def test_build_provenance_lists_installed_backends() -> None:
+    record = build_provenance(trace_id="abc", requested_by=None, seed=None, sandbox=_sandbox())
+    names = {b["name"] for b in record["backends"]}
+    # Core scientific deps of oec must appear when the test env is synced.
+    assert {"numpy", "scipy", "pint"} <= names
+    for backend in record["backends"]:
+        assert backend["version"]
+    assert installed_backends()  # non-empty in dev env
