@@ -1,0 +1,890 @@
+# Thesis report: LLMs without OEC vs with OEC multi-agent
+
+**Date:** 2026-07-26 18:10 UTC
+**Script:** `scripts/multiagent_with_without_oec.py`
+
+## Thesis
+
+> **Weak LLMs tend to fail multiperiod BESS/TOU optimization.**
+> **OEC supplies the method (skills/agents/OPS) and guarantees the result**
+> **(HiGHS + ExecutionResult + provenance + reviewer).**
+
+### Design
+
+| Arm | What the model does | Who computes numbers | Auditable? |
+|---|---|---|---|
+| **A — without OEC** | Free-solves the full LP in prose/JSON | Model weights | **No** |
+| **C — with OEC** | Only extracts LOAD/PV/PRICE/CAP/PMAX/SOC0 | **OEC multi-agent + HiGHS** | **Yes** (`run_id`) |
+
+### OEC multi-agent method (Arm C / oracle)
+
+1. Time-Series Specialist → `timeseries.timegrid`
+2. Energy Specialist → `energy.load_metrics`
+3. Energy Specialist → `energy.balance`
+4. Optimization Specialist → `optimization.lp` (6-period BESS LP)
+5. Scientific Reviewer → checklist on OPS + ExecutionResult
+6. Engine → `optimization.check_feasibility` (CAP=0.5 trap)
+
+---
+
+## Problem
+
+- LOAD = `[3.1, 2.4, 1.6, 2.15, 2.35, 2.1]` (sum **13.7**)
+- PV = `[0.0, 1.45, 2.55, 1.35, 0.65, 0.25]` (sum **6.25**)
+- PRICE = `[1.15, 0.55, 0.28, 0.42, 0.95, 1.35]`
+- CAP=3.75, PMAX=1.35, SOC0=1.85
+
+### Oracle (OEC pure pipeline, no LLM)
+
+- **min_tou_cost** = **4.2825**
+- **total_grid_mwh** = **5.6000000000000005**
+- **grid_trajectory** = `[1.75, 0.44999999999999996, 0.40000000000000036, 2.15, 0.3500000000000001, 0.5]`
+- **reviewer_passed** = `True`
+- **impossible_cap_feasible** = `False`
+
+```json
+{
+  "timegrid_run_id": "d894fa13-e8e7-4838-b2ae-9937ffa9d7ca",
+  "load_metrics_run_id": "1f7a505f-984f-4ac2-8842-fc717ca6d712",
+  "balance_run_id": "5816ce2e-ea3c-4ac8-a2f9-7f00b7d2648a",
+  "lp_run_id": "0a348beb-61fa-42c3-867b-645709cdb2fd",
+  "lp_status": "VALIDATED",
+  "solver_status": "optimal",
+  "input_hash": "421775f010291d316a9cf0256a058e8012bb2eafbbc2cf4c7edce0864631fba8",
+  "reviewer_passed": true,
+  "feasibility_run_id": "77b4593d-238c-487c-a71d-9c4959e3450f",
+  "backends": [
+    {
+      "name": "numpy",
+      "version": "2.5.1"
+    },
+    {
+      "name": "scipy",
+      "version": "1.18.0"
+    },
+    {
+      "name": "sympy",
+      "version": "1.14.0"
+    },
+    {
+      "name": "pint",
+      "version": "0.25.3"
+    },
+    {
+      "name": "pandas",
+      "version": "3.0.5"
+    },
+    {
+      "name": "highspy",
+      "version": "1.15.1"
+    }
+  ]
+}
+```
+
+---
+
+## Scoreboard (same 10-point rubric)
+
+| Model | Provider | A without OEC | C with OEC | Delta (C−A) | A cost | C cost |
+|---|---|---|---|---|---|---|
+| `llama3.1:8b` | ollama | **2/10** | **10/10** | **+8** | 14.45 | 4.2825 |
+| `nemotron-3-nano:4b` | ollama | **0/10** | **10/10** | **+10** | — | 4.2825 |
+| `opus` | claude | **8/10** | **10/10** | **+2** | 4.3475 | 4.2825 |
+| `qwen2.5:7b-instruct` | ollama | **2/10** | **10/10** | **+8** | 8.175 | 4.2825 |
+
+| **OEC oracle (no LLM)** | oec | — | **10/10** | — | — | **4.2825** |
+
+### Thesis metrics
+
+- Models scored on Arm A: **3** (avg score **4.0/10**)
+- Models scored on Arm C: **4** (avg score **10.0/10**)
+- Arm A correct min cost: **1/4**
+- Arm C correct min cost: **4/4**
+- Arm C runs with OEC provenance: **4/4**
+- Average lift (C − A): **+6.0** points
+
+---
+
+## Per-model detail
+
+### `llama3.1:8b`
+
+#### Arm A — WITHOUT OEC
+
+- ok: `True` score: **2/10**
+- error: `—`
+
+```json
+{
+  "answer": {
+    "load_sum_mwh": 12.05,
+    "pv_sum_mwh": 4.8,
+    "deficit_mwh": 7.25,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.62,
+    "min_tou_cost": 14.45,
+    "total_grid_mwh": 9.55,
+    "total_discharge_mwh": 2.35,
+    "total_charge_mwh": 5.2,
+    "grid_trajectory": [
+      1.15,
+      0.25,
+      0.28,
+      0.42,
+      0.95,
+      1.35
+    ],
+    "soc_trajectory": [
+      1.85,
+      3.4,
+      3.68,
+      3.1,
+      2.75,
+      2.55
+    ],
+    "impossible_cap_feasible": false,
+    "reasoning": "The system can meet the load demand with the given PV and battery capacity. The minimum cost is achieved when the grid supply matches the peak load."
+  },
+  "scores": {
+    "score": 2,
+    "max": 10,
+    "details": {
+      "load_sum": false,
+      "pv_sum": false,
+      "deficit": false,
+      "peak_load": true,
+      "load_factor": false,
+      "min_cost": false,
+      "total_grid": false,
+      "total_discharge": false,
+      "impossible_cap": true,
+      "grid_traj_l1": 4.1000000000000005,
+      "grid_traj_ok": false
+    }
+  },
+  "provenance": null,
+  "params_extracted": null
+}
+```
+
+#### Arm C — WITH OEC
+
+- ok: `True` score: **10/10**
+- error: `—`
+
+```json
+{
+  "answer": {
+    "load_sum_mwh": 13.7,
+    "pv_sum_mwh": 6.25,
+    "deficit_mwh": 7.449999999999999,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.7365591397849461,
+    "min_tou_cost": 4.2825,
+    "total_grid_mwh": 5.6000000000000005,
+    "total_discharge_mwh": 4.550000000000001,
+    "total_charge_mwh": 2.7,
+    "grid_trajectory": [
+      1.75,
+      0.44999999999999996,
+      0.40000000000000036,
+      2.15,
+      0.3500000000000001,
+      0.5
+    ],
+    "charge_trajectory": [
+      0.0,
+      0.0,
+      1.35,
+      1.35,
+      0.0,
+      0.0
+    ],
+    "discharge_trajectory": [
+      1.35,
+      0.5,
+      0.0,
+      0.0,
+      1.35,
+      1.35
+    ],
+    "soc_trajectory": [
+      0.5,
+      -0.0,
+      1.35,
+      2.7,
+      1.35,
+      0.0
+    ],
+    "impossible_cap_feasible": false,
+    "reviewer_passed": true,
+    "timegrid_n_points": 6
+  },
+  "scores": {
+    "score": 10,
+    "max": 10,
+    "details": {
+      "load_sum": true,
+      "pv_sum": true,
+      "deficit": true,
+      "peak_load": true,
+      "load_factor": true,
+      "min_cost": true,
+      "total_grid": true,
+      "total_discharge": true,
+      "impossible_cap": true,
+      "grid_traj_l1": 0.0,
+      "grid_traj_ok": true
+    }
+  },
+  "provenance": {
+    "timegrid_run_id": "2b8ccf26-1d4f-4f34-8c66-415c0d1fa464",
+    "load_metrics_run_id": "7e5da6d9-e6b0-444d-a8a5-8be709e0880f",
+    "balance_run_id": "082e3a60-f40b-4c17-af59-f376eb5198fd",
+    "lp_run_id": "2d5dd45c-ae16-42d2-a2eb-1fb8377708a3",
+    "lp_status": "VALIDATED",
+    "solver_status": "optimal",
+    "input_hash": "421775f010291d316a9cf0256a058e8012bb2eafbbc2cf4c7edce0864631fba8",
+    "reviewer_passed": true,
+    "feasibility_run_id": "5642234b-72ea-457d-af62-9b7c5a1e9730",
+    "backends": [
+      {
+        "name": "numpy",
+        "version": "2.5.1"
+      },
+      {
+        "name": "scipy",
+        "version": "1.18.0"
+      },
+      {
+        "name": "sympy",
+        "version": "1.14.0"
+      },
+      {
+        "name": "pint",
+        "version": "0.25.3"
+      },
+      {
+        "name": "pandas",
+        "version": "3.0.5"
+      },
+      {
+        "name": "highspy",
+        "version": "1.15.1"
+      }
+    ]
+  },
+  "params_extracted": {
+    "LOAD": [
+      3.1,
+      2.4,
+      1.6,
+      2.15,
+      2.35,
+      2.1
+    ],
+    "PV": [
+      0.0,
+      1.45,
+      2.55,
+      1.35,
+      0.65,
+      0.25
+    ],
+    "PRICE": [
+      1.15,
+      0.55,
+      0.28,
+      0.42,
+      0.95,
+      1.35
+    ],
+    "CAP": 3.75,
+    "PMAX": 1.35,
+    "SOC0": 1.85
+  }
+}
+```
+
+### `nemotron-3-nano:4b`
+
+#### Arm A — WITHOUT OEC
+
+- ok: `False` score: **0/10**
+- error: `Expecting property name enclosed in double quotes: line 1 column 2 (char 1)`
+
+```json
+{
+  "answer": null,
+  "scores": {
+    "score": 0,
+    "max": 10,
+    "details": {}
+  },
+  "provenance": null,
+  "params_extracted": null
+}
+```
+
+#### Arm C — WITH OEC
+
+- ok: `True` score: **10/10**
+- error: `—`
+
+```json
+{
+  "answer": {
+    "load_sum_mwh": 13.7,
+    "pv_sum_mwh": 6.25,
+    "deficit_mwh": 7.449999999999999,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.7365591397849461,
+    "min_tou_cost": 4.2825,
+    "total_grid_mwh": 5.6000000000000005,
+    "total_discharge_mwh": 4.550000000000001,
+    "total_charge_mwh": 2.7,
+    "grid_trajectory": [
+      1.75,
+      0.44999999999999996,
+      0.40000000000000036,
+      2.15,
+      0.3500000000000001,
+      0.5
+    ],
+    "charge_trajectory": [
+      0.0,
+      0.0,
+      1.35,
+      1.35,
+      0.0,
+      0.0
+    ],
+    "discharge_trajectory": [
+      1.35,
+      0.5,
+      0.0,
+      0.0,
+      1.35,
+      1.35
+    ],
+    "soc_trajectory": [
+      0.5,
+      -0.0,
+      1.35,
+      2.7,
+      1.35,
+      0.0
+    ],
+    "impossible_cap_feasible": false,
+    "reviewer_passed": true,
+    "timegrid_n_points": 6
+  },
+  "scores": {
+    "score": 10,
+    "max": 10,
+    "details": {
+      "load_sum": true,
+      "pv_sum": true,
+      "deficit": true,
+      "peak_load": true,
+      "load_factor": true,
+      "min_cost": true,
+      "total_grid": true,
+      "total_discharge": true,
+      "impossible_cap": true,
+      "grid_traj_l1": 0.0,
+      "grid_traj_ok": true
+    }
+  },
+  "provenance": {
+    "timegrid_run_id": "80049202-9921-4b28-b222-b8a93b563c95",
+    "load_metrics_run_id": "b38dd98a-df7c-49a1-bc65-3c4eed563d21",
+    "balance_run_id": "c3188fe6-ae71-422f-a8c0-d977ccd420b2",
+    "lp_run_id": "48dc6f47-7795-4e97-af62-e8f68c2f903e",
+    "lp_status": "VALIDATED",
+    "solver_status": "optimal",
+    "input_hash": "421775f010291d316a9cf0256a058e8012bb2eafbbc2cf4c7edce0864631fba8",
+    "reviewer_passed": true,
+    "feasibility_run_id": "4e744a1d-7923-43ad-a2df-a9735a5c2743",
+    "backends": [
+      {
+        "name": "numpy",
+        "version": "2.5.1"
+      },
+      {
+        "name": "scipy",
+        "version": "1.18.0"
+      },
+      {
+        "name": "sympy",
+        "version": "1.14.0"
+      },
+      {
+        "name": "pint",
+        "version": "0.25.3"
+      },
+      {
+        "name": "pandas",
+        "version": "3.0.5"
+      },
+      {
+        "name": "highspy",
+        "version": "1.15.1"
+      }
+    ]
+  },
+  "params_extracted": {
+    "LOAD": [
+      3.1,
+      2.4,
+      1.6,
+      2.15,
+      2.35,
+      2.1
+    ],
+    "PV": [
+      0.0,
+      1.45,
+      2.55,
+      1.35,
+      0.65,
+      0.25
+    ],
+    "PRICE": [
+      1.15,
+      0.55,
+      0.28,
+      0.42,
+      0.95,
+      1.35
+    ],
+    "CAP": 3.75,
+    "PMAX": 1.35,
+    "SOC0": 1.85
+  }
+}
+```
+
+### `opus`
+
+#### Arm A — WITHOUT OEC
+
+- ok: `True` score: **8/10**
+- error: `—`
+
+```json
+{
+  "answer": {
+    "load_sum_mwh": 13.7,
+    "pv_sum_mwh": 6.25,
+    "deficit_mwh": 7.45,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.7366,
+    "min_tou_cost": 4.3475,
+    "total_grid_mwh": 5.6,
+    "total_discharge_mwh": 4.05,
+    "total_charge_mwh": 2.2,
+    "grid_trajectory": [
+      1.75,
+      0.95,
+      0.4,
+      1.65,
+      0.35,
+      0.5
+    ],
+    "soc_trajectory": [
+      0.5,
+      0.5,
+      1.85,
+      2.7,
+      1.35,
+      0.0
+    ],
+    "impossible_cap_feasible": false,
+    "reasoning": "Net residual (LOAD-PV) = [3.1, 0.95, -0.95, 0.8, 1.7, 1.85], summing to 7.45 MWh that must be supplied by grid+discharge-charge. Objective sum(PRICE*grid) = const(8.27) + sum(PRICE*(charge-discharge)), so minimize by discharging at high-price periods and charging at low-price periods, ending empty (drain the free 1.85 MWh initial SOC). Prices rank t5(1.35)>t0(1.15)>t4(0.95)>t1(0.55)>t3(0.42)>t2(0.28). Discharge at the three highest-price periods t0,t4,t5 at the 1.35 PMAX cap (total 4.05); to supply this while ending at s5=0, charge 2.2 MWh at the cheapest slots: t2=1.35 (also mandatory since PV surplus of 0.95 must be absorbed as grid>=0) and t3=0.85. SOC path 1.85->0.5->0.5->1.85->2.7->1.35->0 stays within [0,3.75]; all grid>=0. Grid = [1.75,0.95,0.4,1.65,0.35,0.5], cost = 2.0125+0.5225+0.112+0.693+0.3325+0.675 = 4.3475. Any reallocation loses money: cutting a high-price discharge to reduce cheap charging loses >=0.53/MWh; leaving residual SOC>0 wastes free energy. For CAP=0.5 with SOC0=1.85: at t2 the 0.95 MWh PV surplus cannot be exported (grid>=0) so charge-discharge>=0.95, forcing s2>=s1+0.95>=0.95>0.5, which violates the 0.5 cap regardless of dispatch \u2014 infeasible."
+  },
+  "scores": {
+    "score": 8,
+    "max": 10,
+    "details": {
+      "load_sum": true,
+      "pv_sum": true,
+      "deficit": true,
+      "peak_load": true,
+      "load_factor": true,
+      "min_cost": true,
+      "total_grid": true,
+      "total_discharge": false,
+      "impossible_cap": true,
+      "grid_traj_l1": 1.0000000000000004,
+      "grid_traj_ok": false
+    }
+  },
+  "provenance": null,
+  "params_extracted": null
+}
+```
+
+#### Arm C — WITH OEC
+
+- ok: `True` score: **10/10**
+- error: `—`
+
+```json
+{
+  "answer": {
+    "load_sum_mwh": 13.7,
+    "pv_sum_mwh": 6.25,
+    "deficit_mwh": 7.449999999999999,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.7365591397849461,
+    "min_tou_cost": 4.2825,
+    "total_grid_mwh": 5.6000000000000005,
+    "total_discharge_mwh": 4.550000000000001,
+    "total_charge_mwh": 2.7,
+    "grid_trajectory": [
+      1.75,
+      0.44999999999999996,
+      0.40000000000000036,
+      2.15,
+      0.3500000000000001,
+      0.5
+    ],
+    "charge_trajectory": [
+      0.0,
+      0.0,
+      1.35,
+      1.35,
+      0.0,
+      0.0
+    ],
+    "discharge_trajectory": [
+      1.35,
+      0.5,
+      0.0,
+      0.0,
+      1.35,
+      1.35
+    ],
+    "soc_trajectory": [
+      0.5,
+      -0.0,
+      1.35,
+      2.7,
+      1.35,
+      0.0
+    ],
+    "impossible_cap_feasible": false,
+    "reviewer_passed": true,
+    "timegrid_n_points": 6
+  },
+  "scores": {
+    "score": 10,
+    "max": 10,
+    "details": {
+      "load_sum": true,
+      "pv_sum": true,
+      "deficit": true,
+      "peak_load": true,
+      "load_factor": true,
+      "min_cost": true,
+      "total_grid": true,
+      "total_discharge": true,
+      "impossible_cap": true,
+      "grid_traj_l1": 0.0,
+      "grid_traj_ok": true
+    }
+  },
+  "provenance": {
+    "timegrid_run_id": "9d831c2f-d6aa-4360-9820-d208954042a6",
+    "load_metrics_run_id": "7db0640a-ffbe-464e-a821-619c5968ca2f",
+    "balance_run_id": "35df8c1d-5025-4baa-8416-7b4898b94c4c",
+    "lp_run_id": "7f634b71-be83-4409-8339-09ff93a19412",
+    "lp_status": "VALIDATED",
+    "solver_status": "optimal",
+    "input_hash": "421775f010291d316a9cf0256a058e8012bb2eafbbc2cf4c7edce0864631fba8",
+    "reviewer_passed": true,
+    "feasibility_run_id": "1305d66d-0126-4da9-bc73-c4dcc09beb4c",
+    "backends": [
+      {
+        "name": "numpy",
+        "version": "2.5.1"
+      },
+      {
+        "name": "scipy",
+        "version": "1.18.0"
+      },
+      {
+        "name": "sympy",
+        "version": "1.14.0"
+      },
+      {
+        "name": "pint",
+        "version": "0.25.3"
+      },
+      {
+        "name": "pandas",
+        "version": "3.0.5"
+      },
+      {
+        "name": "highspy",
+        "version": "1.15.1"
+      }
+    ]
+  },
+  "params_extracted": {
+    "LOAD": [
+      3.1,
+      2.4,
+      1.6,
+      2.15,
+      2.35,
+      2.1
+    ],
+    "PV": [
+      0.0,
+      1.45,
+      2.55,
+      1.35,
+      0.65,
+      0.25
+    ],
+    "PRICE": [
+      1.15,
+      0.55,
+      0.28,
+      0.42,
+      0.95,
+      1.35
+    ],
+    "CAP": 3.75,
+    "PMAX": 1.35,
+    "SOC0": 1.85
+  }
+}
+```
+
+### `qwen2.5:7b-instruct`
+
+#### Arm A — WITHOUT OEC
+
+- ok: `True` score: **2/10**
+- error: `—`
+
+```json
+{
+  "answer": {
+    "load_sum_mwh": 13.8,
+    "pv_sum_mwh": 7.2,
+    "deficit_mwh": 9.6,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.5454545454545454,
+    "min_tou_cost": 8.175,
+    "total_grid_mwh": 2.95,
+    "total_discharge_mwh": 6.35,
+    "total_charge_mwh": 0,
+    "grid_trajectory": [
+      1.1,
+      0.45,
+      0.85,
+      0.7,
+      0.65,
+      0
+    ],
+    "soc_trajectory": [
+      1.85,
+      2.9,
+      3.55,
+      3.2,
+      3.15,
+      3.1
+    ],
+    "impossible_cap_feasible": false,
+    "reasoning": "Given the constraints and dynamics of the microgrid with BESS, it is not feasible to meet all load demands without exceeding the capacity or incurring significant grid usage due to insufficient PV generation during peak demand periods."
+  },
+  "scores": {
+    "score": 2,
+    "max": 10,
+    "details": {
+      "load_sum": false,
+      "pv_sum": false,
+      "deficit": false,
+      "peak_load": true,
+      "load_factor": false,
+      "min_cost": false,
+      "total_grid": false,
+      "total_discharge": false,
+      "impossible_cap": true,
+      "grid_traj_l1": 3.3499999999999996,
+      "grid_traj_ok": false
+    }
+  },
+  "provenance": null,
+  "params_extracted": null
+}
+```
+
+#### Arm C — WITH OEC
+
+- ok: `True` score: **10/10**
+- error: `—`
+
+```json
+{
+  "answer": {
+    "load_sum_mwh": 13.7,
+    "pv_sum_mwh": 6.25,
+    "deficit_mwh": 7.449999999999999,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.7365591397849461,
+    "min_tou_cost": 4.2825,
+    "total_grid_mwh": 5.6000000000000005,
+    "total_discharge_mwh": 4.550000000000001,
+    "total_charge_mwh": 2.7,
+    "grid_trajectory": [
+      1.75,
+      0.44999999999999996,
+      0.40000000000000036,
+      2.15,
+      0.3500000000000001,
+      0.5
+    ],
+    "charge_trajectory": [
+      0.0,
+      0.0,
+      1.35,
+      1.35,
+      0.0,
+      0.0
+    ],
+    "discharge_trajectory": [
+      1.35,
+      0.5,
+      0.0,
+      0.0,
+      1.35,
+      1.35
+    ],
+    "soc_trajectory": [
+      0.5,
+      -0.0,
+      1.35,
+      2.7,
+      1.35,
+      0.0
+    ],
+    "impossible_cap_feasible": false,
+    "reviewer_passed": true,
+    "timegrid_n_points": 6
+  },
+  "scores": {
+    "score": 10,
+    "max": 10,
+    "details": {
+      "load_sum": true,
+      "pv_sum": true,
+      "deficit": true,
+      "peak_load": true,
+      "load_factor": true,
+      "min_cost": true,
+      "total_grid": true,
+      "total_discharge": true,
+      "impossible_cap": true,
+      "grid_traj_l1": 0.0,
+      "grid_traj_ok": true
+    }
+  },
+  "provenance": {
+    "timegrid_run_id": "e2c74537-fd39-4346-b1b2-f0b9ba89a226",
+    "load_metrics_run_id": "4463b813-f1c9-469a-b90f-aa6bec2a586d",
+    "balance_run_id": "04ebd9b9-e1e1-49cd-bbc2-6421592437ba",
+    "lp_run_id": "e80f106f-9be7-4668-9f42-5da820ff2719",
+    "lp_status": "VALIDATED",
+    "solver_status": "optimal",
+    "input_hash": "421775f010291d316a9cf0256a058e8012bb2eafbbc2cf4c7edce0864631fba8",
+    "reviewer_passed": true,
+    "feasibility_run_id": "c6e18a08-bb2a-42c5-baa0-4e18e4b883ba",
+    "backends": [
+      {
+        "name": "numpy",
+        "version": "2.5.1"
+      },
+      {
+        "name": "scipy",
+        "version": "1.18.0"
+      },
+      {
+        "name": "sympy",
+        "version": "1.14.0"
+      },
+      {
+        "name": "pint",
+        "version": "0.25.3"
+      },
+      {
+        "name": "pandas",
+        "version": "3.0.5"
+      },
+      {
+        "name": "highspy",
+        "version": "1.15.1"
+      }
+    ]
+  },
+  "params_extracted": {
+    "LOAD": [
+      3.1,
+      2.4,
+      1.6,
+      2.15,
+      2.35,
+      2.1
+    ],
+    "PV": [
+      0.0,
+      1.45,
+      2.55,
+      1.35,
+      0.65,
+      0.25
+    ],
+    "PRICE": [
+      1.15,
+      0.55,
+      0.28,
+      0.42,
+      0.95,
+      1.35
+    ],
+    "CAP": 3.75,
+    "PMAX": 1.35,
+    "SOC0": 1.85
+  }
+}
+```
+
+---
+
+## Conclusions (thesis)
+
+1. **Without OEC**, weak/local models usually miss the multiperiod optimum
+   (wrong `min_tou_cost` and/or grid trajectory).
+2. **With OEC**, if parameter extraction is correct, scores jump because
+   **HiGHS** solves the same OPS the oracle uses — method is fixed in skills.
+3. OEC adds **guarantee + audit**: `run_id`, `input_hash`, `solver_status`,
+   reviewer pass — LLMs alone cannot produce this.
+4. Strong models (e.g. Opus) may occasionally match the number without tools;
+   they still do **not** replace OEC for **reproducible scientific claims**.
+5. Product implication: *LLM formulates / OEC computes* is the correct split
+   for agent-oriented engineering infrastructure.
+
+## Reproduce
+
+```bash
+uv sync --extra optimization
+uv run python scripts/multiagent_with_without_oec.py
+uv run python scripts/multiagent_with_without_oec.py --skip-claude
+```
+
+*End of thesis report*
