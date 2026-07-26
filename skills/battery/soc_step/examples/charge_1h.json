@@ -1,0 +1,9 @@
+{
+  "description": "Battery SOC Step (Coulomb Counting)",
+  "input": {
+    "soc": 0.5,
+    "power": 10.0,
+    "dt_hours": 1.0,
+    "capacity": 100.0
+  }
+}

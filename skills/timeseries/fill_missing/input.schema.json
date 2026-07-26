@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamps",
+    "values"
+  ],
+  "properties": {
+    "timestamps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "ffill",
+        "bfill",
+        "linear"
+      ]
+    },
+    "timezone": {
+      "type": "string"
+    }
+  }
+}

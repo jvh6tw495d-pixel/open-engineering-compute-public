@@ -1,0 +1,23 @@
+{
+  "description": "ODE Initial Value Problem",
+  "input": {
+    "state_names": [
+      "y"
+    ],
+    "dydt_expressions": [
+      "-y"
+    ],
+    "t_span": [
+      0.0,
+      1.0
+    ],
+    "y0": [
+      1.0
+    ],
+    "t_eval": [
+      0.0,
+      0.5,
+      1.0
+    ]
+  }
+}

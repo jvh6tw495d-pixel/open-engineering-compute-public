@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "power_values"
+  ],
+  "properties": {
+    "power_values": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    }
+  }
+}

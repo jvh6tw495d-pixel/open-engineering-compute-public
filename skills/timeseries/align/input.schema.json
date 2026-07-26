@@ -1,0 +1,46 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamps_a",
+    "values_a",
+    "timestamps_b",
+    "values_b"
+  ],
+  "properties": {
+    "timestamps_a": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "values_a": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "timestamps_b": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "values_b": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "how": {
+      "type": "string",
+      "enum": [
+        "inner",
+        "outer"
+      ]
+    },
+    "timezone": {
+      "type": "string"
+    }
+  }
+}

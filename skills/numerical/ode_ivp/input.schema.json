@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "state_names",
+    "dydt_expressions",
+    "t_span",
+    "y0"
+  ],
+  "properties": {
+    "state_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "dydt_expressions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "t_span": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "y0": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "RK45",
+        "RK23",
+        "Radau",
+        "BDF",
+        "LSODA"
+      ]
+    },
+    "rtol": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "atol": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "t_eval": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  }
+}

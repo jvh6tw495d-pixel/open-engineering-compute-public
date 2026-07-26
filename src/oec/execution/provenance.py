@@ -28,6 +28,7 @@ _RUNTIME_BACKEND_PACKAGES: tuple[str, ...] = (
     "scipy",
     "sympy",
     "pint",
+    "pandas",
     "highspy",  # optional extra oec[optimization]; listed when installed
 )
 

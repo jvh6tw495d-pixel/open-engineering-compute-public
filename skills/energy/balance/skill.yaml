@@ -1,0 +1,38 @@
+id: energy.balance
+version: 0.1.0
+status: experimental
+domain: energy
+title: Energy Balance Check
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: sum_in_out_storage
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Generic energy conservation bookkeeping (public formula)"
+
+tags:
+  - mvp
+  - energy

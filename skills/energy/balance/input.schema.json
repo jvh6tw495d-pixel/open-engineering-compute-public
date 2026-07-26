@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "energy_in": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "energy_out": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "storage_delta": {
+      "type": "number"
+    },
+    "tolerance": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  }
+}

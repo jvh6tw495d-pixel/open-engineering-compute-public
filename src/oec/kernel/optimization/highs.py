@@ -58,7 +58,7 @@ class LinearSolveResult:
 
 def _require_highspy() -> Any:
     try:
-        import highspy  # type: ignore[import-not-found]
+        import highspy
     except ImportError as exc:  # pragma: no cover
         raise HighsNotAvailableError(
             "HiGHS is not installed. Install with: uv sync --extra optimization "

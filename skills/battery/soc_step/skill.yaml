@@ -1,0 +1,38 @@
+id: battery.soc_step
+version: 0.1.0
+status: experimental
+domain: battery
+title: Battery SOC Step (Coulomb Counting)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: coulomb_count_step
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Generic coulomb-counting SOC (not a proprietary battery model or dispatch policy)"
+
+tags:
+  - mvp
+  - battery

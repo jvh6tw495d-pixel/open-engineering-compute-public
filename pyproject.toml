@@ -21,6 +21,7 @@ dependencies = [
   "typer>=0.12",
   "rich>=13.7",
   "jsonschema>=4.20",
+  "pandas>=3.0.5",
 ]
 
 [project.optional-dependencies]
@@ -71,6 +72,10 @@ python_version = "3.12"
 strict = true
 files = ["src/oec"]
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["highspy", "highspy.*", "pandas", "pandas.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = [

@@ -1,0 +1,11 @@
+{
+  "description": "Load Metrics",
+  "input": {
+    "power_values": [
+      10.0,
+      20.0,
+      15.0,
+      5.0
+    ]
+  }
+}

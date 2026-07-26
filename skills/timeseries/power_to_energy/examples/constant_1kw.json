@@ -1,0 +1,15 @@
+{
+  "description": "Power to Energy",
+  "input": {
+    "timestamps": [
+      "2024-01-01T00:00:00",
+      "2024-01-01T01:00:00"
+    ],
+    "power": [
+      1.0,
+      1.0
+    ],
+    "power_unit": "kW",
+    "energy_unit": "kWh"
+  }
+}

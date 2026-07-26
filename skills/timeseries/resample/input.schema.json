@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamps",
+    "values",
+    "freq"
+  ],
+  "properties": {
+    "timestamps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    },
+    "freq": {
+      "type": "string",
+      "minLength": 1
+    },
+    "how": {
+      "type": "string",
+      "enum": [
+        "mean",
+        "sum",
+        "min",
+        "max",
+        "last"
+      ]
+    },
+    "timezone": {
+      "type": "string"
+    }
+  }
+}

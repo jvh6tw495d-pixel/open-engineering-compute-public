@@ -85,9 +85,12 @@ print(report.narrative)                 # cites run_id / objective from Executio
 
 - **Mathematics (6):** `solve_root`, `interpolate`, `integrate`, `optimize_scalar`, `optimize_constrained`, `curve_fit`
 - **Electrical (6):** `three_phase_power`, `current_from_power`, `voltage_drop`, `power_factor_correction`, `transformer_loading`, `per_unit_conversion`
-- **Optimization (2):** `optimization.lp`, `optimization.milp` (HiGHS backend — `uv sync --extra optimization`)
+- **Optimization (2):** `optimization.lp`, `optimization.milp` (HiGHS — `uv sync --extra optimization`)
+- **Time series (4):** `timeseries.resample`, `align`, `fill_missing`, `power_to_energy` (pandas)
+- **Linear / numerical / stats (4):** `linear.solve_system`, `numerical.root_system`, `numerical.ode_ivp`, `statistics.describe`
+- **Energy generic (3):** `energy.balance`, `energy.load_metrics`, `battery.soc_step` (public formulas only)
 
-LP/MILP inputs use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: [HiGHS](https://highs.dev/).
+LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / NumPy / pandas / [HiGHS](https://highs.dev/) as declared per skill.
 
 ## Status / release
 

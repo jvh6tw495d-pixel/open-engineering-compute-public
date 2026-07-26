@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "soc",
+    "power",
+    "dt_hours",
+    "capacity"
+  ],
+  "properties": {
+    "soc": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "power": {
+      "type": "number"
+    },
+    "dt_hours": {
+      "type": "number",
+      "minimum": 0
+    },
+    "capacity": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "efficiency_charge": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "efficiency_discharge": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    }
+  }
+}

@@ -124,6 +124,68 @@ _FIXTURES: dict[str, dict[str, Any]] = {
             "objective": {"coeffs": {"a": 3, "b": 2}},
         }
     },
+    # Phase D
+    "timeseries.resample": {
+        "timestamps": [
+            "2024-01-01T00:00:00",
+            "2024-01-01T00:30:00",
+            "2024-01-01T01:00:00",
+            "2024-01-01T01:30:00",
+        ],
+        "values": [1.0, 3.0, 2.0, 4.0],
+        "freq": "1h",
+        "how": "mean",
+    },
+    "timeseries.align": {
+        "timestamps_a": ["2024-01-01T00:00:00", "2024-01-01T01:00:00"],
+        "values_a": [1.0, 2.0],
+        "timestamps_b": ["2024-01-01T00:00:00", "2024-01-01T02:00:00"],
+        "values_b": [10.0, 30.0],
+        "how": "inner",
+    },
+    "timeseries.fill_missing": {
+        "timestamps": [
+            "2024-01-01T00:00:00",
+            "2024-01-01T01:00:00",
+            "2024-01-01T02:00:00",
+        ],
+        "values": [1.0, None, 3.0],
+        "method": "ffill",
+    },
+    "timeseries.power_to_energy": {
+        "timestamps": ["2024-01-01T00:00:00", "2024-01-01T01:00:00"],
+        "power": [1.0, 1.0],
+        "power_unit": "kW",
+        "energy_unit": "kWh",
+    },
+    # Phase E
+    "linear.solve_system": {"A": [[2.0, 0.0], [0.0, 2.0]], "b": [2.0, 4.0]},
+    "numerical.root_system": {
+        "variables": ["x", "y"],
+        "equations": ["x + y - 3", "x - y - 1"],
+        "x0": [0.0, 0.0],
+    },
+    "numerical.ode_ivp": {
+        "state_names": ["y"],
+        "dydt_expressions": ["-y"],
+        "t_span": [0.0, 1.0],
+        "y0": [1.0],
+        "t_eval": [0.0, 0.5, 1.0],
+    },
+    "statistics.describe": {"values": [1.0, 2.0, 3.0, 4.0]},
+    # Phase F
+    "energy.balance": {
+        "energy_in": [10.0, 5.0],
+        "energy_out": [12.0],
+        "storage_delta": 3.0,
+    },
+    "battery.soc_step": {
+        "soc": 0.5,
+        "power": 10.0,
+        "dt_hours": 1.0,
+        "capacity": 100.0,
+    },
+    "energy.load_metrics": {"power_values": [10.0, 20.0, 15.0, 5.0]},
 }
 
 _REQUIRED_KEYS = frozenset(
