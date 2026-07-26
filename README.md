@@ -48,8 +48,9 @@ uv run oec run mathematics.solve_root --input '{"expression":"x**2 - 2","bracket
 Optional extras:
 
 ```bash
-uv sync --extra api   # REST:  oec server api --skills-root skills
-uv sync --extra mcp   # MCP:   oec server mcp --skills-root skills
+uv sync --extra api           # REST:  oec server api --skills-root skills
+uv sync --extra mcp           # MCP:   oec server mcp --skills-root skills
+uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
 ```
 
 ## Interfaces
@@ -72,6 +73,9 @@ uv sync --extra mcp   # MCP:   oec server mcp --skills-root skills
 
 - **Mathematics (6):** `solve_root`, `interpolate`, `integrate`, `optimize_scalar`, `optimize_constrained`, `curve_fit`
 - **Electrical (6):** `three_phase_power`, `current_from_power`, `voltage_drop`, `power_factor_correction`, `transformer_loading`, `per_unit_conversion`
+- **Optimization (2):** `optimization.lp`, `optimization.milp` (HiGHS backend — `uv sync --extra optimization`)
+
+LP/MILP inputs use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: [HiGHS](https://highs.dev/).
 
 ## Status / release
 

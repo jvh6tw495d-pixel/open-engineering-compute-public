@@ -146,3 +146,72 @@ def test_sdk_cli_rest_mcp_agree_on_invalid_status() -> None:
     assert cli_result.exit_code == 3
     assert rest_response.status_code == 200
     assert mcp_result.isError is False  # INVALID is a result, not an MCP-level error
+
+
+# Phase A3: same ADR 0005 bar for a closed-form electrical skill (units path).
+_ELEC_SKILL = "electrical.three_phase_power"
+_ELEC_INPUTS = {
+    "voltage_line_to_line": {"value": 380.0, "unit": "V"},
+    "current_line": {"value": 10.0, "unit": "A"},
+    "power_factor": 0.8,
+    "power_factor_type": "lagging",
+}
+
+
+def test_sdk_cli_rest_mcp_agree_on_electrical_three_phase_power() -> None:
+    engine = sdk.Engine(skills_root="skills")
+    sdk_result = engine.run(_ELEC_SKILL, _ELEC_INPUTS)
+
+    cli_result = CliRunner().invoke(
+        cli_app,
+        [
+            "run",
+            _ELEC_SKILL,
+            "--skills-root",
+            "skills",
+            "--input",
+            json.dumps(_ELEC_INPUTS),
+            "--json",
+        ],
+    )
+    assert cli_result.exit_code == 0
+    cli_body = json.loads(cli_result.stdout)
+
+    with TestClient(create_app(skills_root="skills")) as client:
+        rest_response = client.post(f"/v1/skills/{_ELEC_SKILL}/run", json={"inputs": _ELEC_INPUTS})
+    assert rest_response.status_code == 200
+    rest_body = rest_response.json()
+
+    mcp_result = call_tool(engine, _ELEC_SKILL, _ELEC_INPUTS)
+    assert mcp_result.isError is False
+    mcp_body = json.loads(mcp_result.content[0].text)
+
+    statuses = {
+        "sdk": sdk_result.status.value,
+        "cli": cli_body["status"],
+        "rest": rest_body["status"],
+        "mcp": mcp_body["status"],
+    }
+    assert len(set(statuses.values())) == 1, statuses
+    assert statuses["sdk"] == "VERIFIED"
+
+    for surface, body in (
+        ("sdk", sdk_result.result),
+        ("cli", cli_body["result"]),
+        ("rest", rest_body["result"]),
+        ("mcp", mcp_body["result"]),
+    ):
+        assert math.isclose(
+            body["apparent_power"]["value"],
+            math.sqrt(3) * 380.0 * 10.0,
+            rel_tol=1e-9,
+        ), surface
+
+    method_ids = {
+        "sdk": sdk_result.method.id,
+        "cli": cli_body["method"]["id"],
+        "rest": rest_body["method"]["id"],
+        "mcp": mcp_body["method"]["id"],
+    }
+    assert len(set(method_ids.values())) == 1, method_ids
+    assert method_ids["sdk"] == "balanced_three_phase_power"

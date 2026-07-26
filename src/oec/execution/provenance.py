@@ -23,7 +23,13 @@ from oec import __version__ as oec_version
 # Core engines declared in project dependencies. Listed when importable so
 # provenance records the environment; skill.md names which entry points a
 # method actually uses (ADR 0017).
-_RUNTIME_BACKEND_PACKAGES: tuple[str, ...] = ("numpy", "scipy", "sympy", "pint")
+_RUNTIME_BACKEND_PACKAGES: tuple[str, ...] = (
+    "numpy",
+    "scipy",
+    "sympy",
+    "pint",
+    "highspy",  # optional extra oec[optimization]; listed when installed
+)
 
 
 class SandboxReport(BaseModel):

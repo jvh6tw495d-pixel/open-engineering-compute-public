@@ -26,6 +26,9 @@ dependencies = [
 [project.optional-dependencies]
 api = ["fastapi>=0.111", "uvicorn>=0.30"]
 mcp = ["mcp>=1.0"]
+optimization = [
+    "highspy>=1.15.1",
+]
 
 [project.scripts]
 oec = "oec.cli.main:app"
