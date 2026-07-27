@@ -15,6 +15,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from oec.core.scientific_result import ScientificResult, from_execution_result
 from oec.execution.factory import build_validators
 from oec.execution.models import ExecutionRequest, ExecutionResult
 from oec.execution.service import ExecutionService
@@ -108,6 +109,31 @@ class Engine:
                 request_kwargs["requested_by"] = requested_by
 
             return service.execute(ExecutionRequest(**request_kwargs))
+
+    def run_scientific(
+        self,
+        skill_id: str,
+        inputs: dict[str, Any],
+        *,
+        skill_version: str | None = None,
+        seed: int | None = None,
+        trace_id: str | None = None,
+        requested_by: str | None = None,
+    ) -> ScientificResult:
+        """Run a skill and return :class:`~oec.core.ScientificResult` (ADR 0019).
+
+        Does not change :meth:`run` / ``ExecutionResult`` contracts.
+        """
+        return from_execution_result(
+            self.run(
+                skill_id,
+                inputs,
+                skill_version=skill_version,
+                seed=seed,
+                trace_id=trace_id,
+                requested_by=requested_by,
+            )
+        )
 
     def _get_or_build_service_locked(self, skill_id: str, skill_version: str) -> ExecutionService:
         """Must only be called while holding ``self._lock``."""
