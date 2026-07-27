@@ -1,7 +1,9 @@
 # Open Engineering Compute (OEC)
 
-> **Status:** private incubation → Public Alpha **prep** complete.
-> Not published from this history (see [Public Alpha procedure](docs/release/public-alpha.md)).
+> **Status:** **v1.5.0 private operational alpha** (V3 roadmap).
+> First **public GitHub** release is planned for **v3.0** — not this history
+> (see [Public Alpha procedure](docs/release/public-alpha.md) and
+> [V3 implementation plan](docs/implementation/OEC_V3_IMPLEMENTATION_PLAN.md)).
 
 Open Engineering Compute is an open framework for executable, versioned and
 auditable engineering skills. It lets different language models, agents,
@@ -68,7 +70,7 @@ uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
 |---|---|---|
 | Odysseus (MCP host) | `integrations/odysseus/` | config + tutorial; core has zero Odysseus deps |
 | Open Science | `integrations/open_science/` | Method Change Proposals; **never** auto-mutates `stable` skills |
-| **Agents (Phase G)** | `agents/` | Optimization Specialist + Scientific Reviewer — formulate/review only; numbers from OEC |
+| **Agents (v1.5)** | `agents/` | 5 specialists outside the wheel — formulate/review only; numbers from OEC ([packaging](agents/README.md)) |
 
 ```python
 from agents.optimization_specialist.specialist import OptimizationSpecialist

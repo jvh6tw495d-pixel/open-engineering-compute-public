@@ -20,7 +20,8 @@
 
 **Regra de ouro (inalterada):**
 
-> OEC = ciência generalizável. Apollo / Horizon / Orion / AELE Score / pricing / clientes = **fora**.
+> OEC = ciência generalizável. Private decision engines / commercial scoring /
+> pricing / client data = **fora**.
 
 ---
 
@@ -137,11 +138,11 @@ Declarar **Alpha privado operacional** alinhado ao §10 do roadmap V3, sem fingi
 
 ### Gate v1.5
 
-- [ ] Lint / mypy / pytest verdes
-- [ ] Forbidden names 0
-- [ ] Nenhuma skill pública sem contrato
-- [ ] CHANGELOG 1.5.0
-- [ ] README: “v1.5 private alpha; v3.0 future public”
+- [x] Lint / mypy / pytest verdes
+- [x] Forbidden names 0
+- [x] Nenhuma skill pública sem contrato (40/40)
+- [x] CHANGELOG 1.5.0
+- [x] README: “v1.5 private alpha; v3.0 future public”
 
 ### Fora de escopo v1.5
 
@@ -406,7 +407,7 @@ Introduzir gradualmente: `PhysicalLaw`, `ConservationLaw`, `MaterialProperty`, `
 ### Gate v2.6
 
 - ≥ 1 skill por fatia P1–P4 com conservação/unidades/hipóteses
-- Zero import de Apollo/Horizon
+- Zero import of private decision engines
 
 ---
 
@@ -422,7 +423,8 @@ Após ≥ 2 física estáveis:
 | Convergência de acoplamento |
 | Validação cruzada golden |
 
-Prioridade de acoplamentos: **eléctrico+térmico**, **solar+térmico+eléctrico** (genéricos, sem produto AELE).
+Prioridade de acoplamentos: **eléctrico+térmico**, **solar+térmico+eléctrico**
+(genéricos, sem produto comercial proprietário).
 
 ---
 
@@ -466,7 +468,7 @@ Primeira versão **oficial pública** unificada.
 
 - [ ] Histórico limpo (ou tree sibling — já ensaiado)
 - [ ] Zero dados privados / nomes proibidos
-- [ ] Zero Apollo/Horizon/Orion/AELE Score no tree
+- [ ] Zero private engine / commercial-score nomenclature in tree
 - [ ] Licenças e deps auditadas
 - [ ] Secrets zero
 - [ ] APIs estáveis versionadas
@@ -523,7 +525,7 @@ Ajustar se a equipa crescer; **não** comprimir física+química no mesmo trimes
 2. **Version `1.5.0`** + CHANGELOG
 3. **ADR 0019** rascunho ScientificResult adapter
 4. **Backend capability table** (doc → código v2.4)
-5. **Expand golden inventory** rumo aos 130 (meta parcial 40→70)
+5. **Expand golden inventory** toward 130 (partial target 40 to 70)
 
 ### P1 — próximo
 
@@ -593,13 +595,14 @@ Este plano assume **Opção A** no papel; recomenda **Opção B** se o marco “
 
 Para cada PR futuro:
 
-> Este componente faria sentido se AELE / Apollo / Horizon / Orion deixassem de existir?
+> Este componente faria sentido se a empresa e os motores proprietários
+> deixassem de existir?
 
 | Sim → OEC | Não → motor privado |
 |---|---|
-| LP genérico, ODE, unidades, IR | AELE Score, pricing, funding |
+| LP genérico, ODE, unidades, IR | Commercial score, pricing, funding |
 | Power flow genérico | Despacho comercial BTM |
-| Bateria coulomb genérica | Política de produto Apollo |
+| Bateria coulomb genérica | Política de produto proprietária |
 
 ---
 

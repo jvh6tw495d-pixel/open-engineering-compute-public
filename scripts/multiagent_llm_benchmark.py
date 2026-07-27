@@ -345,15 +345,6 @@ def claude_chat(model_alias: str, prompt: str) -> str:
 
     claude_bin = shutil.which("claude") or shutil.which("claude.cmd")
     if not claude_bin:
-        # Common Windows install locations
-        for candidate in (
-            Path.home() / "AppData/Local/hermes/bin/claude.cmd",
-            Path(r"C:\Users\joaop\AppData\Local\hermes\bin\claude.cmd"),
-        ):
-            if candidate.is_file():
-                claude_bin = str(candidate)
-                break
-    if not claude_bin:
         raise RuntimeError("claude CLI not found on PATH")
     # Pass prompt on stdin — Windows argv length limit truncates long -p prompts.
     cmd = [

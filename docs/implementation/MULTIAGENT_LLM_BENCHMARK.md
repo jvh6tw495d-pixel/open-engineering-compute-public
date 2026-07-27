@@ -323,12 +323,12 @@ Raw (truncated):
 
 Answer excerpt:
 ```json
-{"error": "Command '['C:\\\\Users\\\\joaop\\\\AppData\\\\Local\\\\hermes\\\\bin\\\\claude.CMD', '-p', '--model', 'sonnet', '--permission-mode', 'plan', '--output-format', 'text']' timed out after 600 seconds"}
+{"error": "Command '['C:\\\\Users\\\\joaop\\\\AppData\\\\Local\\\\claude-cli\\\\bin\\\\claude.CMD', '-p', '--model', 'sonnet', '--permission-mode', 'plan', '--output-format', 'text']' timed out after 600 seconds"}
 ```
 
 Raw (truncated):
 ```text
-Command '['C:\\Users\\joaop\\AppData\\Local\\hermes\\bin\\claude.CMD', '-p', '--model', 'sonnet', '--permission-mode', 'plan', '--output-format', 'text']' timed out after 600 seconds
+Command '['C:\\Users\\joaop\\AppData\\Local\\claude-cli\\bin\\claude.CMD', '-p', '--model', 'sonnet', '--permission-mode', 'plan', '--output-format', 'text']' timed out after 600 seconds
 ```
 
 #### `opus` (claude)

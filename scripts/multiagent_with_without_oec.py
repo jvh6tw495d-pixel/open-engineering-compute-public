@@ -281,11 +281,7 @@ def ollama_chat(model: str, prompt: str, *, system: str) -> str:
 def claude_chat(model_alias: str, prompt: str) -> str:
     claude_bin = shutil.which("claude") or shutil.which("claude.cmd")
     if not claude_bin:
-        p = Path.home() / "AppData/Local/hermes/bin/claude.cmd"
-        if p.is_file():
-            claude_bin = str(p)
-    if not claude_bin:
-        raise RuntimeError("claude CLI not found")
+        raise RuntimeError("claude CLI not found on PATH")
     proc = subprocess.run(
         [
             claude_bin,
