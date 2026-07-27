@@ -21,3 +21,6 @@ def test_static_scalar_moves_toward_measurement() -> None:
         }
     )["result"]
     assert abs(out["x_filtered"][0][0] - 2.5) < 1e-12
+    assert out["method"] == "discrete_linear_kalman_joseph"
+    assert "p_filtered" in out
+    assert "kalman_gains" in out

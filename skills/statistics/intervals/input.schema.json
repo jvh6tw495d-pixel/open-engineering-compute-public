@@ -13,7 +13,11 @@
       "exclusiveMinimum": 0,
       "exclusiveMaximum": 1
     },
-    "known_variance": { "type": "boolean" }
+    "population_standard_deviation": {
+      "type": ["number", "null"],
+      "exclusiveMinimum": 0,
+      "description": "Known population σ for a Z-interval. Omit for Student-t."
+    }
   },
   "required": ["samples"],
   "additionalProperties": false

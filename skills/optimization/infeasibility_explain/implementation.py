@@ -13,12 +13,17 @@ from oec.kernel.optimization.feasibility import explain_infeasibility
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
-    out = explain_infeasibility(inputs["ops"])
+    kwargs: dict[str, Any] = {}
+    if "max_drop_one_solves" in inputs:
+        kwargs["max_drop_one_solves"] = int(inputs["max_drop_one_solves"])
+    out = explain_infeasibility(inputs["ops"], **kwargs)
     return {
         "result": out,
         "diagnostics": {
             "feasible": out["feasible"],
+            "status": out.get("status"),
             "tier": out["tier"],
+            "claims_iis": out.get("claims_iis", False),
             "n_constraints": out["n_constraints"],
             "converged": None,
             "backend": out["backend"],

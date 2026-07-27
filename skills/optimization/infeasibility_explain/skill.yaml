@@ -1,8 +1,8 @@
 id: optimization.infeasibility_explain
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: optimization
-title: Infeasibility Explanation (Lite IIS)
+title: Infeasibility Explanation (drop-one heuristic)
 
 entrypoint:
   module: implementation
@@ -13,8 +13,8 @@ schemas:
   output: output.schema.json
 
 method:
-  id: highs_infeasibility_explain
-  version: 0.1.0
+  id: drop_one_infeasibility_heuristic
+  version: 0.2.0
   iterative: true
 
 execution:
@@ -31,13 +31,9 @@ validation:
   numerical: true
 
 references:
-  - "HiGHS — https://highs.dev/ — solver availability check and feasibility-only solve."
-  - "Chinneck, J. W. (2008). Feasibility and Infeasibility in Optimization. Springer — IIS (Irreducible Inconsistent Subsystem) heuristic."
+  - "Chinneck, J. W. (2008). Feasibility and Infeasibility in Optimization. Springer — discussion of IIS methods; this skill is a simpler drop-one heuristic, not a certified IIS."
 
 tags:
-  - mvp
+  - experimental
   - optimization
-  - lp
   - feasibility
-  - diagnostics
-  - highs

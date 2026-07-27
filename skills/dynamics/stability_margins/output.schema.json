@@ -2,60 +2,34 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "eigenvalues_real": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      }
+    "eigenvalues_real": { "type": "array", "items": { "type": "number" } },
+    "eigenvalues_imag": { "type": "array", "items": { "type": "number" } },
+    "eigenvalues_modulus": { "type": "array", "items": { "type": "number" } },
+    "stable": { "type": "boolean" },
+    "classification": {
+      "type": "string",
+      "enum": ["stable", "marginal", "unstable"]
     },
-    "eigenvalues_imag": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      }
-    },
-    "eigenvalues_modulus": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      }
-    },
-    "stable": {
-      "type": "boolean"
-    },
-    "stability_margin": {
-      "type": "number"
-    },
-    "criterion": {
-      "type": "string"
-    },
-    "time_base": {
-      "type": "string"
-    },
-    "n": {
-      "type": "integer"
-    },
-    "spectral_abscissa": {
-      "type": "number"
-    },
-    "spectral_radius": {
-      "type": "number"
-    },
-    "backend": {
-      "type": "string"
-    },
-    "converged": {
-      "type": [
-        "null",
-        "boolean"
-      ]
-    }
+    "spectral_stability_margin": { "type": "number" },
+    "stability_margin": { "type": "number" },
+    "margin_kind": { "type": "string" },
+    "criterion": { "type": "string" },
+    "time_base": { "type": "string" },
+    "n": { "type": "integer" },
+    "spectral_abscissa": { "type": "number" },
+    "spectral_radius": { "type": "number" },
+    "boundary_tol": { "type": "number" },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
   },
   "required": [
     "eigenvalues_real",
     "eigenvalues_imag",
     "stable",
+    "classification",
+    "spectral_stability_margin",
     "stability_margin",
+    "margin_kind",
     "criterion",
     "time_base",
     "backend",

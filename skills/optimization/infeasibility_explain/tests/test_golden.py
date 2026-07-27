@@ -1,7 +1,4 @@
-"""Golden cases for optimization.infeasibility_explain (v2.3 Wave A).
-
-Requires the optional ``highspy`` extra.
-"""
+"""Golden + adversarial cases for optimization.infeasibility_explain 0.2.0."""
 
 from __future__ import annotations
 
@@ -10,25 +7,16 @@ from pathlib import Path
 import pytest
 
 from oec.testing import load_skill_module
-from oec.validation.golden import GoldenCase, assert_matches_golden
 
 _SKILL_DIR = Path(__file__).resolve().parent.parent
 implementation = load_skill_module(_SKILL_DIR, "implementation")
 
-highspy = pytest.importorskip("highspy")
+pytest.importorskip("highspy")
 
 
-def test_single_tight_constraint_is_an_iis_candidate() -> None:
-    """Variable x in [0,1] with a single constraint x >= 2 is infeasible
-    at the HiGHS solve tier (no bound conflict at the variable level).
-    Dropping that constraint restores feasibility, so the IIS candidate
-    must contain it. Tree of infeasible why: explain = which constraint,
-    and the dropped subset gives back a feasible solve."""
-    golden = GoldenCase(
-        id="bound_conflict.json",
-        skill_id="optimization.infeasibility_explain",
-        skill_version="0.1.0",
-        inputs={
+def test_single_constraint_drop_one() -> None:
+    out = implementation.execute(
+        {
             "ops": {
                 "ops_version": "0.1.0",
                 "problem_class": "lp",
@@ -41,32 +29,17 @@ def test_single_tight_constraint_is_an_iis_candidate() -> None:
                 ],
                 "objective": {"coeffs": {"x": 1}},
             }
-        },
-        expected_result={
-            "feasible": False,
-            "tier": "iis_candidate",
-            "n_constraints": 1,
-            "backend": "highs",
-        },
-        tolerance=1e-12,
-        source="closed form + drop-one IIS scan",
-        justification=(
-            "The single constraint x>=2 cannot coexist with the variable bound "
-            "[0,1]; removing it makes the trivial solve feasible again."
-        ),
-    )
-    out = implementation.execute(golden.inputs)
-    actual = {
-        "feasible": out["result"]["feasible"],
-        "tier": out["result"]["tier"],
-        "n_constraints": out["result"]["n_constraints"],
-        "backend": out["result"]["backend"],
-    }
-    assert_matches_golden(actual, golden)
-    assert "must_ge_2" in out["result"]["iis_candidate_constraints"]
+        }
+    )["result"]
+    assert out["feasible"] is False
+    assert out["claims_iis"] is False
+    assert out["tier"] == "single_constraint_relaxation"
+    assert "must_ge_2" in out["single_constraint_relaxations"]
+    assert out["single_constraint_relaxations"] == out["iis_candidate_constraints"]
+    assert "IIS" not in out["explanation"] or "NOT" in out["explanation"]
 
 
-def test_feasible_model_is_reported_as_feasible() -> None:
+def test_feasible_model() -> None:
     out = implementation.execute(
         {
             "ops": {
@@ -82,16 +55,12 @@ def test_feasible_model_is_reported_as_feasible() -> None:
                 "objective": {"coeffs": {"x": 1}},
             }
         }
-    )
-    assert out["result"]["feasible"] is True
-    assert out["result"]["tier"] == "feasible"
+    )["result"]
+    assert out["feasible"] is True
+    assert out["status"] == "feasible"
 
 
-def test_infeasible_constraint_pair_yields_iis_candidate() -> None:
-    """x>=0, x<=1, AND two contradictory constraints:
-    c1: x >= 1, c2: x <= 0. The model is infeasible; dropping either
-    one of c1, c2 restores feasibility, so the IIS candidate should
-    contain at least one of [c1, c2]."""
+def test_contradictory_pair_drop_one() -> None:
     out = implementation.execute(
         {
             "ops": {
@@ -108,9 +77,39 @@ def test_infeasible_constraint_pair_yields_iis_candidate() -> None:
                 "objective": {"coeffs": {"x": 1}},
             }
         }
-    )
-    assert out["result"]["feasible"] is False
-    assert out["result"]["tier"] == "iis_candidate"
-    candidate = out["result"]["iis_candidate_constraints"]
-    assert "c1" in candidate or "c2" in candidate
-    assert len(candidate) >= 1
+    )["result"]
+    assert out["feasible"] is False
+    assert out["claims_iis"] is False
+    assert out["tier"] == "single_constraint_relaxation"
+    assert set(out["single_constraint_relaxations"]) >= {"c1", "c2"}
+
+
+def test_two_independent_conflicts_no_single_relaxation() -> None:
+    """Two separate variables each forced outside their bounds via constraints.
+
+    Dropping only one constraint leaves the other conflict → empty drop-one list.
+    """
+    out = implementation.execute(
+        {
+            "ops": {
+                "ops_version": "0.1.0",
+                "problem_class": "lp",
+                "sense": "min",
+                "variables": [
+                    {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+                    {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+                ],
+                "constraints": [
+                    {"name": "cx", "coeffs": {"x": 1}, "sense": ">=", "rhs": 2},
+                    {"name": "cy", "coeffs": {"y": 1}, "sense": ">=", "rhs": 2},
+                ],
+                "objective": {"coeffs": {"x": 1, "y": 1}},
+            }
+        }
+    )["result"]
+    assert out["feasible"] is False
+    assert out["claims_iis"] is False
+    # Dropping only cx still leaves cy infeasible (and vice versa)
+    assert out["tier"] == "no_single_relaxation"
+    assert out["single_constraint_relaxations"] == []
+    assert "single" in out["explanation"].lower() or "jointly" in out["explanation"].lower()

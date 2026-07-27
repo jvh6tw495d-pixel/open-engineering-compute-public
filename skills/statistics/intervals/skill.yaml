@@ -1,5 +1,5 @@
 id: statistics.intervals
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: statistics
 title: Confidence Interval for the Mean
@@ -14,7 +14,7 @@ schemas:
 
 method:
   id: student_t_gaussian_ci
-  version: 0.1.0
+  version: 0.2.0
   iterative: false
 
 execution:
@@ -32,7 +32,7 @@ validation:
 
 references:
   - "SciPy stats.t / stats.norm — https://docs.scipy.org/doc/scipy/reference/stats.html"
-  - "Montgomery, D. C., Runger, G. C. (2018). Applied Statistics and Probability for Engineers, 7th ed., Wiley, Chapter 8 — CIs on the mean."
+  - "Montgomery, D. C., Runger, G. C. (2018). Applied Statistics and Probability for Engineers, 7th ed., Wiley, Chapter 8."
 
 tags:
   - mvp

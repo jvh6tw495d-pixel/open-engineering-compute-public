@@ -371,6 +371,7 @@ _FIXTURES: dict[str, dict[str, Any]] = {
     "statistics.intervals": {
         "samples": [1.0, 2.0, 3.0, 4.0, 5.0],
         "confidence_level": 0.95,
+        # 0.2.0: Student-t default; population_standard_deviation optional
     },
     "statistics.bootstrap": {
         "samples": [1.0, 2.0, 3.0, 4.0, 5.0],

@@ -1,6 +1,6 @@
 ---
 id: statistics.intervals
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: statistics
 title: Confidence Interval for the Mean
@@ -8,40 +8,43 @@ title: Confidence Interval for the Mean
 
 # Purpose
 
-Two-sided confidence interval for the population mean of a numeric
-sample. Defaults to Student-t (`df = n - 1`); falls back to the Gaussian
-interval when `known_variance` is true.
+Two-sided confidence interval for the population mean of a numeric sample.
 
 # Official methodology
 
-Method id: `student_t_gaussian_ci`. Single-pass sample mean and sample
-standard deviation (ddof=1) via NumPy; quantile lookups via SciPy
-`stats.t`/`stats.norm`. Closed-form formulas from Montgomery & Runger
-§8. `method.iterative` is `false` and `converged` is `None` per ADR 0013
-amendment (one call, exact).
+Method id: `student_t_gaussian_ci` v0.2.0.
+
+- **Student-t** (default): uses sample standard deviation with ``df = n - 1``
+  when ``population_standard_deviation`` is omitted. Requires ``n >= 2``.
+- **Normal / Z**: when ``population_standard_deviation`` (known population σ)
+  is a finite positive number. Valid for any ``n >= 1``.
+
+Output field ``dispersion_used`` records which dispersion entered the formula.
 
 # Applicability limits
 
-- `samples` must be a non-empty 1-D array of finite numbers.
-- Student-t requires `n >= 2`; the Gaussian option supports `n == 1`
-  (though the CI is then zero, since `s = 0`).
+- ``samples``: non-empty 1-D finite numbers.
+- ``confidence_level`` ∈ (0, 1).
+- Do **not** claim “known variance” without supplying population σ.
 
 # Failure conditions
 
-- Empty sample.
-- `confidence_level` outside `(0, 1)`.
-- fewer than 2 samples in the student-t mode.
+- Empty or non-finite samples.
+- Student-t with ``n < 2``.
+- Non-positive or non-finite ``population_standard_deviation``.
+- Removed field ``known_variance`` (error).
+
+# What not to use this for
+
+- Non-normal heavy-tailed data without justification (prefer bootstrap).
+- Variance estimation itself (this skill estimates a CI on the **mean** only).
 
 # Alternative methods
 
-- `statistics.bootstrap` for nonparametric intervals robust to non-normal
-  sample distributions.
-
-# Known limitations
-
-- Symmetric intervals only; asymmetric / one-sided bounds are v2.4+
-  candidates.
+- ``statistics.bootstrap`` for nonparametric intervals.
 
 # Changelog
 
-- 0.1.0: initial (v2.3 Wave A — statistics intervals).
+- 0.2.0: replace ambiguous ``known_variance`` with ``population_standard_deviation``;
+  report ``dispersion_used`` (A23-01).
+- 0.1.0: initial Wave A.

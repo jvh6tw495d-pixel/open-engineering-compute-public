@@ -4,20 +4,64 @@
   "type": "object",
   "properties": {
     "feasible": { "type": "boolean" },
-    "tier": { "type": "string", "enum": ["precheck", "iis_candidate", "feasible", "solver_unavailable"] },
+    "status": {
+      "type": "string",
+      "enum": [
+        "feasible",
+        "infeasible",
+        "time_limit",
+        "solver_unavailable",
+        "unknown"
+      ]
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "precheck",
+        "feasible",
+        "solver_unavailable",
+        "time_limit",
+        "unknown",
+        "single_constraint_relaxation",
+        "no_single_relaxation",
+        "budget_exhausted"
+      ]
+    },
     "explanation": { "type": "string" },
     "bound_conflicts": { "type": "array", "items": { "type": "string" } },
     "empty_constraints": {
       "type": "array",
       "items": { "type": "string" }
     },
+    "single_constraint_relaxations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Constraints whose individual removal restores feasibility (heuristic; not an IIS)."
+    },
     "iis_candidate_constraints": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": { "type": "string" },
+      "description": "Deprecated alias of single_constraint_relaxations; not a certified IIS."
     },
     "n_constraints": { "type": "integer", "minimum": 0 },
+    "heuristic": { "type": "string" },
+    "claims_iis": { "type": "boolean" },
+    "max_drop_one_solves": { "type": "integer" },
+    "drop_one_solves_used": { "type": "integer" },
     "backend": { "type": "string" }
   },
-  "required": ["feasible", "tier", "explanation", "bound_conflicts", "empty_constraints", "iis_candidate_constraints", "n_constraints", "backend"],
+  "required": [
+    "feasible",
+    "status",
+    "tier",
+    "explanation",
+    "bound_conflicts",
+    "empty_constraints",
+    "single_constraint_relaxations",
+    "iis_candidate_constraints",
+    "n_constraints",
+    "claims_iis",
+    "backend"
+  ],
   "additionalProperties": false
 }

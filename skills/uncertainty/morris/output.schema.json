@@ -35,6 +35,12 @@
     "model": {
       "type": "string"
     },
+    "method": {
+      "type": "string"
+    },
+    "effect_units": {
+      "type": "string"
+    },
     "seed": {
       "type": [
         "integer",

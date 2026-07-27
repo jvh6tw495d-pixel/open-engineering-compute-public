@@ -40,13 +40,18 @@ def morris_screen(
     """
     if n_trajectories < 1:
         raise ValueError("n_trajectories must be >= 1")
-    if n_levels < 2:
-        raise ValueError("n_levels must be >= 2")
+    # Classic Morris uses even p >= 4 so delta = p/(2(p-1)) is well-defined.
+    if n_levels < 4 or n_levels % 2 != 0:
+        raise ValueError("n_levels must be an even integer >= 4 (classic Morris)")
     if len(bounds) != len(coeffs):
         raise ValueError("coeffs length must match bounds")
     n_dim = len(bounds)
     if n_dim < 1:
         raise ValueError("bounds must be non-empty")
+    if not all(np.isfinite(float(c)) for c in coeffs):
+        raise ValueError("coeffs must be finite")
+    if not np.isfinite(float(intercept)):
+        raise ValueError("intercept must be finite")
 
     lows = np.array([float(b[0]) for b in bounds], dtype=float)
     highs = np.array([float(b[1]) for b in bounds], dtype=float)
@@ -94,6 +99,11 @@ def morris_screen(
         "n_levels": p,
         "delta_unit": float(delta),
         "model": "linear",
+        "method": "morris_linear_screen",
+        "effect_units": (
+            "elementary effects are Δf/Δx_j in physical units of the "
+            "declared linear model (not dimensionless Sobol indices)"
+        ),
         "seed": seed,
         "backend": "numpy",
         "converged": None,

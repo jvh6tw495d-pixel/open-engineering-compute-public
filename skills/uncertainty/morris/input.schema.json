@@ -30,7 +30,9 @@
     },
     "n_levels": {
       "type": "integer",
-      "minimum": 2
+      "minimum": 4,
+      "multipleOf": 2,
+      "description": "Classic Morris even grid size p >= 4"
     },
     "seed": {
       "type": [

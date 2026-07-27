@@ -1,56 +1,43 @@
 ---
 id: optimization.infeasibility_explain
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: optimization
-title: Infeasibility Explanation (Lite IIS)
+title: Infeasibility Explanation (drop-one heuristic)
 ---
 
 # Purpose
 
-Explain why a linear model is infeasible. Three explanation tiers, returned
-in order from which less-costly remediation is more likely:
-
-1. **Tier `precheck`** — bound conflicts (`lower > upper` for a variable)
-   or no-coefficient constraints make the model infeasible without solving.
-2. **Tier `iis_candidate`** — drop-one sensitivity scan that reports the
-   smallest set of constraints whose removal restores feasibility
-   (a candidate irreducible inconsistent subsystem).
-3. **Tier `feasible`** — the model is actually feasible; the explanation
-   confirms the pre-check saw no issue.
+Provide an **experimental heuristic** explanation of why a continuous LP is
+infeasible. This skill does **not** compute a certified Irreducible
+Inconsistent Subsystem (IIS).
 
 # Official methodology
 
-Method id: `highs_infeasibility_explain`. Reuses
-`oec.kernel.optimization.highs` for the feasibility-only solve; no
-algorithm is reimplemented in OEC (ADR 0008). The IIS scan is a basic
-drop-one iteration, NOT a full LP-IIS extraction; a production-quality
-path (`Chinneck 2008`) is a v2.4 candidate.
+Method id: `drop_one_infeasibility_heuristic` v0.2.0.
+
+1. Precheck bound conflicts and empty-coefficient constraints.
+2. Zero-objective HiGHS solve.
+3. Drop-one scan: for each constraint, remove it alone and re-solve.
+   Names that restore feasibility are listed as
+   ``single_constraint_relaxations``.
+
+``claims_iis`` is always ``false``. The deprecated field
+``iis_candidate_constraints`` is an alias of the same list for compatibility.
 
 # Applicability limits
 
-- `ops.problem_class == "lp"` (MILP-grade IIS extraction is out of scope).
-- Up to ~30 constraints for the drop-one scan (the heuristic's cost grows
-  linearly — HiGHS calls = number of constraints, so v0 ceilings at small
-  scale).
+- Continuous LP OPS documents.
+- Requires HiGHS.
+- Budgeted number of drop-one solves (default 50).
 
-# Failure conditions
+# What not to use this for
 
-- OPS validation failure.
-- Non-LP class.
-- HiGHS not installed.
-
-# Alternative methods
-
-- `optimization.check_feasibility` for a one-bit feasibility verdict
-  without the human-readable explanation.
-
-# Known limitations
-
-- The drop-one IIS scan is **O(n)** HiGHS solves, not the polynomial-time
-  IIS extraction in commercial solvers. A binary/on-off relaxation
-  (Chinneck §8) is a v2.4 candidate.
+- Claiming “the smallest” or “irreducible” conflict set.
+- Production IIS extraction comparable to commercial solvers.
+- MILP-grade conflict analysis.
 
 # Changelog
 
-- 0.1.0: initial (v2.3 Wave A — infeasibility explain enrichment).
+- 0.2.0: honest drop-one semantics; no IIS claims without proof (A23-02).
+- 0.1.0: initial Wave A.

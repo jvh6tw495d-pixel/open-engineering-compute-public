@@ -44,6 +44,14 @@ Slack sign conventions:
 - Reduced-cost / dual extraction depends on HiGHS's internal row/column
   duals; behaviour under presolve is governed entirely by HiGHS.
 
+# Known scope (A23-03)
+
+This skill is **continuous LP only**. It does **not** report MIP gap,
+node counts, or branch-and-bound termination statistics. Those belong
+to `optimization.milp` (`mip_gap`, `mip_node_count`). Wave A “gap
+reporting” language is **not** a promise of this LP diagnostics skill.
+
 # Changelog
 
-- 0.1.0: initial (v2.3 Wave A — dual/gap reporting enrichment).
+- 0.1.1: clarify LP-only KKT diagnostics; no MIP gap claims (A23-03).
+- 0.1.0: initial (v2.3 Wave A — reduced costs / duals / slacks).

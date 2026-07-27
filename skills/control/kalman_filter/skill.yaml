@@ -1,5 +1,5 @@
 id: control.kalman_filter
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: control
 title: Discrete Linear Kalman Filter
@@ -13,8 +13,8 @@ schemas:
   output: output.schema.json
 
 method:
-  id: discrete_linear_kalman
-  version: 0.1.0
+  id: discrete_linear_kalman_joseph
+  version: 0.2.0
   iterative: true
 
 execution:
@@ -31,7 +31,8 @@ validation:
   numerical: true
 
 references:
-  - "See references.md"
+  - "Kalman, R. E. (1960). A New Approach to Linear Filtering and Prediction Problems. ASME J. Basic Eng."
+  - "Grewal & Andrews — Kalman Filtering (Joseph form covariance update)."
 
 tags:
   - v2.3
