@@ -125,6 +125,20 @@ changes before handing off implementation.
 the new stabilization and Q0 files are present in the local graph but remain
 uncommitted at this handoff.
 
+### v2.1 implementation report
+
+The report
+[`v2.1-delivery-status-and-v2.5-next-steps.md`](../implementation/v2.1-delivery-status-and-v2.5-next-steps.md)
+is the indexed handoff after commits `f7cbf0a` and `abb31c7`. It records:
+
+- the complete v2.1 implementation and independent gate evidence;
+- corrections made after Terra, Grok, Opus and OpenCode review;
+- blockers that still prevent declaring/tagging `2.1.0`;
+- the ordered Math IR, Backend Registry, Verification and v2.5 next steps.
+
+Rebuild Graphify after changing that report so future construction agents do
+not confuse technical completion with a released package version.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown
