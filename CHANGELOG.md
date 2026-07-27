@@ -5,6 +5,32 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] — 2026-07-27
+
+### Added — v2.3 Wave C + Applied Math Complete (private)
+
+Three experimental optimization skills (Wave C):
+
+- `optimization.pareto_lp` — bi-objective Pareto via weighted-sum sweep (HiGHS)
+- `optimization.cvar_lp` — linear CVaR (Rockafellar–Uryasev; HiGHS)
+- `optimization.robust_lp` — robust LP with box uncertainty on constraint RHS
+
+Kernels: `oec.kernel.optimization.{pareto,cvar,robust}`.
+
+### Changed
+
+- Package version **2.3.0b0 → 2.3.0** (v2.3 Applied Math expansion closed for
+  private alpha: Waves A+B+C).
+- **21** new applied skills since 2.2.0 (11 A + 7 B + 3 C); catalog **62** skills.
+- V3 partial gate (≥15 new applied skills with contracts) **met**.
+
+### Notes
+
+- Wave C is v0: supported Pareto points only; CVaR min-only; robust equalities
+  not supported.
+- Public GitHub remains a **v3.0** milestone.
+- Math IR / Verification Engine remain **v2.4+**.
+
 ## [2.3.0b0] — 2026-07-27
 
 ### Added — v2.3 Wave B (uncertainty / dynamics / control)

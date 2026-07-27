@@ -1,0 +1,31 @@
+{
+  "description": "CVaR of loss=x under two scenarios",
+  "input": {
+    "decision_vars": [
+      {
+        "name": "x",
+        "lower": 0,
+        "upper": 10
+      }
+    ],
+    "loss_scenarios": [
+      {
+        "x": 1.0
+      },
+      {
+        "x": 2.0
+      }
+    ],
+    "alpha": 0.5,
+    "structural_constraints": [
+      {
+        "name": "floor",
+        "coeffs": {
+          "x": 1
+        },
+        "sense": ">=",
+        "rhs": 1
+      }
+    ]
+  }
+}

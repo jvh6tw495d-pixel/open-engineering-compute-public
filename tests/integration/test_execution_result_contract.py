@@ -463,6 +463,49 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "x0": [0.0],
         "P0": [[1.0]],
     },
+    # v2.3 Wave C
+    "optimization.pareto_lp": {
+        "ops": {
+            "ops_version": "0.1.0",
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+                {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+            ],
+            "constraints": [
+                {"name": "cover", "coeffs": {"x": 1, "y": 1}, "sense": ">=", "rhs": 1}
+            ],
+            "objective": {"coeffs": {"x": 1, "y": 1}},
+        },
+        "objective_a": {"x": 1, "y": 2},
+        "objective_b": {"x": 2, "y": 1},
+        "n_points": 3,
+    },
+    "optimization.cvar_lp": {
+        "decision_vars": [{"name": "x", "lower": 0, "upper": 5}],
+        "loss_scenarios": [{"x": 1.0}, {"x": 2.0}],
+        "alpha": 0.5,
+        "structural_constraints": [
+            {"name": "lb", "coeffs": {"x": 1}, "sense": ">=", "rhs": 1}
+        ],
+    },
+    "optimization.robust_lp": {
+        "ops": {
+            "ops_version": "0.1.0",
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 10},
+                {"name": "y", "kind": "continuous", "lower": 0, "upper": 10},
+            ],
+            "constraints": [
+                {"name": "cover", "coeffs": {"x": 1, "y": 1}, "sense": ">=", "rhs": 1}
+            ],
+            "objective": {"coeffs": {"x": 1, "y": 1}},
+        },
+        "rhs_uncertainty": {"cover": 0.1},
+    },
 }
 
 _REQUIRED_KEYS = frozenset(

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "ops": {
+      "type": "object"
+    },
+    "objective_a": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "objective_b": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "n_points": {
+      "type": "integer",
+      "minimum": 2
+    }
+  },
+  "required": [
+    "ops",
+    "objective_a",
+    "objective_b"
+  ],
+  "additionalProperties": false
+}
