@@ -19,6 +19,7 @@ repos:
           - pint>=0.23
           - jsonschema>=4.20
           - types-jsonschema>=4.20
+          - numpy>=1.26
           - scipy-stubs>=1.13
           - fastapi>=0.111
           - uvicorn>=0.30

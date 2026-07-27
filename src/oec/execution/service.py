@@ -5,11 +5,13 @@ Pipeline (plan section 10.4)::
     ExecutionRequest
        -> resolve skill (SkillRegistry)
        -> run input validators (schema/dimensional/mathematical/physical)
+       -> pre-verification (backend fit + input-validation summary, ADR 0021)
        -> execute in sandbox (ADR 0012) if no input validator reported an error
        -> run result validators (numerical/invariants)
        -> enforce the convergence-declaration contract (ADR 0013)
        -> compute_status (ADR 0007)
        -> build provenance
+       -> post-verification (convergence/residuals/lp_gap/reproducibility, ADR 0021)
        -> ExecutionResult
 
 Validators are injected, not imported here — this module only depends on
@@ -52,6 +54,8 @@ from oec.execution.status import compute_status
 from oec.skills.loader.models import LoadedSkill
 from oec.skills.registry.registry import SkillRegistry
 from oec.validation.base import InputValidator, ResultValidator, Severity, ValidationOutcome
+from oec.verification.engine import run_post_verification, run_pre_verification
+from oec.verification.report import VerificationReport
 
 _CONVERGENCE_CONTRACT_MESSAGE = (
     "method.iterative=true but the implementation did not report "
@@ -95,7 +99,10 @@ class ExecutionService:
         if not any(outcome.severity is Severity.ERROR for outcome in outcomes):
             outcomes.extend(run_input_validators(self._input_validators, skill, normalized_inputs))
 
+        pre_checks = run_pre_verification(skill, outcomes)
+
         implementation_failed = False
+        implementation_ran = False
         result: dict[str, Any] = {}
         diagnostics: dict[str, Any] = {}
         converged: bool | None = None
@@ -118,6 +125,7 @@ class ExecutionService:
                     "timed_out": sandbox_result.timed_out,
                 }
             else:
+                implementation_ran = True
                 result = sandbox_result.result
                 diagnostics = sandbox_result.diagnostics
                 outcomes.extend(
@@ -170,6 +178,13 @@ class ExecutionService:
             for message in outcome.messages
         ]
 
+        post_checks = (
+            run_post_verification(skill, result, diagnostics, outcomes, provenance)
+            if implementation_ran and not implementation_failed
+            else []
+        )
+        verification = VerificationReport(pre=pre_checks, post=post_checks)
+
         return ExecutionResult(
             status=status,
             skill=VersionedRef(id=skill.manifest.id, version=skill.manifest.version),
@@ -178,7 +193,10 @@ class ExecutionService:
             normalized_inputs=normalized_inputs,
             result=result,
             diagnostics=diagnostics,
-            validation={"outcomes": [outcome.model_dump(mode="json") for outcome in outcomes]},
+            validation={
+                "outcomes": [outcome.model_dump(mode="json") for outcome in outcomes],
+                "verification": verification.model_dump(mode="json"),
+            },
             warnings=warnings,
             provenance=provenance,
             started_at=started_at,

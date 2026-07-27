@@ -166,6 +166,20 @@ now records baseline commit `5bd11aba` with **5501 nodes**, **8783 edges** and
 **475 communities**. The closeout changes are committed as the v2.2 release
 commit immediately after this rebuild.
 
+### v2.4 Backend Registry + Verification Engine rebuild (S1–S3)
+
+Rebuilt on **2026-07-27** after implementing the v2.4 Backend Capability
+Registry (`src/oec/backends/{capabilities,selection,fallback}.py` +
+`adapters/`) and Verification Engine (`src/oec/verification/`), wired
+additively into `ExecutionService.execute`, plus ADR 0021. This rebuild
+lands on top of `oec==2.3.0` (Applied Math expansion, Waves A+B+C), released
+by a separate session on this same branch between the v2.2 closeout and this
+work — the corpus grew accordingly. **7898 nodes**, **11810 edges** and
+**623 communities**. Package version, `CHANGELOG.md`, README status and any
+tag remain unchanged in this pass — a separate closeout step, mirroring the
+v2.1/v2.2 pattern. S4 (computational-kernel unification under
+`kernel/computational`) is explicitly deferred; see ADR 0021's non-goals.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

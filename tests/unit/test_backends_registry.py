@@ -1,21 +1,34 @@
-"""Backend Capability skeleton tests (ADR 0020)."""
+"""Backend Capability Registry tests (v2.4, ADR 0021 — grows the ADR 0020 skeleton)."""
 
 from __future__ import annotations
 
 from oec.backends.registry import BackendCapability, get_backend_capabilities
 
 
-def test_get_backend_capabilities_covers_highs_and_scipy() -> None:
+def test_get_backend_capabilities_covers_numpy_scipy_highs() -> None:
     capabilities = get_backend_capabilities()
     names = {capability.name for capability in capabilities}
-    assert names == {"highs", "scipy"}
+    assert names == {"highs", "scipy", "numpy"}
 
 
-def test_scipy_is_always_available() -> None:
+def test_numpy_and_scipy_are_required_and_always_available() -> None:
     capabilities = {c.name: c for c in get_backend_capabilities()}
-    scipy_capability = capabilities["scipy"]
-    assert scipy_capability.available is True
-    assert scipy_capability.version is not None
+    for name in ("numpy", "scipy"):
+        assert capabilities[name].available is True
+        assert capabilities[name].version is not None
+        assert capabilities[name].required is True
+
+
+def test_highs_is_optional() -> None:
+    capabilities = {c.name: c for c in get_backend_capabilities()}
+    assert capabilities["highs"].required is False
+
+
+def test_domains_are_populated_per_backend() -> None:
+    capabilities = {c.name: c for c in get_backend_capabilities()}
+    assert "rng" in capabilities["numpy"].domains
+    assert "root_finding" in capabilities["scipy"].domains
+    assert "lp" in capabilities["highs"].domains
 
 
 def test_capability_model_is_frozen() -> None:
