@@ -2,10 +2,10 @@
   "description": "Load Metrics",
   "input": {
     "power_values": [
-      10.0,
-      20.0,
-      15.0,
-      5.0
+      { "value": 10.0, "unit": "W" },
+      { "value": 20.0, "unit": "W" },
+      { "value": 15.0, "unit": "W" },
+      { "value": 5.0, "unit": "W" }
     ]
   }
 }

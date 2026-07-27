@@ -1,4 +1,33 @@
 {
   "type": "object",
-  "additionalProperties": true
+  "additionalProperties": false,
+  "required": ["n", "peak", "average", "load_factor", "min"],
+  "properties": {
+    "n": { "type": "integer", "minimum": 1, "x-oec-dimensionless": true },
+    "peak": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "W" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W"
+    },
+    "average": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "W" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W"
+    },
+    "load_factor": {
+      "type": ["number", "null"],
+      "x-oec-dimensionless": true
+    },
+    "min": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "W" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W"
+    }
+  }
 }

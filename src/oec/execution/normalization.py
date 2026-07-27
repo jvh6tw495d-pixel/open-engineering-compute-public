@@ -48,10 +48,18 @@ def apply_dimensional_normalization(skill: LoadedSkill, inputs: dict[str, Any]) 
     converted = dict(inputs)
     for field, expected_unit in expected_units.items():
         raw = inputs.get(field)
-        if not is_quantity_dict(raw):
-            continue
-        quantity = QuantityValue(**raw)
-        result = normalize(quantity, to_unit=expected_unit)
-        converted[field] = result.normalized.model_dump(mode="json")
+        if is_quantity_dict(raw):
+            quantity = QuantityValue(**raw)
+            result = normalize(quantity, to_unit=expected_unit)
+            converted[field] = result.normalized.model_dump(mode="json")
+        elif isinstance(raw, list):
+            converted[field] = [
+                normalize(QuantityValue(**item), to_unit=expected_unit).normalized.model_dump(
+                    mode="json"
+                )
+                if is_quantity_dict(item)
+                else item
+                for item in raw
+            ]
 
     return converted

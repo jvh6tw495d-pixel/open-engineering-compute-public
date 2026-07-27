@@ -227,17 +227,24 @@ _FIXTURES: dict[str, dict[str, Any]] = {
     },
     # Phase F
     "energy.balance": {
-        "energy_in": [10.0, 5.0],
-        "energy_out": [12.0],
-        "storage_delta": 3.0,
+        "energy_in": [{"value": 10.0, "unit": "Wh"}, {"value": 5.0, "unit": "Wh"}],
+        "energy_out": [{"value": 12.0, "unit": "Wh"}],
+        "storage_delta": {"value": 3.0, "unit": "Wh"},
     },
     "battery.soc_step": {
         "soc": 0.5,
-        "power": 10.0,
-        "dt_hours": 1.0,
-        "capacity": 100.0,
+        "power": {"value": 10.0, "unit": "W"},
+        "dt_hours": {"value": 1.0, "unit": "h"},
+        "capacity": {"value": 100.0, "unit": "Wh"},
     },
-    "energy.load_metrics": {"power_values": [10.0, 20.0, 15.0, 5.0]},
+    "energy.load_metrics": {
+        "power_values": [
+            {"value": 10.0, "unit": "W"},
+            {"value": 20.0, "unit": "W"},
+            {"value": 15.0, "unit": "W"},
+            {"value": 5.0, "unit": "W"},
+        ]
+    },
     # S7′
     "optimization.check_feasibility": {
         "ops": {

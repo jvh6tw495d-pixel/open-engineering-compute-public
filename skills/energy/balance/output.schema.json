@@ -1,4 +1,43 @@
 {
   "type": "object",
-  "additionalProperties": true
+  "additionalProperties": false,
+  "required": ["total_in", "total_out", "storage_delta", "residual", "balanced", "tolerance"],
+  "properties": {
+    "total_in": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "Wh" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "total_out": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "Wh" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "storage_delta": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "Wh" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "residual": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "Wh" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "balanced": { "type": "boolean" },
+    "tolerance": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string", "const": "Wh" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    }
+  }
 }

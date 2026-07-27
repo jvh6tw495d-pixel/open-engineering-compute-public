@@ -5,21 +5,48 @@
     "energy_in": {
       "type": "array",
       "items": {
-        "type": "number"
-      }
+        "type": "object",
+        "properties": {
+          "value": { "type": "number" },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "Wh"
     },
     "energy_out": {
       "type": "array",
       "items": {
-        "type": "number"
-      }
+        "type": "object",
+        "properties": {
+          "value": { "type": "number" },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "Wh"
     },
     "storage_delta": {
-      "type": "number"
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
     },
     "tolerance": {
-      "type": "number",
-      "exclusiveMinimum": 0
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
     }
   }
 }

@@ -36,6 +36,35 @@ def is_compatible(unit_a: str, unit_b: str) -> bool:
     return True
 
 
+def same_dimension(unit_a: str, unit_b: str) -> bool:
+    """Whether two units describe the same physical dimension."""
+    try:
+        return ureg.get_dimensionality(unit_a) == ureg.get_dimensionality(unit_b)
+    except (pint.errors.PintError, TypeError):
+        return False
+
+
+def dimension_of(unit: str) -> str:
+    """Return an OEC-canonical string for ``unit``'s dimensionality.
+
+    Pint's object and formatting stay internal. Keys are sorted and exponents
+    rendered explicitly, so dependency formatting is not the public contract.
+    """
+    try:
+        dimensionality = ureg.get_dimensionality(unit)
+    except (pint.errors.PintError, TypeError) as exc:
+        raise UnitError(
+            f"cannot determine the dimension of {unit!r}: {exc}",
+            details={"unit": unit},
+        ) from exc
+    if not dimensionality:
+        return "dimensionless"
+    return "*".join(
+        f"{dimension}^{float(str(exponent)):g}"
+        for dimension, exponent in sorted(dimensionality.items(), key=lambda item: str(item[0]))
+    )
+
+
 def normalize(quantity: QuantityValue, *, to_unit: str) -> NormalizedQuantity:
     """Convert ``quantity`` to ``to_unit``, keeping the original for provenance.
 

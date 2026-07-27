@@ -15,7 +15,9 @@ class SocValidator:
         outcomes = []
         for field in ("capacity",):
             if field in normalized_inputs:
-                o = require_positive(field, float(normalized_inputs[field]))
+                raw = normalized_inputs[field]
+                value = raw["value"] if isinstance(raw, dict) else raw
+                o = require_positive(field, float(value))
                 if o.severity is Severity.ERROR:
                     outcomes.append(o)
         soc = normalized_inputs.get("soc")

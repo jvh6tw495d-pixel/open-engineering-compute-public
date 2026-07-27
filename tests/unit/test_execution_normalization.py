@@ -111,3 +111,31 @@ def test_other_fields_are_preserved_alongside_converted_ones() -> None:
         skill, {"voltage": {"value": 0.38, "unit": "kV"}, "count": 3}
     )
     assert result == {"voltage": {"value": 380.0, "unit": "V"}, "count": 3}
+
+
+def test_converts_array_of_declared_quantities_to_canonical_unit() -> None:
+    skill = _make_skill(
+        input_schema={
+            "type": "object",
+            "properties": {
+                "power_values": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "x-oec-unit": "W",
+                }
+            },
+        }
+    )
+    result = apply_dimensional_normalization(
+        skill,
+        {
+            "power_values": [
+                {"value": 1.0, "unit": "kW"},
+                {"value": 500.0, "unit": "W"},
+            ]
+        },
+    )
+    assert result["power_values"] == [
+        {"value": 1000.0, "unit": "W"},
+        {"value": 500.0, "unit": "W"},
+    ]

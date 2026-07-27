@@ -47,3 +47,57 @@ class QuantityValue(BaseModel):
         except pint.UndefinedUnitError as exc:
             raise ValueError(f"unknown unit {value!r}: {exc}") from exc
         return value
+
+    @property
+    def dimension(self) -> str:
+        """Return the quantity's canonical dimensionality string.
+
+        The return value is deliberately a string (for example
+        ``"[mass] * [length] / [time] ** 2"``), rather than Pint's
+        ``UnitsContainer``.  This keeps Pint an implementation detail of the
+        kernel while providing a stable, JSON-friendly public API.
+        """
+        from oec.kernel.units.normalize import dimension_of
+
+        return dimension_of(self.unit)
+
+    def convert_to(self, unit: str) -> QuantityValue:
+        """Return this quantity expressed in ``unit``.
+
+        The method returns only the converted value.  Call
+        :func:`oec.kernel.units.normalize.normalize` when the original value
+        must be retained for execution provenance.
+        """
+        from oec.kernel.units.normalize import normalize
+
+        return normalize(self, to_unit=unit).normalized
+
+    def is_compatible_with(self, other: QuantityValue) -> bool:
+        """Whether ``other`` has the same physical dimensionality."""
+        from oec.kernel.units.normalize import is_compatible
+
+        return is_compatible(self.unit, other.unit)
+
+    def add(self, other: QuantityValue) -> QuantityValue:
+        """Add a dimensionally compatible quantity in this quantity's unit."""
+        from oec.kernel.units.operations import add
+
+        return add(self, other)
+
+    def subtract(self, other: QuantityValue) -> QuantityValue:
+        """Subtract a dimensionally compatible quantity in this quantity's unit."""
+        from oec.kernel.units.operations import subtract
+
+        return subtract(self, other)
+
+    def multiply(self, other: QuantityValue) -> QuantityValue:
+        """Multiply two quantities, producing a derived-unit quantity."""
+        from oec.kernel.units.operations import multiply
+
+        return multiply(self, other)
+
+    def divide(self, other: QuantityValue) -> QuantityValue:
+        """Divide two quantities, producing a derived-unit quantity."""
+        from oec.kernel.units.operations import divide
+
+        return divide(self, other)

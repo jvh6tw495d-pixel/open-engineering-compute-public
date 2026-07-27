@@ -10,7 +10,7 @@ from oec.errors import SkillEntrypointError
 from oec.execution.factory import build_validators
 from oec.skills.loader.loader import load_skill
 from oec.testing import write_skill_dir
-from oec.validation.dimensions import DimensionalValidator
+from oec.validation.dimensions import DimensionalValidator, ResultDimensionalValidator
 from oec.validation.invariants import InvariantValidator
 from oec.validation.numerical import NumericalDiagnosticsValidator
 from oec.validation.schema import SchemaValidator
@@ -86,6 +86,18 @@ def test_dimensional_true_wires_dimensional_validator(tmp_path: Path) -> None:
     input_validators, _ = build_validators(skill)
 
     assert any(isinstance(v, DimensionalValidator) for v in input_validators)
+
+
+def test_dimensional_true_wires_result_dimensional_validator(tmp_path: Path) -> None:
+    skill_dir = _build(tmp_path, overrides=_with("dimensional"))
+    skill = load_skill(skill_dir)
+
+    _, result_validators = build_validators(skill)
+
+    assert [type(v) for v in result_validators] == [
+        InvariantValidator,
+        ResultDimensionalValidator,
+    ]
 
 
 def test_physical_true_wires_nothing_extra(tmp_path: Path) -> None:

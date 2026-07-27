@@ -23,6 +23,9 @@ _COMPATIBLE_UNIT_PAIRS = st.sampled_from(
 _FINITE_VALUES = st.floats(
     min_value=-1e9, max_value=1e9, allow_nan=False, allow_infinity=False
 ).filter(lambda v: abs(v) > 1e-9 or v == 0.0)
+_TEMPERATURE_VALUES = st.floats(
+    min_value=-250.0, max_value=10_000.0, allow_nan=False, allow_infinity=False
+)
 
 
 @settings(deadline=None)
@@ -51,3 +54,13 @@ def test_normalizing_twice_to_the_same_unit_is_idempotent(
     twice = normalize(once.normalized, to_unit=unit_b)
 
     assert math.isclose(once.normalized.value, twice.normalized.value, rel_tol=1e-9)
+
+
+@settings(deadline=None)
+@given(value=_TEMPERATURE_VALUES)
+def test_offset_temperature_round_trip_is_stable(value: float) -> None:
+    original = QuantityValue(value=value, unit="degC")
+    kelvin = normalize(original, to_unit="kelvin")
+    recovered = normalize(kelvin.normalized, to_unit="degC")
+
+    assert math.isclose(recovered.normalized.value, value, rel_tol=1e-12, abs_tol=1e-10)

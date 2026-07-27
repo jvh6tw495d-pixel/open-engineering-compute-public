@@ -1,7 +1,7 @@
 import pytest
 
 from oec.errors import UnitError
-from oec.kernel.units.normalize import is_compatible, normalize
+from oec.kernel.units.normalize import dimension_of, is_compatible, normalize
 from oec.kernel.units.quantity import QuantityValue
 
 
@@ -52,3 +52,25 @@ def test_normalize_to_an_unknown_unit_raises_unit_error() -> None:
 )
 def test_is_compatible(unit_a: str, unit_b: str, expected: bool) -> None:
     assert is_compatible(unit_a, unit_b) is expected
+
+
+@pytest.mark.parametrize(
+    ("value", "source_unit", "target_unit", "expected"),
+    [
+        (0.0, "degC", "kelvin", 273.15),
+        (32.0, "degF", "degC", 0.0),
+        (273.15, "kelvin", "degC", 0.0),
+    ],
+)
+def test_normalize_handles_offset_temperature_units(
+    value: float, source_unit: str, target_unit: str, expected: float
+) -> None:
+    result = normalize(QuantityValue(value=value, unit=source_unit), to_unit=target_unit)
+    assert result.normalized.value == pytest.approx(expected)
+    assert result.normalized.unit == target_unit
+
+
+def test_dimension_of_unknown_unit_raises_typed_error() -> None:
+    with pytest.raises(UnitError) as exc_info:
+        dimension_of("not-a-unit")
+    assert exc_info.value.code == "unit_incompatible"

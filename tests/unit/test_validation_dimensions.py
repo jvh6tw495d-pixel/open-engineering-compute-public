@@ -163,5 +163,27 @@ def test_non_dict_field_schema_skips_unit_compatibility() -> None:
     assert outcomes == []
 
 
+def test_array_quantity_reports_incompatible_item_location() -> None:
+    skill = _make_skill(
+        input_schema={
+            "type": "object",
+            "properties": {
+                "power_values": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "x-oec-unit": "W",
+                }
+            },
+        }
+    )
+    outcomes = DimensionalValidator().validate(
+        skill,
+        {"power_values": [{"value": 1.0, "unit": "W"}, {"value": 2.0, "unit": "A"}]},
+    )
+    assert len(outcomes) == 1
+    assert outcomes[0].details["field"] == "power_values[1]"
+    assert outcomes[0].details["expected_unit"] == "W"
+
+
 def test_layer_class_attribute() -> None:
     assert DimensionalValidator.layer == "dimensional"

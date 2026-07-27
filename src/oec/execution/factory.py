@@ -20,7 +20,7 @@ from oec.errors import SkillEntrypointError
 from oec.skills.loader.models import LoadedSkill
 from oec.testing import load_skill_module
 from oec.validation.base import InputValidator, ResultValidator
-from oec.validation.dimensions import DimensionalValidator
+from oec.validation.dimensions import DimensionalValidator, ResultDimensionalValidator
 from oec.validation.invariants import InvariantValidator
 from oec.validation.numerical import NumericalDiagnosticsValidator
 from oec.validation.schema import SchemaValidator
@@ -50,6 +50,8 @@ def build_validators(
         input_validators.append(_discover_skill_validator(skill))
 
     result_validators: list[ResultValidator] = [InvariantValidator()]
+    if policy.dimensional:
+        result_validators.append(ResultDimensionalValidator())
     if policy.numerical:
         result_validators.append(NumericalDiagnosticsValidator())
 
