@@ -1,5 +1,5 @@
 id: uncertainty.morris
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: uncertainty
 title: Morris Elementary Effects
@@ -14,7 +14,7 @@ schemas:
 
 method:
   id: morris_linear_screen
-  version: 0.1.0
+  version: 0.2.0
   iterative: false
 
 execution:

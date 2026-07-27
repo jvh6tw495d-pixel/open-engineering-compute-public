@@ -1,5 +1,5 @@
 id: dynamics.stability_margins
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: dynamics
 title: LTI Stability Margins
@@ -14,7 +14,7 @@ schemas:
 
 method:
   id: eigenvalue_stability
-  version: 0.1.0
+  version: 0.2.0
   iterative: false
 
 execution:

@@ -1,6 +1,6 @@
 ---
 id: dynamics.stability_margins
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: dynamics
 title: LTI Stability Margins
@@ -19,6 +19,8 @@ Method reports **spectral / pole margins only** (B23-04):
 
 Field ``margin_kind`` is always
 ``spectral_pole_margin_not_gain_phase``.
+``classification`` ∈ {stable, marginal, unstable}; ``stable`` is the boolean
+for the stable class only.
 
 # What this is NOT
 
@@ -34,6 +36,11 @@ Field ``margin_kind`` is always
 
 - Designing compensators via Bode/Nyquist margins.
 - Nonlinear Lyapunov certificates.
+
+# Changelog
+
+- 0.2.0: classification + spectral margin fields (B23-04).
+- 0.1.0: initial Wave B.
 
 # References
 

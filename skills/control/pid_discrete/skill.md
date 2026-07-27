@@ -1,6 +1,6 @@
 ---
 id: control.pid_discrete
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: control
 title: Discrete PID Controller
@@ -27,6 +27,11 @@ Outputs ``integral_term`` and ``saturated_steps`` for audit.
 
 - Continuous-time plant design without discretisation analysis.
 - Claiming anti-windup when using ``none``.
+
+# Changelog
+
+- 0.2.0: ``anti_windup``, ``integral_term`` contract fields (B23-05).
+- 0.1.0: initial Wave B.
 
 # References
 

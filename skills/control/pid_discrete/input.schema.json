@@ -40,6 +40,11 @@
         "number",
         "null"
       ]
+    },
+    "anti_windup": {
+      "type": "string",
+      "enum": ["none", "clamp"],
+      "default": "none"
     }
   },
   "required": [

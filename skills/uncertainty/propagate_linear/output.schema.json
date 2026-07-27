@@ -3,27 +3,33 @@
   "type": "object",
   "properties": {
     "output_dim": {
-      "type": "integer"
+      "type": "integer",
+      "minimum": 1
     },
     "variance": {},
     "std": {},
     "covariance": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": "number" }
+      }
     },
     "nominal": {
-      "type": [
-        "array",
-        "null"
-      ]
+      "type": ["array", "null"],
+      "items": { "type": "number" },
+      "description": "Optional input nominal x (length n); provenance only."
+    },
+    "nominal_output": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Present only when nominal is provided: y_nom = J @ nominal."
     },
     "backend": {
       "type": "string"
     },
     "converged": {
-      "type": [
-        "null",
-        "boolean"
-      ]
+      "type": ["null", "boolean"]
     },
     "method": {
       "type": "string"

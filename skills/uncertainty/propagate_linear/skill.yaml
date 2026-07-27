@@ -1,5 +1,5 @@
 id: uncertainty.propagate_linear
-version: 0.1.0
+version: 0.2.0
 status: experimental
 domain: uncertainty
 title: Linear Uncertainty Propagation
@@ -14,7 +14,7 @@ schemas:
 
 method:
   id: linear_delta_method
-  version: 0.1.0
+  version: 0.2.0
   iterative: false
 
 execution:
