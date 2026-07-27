@@ -17,6 +17,16 @@ Three experimental optimization skills (Wave C):
 
 Kernels: `oec.kernel.optimization.{pareto,cvar,robust}`.
 
+### Fixed — Wave A/B scientific correction package (A23/B23)
+
+- `statistics.intervals`: population SD path; skill **0.2.0**
+- `optimization.infeasibility_explain`: honest drop-one naming; no unproven IIS claims
+- `control.kalman_filter`: Joseph update, PSD/PD checks, structured numerical errors
+- `uncertainty.propagate_linear`: `nominal` checks + `nominal_output` in schema (**0.2.0**)
+- Morris / spectral stability / PID: method honesty + version bumps **0.2.0**
+- See `docs/implementation/v2.3-ab-correction-report.md` and acceptance seal
+  `docs/implementation/v2.3-accepted-and-merge-prep.md`.
+
 ### Changed
 
 - Package version **2.3.0b0 → 2.3.0** (v2.3 Applied Math expansion closed for
@@ -29,7 +39,8 @@ Kernels: `oec.kernel.optimization.{pareto,cvar,robust}`.
 - Wave C is v0: supported Pareto points only; CVaR min-only; robust equalities
   not supported.
 - Public GitHub remains a **v3.0** milestone.
-- Math IR / Verification Engine remain **v2.4+**.
+- Formal Verification Engine + Backend Registry remain **v2.4** (team brief:
+  `docs/implementation/v2.4-team-brief.md`).
 
 ## [2.3.0b0] — 2026-07-27
 

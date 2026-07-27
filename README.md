@@ -99,10 +99,13 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 
 ## Status / release
 
-**v2.2.0** delivered Math IR foundation (`oec.modeling`, ADR 0020).  
+**v2.2.0** delivered Math IR foundation (`oec.modeling`, ADR 0020).
 **v2.3.0** closes the Applied Math expansion (Waves A+B+C): 21 new skills since
-2.2 (linear/stats/TS/opt, uncertainty, dynamics, control, Pareto/CVaR/robust LP).  
-See [CHANGELOG.md](CHANGELOG.md). Backend Registry and formal Verification remain **v2.4+**.
+2.2 (linear/stats/TS/opt, uncertainty, dynamics, control, Pareto/CVaR/robust LP),
+plus A23/B23 scientific corrections — **accepted** for private incubation
+([acceptance seal](docs/implementation/v2.3-accepted-and-merge-prep.md)).
+See [CHANGELOG.md](CHANGELOG.md). **Next:** Backend Registry + formal Verification
+([v2.4 team brief](docs/implementation/v2.4-team-brief.md)).
 
 This clone is the **incubation** repository (no remote). Public Alpha must use a
 **new directory and clean git history** — see:

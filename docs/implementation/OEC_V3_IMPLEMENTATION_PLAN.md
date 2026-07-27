@@ -2,8 +2,8 @@
 
 **Fonte:** Roadmap detalhado de versões até v3.0 (plano V3)
 **Data do plano:** 2026-07-26
-**Actualização de estado:** 2026-07-27 — **`oec==2.0.0` Scientific Kernel cortado** (`51407ec`)
-**Baseline real:** **40 skills**, 5 agentes, SDK/CLI/REST/MCP, OPS v0.1, HiGHS, `oec.core` Scientific Kernel, árvore public-alpha local
+**Actualização de estado:** 2026-07-27 — **`oec==2.3.0` Applied Math ACCEPTED** (Waves A+B+C + A23/B23; seal [v2.3-accepted-and-merge-prep.md](v2.3-accepted-and-merge-prep.md)); **NEXT = v2.4** ([v2.4-team-brief.md](v2.4-team-brief.md))
+**Baseline real:** **62 skills**, 5 agentes, SDK/CLI/REST/MCP, OPS v0.1, HiGHS, `oec.core` Scientific Kernel, Quantities (v2.1), Math IR foundation (v2.2), Applied Math (v2.3), árvore public-alpha local
 **Marco público V3:** **v3.0 = primeiro lançamento oficial no GitHub**
 **Handoff construção (GPT):** [GPT_CONSTRUCTION_HANDOFF.md](GPT_CONSTRUCTION_HANDOFF.md) — GPT constrói; Grok valida.
 
@@ -15,11 +15,15 @@
 |---|---|---|---|
 | **v0.x – v1.5** | Skill Engine + interfaces + alpha privado | **DONE** (`1.5.0` closed) | Manter |
 | **v2.0** | Scientific Kernel | **DONE** (`2.0.0` — `oec.core`, ADR 0019) | — |
-| **v2.1 – v2.5** | Quantities → Math IR → Math Complete | **NEXT** (sem Math IR ainda) | **GPT constrói a partir de v2.1** |
+| **v2.1** | Quantities | **DONE** (`2.1.0`) | — |
+| **v2.2** | Math IR foundation | **DONE** (`2.2.0`, ADR 0020) | — |
+| **v2.3** | Applied Math (Waves A+B+C) | **DONE / ACCEPTED** (`2.3.0`, 62 skills) | Merge prep local; tag `v2.3.0` |
+| **v2.4** | Computational + Verification + Backend Registry | **NEXT** | [v2.4-team-brief.md](v2.4-team-brief.md) |
+| **v2.5** | Mathematics Complete (gate duro) | **Bloqueado em v2.4** | Após Verification + registry |
 | **v2.6 – v2.8** | Physics / Multiphysics / Chemistry | **Não iniciado** (só eléctrica clássica + energy genérico) | Após v2.5 estável |
 | **v2.9 – v3.0** | Integração + lançamento público | Prep parcial (árvore limpa local) | Gates + publish no fim |
 
-**Tese de execução:** não recomeçar do zero. **v1.5 e v2.0 fechados.** Empilhar **v2.1→v2.5** em fatias com gates mensuráveis. Física/química são programas multi-trimestre **depois** da matemática completa.
+**Tese de execução:** não recomeçar do zero. **v1.5→v2.3 fechados** (private incubation). Empilhar **v2.4→v2.5** em fatias com gates mensuráveis. Física/química são programas multi-trimestre **depois** da matemática completa.
 
 **Regra de ouro (inalterada):**
 
@@ -49,15 +53,15 @@
 | OPS v0.1 LP/MILP | `src/oec/ops/`, `optimization.lp/milp` |
 | Alpha privado operacional (gates) | pytest ~800, ruff/mypy, forbidden-names, public tree local |
 
-### 1.2 Gaps estruturais vs V3 (estado após v2.0)
+### 1.2 Gaps estruturais vs V3 (estado após v2.3.0 accepted)
 
 | Bloco V3 | Gap |
 |---|---|
 | **Scientific Kernel** (`ScientificResult`, `Assumption`, …) | **Entregue em v2.0 como adapter aditivo** em `oec.core`; `ExecutionResult` permanece o contrato canónico das interfaces |
-| **Math IR** | Expressões AST restritas + OPS linear; **sem IR simbólico geral** |
-| **Backend Registry** | Backends listados em provenance; **sem registry de capabilities/fallback** |
-| **Verification Engine** formal pré/pós | Validadores existem, mas não o pipeline Verification V3 completo |
-| **Applied math completo** | Faltam: controle, decisão, Pareto/CVaR, forecast TS, sparse sistemático, DAE, autodiff |
+| **Math IR** | **Foundation v2.2 entregue** (linear + scalar-root compilers); IR simbólico geral / cobertura ampla ainda limitada |
+| **Backend Registry** | Backends listados em provenance; **sem registry de capabilities/fallback** → **v2.4** |
+| **Verification Engine** formal pré/pós | Validadores existem, mas não o pipeline Verification V3 completo → **v2.4** |
+| **Applied math (volume)** | **Waves A+B+C entregues** (controle, forecast TS, Pareto/CVaR/robust LP v0, …); sparse sistemático / DAE / autodiff → v2.4+ |
 | **Physics / Chemistry Complete** | Fora do catálogo (excepto eléctrica clássica / energy genérico) |
 | **Model Registry / Fidelity** | Não existe |
 | **ScientificResult unificado** | Adapter disponível via `Engine.run_scientific`; REST/MCP continuam deliberadamente em `ExecutionResult` |
