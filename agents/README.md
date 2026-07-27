@@ -21,6 +21,34 @@ LLM / user
 
 Shared harness: `agents/common.py` (`SkillSpecialist`, `narrate_execution`).
 
+## Packaging
+
+The `agents/` tree is a **dev-only companion layer kept outside the core
+`oec` wheel** (per V3 plan §3, work package C4). It is **not** shipped on
+PyPI and is **not** a separate installable package at v1.5. Code here
+imports `oec` (the installed wheel) and is itself imported by tests and
+harnesses that run from the **repository root**.
+
+### Import path
+
+Because `agents/` lives at the repo root (not under `src/oec/`), the
+import `from agents.<specialist>...` only resolves when the **repository
+root** is on `sys.path`. In practice:
+
+- `pytest`, `ruff`, `mypy` invoked from the repo root already add it.
+- For ad-hoc scripts / REPLs, export `PYTHONPATH` to the repo root:
+
+```bash
+# POSIX
+export PYTHONPATH="$(pwd):$PYTHONPATH"
+
+# Windows PowerShell
+$env:PYTHONPATH = "$PWD;$env:PYTHONPATH"
+```
+
+Alternatively run Python from the repo root without modifying
+`PYTHONPATH` (the current working directory is prepended to `sys.path`).
+
 ## Install
 
 ```bash
