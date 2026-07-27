@@ -5,6 +5,58 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] — 2026-07-27
+
+### Added
+
+- **Math IR v0 foundation** (`oec.modeling`) — a versioned, closed Pydantic model
+  set for problems represented independently of any solver (ADR 0020):
+  - `MathProblem` root document (`ir_version`), `Symbol` (optionally
+    dimensioned/bounded)
+  - a closed, discriminated `Expr` node tree: `NumberLiteral`, `QuantityLiteral`,
+    `ConstantRef`, `SymbolRef`, `UnaryOp`, `BinaryOp`, `FunctionCall` — safe by
+    construction, no `eval`/`exec`
+  - `oec.modeling.expressions.parse_expression` — builds the same node tree from
+    a string via the kernel's already-audited AST whitelist (one grammar, not two)
+  - `oec.modeling.dimensions` — structural/dimensional validation over the tree;
+    first real use of `DimensionalIncompatibilityError`
+  - `oec.modeling.classify` — deterministic, non-silent problem classifier;
+    first real use of `UnderdeterminedProblemError`/`OverdeterminedProblemError`
+  - `oec.modeling.compile_linear` — `linear_program` variant compiled to an OPS
+    document and solved via the existing `ops_to_linear_parts`/`solve_linear`
+    (HiGHS) path; no new solver logic
+  - `oec.modeling.compile_scalar_root` — `scalar_root` variant (v0: exactly one
+    equation, one unknown) compiled to a residual function and solved via SciPy
+    root-finding (`find_root_bracketed`/`find_root_from_guess`)
+- **Minimal Backend Capability skeleton** (`oec.backends.registry`) —
+  availability/version descriptors for `highs` and `scipy` only; the full
+  registry (selection, fallback, adapters) remains a v2.4 item
+- **Experimental skill `mathematics.solve_ir`** — classifies a submitted Math IR
+  document and dispatches to the linear or scalar-root compiler
+- ADR 0020: Math IR v0 foundation
+
+### Changed
+
+- Package version **2.1.0 → 2.2.0**
+- `optimization.lp`, `optimization.milp` and `numerical.root_system` are
+  unchanged; `mathematics.solve_ir` is purely additive
+
+### Notes
+
+- v2.2 stop gate proven: one LP and one scalar-root problem solved exclusively
+  through the IR match the existing governed paths within tolerance
+  (`tests/integration/test_math_ir_linear_parity.py`,
+  `test_math_ir_scalar_root_parity.py`)
+- Full local gate: global coverage ≥90% (new `oec.modeling`/`oec.backends`
+  modules individually 83–96%), ruff lint/format PASS, mypy strict PASS,
+  physical-unit audit PASS, skill contract audit PASS, forbidden-names PASS,
+  bandit PASS
+- v0 non-goals (see ADR 0020): MILP-in-IR, systems of equations in the
+  scalar-root compiler, ODE-in-IR, tensor quantities, general uncertainty
+  propagation, automatic unit rescaling during scalar-root evaluation, any
+  `sympy` string-parsing path, and the full v2.4 Backend Registry
+- See [docs/architecture/adr/0020-math-ir-foundation.md](docs/architecture/adr/0020-math-ir-foundation.md)
+
 ## [2.1.0] — 2026-07-27
 
 ### Added

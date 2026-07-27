@@ -158,6 +158,14 @@ and the associated unit/parity tests). **5496 nodes**, **8777 edges** and
 tag remain unchanged in this pass — those are a separate closeout step, per
 ADR 0020's own consequences section.
 
+### v2.2 release closeout rebuild
+
+Rebuilt on **2026-07-27** after the v2.2 metadata/documentation closeout
+(version bumps to `2.2.0`, `CHANGELOG.md` entry, README status). `GRAPH_REPORT.md`
+now records baseline commit `5bd11aba` with **5501 nodes**, **8783 edges** and
+**475 communities**. The closeout changes are committed as the v2.2 release
+commit immediately after this rebuild.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown
