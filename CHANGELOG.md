@@ -5,6 +5,49 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] — 2026-07-27
+
+### Added
+
+- **Quantity API and dimensional contracts**:
+  - JSON-safe dimension and conversion APIs on `QuantityValue`
+  - explicit add/subtract/multiply/divide operations with a typed `QuantityOperationError`
+  - rejection of incompatible dimensional operations
+  - `same_dimension` as a distinct check from direct convertibility
+  - separation of affine temperatures (`degC`/`degF`) from delta-temperature intervals
+  - preserved original versus normalized input provenance
+  - a small immutable SI-2019 constants catalogue (`c`, `h`, `e`)
+  - representation-only `Uncertainty` and `UncertainQuantity` (general propagation excluded from v2.1)
+- **Input/output physical enforcement**:
+  - central normalization to canonical units for scalar and array quantities
+  - `ResultDimensionalValidator` wired automatically for dimensional skills
+  - fail-closed behavior for malformed, non-finite, unknown-unit and noncanonical outputs
+- **Physical skill migration to `QuantityValue`-only contracts** (bumped to skill version `0.2.0`):
+  `energy.balance`, `energy.load_metrics`, `battery.soc_step`
+- **Automated authoring gate**: `scripts/audit_physical_units.py` — checks physical skill schemas
+  for unclassified bare numeric fields, missing/invalid canonical units, malformed quantity
+  contracts, undocumented dynamic-unit exceptions, and explicit dimensionless classification
+  (9 physical skills scanned, 0 errors)
+
+### Changed
+
+- Package version **2.0.0 → 2.1.0**
+- `ExecutionResult`, REST and MCP shapes remain unchanged
+
+### Notes
+
+- Full local gate: 863 tests passed (4 slow deselected), 91.33% coverage, ruff lint/format PASS,
+  mypy strict PASS (91 source files), physical-unit audit PASS, skill contract audit 40/40,
+  forbidden-names PASS
+- Independently reviewed by GPT-5.6 Terra, Grok, Claude Opus; corrections closed include a
+  private-Pint-API offset-unit check, direct-convertibility vs same-dimensionality for
+  uncertainty, affine-vs-multiplicative temperature interval handling, dimension-string
+  rendering, a rejected transitional bare-number allowance for energy/battery skills, and
+  array-quantity coverage in central validation/normalization
+- See [docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md](docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md)
+  for full delivery evidence and the v2.2+ Math IR roadmap
+- Math IR, Backend Capability Registry, and formal Verification remain **v2.2+** milestones
+
 ## [2.0.0] — 2026-07-27
 
 ### Added

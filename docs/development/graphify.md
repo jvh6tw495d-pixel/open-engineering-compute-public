@@ -139,6 +139,16 @@ is the indexed handoff after commits `f7cbf0a` and `abb31c7`. It records:
 Rebuild Graphify after changing that report so future construction agents do
 not confuse technical completion with a released package version.
 
+### v2.1 release closeout rebuild
+
+Rebuilt on **2026-07-27** after the v2.1 metadata/documentation closeout
+(version bumps to `2.1.0`, `CHANGELOG.md` entry, README status, Q0 inventory
+delivery closeout, `technical-debt.md` closures). `GRAPH_REPORT.md` now
+records baseline commit `7c5c4136` with **5241 nodes**, **8177 edges** and
+**457 communities**; the local tool itself is now `graphifyy` v0.9.28
+(previously v0.8.39 — command surface unchanged). The closeout changes are
+committed as the v2.1 release commit immediately after this rebuild.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

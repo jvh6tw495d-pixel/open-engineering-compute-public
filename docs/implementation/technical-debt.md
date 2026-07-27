@@ -1,6 +1,6 @@
 # Technical debt
 
-**Current-state review:** 2026-07-27 at `oec==2.0.0`.
+**Current-state review:** 2026-07-27 at `oec==2.1.0`.
 
 This file began as a Phase A snapshot. Historical entries remain for
 traceability; the current queue below is the canonical starting point for new
@@ -11,8 +11,6 @@ work. An item is not closed merely because a later roadmap mentions it.
 | ID | Priority | Item | Target / evidence |
 |---|---|---|---|
 | D-CUR-02 | P1 | Default five-second skill timeout can be consumed by a cold SciPy import on Windows | Measure and decide import/warmup versus timeout policy before public distribution |
-| D-CUR-05 | P1 | No automated bare-physical-float authoring gate | v2.1 Q2; see `v2.1-quantities-q0-inventory.md` |
-| D-CUR-06 | P1 | Energy and battery schemas carry physical values as bare numbers | v2.1 migration |
 | D-CUR-07 | P1 | `diagnostics_from_mapping` heuristic coverage is thin | Core hardening |
 | D-CUR-08 | P1 | `ProvenanceRecord` permits untyped extra passthrough | Core hardening without breaking ExecutionResult |
 | D-CUR-09 | P1 | No OS-level memory/network/filesystem isolation | Pre-untrusted deployment; ADR 0012 |
@@ -31,6 +29,8 @@ work. An item is not closed merely because a later roadmap mentions it.
 | D-CUR-03 | 2026-07-27 | V3 gap map reconciled with shipped `oec.core` and `ScientificResult` |
 | D-CUR-04 | 2026-07-27 | Graphify rebuilt from `6e271496` before work; rebuild again at handoff |
 | D-CUR-16 | 2026-07-27 | installation smoke now retains complete child stdout/stderr and separately proves installed CLI/sandbox and numerical backend execution |
+| D-CUR-05 | 2026-07-27 | `scripts/audit_physical_units.py` added — automated bare-physical-float authoring gate, 9 skills scanned, 0 errors (v2.1, commit `abb31c7`) |
+| D-CUR-06 | 2026-07-27 | `energy.balance`, `energy.load_metrics`, `battery.soc_step` migrated to `QuantityValue`-only physical contracts, skill version `0.2.0` (v2.1, commit `abb31c7`) |
 
 ## Historical Phase A view
 
