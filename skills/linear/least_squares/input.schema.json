@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "linear.least_squares input",
+  "type": "object",
+  "properties": {
+    "A": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "number" }
+      }
+    },
+    "b": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number" }
+    }
+  },
+  "required": ["A", "b"],
+  "additionalProperties": false
+}

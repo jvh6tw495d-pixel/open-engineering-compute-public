@@ -1,0 +1,23 @@
+{
+  "description": "A single tight constraint x>=2 on a variable bounded to [0,1] is provably infeasible at the HiGHS solve tier (no bound conflict at the variable level). Dropping that constraint restores feasibility.",
+  "input": {
+    "ops": {
+      "ops_version": "0.1.0",
+      "problem_class": "lp",
+      "sense": "min",
+      "variables": [
+        { "name": "x", "kind": "continuous", "lower": 0, "upper": 1 }
+      ],
+      "constraints": [
+        { "name": "must_ge_2", "coeffs": { "x": 1 }, "sense": ">=", "rhs": 2 }
+      ],
+      "objective": { "coeffs": { "x": 1 } }
+    }
+  },
+  "expected_output": {
+    "feasible": false,
+    "tier": "iis_candidate",
+    "n_constraints": 1,
+    "backend": "highs"
+  }
+}

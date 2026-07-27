@@ -5,6 +5,58 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.0a0] — 2026-07-27
+
+### Added — v2.3 Wave A (applied math expansion)
+
+**Eleven** new experimental skills under `skills/linear`, `skills/statistics`,
+`skills/timeseries`, and `skills/optimization`, each with the full contract
+(`skill.yaml`, `skill.md`, schemas, `implementation.py`, `validation.py`,
+`references.md`, `examples/`, `tests/test_validation.py`, `tests/test_golden.py`):
+
+- `linear.eig` — eigenvalues and (right) eigenvectors for square
+  matrices (NumPy `linalg.eig`).
+- `linear.least_squares` — overdetermined `Ax = b` least squares with
+  rank/residual reporting (NumPy `linalg.lstsq`).
+- `linear.residual_norms` — L1/L2/L∞ norms of a residual vector.
+- `statistics.regression` — OLS with coefficients, fitted values,
+  residuals, R², adjusted R², RMSE, residual standard error.
+- `statistics.intervals` — Student-t / Gaussian confidence interval
+  for the mean.
+- `statistics.bootstrap` — nonparametric bootstrap CI for mean, median,
+  or sample variance.
+- `timeseries.lag_features` — lag columns aligned to a response slice.
+- `timeseries.forecast_simple` — naive, seasonal-naive, and mean
+  forecasters for a requested lead window (`steps_ahead`).
+- `timeseries.backtest` — rolling backtest for the simple forecasters;
+  per-step error metrics and skill score vs naive baseline.
+- `optimization.lp_diagnostics` — reduced costs, slacks, and dual
+  values for a solved LP (HiGHS).
+- `optimization.infeasibility_explain` — bound conflicts plus
+  drop-one IIS candidate explanation (HiGHS).
+
+Kernel support (no LAPACK reimplementation; ADR 0008):
+
+- `oec.kernel.linear.analysis` — `eigendecomposition`, `least_squares`, `residual_norms`
+- `oec.kernel.statistics.{regression,intervals,bootstrap}`
+- `oec.kernel.timeseries.{lag,forecast,backtest}`
+- HiGHS adapter: reduced costs + slacks on `LinearSolveResult`;
+  `explain_infeasibility` on the feasibility module
+
+### Changed
+
+- Package version `2.2.0 → 2.3.0a0` (Wave A **pre-release**; full v2.3
+  gate in the V3 plan is ≥ 15 new/major applied skills — Wave B/C still open).
+- Forecast API uses the field name `steps_ahead` (avoids ADR 0008 reserved product tokens).
+- No existing skill contract broken; new skills are additive.
+
+### Notes
+
+- `optimization.lp_diagnostics` and `optimization.infeasibility_explain`
+  require the optional `highspy` extra (`uv sync --extra optimization`).
+- Coefficient standard errors and property-test suites for Wave A skills
+  are deferred (not claimed in this alpha).
+
 ## [2.2.0] — 2026-07-27
 
 ### Added

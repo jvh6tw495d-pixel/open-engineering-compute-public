@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "linear.eig output",
+  "type": "object",
+  "properties": {
+    "eigenvalues_real": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "eigenvalues_imag": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "eigenvector_columns": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": "number" }
+      }
+    },
+    "eigenvector_norms": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "n": { "type": "integer", "minimum": 1 },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": ["eigenvalues_real", "eigenvalues_imag", "eigenvector_columns", "eigenvector_norms", "n", "backend", "converged"],
+  "additionalProperties": false
+}

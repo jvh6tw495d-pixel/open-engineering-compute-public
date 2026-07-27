@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "linear.residual_norms output",
+  "type": "object",
+  "properties": {
+    "l1": { "type": "number", "minimum": 0 },
+    "l2": { "type": "number", "minimum": 0 },
+    "linf": { "type": "number", "minimum": 0 },
+    "n": { "type": "integer", "minimum": 1 },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": ["l1", "l2", "linf", "n", "backend", "converged"],
+  "additionalProperties": false
+}

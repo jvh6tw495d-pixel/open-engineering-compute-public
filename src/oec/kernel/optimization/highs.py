@@ -54,6 +54,10 @@ class LinearSolveResult:
     mip_node_count: int | None = None
     message: str = ""
     raw_status: str = ""
+    # Forward-looking diagnostics for the LP solver (KKT report); populated
+    # for continuous LP only and left empty for MILP. Filled by ``solve_linear``.
+    reduced_costs: dict[str, float] = field(default_factory=dict)
+    slacks: dict[str, float] = field(default_factory=dict)
 
 
 def _require_highspy() -> Any:
@@ -140,6 +144,35 @@ def solve_linear(
     except Exception:  # noqa: BLE001
         dual = {}
 
+    reduced_costs: dict[str, float] = {}
+    try:
+        col_duals = list(h.allVariableDuals())
+        for i, var in enumerate(variables):
+            if i < len(col_duals):
+                reduced_costs[var.name] = float(col_duals[i])
+    except Exception:  # noqa: BLE001
+        reduced_costs = {}
+
+    slacks: dict[str, float] = {}
+    try:
+        row_values = list(h.allConstrValues())
+        for i, cons in enumerate(constraints):
+            if i < len(row_values):
+                # HiGHS reports the LHS value of each constraint row.
+                # Slack conventions:
+                #   A x <= b  -> slack = b - LHS
+                #   A x >= b  -> slack = LHS - b
+                #   A x == b  -> slack = LHS - b (signed residual)
+                row_val = float(row_values[i])
+                if cons.sense == "<=":
+                    slacks[cons.name] = float(cons.rhs) - row_val
+                elif cons.sense == ">=":
+                    slacks[cons.name] = row_val - float(cons.rhs)
+                else:
+                    slacks[cons.name] = row_val - float(cons.rhs)
+    except Exception:  # noqa: BLE001
+        slacks = {}
+
     mip_gap = getattr(info, "mip_gap", None)
     mip_nodes = getattr(info, "mip_node_count", None)
     obj_val = getattr(info, "objective_function_value", None)
@@ -153,6 +186,8 @@ def solve_linear(
         mip_node_count=None if mip_nodes is None else int(mip_nodes),
         message=status_name,
         raw_status=status_name,
+        reduced_costs=reduced_costs,
+        slacks=slacks,
     )
 
 

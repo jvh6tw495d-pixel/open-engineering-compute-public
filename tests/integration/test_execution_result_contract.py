@@ -357,6 +357,68 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "objectives": [{"x": 1, "y": 1}, {"x": 2, "y": 0}],
         "weights": [0.5, 0.5],
     },
+    # v2.3 Wave A — applied math expansion (11 new skills)
+    "linear.eig": {"A": [[1.0, 0.0], [0.0, 2.0]]},
+    "linear.least_squares": {
+        "A": [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0]],
+        "b": [1.0, 3.0, 5.0],
+    },
+    "linear.residual_norms": {"r": [3.0, 4.0]},
+    "statistics.regression": {
+        "x": [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0], [1.0, 3.0]],
+        "y": [1.0, 3.0, 5.0, 7.0],
+    },
+    "statistics.intervals": {
+        "samples": [1.0, 2.0, 3.0, 4.0, 5.0],
+        "confidence_level": 0.95,
+    },
+    "statistics.bootstrap": {
+        "samples": [1.0, 2.0, 3.0, 4.0, 5.0],
+        "statistic": "mean",
+        "confidence_level": 0.95,
+        "n_resamples": 200,
+        "seed": 0,
+    },
+    "timeseries.lag_features": {"values": [1.0, 2.0, 3.0, 4.0], "lags": [1]},
+    "timeseries.forecast_simple": {
+        "series": [1.0, 2.0, 3.0, 4.0],
+        "steps_ahead": 2,
+        "method": "naive",
+    },
+    "timeseries.backtest": {
+        "series": [1.0, 2.0, 3.0, 4.0],
+        "steps_ahead": 1,
+        "method": "naive",
+    },
+    "optimization.lp_diagnostics": {
+        "ops": {
+            "ops_version": "0.1.0",
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+                {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+            ],
+            "constraints": [
+                {"name": "cover", "coeffs": {"x": 1, "y": 1}, "sense": ">=", "rhs": 1}
+            ],
+            "objective": {"coeffs": {"x": 1, "y": 1}},
+        }
+    },
+    "optimization.infeasibility_explain": {
+        "ops": {
+            "ops_version": "0.1.0",
+            "problem_class": "lp",
+            "sense": "min",
+            "variables": [
+                {"name": "x", "kind": "continuous", "lower": 0, "upper": 1}
+            ],
+            "constraints": [
+                {"name": "use", "coeffs": {"x": 1}, "sense": ">=", "rhs": 0}
+            ],
+            "objective": {"coeffs": {"x": 1}},
+        }
+    },
 }
 
 _REQUIRED_KEYS = frozenset(

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.lag_features input",
+  "type": "object",
+  "properties": {
+    "values": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number" }
+    },
+    "lags": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "integer", "minimum": 0 }
+    }
+  },
+  "required": ["values", "lags"],
+  "additionalProperties": false
+}

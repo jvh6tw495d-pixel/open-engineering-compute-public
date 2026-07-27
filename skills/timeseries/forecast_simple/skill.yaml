@@ -1,0 +1,39 @@
+id: timeseries.forecast_simple
+version: 0.1.0
+status: experimental
+domain: timeseries
+title: Simple Forecasters (Naive, Mean, Seasonal)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: closed_form_forecast
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 10
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Hyndman, R. J., Athanasopoulos, G. (2018). Forecasting: Principles and Practice, OTexts, Chapter 3 — naive, seasonal-naive, mean benchmarks."
+
+tags:
+  - mvp
+  - timeseries
+  - forecast

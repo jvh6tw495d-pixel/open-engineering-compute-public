@@ -1,0 +1,22 @@
+{
+  "description": "A constant series [7,7,7,7] has zero one-step errors under any forecaster (naive, mean, seasonal). MAE=0 and RMSE=0 by the backtest definition; the naive baseline MAE=0, so skill_score_vs_naive defaults to 0 (avoid divide-by-zero).",
+  "input": {
+    "series": [7.0, 7.0, 7.0, 7.0],
+    "steps_ahead": 1,
+    "method": "naive"
+  },
+  "expected_output": {
+    "method": "naive",
+    "steps_ahead": 1,
+    "period": null,
+    "n_series": 4,
+    "n_evaluations": 3,
+    "mae": 0.0,
+    "rmse": 0.0,
+    "naive_baseline_mae": 0.0,
+    "skill_score_vs_naive": 0.0,
+    "errors": [0.0, 0.0, 0.0],
+    "backend": "numpy",
+    "converged": null
+  }
+}

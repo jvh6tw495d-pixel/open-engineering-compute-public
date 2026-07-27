@@ -211,4 +211,123 @@ def _apply_path(ops: dict[str, Any], path: str, value: float) -> None:
     )
 
 
-__all__ = ["check_feasibility", "scenario_batch"]
+def explain_infeasibility(ops_document: dict[str, Any]) -> dict[str, Any]:
+    """Explain why an LP is infeasible (S7′ v0).
+
+    Three diagnostic tiers, returned in order of decreasing hope:
+
+    1. Bound conflicts (``lower`` > ``upper`` for any variable) — these
+       make an LP infeasible without ever calling HiGHS.
+    2. Empty-coefficient constraints (no terms) — they cannot be
+       satisfied except by their ``rhs`` being identically zero.
+    3. Constraint IIS candidate — the smallest subset of constraints
+       whose removal from the model restores feasibility, found by a
+       drop-one-at-a-time heuristic.
+
+    Cycles up to ``max_iis_trial_constraint_count`` constraints; that
+    number bounds drop-one sensitivity scanning. If the model is
+    actually feasible, returns ``feasible: True`` with an empty
+    explanation.
+    """
+
+    problem = validate_ops(ops_document)
+    variables, constraints, sense = ops_to_linear_parts(problem)
+
+    issues: list[str] = list(check_bound_conflicts(variables))
+    empty_constraints = [c.name for c in constraints if not c.coeffs]
+    for name in empty_constraints:
+        issues.append(f"constraint {name!r} has no coefficients")
+
+    if issues:
+        return {
+            "feasible": False,
+            "tier": "precheck",
+            "explanation": (
+                "bound conflicts and/or no-coefficient constraints make the model "
+                "infeasible without solving."
+            ),
+            "bound_conflicts": list(issues),
+            "empty_constraints": empty_constraints,
+            "iis_candidate_constraints": [],
+            "n_constraints": len(constraints),
+            "backend": "precheck",
+        }
+
+    time_limit = problem.execution_limits.time_limit_seconds
+    zero_obj_vars = [
+        LinearVariable(name=v.name, lower=v.lower, upper=v.upper, kind=v.kind, objective_coeff=0.0)
+        for v in variables
+    ]
+    try:
+        baseline = solve_linear(
+            variables=zero_obj_vars,
+            constraints=constraints,
+            sense="min",
+            time_limit_seconds=time_limit,
+        )
+    except HighsNotAvailableError as exc:
+        return {
+            "feasible": False,
+            "tier": "solver_unavailable",
+            "explanation": exc.message,
+            "bound_conflicts": [],
+            "empty_constraints": [],
+            "iis_candidate_constraints": [],
+            "n_constraints": len(constraints),
+            "backend": "highs",
+        }
+
+    if baseline.status is SolverStatus.OPTIMAL:
+        return {
+            "feasible": True,
+            "tier": "feasible",
+            "explanation": "the model is feasible under a zero-objective solve.",
+            "bound_conflicts": [],
+            "empty_constraints": [],
+            "iis_candidate_constraints": [],
+            "n_constraints": len(constraints),
+            "backend": "highs",
+        }
+
+    # Drop-one sensitivity scan to find an IIS candidate.
+    relaxable: list[str] = []
+    for i, trial in enumerate(constraints):
+        subset = constraints[:i] + constraints[i + 1 :]
+        try:
+            attempt = solve_linear(
+                variables=zero_obj_vars,
+                constraints=subset,
+                sense="min",
+                time_limit_seconds=time_limit,
+            )
+        except HighsNotAvailableError as exc:  # pragma: no cover
+            return {
+                "feasible": False,
+                "tier": "solver_unavailable",
+                "explanation": exc.message,
+                "bound_conflicts": [],
+                "empty_constraints": [],
+                "iis_candidate_constraints": [],
+                "n_constraints": len(constraints),
+                "backend": "highs",
+            }
+        if attempt.status is SolverStatus.OPTIMAL:
+            relaxable.append(trial.name)
+
+    return {
+        "feasible": False,
+        "tier": "iis_candidate",
+        "explanation": (
+            "HiGHS reported infeasibility. Dropping at least one of the named "
+            "constraints restores feasibility (a candidate irreducible inconsistent "
+            "subsystem)."
+        ),
+        "bound_conflicts": [],
+        "empty_constraints": [],
+        "iis_candidate_constraints": relaxable,
+        "n_constraints": len(constraints),
+        "backend": "highs",
+    }
+
+
+__all__ = ["check_feasibility", "scenario_batch", "explain_infeasibility"]

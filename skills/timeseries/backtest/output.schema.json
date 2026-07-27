@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.backtest output",
+  "type": "object",
+  "properties": {
+    "method": { "type": "string", "enum": ["naive", "mean", "seasonal_naive"] },
+    "steps_ahead": { "type": "integer", "minimum": 1 },
+    "period": { "type": ["null", "integer"] },
+    "n_series": { "type": "integer", "minimum": 2 },
+    "n_evaluations": { "type": "integer", "minimum": 1 },
+    "mae": { "type": "number", "minimum": 0 },
+    "rmse": { "type": "number", "minimum": 0 },
+    "naive_baseline_mae": { "type": "number", "minimum": 0 },
+    "skill_score_vs_naive": { "type": "number" },
+    "errors": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": ["method", "steps_ahead", "period", "n_series", "n_evaluations", "mae", "rmse", "naive_baseline_mae", "skill_score_vs_naive", "errors", "backend", "converged"],
+  "additionalProperties": false
+}

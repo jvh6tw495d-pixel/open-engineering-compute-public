@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "optimization.infeasibility_explain output",
+  "type": "object",
+  "properties": {
+    "feasible": { "type": "boolean" },
+    "tier": { "type": "string", "enum": ["precheck", "iis_candidate", "feasible", "solver_unavailable"] },
+    "explanation": { "type": "string" },
+    "bound_conflicts": { "type": "array", "items": { "type": "string" } },
+    "empty_constraints": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "iis_candidate_constraints": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "n_constraints": { "type": "integer", "minimum": 0 },
+    "backend": { "type": "string" }
+  },
+  "required": ["feasible", "tier", "explanation", "bound_conflicts", "empty_constraints", "iis_candidate_constraints", "n_constraints", "backend"],
+  "additionalProperties": false
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "statistics.regression output",
+  "type": "object",
+  "properties": {
+    "coefficients": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "fitted": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "residuals": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "r_squared": { "type": "number" },
+    "adj_r_squared": { "type": "number" },
+    "rmse": { "type": "number", "minimum": 0 },
+    "residual_standard_error": { "type": "number", "minimum": 0 },
+    "n": { "type": "integer", "minimum": 1 },
+    "k": { "type": "integer", "minimum": 1 },
+    "backend": { "type": "string" }
+  },
+  "required": ["coefficients", "fitted", "residuals", "r_squared", "adj_r_squared", "rmse", "residual_standard_error", "n", "k", "backend"],
+  "additionalProperties": false
+}

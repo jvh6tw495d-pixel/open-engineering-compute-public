@@ -1,0 +1,42 @@
+id: optimization.lp_diagnostics
+version: 0.1.0
+status: experimental
+domain: optimization
+title: LP Diagnostics (reduced costs, slacks, duals)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: highs_lp_diagnostics
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "HiGHS — https://highs.dev/ — exposes reduced costs, slacks, duals via highspy."
+  - "Chvatal, V. (1983). Linear Programming. Freeman — Chapter 5 (KKT optimality: primal feasibility, dual feasibility, complementary slackness)."
+
+tags:
+  - mvp
+  - optimization
+  - lp
+  - diagnostics
+  - highs

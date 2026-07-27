@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.lag_features output",
+  "type": "object",
+  "properties": {
+    "lags": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 }
+    },
+    "columns": {
+      "type": "object"
+    },
+    "y": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "n_keep": { "type": "integer", "minimum": 1 },
+    "n_original": { "type": "integer", "minimum": 1 },
+    "max_lag": { "type": "integer", "minimum": 0 },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": ["lags", "columns", "y", "n_keep", "n_original", "max_lag", "backend", "converged"],
+  "additionalProperties": false
+}

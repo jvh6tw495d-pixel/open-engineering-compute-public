@@ -1,0 +1,43 @@
+id: optimization.infeasibility_explain
+version: 0.1.0
+status: experimental
+domain: optimization
+title: Infeasibility Explanation (Lite IIS)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: highs_infeasibility_explain
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 60
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "HiGHS — https://highs.dev/ — solver availability check and feasibility-only solve."
+  - "Chinneck, J. W. (2008). Feasibility and Infeasibility in Optimization. Springer — IIS (Irreducible Inconsistent Subsystem) heuristic."
+
+tags:
+  - mvp
+  - optimization
+  - lp
+  - feasibility
+  - diagnostics
+  - highs
