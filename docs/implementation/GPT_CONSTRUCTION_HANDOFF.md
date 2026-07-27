@@ -97,6 +97,14 @@ LLM / user
 
 ### 3.1 Immediate build: **v2.1 Quantities** (V3 plan §5)
 
+**Do not start by rebuilding `QuantityValue`.** Complete and approve the Q0
+inventory first:
+[v2.1-quantities-q0-inventory.md](v2.1-quantities-q0-inventory.md).
+The repository already has quantity parsing, conversion, central input
+normalization and narrow property tests. The remaining work is contract
+stabilization and enforceable physical I/O coverage; energy and battery are
+confirmed gaps in addition to the electrical audit.
+
 | ID | Delivery | Notes |
 |---|---|---|
 | Q1 | Stable `Quantity` / dimensions / convert API | Build on `src/oec/kernel/units/` |

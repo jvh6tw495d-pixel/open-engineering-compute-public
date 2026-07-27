@@ -49,18 +49,18 @@
 | OPS v0.1 LP/MILP | `src/oec/ops/`, `optimization.lp/milp` |
 | Alpha privado operacional (gates) | pytest ~800, ruff/mypy, forbidden-names, public tree local |
 
-### 1.2 Gaps estruturais vs V3 (ainda não existem)
+### 1.2 Gaps estruturais vs V3 (estado após v2.0)
 
 | Bloco V3 | Gap |
 |---|---|
-| **Scientific Kernel** (`ScientificResult`, `Assumption`, …) | Hoje: `ExecutionResult` + dicts de skill; não há camada `core/` formal unificada |
+| **Scientific Kernel** (`ScientificResult`, `Assumption`, …) | **Entregue em v2.0 como adapter aditivo** em `oec.core`; `ExecutionResult` permanece o contrato canónico das interfaces |
 | **Math IR** | Expressões AST restritas + OPS linear; **sem IR simbólico geral** |
 | **Backend Registry** | Backends listados em provenance; **sem registry de capabilities/fallback** |
 | **Verification Engine** formal pré/pós | Validadores existem, mas não o pipeline Verification V3 completo |
 | **Applied math completo** | Faltam: controle, decisão, Pareto/CVaR, forecast TS, sparse sistemático, DAE, autodiff |
 | **Physics / Chemistry Complete** | Fora do catálogo (excepto eléctrica clássica / energy genérico) |
 | **Model Registry / Fidelity** | Não existe |
-| **ScientificResult unificado** | Contrato ainda é `ExecutionResult` por skill |
+| **ScientificResult unificado** | Adapter disponível via `Engine.run_scientific`; REST/MCP continuam deliberadamente em `ExecutionResult` |
 | **v3.0 public GitHub** | Árvore limpa local; **sem remote público** |
 
 ### 1.3 Versão semântica recomendada (transição)
@@ -202,6 +202,11 @@ Reescrever `ExecutionResult` quebra clientes. **Mitigação:** adapter additivo;
 
 ### Objectivo
 Consolidar o que **já existe** em `kernel/units` para o desenho V3 §12.
+
+**Preflight obrigatório:** [v2.1-quantities-q0-inventory.md](v2.1-quantities-q0-inventory.md)
+classifica Q1–Q6 contra o código real. Q1, Q2 e Q5/Q6 são parciais, não
+greenfield; energy e battery ainda possuem grandezas físicas como bare
+numbers e impedem o gate global até migração.
 
 ### Work packages
 

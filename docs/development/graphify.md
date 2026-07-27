@@ -112,6 +112,19 @@ Indexed highlights for construction agents:
 
 `graphify-out/` remains **gitignored** (ADR 0010). Rebuild locally before multi-agent construction sessions.
 
+### Pre-v2.1 stabilization rebuild
+
+Rebuilt again on **2026-07-27** before stabilization and Q0 planning.
+`GRAPH_REPORT.md` records baseline commit `6e271496` with approximately
+**5063 nodes**, **7787 edges** and **428 communities**. Generated artifacts
+remain local and gitignored; rebuild after the stabilization/documentation
+changes before handing off implementation.
+
+**Post-stabilization/Q0 rebuild:** **5086 nodes**, **7819 edges** and
+**466 communities**. The report still names committed baseline `6e271496`;
+the new stabilization and Q0 files are present in the local graph but remain
+uncommitted at this handoff.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

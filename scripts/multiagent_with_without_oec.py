@@ -501,7 +501,7 @@ def write_thesis_report(
         "",
         "| Arm | What the model does | Who computes numbers | Auditable? |",
         "|---|---|---|---|",
-        ("| **A — without OEC** | Free-solves full LP in JSON | " "Model weights | **No** |"),
+        ("| **A — without OEC** | Free-solves full LP in JSON | Model weights | **No** |"),
         (
             "| **C — with OEC** | Extracts LOAD/PV/PRICE/CAP/PMAX/SOC0 | "
             "**OEC + HiGHS** | **Yes** (`run_id`) |"

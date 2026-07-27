@@ -80,10 +80,10 @@ from agents.optimization_specialist.specialist import OptimizationSpecialist
 from agents.scientific_reviewer.reviewer import ScientificReviewer
 
 spec = OptimizationSpecialist(skills_root="skills")
-report = spec.run_demo("diet")          # or execute_ops(ops_dict)
+report = spec.run_demo("diet")  # or execute_ops(ops_dict)
 review = ScientificReviewer().review(report.ops, report.execution)
 assert review.passed
-print(report.narrative)                 # cites run_id / objective from ExecutionResult only
+print(report.narrative)  # cites run_id / objective from ExecutionResult only
 ```
 
 ## MVP skills

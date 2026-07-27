@@ -124,12 +124,32 @@ def test_core_errors_are_oec_errors() -> None:
 
 
 def test_core_module_does_not_import_domain_skills() -> None:
+    """Verify the import boundary in a fresh interpreter, not pytest's process.
+
+    Other tests legitimately import domain skills. Inspecting this process's
+    ``sys.modules`` therefore makes this architectural check order-dependent.
+    """
+    import subprocess
     import sys
 
-    import oec.core as core_mod
+    probe = """
+import sys
+import oec.core as core_mod
 
-    domain = [n for n in sys.modules if n.startswith("skills.")]
-    assert domain == []
-    assert hasattr(core_mod, "ScientificResult")
-    assert hasattr(core_mod, "ValidityDomain")
-    assert hasattr(core_mod, "Diagnostic")
+domain = sorted(name for name in sys.modules if name.startswith('skills.'))
+assert not domain, domain
+assert hasattr(core_mod, 'ScientificResult')
+assert hasattr(core_mod, 'ValidityDomain')
+assert hasattr(core_mod, 'Diagnostic')
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", probe],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        "oec.core imported domain skills in a fresh interpreter:\n"
+        f"stdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )
