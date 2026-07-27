@@ -1,0 +1,21 @@
+{
+  "description": "Minimize x+y s.t. x+y>=1, 0<=x,y<=1 -> optimal objective 1.0 (Math IR linear_program)",
+  "input": {
+    "ir": {
+      "ir_version": "0.1.0",
+      "sense": "min",
+      "symbols": [
+        { "name": "x", "lower": 0, "upper": 1 },
+        { "name": "y", "lower": 0, "upper": 1 }
+      ],
+      "objective": { "coeffs": { "x": 1, "y": 1 } },
+      "constraints": [
+        { "name": "cover", "coeffs": { "x": 1, "y": 1 }, "sense": ">=", "rhs": 1 }
+      ]
+    }
+  },
+  "expected_output": {
+    "problem_class": "linear_program",
+    "backend": "highs"
+  }
+}

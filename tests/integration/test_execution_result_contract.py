@@ -316,6 +316,25 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "bounds": [[-2.0, 2.0], [-2.0, 2.0]],
         "method": "SLSQP",
     },
+    "mathematics.solve_ir": {
+        "ir": {
+            "ir_version": "0.1.0",
+            "symbols": [{"name": "x"}],
+            "unknowns": ["x"],
+            "initial_guess": {"x": 3.0},
+            "equations": [
+                {
+                    "lhs": {
+                        "kind": "binary",
+                        "op": "**",
+                        "left": {"kind": "symbol", "name": "x"},
+                        "right": {"kind": "number", "value": 2},
+                    },
+                    "rhs": {"kind": "number", "value": 4},
+                }
+            ],
+        }
+    },
     "optimization.multiobjective": {
         "ops": {
             "ops_version": "0.1.0",

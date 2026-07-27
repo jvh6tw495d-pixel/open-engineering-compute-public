@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.solve_ir output",
+  "type": "object",
+  "properties": {
+    "problem_class": { "type": "string", "enum": ["linear_program", "scalar_root"] },
+    "backend": { "type": "string" },
+    "solution": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": ["problem_class", "backend", "solution"],
+  "additionalProperties": false
+}

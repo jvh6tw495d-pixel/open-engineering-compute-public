@@ -1,0 +1,26 @@
+{
+  "description": "Solve x**2 - 4 = 0 from x0=3 -> root 2.0 (Math IR scalar_root)",
+  "input": {
+    "ir": {
+      "ir_version": "0.1.0",
+      "symbols": [{ "name": "x" }],
+      "unknowns": ["x"],
+      "initial_guess": { "x": 3.0 },
+      "equations": [
+        {
+          "lhs": {
+            "kind": "binary",
+            "op": "**",
+            "left": { "kind": "symbol", "name": "x" },
+            "right": { "kind": "number", "value": 2 }
+          },
+          "rhs": { "kind": "number", "value": 4 }
+        }
+      ]
+    }
+  },
+  "expected_output": {
+    "problem_class": "scalar_root",
+    "backend": "scipy"
+  }
+}

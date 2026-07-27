@@ -149,6 +149,15 @@ records baseline commit `7c5c4136` with **5241 nodes**, **8177 edges** and
 (previously v0.8.39 — command surface unchanged). The closeout changes are
 committed as the v2.1 release commit immediately after this rebuild.
 
+### v2.2 Math IR foundation rebuild
+
+Rebuilt on **2026-07-27** after the v2.2 Math IR implementation
+(`src/oec/modeling/`, `src/oec/backends/`, ADR 0020, `mathematics.solve_ir`,
+and the associated unit/parity tests). **5496 nodes**, **8777 edges** and
+**465 communities**. Package version, `CHANGELOG.md`, README status and any
+tag remain unchanged in this pass — those are a separate closeout step, per
+ADR 0020's own consequences section.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

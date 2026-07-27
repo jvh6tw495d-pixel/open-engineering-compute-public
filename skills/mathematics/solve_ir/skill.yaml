@@ -1,0 +1,41 @@
+id: mathematics.solve_ir
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Math IR Solver (Linear + Scalar Root)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: math_ir_v0
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "docs/architecture/adr/0020-math-ir-foundation.md"
+  - "HiGHS — https://highs.dev/"
+  - "SciPy scipy.optimize.brentq / scipy.optimize.newton"
+
+tags:
+  - mvp
+  - mathematics
+  - math-ir

@@ -29,7 +29,7 @@ from collections.abc import Callable, Sequence
 
 from oec.errors import OECValidationError
 
-_ALLOWED_FUNCTIONS: dict[str, Callable[..., float]] = {
+ALLOWED_FUNCTIONS: dict[str, Callable[..., float]] = {
     "sin": math.sin,
     "cos": math.cos,
     "tan": math.tan,
@@ -46,7 +46,11 @@ _ALLOWED_FUNCTIONS: dict[str, Callable[..., float]] = {
     "sqrt": math.sqrt,
     "abs": abs,
 }
-_ALLOWED_CONSTANTS: dict[str, float] = {"pi": math.pi, "e": math.e}
+ALLOWED_CONSTANTS: dict[str, float] = {"pi": math.pi, "e": math.e}
+# Backward-compatible aliases (kept private-named; nothing external should
+# depend on these over the public names above).
+_ALLOWED_FUNCTIONS = ALLOWED_FUNCTIONS
+_ALLOWED_CONSTANTS = ALLOWED_CONSTANTS
 _BINOPS: dict[type[ast.operator], Callable[[float, float], float]] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -68,13 +72,14 @@ class ExpressionError(OECValidationError):
     default_code = "expression_invalid"
 
 
-def compile_expression(expression: str, *, symbol: str = "x") -> Callable[[float], float]:
-    """Parse ``expression`` (a function of ``symbol``) into a safe callable.
+def parse_and_validate(expression: str, *, symbols: frozenset[str]) -> ast.expr:
+    """Parse ``expression`` and validate it against the safe grammar.
 
-    Raises :class:`ExpressionError` for empty input, a syntax error, or
-    anything outside arithmetic + the allowed functions/constants above
-    + ``symbol`` itself. The returned callable interprets the validated
-    AST directly on every call — it never uses ``eval``/``exec``.
+    Returns the validated AST node (not yet compiled/evaluated) so callers
+    other than this module's own evaluator — e.g. ``oec.modeling.expressions``,
+    which builds a Math IR node tree from the same audited grammar instead of
+    a compiled closure — can reuse the exact same whitelist without a second,
+    independently-audited parser.
     """
     if not expression.strip():
         raise ExpressionError("expression must not be empty")
@@ -86,7 +91,18 @@ def compile_expression(expression: str, *, symbol: str = "x") -> Callable[[float
             f"invalid expression syntax: {exc}", details={"expression": expression}
         ) from exc
 
-    validated = _validate_node(tree.body, frozenset({symbol}))
+    return _validate_node(tree.body, symbols)
+
+
+def compile_expression(expression: str, *, symbol: str = "x") -> Callable[[float], float]:
+    """Parse ``expression`` (a function of ``symbol``) into a safe callable.
+
+    Raises :class:`ExpressionError` for empty input, a syntax error, or
+    anything outside arithmetic + the allowed functions/constants above
+    + ``symbol`` itself. The returned callable interprets the validated
+    AST directly on every call — it never uses ``eval``/``exec``.
+    """
+    validated = parse_and_validate(expression, symbols=frozenset({symbol}))
 
     def evaluate(value: float) -> float:
         return _eval_node(validated, {symbol: value})
@@ -107,21 +123,12 @@ def compile_expression_vector(
     and duplicate-free; a name outside ``symbols``/the allowed constants
     is rejected exactly as an unknown name is in the scalar case.
     """
-    if not expression.strip():
-        raise ExpressionError("expression must not be empty")
     if not symbols:
         raise ExpressionError("symbols must not be empty")
     if len(set(symbols)) != len(symbols):
         raise ExpressionError(f"duplicate symbol names: {symbols}")
 
-    try:
-        tree = ast.parse(expression, mode="eval")
-    except SyntaxError as exc:
-        raise ExpressionError(
-            f"invalid expression syntax: {exc}", details={"expression": expression}
-        ) from exc
-
-    validated = _validate_node(tree.body, frozenset(symbols))
+    validated = parse_and_validate(expression, symbols=frozenset(symbols))
 
     def evaluate(values: Sequence[float]) -> float:
         if len(values) != len(symbols):
