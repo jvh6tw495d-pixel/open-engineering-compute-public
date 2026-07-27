@@ -419,6 +419,50 @@ _FIXTURES: dict[str, dict[str, Any]] = {
             "objective": {"coeffs": {"x": 1}},
         }
     },
+    # v2.3 Wave B
+    "uncertainty.lhs": {
+        "n_samples": 4,
+        "bounds": [[0.0, 1.0], [0.0, 1.0]],
+        "seed": 0,
+    },
+    "uncertainty.morris": {
+        "bounds": [[0.0, 1.0], [0.0, 1.0]],
+        "coeffs": [1.0, 0.0],
+        "n_trajectories": 5,
+        "seed": 0,
+    },
+    "uncertainty.propagate_linear": {
+        "jacobian": [1.0, 1.0],
+        "covariance": [[1.0, 0.0], [0.0, 1.0]],
+    },
+    "dynamics.state_space_simulate": {
+        "A": [[1.0]],
+        "B": [[1.0]],
+        "C": [[1.0]],
+        "D": [[0.0]],
+        "u": [[1.0], [1.0]],
+        "x0": [0.0],
+        "dt": 1.0,
+        "time_base": "discrete",
+    },
+    "dynamics.stability_margins": {"A": [[-1.0]], "time_base": "continuous"},
+    "control.pid_discrete": {
+        "reference": [1.0, 1.0],
+        "measurement": [0.0, 0.0],
+        "kp": 1.0,
+        "ki": 0.0,
+        "kd": 0.0,
+        "dt": 0.1,
+    },
+    "control.kalman_filter": {
+        "A": [[1.0]],
+        "C": [[1.0]],
+        "Q": [[0.0]],
+        "R": [[1.0]],
+        "z": [[1.0]],
+        "x0": [0.0],
+        "P0": [[1.0]],
+    },
 }
 
 _REQUIRED_KEYS = frozenset(

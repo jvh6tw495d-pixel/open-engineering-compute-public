@@ -844,7 +844,7 @@ wheels = [
 
 [[package]]
 name = "oec"
-version = "2.3.0a0"
+version = "2.3.0b0"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },

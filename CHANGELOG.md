@@ -5,6 +5,36 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.0b0] — 2026-07-27
+
+### Added — v2.3 Wave B (uncertainty / dynamics / control)
+
+Seven experimental skills (full contracts + golden/validation tests):
+
+- `uncertainty.lhs` — Latin Hypercube design over rectangular bounds
+- `uncertainty.morris` — Morris elementary effects for linear models
+- `uncertainty.propagate_linear` — first-order delta-method propagation
+- `dynamics.state_space_simulate` — discrete / continuous (ZOH) LTI simulation
+- `dynamics.stability_margins` — eigenvalue stability + margin
+- `control.pid_discrete` — position-form discrete PID (+ optional saturation)
+- `control.kalman_filter` — discrete linear Kalman filter
+
+Kernels: `oec.kernel.uncertainty.{sampling,morris,propagate}`,
+`oec.kernel.dynamics.{state_space,stability}`,
+`oec.kernel.control.{pid,kalman}`.
+
+### Changed
+
+- Package version `2.3.0a0 → 2.3.0b0` (Wave A+B beta; Wave C still open).
+- Combined Wave A+B yields **18** new applied skills since 2.2.0 (V3 partial
+  gate ≥15 satisfied; Wave C optional).
+
+### Notes
+
+- Morris Wave B is **linear-model only** (no arbitrary callables in sandbox).
+- Full Sobol estimators and black-box SA remain future work.
+- No ExecutionResult / REST / MCP shape changes.
+
 ## [2.3.0a0] — 2026-07-27
 
 ### Added — v2.3 Wave A (applied math expansion)

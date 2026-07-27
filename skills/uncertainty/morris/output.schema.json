@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "mu": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "mu_star": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "sigma": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "n_dim": {
+      "type": "integer"
+    },
+    "n_trajectories": {
+      "type": "integer"
+    },
+    "n_levels": {
+      "type": "integer"
+    },
+    "delta_unit": {
+      "type": "number"
+    },
+    "model": {
+      "type": "string"
+    },
+    "seed": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "backend": {
+      "type": "string"
+    },
+    "converged": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    }
+  },
+  "required": [
+    "mu",
+    "mu_star",
+    "sigma",
+    "n_dim",
+    "backend",
+    "converged"
+  ],
+  "additionalProperties": false
+}

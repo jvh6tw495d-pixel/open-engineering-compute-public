@@ -1,0 +1,19 @@
+{
+  "description": "y=x0+x1 independent unit var -> var=2",
+  "input": {
+    "jacobian": [
+      1.0,
+      1.0
+    ],
+    "covariance": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ]
+  }
+}

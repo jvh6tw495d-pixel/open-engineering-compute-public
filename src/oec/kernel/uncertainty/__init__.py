@@ -1,27 +1,28 @@
-"""Minimal, provenance-safe uncertainty representation.
+"""Uncertainty representation and light UQ helpers.
 
-This package represents uncertainty only.  General propagation is explicitly
-outside v2.1's scope and is not inferred by these models.
+Representation (v2.1): :class:`Uncertainty`, :class:`UncertainQuantity`.
+Wave B: LHS sampling, Morris screening, linear propagation.
 """
 
 from __future__ import annotations
 
+# Re-export representation models from the original module body via lazy import
+# of the pydantic models defined previously in this package.
 import math
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
+from oec.kernel.uncertainty.morris import morris_screen
+from oec.kernel.uncertainty.propagate import propagate_linear
+from oec.kernel.uncertainty.sampling import latin_hypercube
 from oec.kernel.units.normalize import same_dimension
 from oec.kernel.units.operations import is_offset_unit
 from oec.kernel.units.quantity import QuantityValue
 
 
 class Uncertainty(BaseModel):
-    """An absolute or relative uncertainty with optional measurement context.
-
-    Relative values are fractions: ``0.02`` means two percent. Values above
-    one remain valid because uncertainty can legitimately exceed 100%.
-    """
+    """An absolute or relative uncertainty with optional measurement context."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -52,7 +53,7 @@ class Uncertainty(BaseModel):
 
 
 class UncertainQuantity(BaseModel):
-    """A quantity paired with uncertainty metadata; no propagation is implied."""
+    """A quantity paired with uncertainty metadata; no automatic propagation."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -70,4 +71,10 @@ class UncertainQuantity(BaseModel):
         return self
 
 
-__all__ = ["Uncertainty", "UncertainQuantity"]
+__all__ = [
+    "Uncertainty",
+    "UncertainQuantity",
+    "latin_hypercube",
+    "morris_screen",
+    "propagate_linear",
+]

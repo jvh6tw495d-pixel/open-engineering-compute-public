@@ -1,0 +1,21 @@
+{
+  "description": "Linear f=2*x0; mu_star of factor 0 dominates",
+  "input": {
+    "bounds": [
+      [
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        1.0
+      ]
+    ],
+    "coeffs": [
+      2.0,
+      0.0
+    ],
+    "n_trajectories": 20,
+    "seed": 0
+  }
+}

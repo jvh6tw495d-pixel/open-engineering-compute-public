@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "A": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "time_base": {
+      "type": "string",
+      "enum": [
+        "continuous",
+        "discrete"
+      ]
+    }
+  },
+  "required": [
+    "A"
+  ],
+  "additionalProperties": false
+}

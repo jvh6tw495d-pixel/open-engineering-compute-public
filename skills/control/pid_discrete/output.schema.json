@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "u": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "error": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "n": {
+      "type": "integer"
+    },
+    "kp": {
+      "type": "number"
+    },
+    "ki": {
+      "type": "number"
+    },
+    "kd": {
+      "type": "number"
+    },
+    "dt": {
+      "type": "number"
+    },
+    "saturated_steps": {
+      "type": "integer"
+    },
+    "backend": {
+      "type": "string"
+    },
+    "converged": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "method": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "u",
+    "error",
+    "n",
+    "backend",
+    "converged",
+    "method"
+  ],
+  "additionalProperties": false
+}

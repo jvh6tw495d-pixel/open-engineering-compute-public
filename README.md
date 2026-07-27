@@ -1,6 +1,6 @@
 # Open Engineering Compute (OEC)
 
-> **Status:** **v2.3.0a0 Wave A applied-math alpha** (private; V3 roadmap).
+> **Status:** **v2.3.0b0 Wave A+B applied-math beta** (private; V3 roadmap).
 > First **public GitHub** release is planned for **v3.0** — not this history
 > (see [Public Alpha procedure](docs/release/public-alpha.md) and
 > [V3 implementation plan](docs/implementation/OEC_V3_IMPLEMENTATION_PLAN.md)).
@@ -100,9 +100,9 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 ## Status / release
 
 **v2.2.0** delivered Math IR foundation (`oec.modeling`, ADR 0020).  
-**v2.3.0a0** adds Wave A applied-math skills (linear eig/lstsq/norms, regression,
-intervals, bootstrap, lag features, simple forecast/backtest, LP diagnostics /
-infeasibility explain). Full v2.3 (≥15 skills + Wave B/C) is still open.  
+**v2.3.0b0** adds Wave A+B applied-math skills (18 new skills: linear/stats/TS/opt
++ uncertainty LHS/Morris/propagation + LTI dynamics + PID/Kalman). Wave C
+(Pareto/CVaR/robust LP) remains optional.  
 See [CHANGELOG.md](CHANGELOG.md). Backend Registry and formal Verification remain **v2.4+**.
 
 This clone is the **incubation** repository (no remote). Public Alpha must use a

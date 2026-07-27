@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "reference": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number"
+      }
+    },
+    "measurement": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "number"
+      }
+    },
+    "kp": {
+      "type": "number"
+    },
+    "ki": {
+      "type": "number"
+    },
+    "kd": {
+      "type": "number"
+    },
+    "dt": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "u_min": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "u_max": {
+      "type": [
+        "number",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "reference",
+    "measurement",
+    "kp",
+    "ki",
+    "kd",
+    "dt"
+  ],
+  "additionalProperties": false
+}

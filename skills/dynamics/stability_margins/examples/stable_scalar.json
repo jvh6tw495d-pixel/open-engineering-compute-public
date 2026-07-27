@@ -1,0 +1,11 @@
+{
+  "description": "A=[-1] continuous stable",
+  "input": {
+    "A": [
+      [
+        -1.0
+      ]
+    ],
+    "time_base": "continuous"
+  }
+}

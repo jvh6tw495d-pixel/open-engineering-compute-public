@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "output_dim": {
+      "type": "integer"
+    },
+    "variance": {},
+    "std": {},
+    "covariance": {
+      "type": "array"
+    },
+    "nominal": {
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "backend": {
+      "type": "string"
+    },
+    "converged": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "method": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "output_dim",
+    "variance",
+    "std",
+    "covariance",
+    "backend",
+    "converged",
+    "method"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "t": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "x": {
+      "type": "array"
+    },
+    "y": {
+      "type": "array"
+    },
+    "n_steps": {
+      "type": "integer"
+    },
+    "n_states": {
+      "type": "integer"
+    },
+    "n_inputs": {
+      "type": "integer"
+    },
+    "n_outputs": {
+      "type": "integer"
+    },
+    "dt": {
+      "type": "number"
+    },
+    "time_base": {
+      "type": "string"
+    },
+    "backend": {
+      "type": "string"
+    },
+    "converged": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    }
+  },
+  "required": [
+    "t",
+    "x",
+    "y",
+    "n_steps",
+    "backend",
+    "converged"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "samples": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "n_samples": {
+      "type": "integer"
+    },
+    "n_dim": {
+      "type": "integer"
+    },
+    "bounds": {
+      "type": "array"
+    },
+    "seed": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "backend": {
+      "type": "string"
+    },
+    "converged": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "method": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "samples",
+    "n_samples",
+    "n_dim",
+    "bounds",
+    "backend",
+    "converged",
+    "method"
+  ],
+  "additionalProperties": false
+}
