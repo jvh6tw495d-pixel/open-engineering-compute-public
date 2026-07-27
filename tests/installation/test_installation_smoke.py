@@ -120,7 +120,7 @@ def test_installed_numerical_backend_executes(installed_oec: Path) -> None:
     scripts_dir = installed_oec.parent
     python = scripts_dir / ("python.exe" if sys.platform == "win32" else "python")
     probe = (
-        "from oec.kernel.numerics.root_finding import find_root_bracketed; "
+        "from oec.kernel.computational.roots import find_root_bracketed; "
         "r = find_root_bracketed(lambda x: x*x - 2, 0, 2); "
         "assert r.diagnostics.converged; "
         "assert abs(r.root - 2**0.5) < 1e-10"

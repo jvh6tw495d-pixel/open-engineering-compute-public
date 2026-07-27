@@ -2,7 +2,7 @@
 
 Method/class selection is never silent, per the ethos already established
 in :mod:`oec.kernel.optimization.scalar` and
-:mod:`oec.kernel.numerics.root_finding` (``select_default_method``): a
+:mod:`oec.kernel.computational.roots` (``select_default_method``): a
 :class:`~oec.modeling.ir.MathProblem` document is classified from its own
 declared structure, and a mismatched explicit ``problem_class`` is a hard
 error, not silently overridden.

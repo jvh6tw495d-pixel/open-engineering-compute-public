@@ -1,0 +1,10 @@
+{
+  "description": "d/dx(x^2) at x=3 -> 6.0 (central difference, exact since x^2's third derivative is zero)",
+  "input": {
+    "expression": "x**2",
+    "at": 3.0
+  },
+  "expected_output": {
+    "value": 6.0
+  }
+}

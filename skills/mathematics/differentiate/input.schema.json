@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.differentiate input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["expression", "at"],
+  "properties": {
+    "expression": {
+      "type": "string",
+      "minLength": 1
+    },
+    "at": {
+      "type": "number"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["central", "forward", "backward"]
+    },
+    "step": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  }
+}

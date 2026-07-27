@@ -4,7 +4,7 @@ solve via SciPy root-finding.
 v0 scope, stated explicitly rather than attempted silently: exactly one
 equation in one unknown, which must be the only symbol referenced in that
 equation (ADR 0020 non-goals). Method selection reuses
-:func:`oec.kernel.numerics.root_finding.select_default_method` — a bracket
+:func:`oec.kernel.computational.roots.select_default_method` — a bracket
 takes precedence, an initial guess alone selects the secant method — the
 same explicit, non-silent rule ``mathematics.solve_root`` already uses.
 """
@@ -12,8 +12,8 @@ same explicit, non-silent rule ``mathematics.solve_root`` already uses.
 from __future__ import annotations
 
 from oec.core.errors import ScientificDomainError
-from oec.kernel.numerics.root_finding import (
-    RootFindingResult,
+from oec.kernel.computational.roots import (
+    RootResult,
     find_root_bracketed,
     find_root_from_guess,
     select_default_method,
@@ -23,7 +23,7 @@ from oec.modeling.evaluate import evaluate_expr
 from oec.modeling.ir import MathProblem
 
 
-def compile_scalar_root(problem: MathProblem) -> RootFindingResult:
+def compile_scalar_root(problem: MathProblem) -> RootResult:
     """Compile and solve the scalar_root variant of ``problem``."""
     if len(problem.equations) != 1 or len(problem.unknowns) != 1:
         raise ScientificDomainError(

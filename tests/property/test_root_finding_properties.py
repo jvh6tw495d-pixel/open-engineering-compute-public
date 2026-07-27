@@ -8,7 +8,7 @@ import math
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from oec.kernel.numerics.root_finding import find_root_bracketed
+from oec.kernel.computational.roots import find_root_bracketed
 
 # f(x) = x - c has an exact, trivially-known root at x = c, for any c.
 # Using a closed-form root (not the solver's own output) as the oracle,

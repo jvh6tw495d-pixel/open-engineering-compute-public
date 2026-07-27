@@ -3,12 +3,13 @@ import math
 import pytest
 
 from oec.errors import NumericalDomainError
-from oec.kernel.numerics.expressions import compile_expression
-from oec.kernel.numerics.root_finding import (
+from oec.kernel.computational.roots import (
     find_root_bracketed,
     find_root_from_guess,
     select_default_method,
+    solve_root_system,
 )
+from oec.kernel.numerics.expressions import compile_expression
 
 _SQRT2_EXPR = "x**2 - 2"
 
@@ -88,3 +89,19 @@ def test_select_default_method(has_bracket: bool, has_initial_guess: bool, expec
 def test_select_default_method_with_neither_input_is_rejected() -> None:
     with pytest.raises(NumericalDomainError):
         select_default_method(has_bracket=False, has_initial_guess=False)
+
+
+def test_solve_root_system_recovers_a_linear_system() -> None:
+    # x + y = 3, x - y = 1 -> x=2, y=1
+    result = solve_root_system(lambda v: [v[0] + v[1] - 3, v[0] - v[1] - 1], [0.0, 0.0])
+    assert math.isclose(result.x[0], 2.0, abs_tol=1e-8)
+    assert math.isclose(result.x[1], 1.0, abs_tol=1e-8)
+    assert result.diagnostics.converged is True
+    assert result.diagnostics.backend == "scipy"
+    assert result.diagnostics.residual is not None
+    assert result.diagnostics.residual < 1e-8
+
+
+def test_solve_root_system_default_method_is_hybr() -> None:
+    result = solve_root_system(lambda v: [v[0] - 5.0], [0.0])
+    assert result.diagnostics.method == "hybr"

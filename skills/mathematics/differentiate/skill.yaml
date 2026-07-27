@@ -1,0 +1,40 @@
+id: mathematics.differentiate
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Numerical Differentiation (Finite Difference)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: finite_difference
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Burden, R. L., Faires, J. D. (2011). Numerical Analysis, 9th ed., Chapter 4 (numerical differentiation)."
+  - "docs/architecture/adr/0022-computational-kernel-unification.md"
+
+tags:
+  - mvp
+  - differentiation
+  - computational

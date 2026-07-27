@@ -1,0 +1,11 @@
+{
+  "description": "d/dx(sin(x)) at x=0 via forward difference -> ~1.0 (cos(0))",
+  "input": {
+    "expression": "sin(x)",
+    "at": 0.0,
+    "method": "forward"
+  },
+  "expected_output": {
+    "value": 1.0
+  }
+}

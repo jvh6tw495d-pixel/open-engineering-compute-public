@@ -180,6 +180,20 @@ tag remain unchanged in this pass — a separate closeout step, mirroring the
 v2.1/v2.2 pattern. S4 (computational-kernel unification under
 `kernel/computational`) is explicitly deferred; see ADR 0021's non-goals.
 
+### v2.5 computational kernel unification rebuild
+
+Rebuilt on **2026-07-27** after unifying root-finding, interpolation,
+differentiation, integration, and ODE solving under
+`src/oec/kernel/computational/` (ADR 0022) — the "computational"
+prerequisite of the v2.5 "Mathematics Complete" hard gate, deferred from
+v2.4 as S4 (ADR 0021). `kernel/numerics/{root_finding,root_system,ode}.py`
+were deleted (logic moved, not duplicated); a new `mathematics.differentiate`
+experimental skill was added (differentiation didn't exist anywhere before).
+**8043 nodes**, **12019 edges**, **620 communities**. Package version,
+`CHANGELOG.md`, README status and any tag remain unchanged — golden-set
+expansion to 130 cases and the public-API documentation audit remain
+separate, larger v2.5 slices not started here.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

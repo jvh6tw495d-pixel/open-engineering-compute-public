@@ -7,7 +7,7 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v2.3.0
     hooks:
       - id: mypy
         additional_dependencies:
@@ -19,8 +19,8 @@ repos:
           - pint>=0.23
           - jsonschema>=4.20
           - types-jsonschema>=4.20
-          - numpy>=1.26
-          - scipy-stubs>=1.13
+          - numpy==2.5.1
+          - scipy-stubs==1.18.0.1
           - fastapi>=0.111
           - uvicorn>=0.30
           - mcp>=1.0

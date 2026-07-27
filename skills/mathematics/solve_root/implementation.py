@@ -11,13 +11,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from oec.kernel.numerics.expressions import compile_expression
-from oec.kernel.numerics.root_finding import (
-    RootFindingResult,
+from oec.kernel.computational.roots import (
+    RootResult,
     find_root_bracketed,
     find_root_from_guess,
     select_default_method,
 )
+from oec.kernel.numerics.expressions import compile_expression
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
@@ -29,7 +29,7 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         has_bracket=bracket is not None, has_initial_guess=initial_guess is not None
     )
 
-    result: RootFindingResult
+    result: RootResult
     if method in ("brentq", "bisect"):
         a, b = bracket
         kwargs: dict[str, Any] = {}

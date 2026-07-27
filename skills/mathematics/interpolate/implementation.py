@@ -15,37 +15,16 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
-from scipy.interpolate import CubicSpline, PchipInterpolator
+from oec.kernel.computational.interpolation import interpolate
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
-    x = np.asarray(inputs["x"], dtype=float)
-    y = np.asarray(inputs["y"], dtype=float)
-    query_points = np.asarray(inputs["query_points"], dtype=float)
-    method: str = inputs["method"]
-
-    if method == "linear":
-        # numpy.interp: simple, no SciPy interp1d deprecation path
-        values = np.interp(query_points, x, y)
-    elif method == "cubic_spline":
-        spline = CubicSpline(x, y)
-        values = spline(query_points)
-    elif method == "pchip":
-        interpolant = PchipInterpolator(x, y)
-        values = interpolant(query_points)
-    else:
-        # Schema enum should have rejected this; fail loud if it didn't.
-        raise ValueError(f"unsupported method: {method!r}")
-
-    # JSON-serializable Python floats (numpy scalars are not json.dumps-safe).
-    values_list = [float(v) for v in np.asarray(values, dtype=float).ravel()]
-
+    result = interpolate(inputs["x"], inputs["y"], inputs["query_points"], method=inputs["method"])
     return {
-        "result": {"values": values_list},
+        "result": {"values": result.values},
         "diagnostics": {
-            "method": method,
-            "n_samples": int(x.size),
-            "n_query": int(query_points.size),
+            "method": result.diagnostics.method,
+            "n_samples": len(inputs["x"]),
+            "n_query": len(inputs["query_points"]),
         },
     }

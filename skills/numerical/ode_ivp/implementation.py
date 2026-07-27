@@ -6,8 +6,8 @@ from typing import Any
 
 import numpy as np
 
+from oec.kernel.computational.ode import integrate_ivp
 from oec.kernel.numerics.expressions import compile_expression_vector
-from oec.kernel.numerics.ode import integrate_ivp
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
@@ -19,7 +19,7 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         vals = [float(t), *[float(v) for v in y]]
         return np.asarray([float(f(vals)) for f in compiled], dtype=float)
 
-    out = integrate_ivp(
+    result = integrate_ivp(
         fun,
         (float(inputs["t_span"][0]), float(inputs["t_span"][1])),
         list(inputs["y0"]),
@@ -28,11 +28,20 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         atol=float(inputs.get("atol", 1e-9)),
         t_eval=inputs.get("t_eval"),
     )
+    diag = result.diagnostics.model_dump()
     return {
-        "result": out,
+        "result": {
+            "t": result.t,
+            "y": result.y,
+            "success": diag["converged"],
+            "message": diag["message"],
+            "nfev": diag["function_calls"],
+            "method": diag["method"],
+            "backend": diag["backend"],
+        },
         "diagnostics": {
-            "converged": bool(out["success"]),
-            "message": out["message"],
-            "n_function_evaluations": out["nfev"],
+            "converged": bool(diag["converged"]),
+            "message": diag["message"],
+            "n_function_evaluations": diag["function_calls"],
         },
     }

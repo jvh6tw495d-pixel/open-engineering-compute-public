@@ -10,7 +10,7 @@ silently-ignored bound.
 
 Diagnostics are always returned in the same shape
 (:class:`~oec.kernel.optimization.diagnostics.OptimizationDiagnostics`),
-mirroring ``root_finding.py``'s pattern so ``compute_status`` (ADR 0007)
+mirroring ``kernel/computational/roots.py``'s pattern so ``compute_status`` (ADR 0007)
 and ``ExecutionService`` (ADR 0013) treat every optimization skill the
 same way: read ``converged``, done.
 """

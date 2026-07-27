@@ -2,7 +2,7 @@
 
 One model, reused by every optimization skill (``math.optimize_scalar``,
 ``math.optimize_constrained``, ``math.curve_fit``), the same way
-:class:`oec.kernel.numerics.root_finding.RootFindingDiagnostics` gives
+:class:`oec.kernel.computational.diagnostics.ComputationalDiagnostics` gives
 ``math.solve_root`` a single shape to report through. Fields that don't
 apply to a given method are left ``None`` rather than fabricated —
 scalar Brent has no constraint to violate, SLSQP does not report a

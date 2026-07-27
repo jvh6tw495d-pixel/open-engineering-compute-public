@@ -1,26 +1,27 @@
-"""Scalar root-finding wrappers over SciPy (plan section 14.1: ``math.solve_root``).
+"""Root-finding (scalar and system) over SciPy — unified under
+``kernel/computational`` (ADR 0022). Moved from ``kernel/numerics/
+root_finding.py`` and ``root_system.py``; logic unchanged, only the
+return type (now wrapping :class:`~oec.kernel.computational.diagnostics.
+ComputationalDiagnostics`) differs.
 
-Method selection is explicit, never silent (plan section 4.4): the
-caller states ``method`` directly, or a documented default is applied
-based on which inputs were given (a bracket vs. an initial guess) — see
-:func:`select_default_method`. No function here decides "which SciPy
-call looks convenient" on its own.
-
-Diagnostics are always returned in the same shape
-(:class:`RootFindingDiagnostics`), regardless of method, so
-``compute_status`` (ADR 0007) and ``ExecutionService`` (ADR 0013) can
-treat every method the same way: read ``converged``, done.
+Method selection is explicit, never silent (plan section 4.4): the caller
+states ``method`` directly, or a documented default is applied based on
+which inputs were given (a bracket vs. an initial guess) — see
+:func:`select_default_method`.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any, Literal
 
+import numpy as np
 import scipy.optimize
 from pydantic import BaseModel, ConfigDict
+from scipy.optimize import root
 
 from oec.errors import NumericalDomainError
+from oec.kernel.computational.diagnostics import ComputationalDiagnostics
 
 BracketedMethod = Literal["brentq", "bisect"]
 OpenMethod = Literal["secant", "newton"]
@@ -31,25 +32,22 @@ _BRACKETED_METHODS: dict[BracketedMethod, Callable[..., tuple[Any, Any]]] = {
 }
 
 
-class RootFindingDiagnostics(BaseModel):
-    """Solver diagnostics in the shape ``compute_status`` expects (ADR 0007/0013)."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    method: str
-    converged: bool
-    iterations: int
-    function_calls: int
-    residual: float
-
-
-class RootFindingResult(BaseModel):
-    """A root-finding call's outcome: the root and how it was obtained."""
+class RootResult(BaseModel):
+    """A scalar root-finding call's outcome: the root and how it was obtained."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     root: float
-    diagnostics: RootFindingDiagnostics
+    diagnostics: ComputationalDiagnostics
+
+
+class RootSystemResult(BaseModel):
+    """A nonlinear-system root-finding call's outcome."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    x: list[float]
+    diagnostics: ComputationalDiagnostics
 
 
 def select_default_method(*, has_bracket: bool, has_initial_guess: bool) -> str:
@@ -58,9 +56,9 @@ def select_default_method(*, has_bracket: bool, has_initial_guess: bool) -> str:
     A bracket takes precedence when both are given (brentq is preferred
     over bisection: same robustness guarantee, faster convergence). An
     initial guess alone selects the secant method — Newton's method
-    requires a derivative, which this MVP skill does not accept as
-    input (no expression-differentiation support yet; see
-    ``docs/sprints/`` for the scope decision).
+    requires a derivative; pass one explicitly via ``fprime`` (e.g. built
+    with :func:`oec.kernel.computational.differentiation.differentiate`)
+    to opt into ``method="newton"``.
     """
     if has_bracket:
         return "brentq"
@@ -81,7 +79,7 @@ def find_root_bracketed(
     xtol: float = 2e-12,
     rtol: float = 8.881784197001252e-16,
     max_iterations: int = 100,
-) -> RootFindingResult:
+) -> RootResult:
     """Find a root of ``f`` in ``[a, b]`` via Brent's method or bisection.
 
     Raises :class:`~oec.errors.NumericalDomainError` if ``f(a)`` and
@@ -98,7 +96,7 @@ def find_root_bracketed(
 
     solver = _BRACKETED_METHODS[method]
     try:
-        root, info = solver(
+        root_value, info = solver(
             f, a, b, xtol=xtol, rtol=rtol, maxiter=max_iterations, full_output=True, disp=False
         )
     except ValueError as exc:
@@ -107,14 +105,15 @@ def find_root_bracketed(
             details={"a": a, "b": b, "f_a": f(a), "f_b": f(b)},
         ) from exc
 
-    return RootFindingResult(
-        root=float(root),
-        diagnostics=RootFindingDiagnostics(
+    return RootResult(
+        root=float(root_value),
+        diagnostics=ComputationalDiagnostics(
             method=method,
+            backend="scipy",
             converged=bool(info.converged),
             iterations=int(info.iterations),
             function_calls=int(info.function_calls),
-            residual=abs(f(float(root))),
+            residual=abs(f(float(root_value))),
         ),
     )
 
@@ -127,7 +126,7 @@ def find_root_from_guess(
     fprime: Callable[[float], float] | None = None,
     tolerance: float = 1.48e-08,
     max_iterations: int = 50,
-) -> RootFindingResult:
+) -> RootResult:
     """Find a root of ``f`` starting from ``x0`` via the secant method or Newton's method.
 
     ``method="newton"`` requires ``fprime``; omitting it is a malformed
@@ -145,7 +144,7 @@ def find_root_from_guess(
             details={"method": method},
         )
 
-    root, info = scipy.optimize.newton(
+    root_value, info = scipy.optimize.newton(
         f,
         x0,
         fprime=fprime,
@@ -155,13 +154,43 @@ def find_root_from_guess(
         disp=False,
     )
 
-    return RootFindingResult(
-        root=float(root),
-        diagnostics=RootFindingDiagnostics(
+    return RootResult(
+        root=float(root_value),
+        diagnostics=ComputationalDiagnostics(
             method=method,
+            backend="scipy",
             converged=bool(info.converged),
             iterations=int(info.iterations),
             function_calls=int(info.function_calls),
-            residual=abs(f(float(root))),
+            residual=abs(f(float(root_value))),
+        ),
+    )
+
+
+def solve_root_system(
+    fun: Callable[[Any], Any],
+    x0: Sequence[float],
+    *,
+    method: str = "hybr",
+    tol: float = 1.49012e-08,
+) -> RootSystemResult:
+    """Solve a nonlinear system ``f(x) = 0`` via SciPy's ``root``."""
+    x0_arr = np.array(list(x0), dtype=float)
+
+    def wrapped(x: Any) -> Any:
+        return np.asarray(fun(x), dtype=float)
+
+    sol = root(wrapped, x0_arr, method=method, tol=tol)  # type: ignore[call-overload]
+    residual = np.asarray(fun(sol.x), dtype=float)
+
+    return RootSystemResult(
+        x=[float(v) for v in np.asarray(sol.x, dtype=float).tolist()],
+        diagnostics=ComputationalDiagnostics(
+            method=method,
+            backend="scipy",
+            converged=bool(sol.success),
+            function_calls=int(getattr(sol, "nfev", 0) or 0),
+            residual=float(np.linalg.norm(residual, ord=2)),
+            message=str(sol.message),
         ),
     )

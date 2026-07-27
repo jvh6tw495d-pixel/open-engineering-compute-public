@@ -6,8 +6,8 @@ from typing import Any
 
 import numpy as np
 
+from oec.kernel.computational.roots import solve_root_system
 from oec.kernel.numerics.expressions import compile_expression_vector
-from oec.kernel.numerics.root_system import solve_root_system
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
@@ -21,13 +21,22 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         vals = [float(v) for v in x]
         return np.asarray([float(f(vals)) for f in compiled], dtype=float)
 
-    out = solve_root_system(fun, x0, method=inputs.get("method", "hybr"))
+    result = solve_root_system(fun, x0, method=inputs.get("method", "hybr"))
+    diag = result.diagnostics.model_dump()
     return {
-        "result": out,
+        "result": {
+            "x": result.x,
+            "success": diag["converged"],
+            "message": diag["message"],
+            "residual_norm": diag["residual"],
+            "nfev": diag["function_calls"],
+            "method": diag["method"],
+            "backend": diag["backend"],
+        },
         "diagnostics": {
-            "converged": bool(out["success"]),
-            "message": out["message"],
-            "n_function_evaluations": out["nfev"],
-            "residual": out["residual_norm"],
+            "converged": bool(diag["converged"]),
+            "message": diag["message"],
+            "n_function_evaluations": diag["function_calls"],
+            "residual": diag["residual"],
         },
     }
