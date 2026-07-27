@@ -5,6 +5,34 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] — 2026-07-27
+
+### Added
+
+- **Scientific Kernel (v2.0)** — domain-independent `oec.core` package:
+  - `ScientificResult` — additive scientific outcome adapter over `ExecutionResult` (ADR 0019)
+  - `ValidityDomain` — declared applicability envelope (constraints, bounds)
+  - `Diagnostic` + `diagnostics_from_mapping` — typed diagnostics; legacy payload retained as `diagnostics_raw`
+  - `ProvenanceRecord` — formal provenance with `BackendRef` list and passthrough extras
+  - Core errors: `ScientificDomainError`, `DimensionalIncompatibilityError`,
+    `BackendUnavailableError`, `UnderdeterminedProblemError`, `OverdeterminedProblemError`
+  - Shared types: `MethodRef`, `BackendRef`, `Assumption`
+- `Engine.run_scientific(...)` — SDK entry that returns `ScientificResult` without changing `Engine.run` / REST / MCP
+- ADR 0019: ScientificResult adapter design
+- Concept page: [docs/concepts/scientific-kernel.md](docs/concepts/scientific-kernel.md)
+- Unit tests: `tests/unit/test_core_scientific_result.py`
+
+### Changed
+
+- Package version **1.5.0 → 2.0.0**
+- README status: **v2.0.0 Scientific Kernel alpha** (private); public GitHub remains **v3.0**
+
+### Notes
+
+- **`ExecutionResult` is unchanged** — Skill Engine, CLI, REST, and MCP contracts stay as in v1.5
+- Full Math Complete / Physics-Chemistry Complete remain **v2.x+ / v3.0** milestones
+- Semver major: new public scientific surface in `oec.core`; no intentional breaking changes to execution APIs
+
 ## [1.5.0] — 2026-07-27
 
 ### Added

@@ -1,6 +1,6 @@
 # Open Engineering Compute (OEC)
 
-> **Status:** **v1.5.0 private operational alpha** (V3 roadmap).
+> **Status:** **v2.0.0 Scientific Kernel alpha** (private; V3 roadmap).
 > First **public GitHub** release is planned for **v3.0** — not this history
 > (see [Public Alpha procedure](docs/release/public-alpha.md) and
 > [V3 implementation plan](docs/implementation/OEC_V3_IMPLEMENTATION_PLAN.md)).
@@ -59,10 +59,13 @@ uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
 
 | Surface | Entry |
 |---|---|
-| Python SDK | `oec.sdk.Engine` / `oec.sdk.run` |
+| Python SDK | `oec.sdk.Engine` / `oec.sdk.run` → `ExecutionResult` |
+| Python SDK (scientific) | `Engine.run_scientific` → `ScientificResult` ([ADR 0019](docs/architecture/adr/0019-scientific-kernel.md)) |
 | CLI | `oec skills …`, `oec run`, `oec server …` |
 | REST | `/v1/skills`, `/v1/skills/{id}/run` — [docs/api](docs/api/README.md) |
 | MCP | stdio tools per skill — [docs/mcp](docs/mcp/README.md) |
+
+See [docs/concepts/scientific-kernel.md](docs/concepts/scientific-kernel.md) for when to use `ScientificResult` vs `ExecutionResult`.
 
 ## Optional integrations
 
@@ -70,7 +73,7 @@ uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
 |---|---|---|
 | Odysseus (MCP host) | `integrations/odysseus/` | config + tutorial; core has zero Odysseus deps |
 | Open Science | `integrations/open_science/` | Method Change Proposals; **never** auto-mutates `stable` skills |
-| **Agents (v1.5)** | `agents/` | 5 specialists outside the wheel — formulate/review only; numbers from OEC ([packaging](agents/README.md)) |
+| **Agents (v1.5+)** | `agents/` | 5 specialists outside the wheel — formulate/review only; numbers from OEC ([packaging](agents/README.md)) |
 
 ```python
 from agents.optimization_specialist.specialist import OptimizationSpecialist

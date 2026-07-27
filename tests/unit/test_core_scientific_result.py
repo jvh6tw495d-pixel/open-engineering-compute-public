@@ -1,12 +1,25 @@
-"""Unit tests for oec.core ScientificResult (domain-independent)."""
+"""Unit tests for oec.core Scientific Kernel (domain-independent)."""
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+from pydantic import ValidationError
+
 from oec.common import VersionedRef
-from oec.core import ScientificResult, from_execution_result
-from oec.core.types import Assumption, BackendRef, MethodRef
+from oec.core import (
+    Assumption,
+    BackendRef,
+    BackendUnavailableError,
+    Diagnostic,
+    MethodRef,
+    ProvenanceRecord,
+    ScientificDomainError,
+    ScientificResult,
+    ValidityDomain,
+    from_execution_result,
+)
 from oec.execution.models import ExecutionResult, ExecutionStatus
 
 
@@ -18,11 +31,12 @@ def _sample_er(**kwargs: object) -> ExecutionResult:
         "method": VersionedRef(id="scalar_root_finding", version="0.1.0"),
         "result": {"root": 1.41421356237, "method": "brentq"},
         "assumptions": ["bracket isolates a single root"],
-        "diagnostics": {"converged": True},
+        "diagnostics": {"converged": True, "nit": 8},
         "warnings": [],
         "validation": {"outcomes": []},
         "provenance": {
             "input_hash": "abc123",
+            "oec_version": "2.0.0",
             "backends": [
                 {"name": "numpy", "version": "2.0.0"},
                 {"name": "scipy", "version": "1.14.0"},
@@ -38,6 +52,7 @@ def _sample_er(**kwargs: object) -> ExecutionResult:
 
 def test_from_execution_result_maps_core_fields() -> None:
     sr = from_execution_result(_sample_er())
+    assert isinstance(sr, ScientificResult)
     assert sr.run_id == "run-test-001"
     assert sr.status is ExecutionStatus.VALIDATED
     assert sr.skill_id == "mathematics.solve_root"
@@ -46,21 +61,25 @@ def test_from_execution_result_maps_core_fields() -> None:
     assert sr.value["root"] == 1.41421356237
 
 
-def test_backends_extracted_from_provenance() -> None:
+def test_backends_via_provenance_record() -> None:
     sr = from_execution_result(_sample_er())
     assert sr.backends == [
         BackendRef(name="numpy", version="2.0.0"),
         BackendRef(name="scipy", version="1.14.0"),
     ]
     assert sr.backend_names == ["numpy", "scipy"]
+    assert sr.provenance.input_hash == "abc123"
+    assert isinstance(sr.provenance, ProvenanceRecord)
 
 
-def test_assumptions_become_typed() -> None:
+def test_assumptions_and_diagnostics_typed() -> None:
     sr = from_execution_result(_sample_er())
-    assert len(sr.assumptions) == 1
     assert sr.assumptions[0] == Assumption(
         text="bracket isolates a single root", source="execution"
     )
+    assert any(isinstance(d, Diagnostic) for d in sr.diagnostics)
+    assert any(d.code == "converged" for d in sr.diagnostics)
+    assert sr.diagnostics_raw.get("nit") == 8
 
 
 def test_empty_assumptions_and_backends() -> None:
@@ -73,23 +92,14 @@ def test_empty_assumptions_and_backends() -> None:
 
 def test_scientific_result_is_frozen() -> None:
     sr = from_execution_result(_sample_er())
-    try:
+    with pytest.raises(ValidationError):
         sr.run_id = "mutated"  # type: ignore[misc]
-        raised = False
-    except Exception:
-        raised = True
-    assert raised
 
 
 def test_invalid_status_preserved() -> None:
     sr = from_execution_result(_sample_er(status=ExecutionStatus.INVALID, result={}))
     assert sr.status is ExecutionStatus.INVALID
     assert sr.value == {}
-
-
-def test_public_export_from_oec_core() -> None:
-    assert ScientificResult is not None
-    assert callable(from_execution_result)
 
 
 def test_value_is_independent_copy() -> None:
@@ -99,8 +109,21 @@ def test_value_is_independent_copy() -> None:
     assert sr.value["root"] == 1.41421356237
 
 
+def test_validity_domain_optional() -> None:
+    vd = ValidityDomain(description="x in bracket", constraints=["bracket isolates root"])
+    sr = from_execution_result(_sample_er(), validity=vd)
+    assert sr.validity is not None
+    assert sr.validity.description == "x in bracket"
+
+
+def test_core_errors_are_oec_errors() -> None:
+    err = ScientificDomainError("out of domain", details={"param": "x"})
+    assert err.code == "scientific_domain_error"
+    assert err.to_dict()["details"]["param"] == "x"
+    assert BackendUnavailableError("no highs").code == "backend_unavailable"
+
+
 def test_core_module_does_not_import_domain_skills() -> None:
-    # Domain packages must not be loaded as a side-effect of importing core.
     import sys
 
     import oec.core as core_mod
@@ -108,3 +131,5 @@ def test_core_module_does_not_import_domain_skills() -> None:
     domain = [n for n in sys.modules if n.startswith("skills.")]
     assert domain == []
     assert hasattr(core_mod, "ScientificResult")
+    assert hasattr(core_mod, "ValidityDomain")
+    assert hasattr(core_mod, "Diagnostic")

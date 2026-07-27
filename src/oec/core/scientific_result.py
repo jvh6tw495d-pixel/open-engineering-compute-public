@@ -1,4 +1,4 @@
-"""ScientificResult — additive public scientific outcome (V3 roadmap §2.4 / v2.0).
+"""ScientificResult — additive public scientific outcome (v2.0 kernel).
 
 Does not replace :class:`~oec.execution.models.ExecutionResult`. Prefer
 :func:`from_execution_result` for interoperability with the Skill Engine.
@@ -11,7 +11,10 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from oec.core.diagnostics import Diagnostic, diagnostics_from_mapping
+from oec.core.provenance import ProvenanceRecord
 from oec.core.types import Assumption, BackendRef, MethodRef
+from oec.core.validity import ValidityDomain
 from oec.execution.models import ExecutionResult, ExecutionStatus
 
 
@@ -27,38 +30,38 @@ class ScientificResult(BaseModel):
     method: MethodRef
     value: dict[str, Any] = Field(default_factory=dict)
     assumptions: list[Assumption] = Field(default_factory=list)
-    diagnostics: dict[str, Any] = Field(default_factory=dict)
+    diagnostics: list[Diagnostic] = Field(default_factory=list)
+    # Raw legacy mapping retained for full fidelity with ExecutionResult
+    diagnostics_raw: dict[str, Any] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
     validation: dict[str, Any] = Field(default_factory=dict)
-    provenance: dict[str, Any] = Field(default_factory=dict)
-    backends: list[BackendRef] = Field(default_factory=list)
+    provenance: ProvenanceRecord = Field(default_factory=ProvenanceRecord)
+    validity: ValidityDomain | None = None
     started_at: datetime
     completed_at: datetime | None = None
     duration_ms: float | None = None
+
+    @property
+    def backends(self) -> list[BackendRef]:
+        return list(self.provenance.backends)
 
     @property
     def backend_names(self) -> list[str]:
         return [b.name for b in self.backends]
 
 
-def from_execution_result(er: ExecutionResult) -> ScientificResult:
+def from_execution_result(
+    er: ExecutionResult,
+    *,
+    validity: ValidityDomain | None = None,
+) -> ScientificResult:
     """Map Skill Engine result → ScientificResult without mutation."""
     assumptions = [
         Assumption(text=a, source="execution")
         for a in (er.assumptions or [])
         if isinstance(a, str) and a.strip()
     ]
-    backends: list[BackendRef] = []
-    raw_backends = (er.provenance or {}).get("backends") or []
-    if isinstance(raw_backends, list):
-        for item in raw_backends:
-            if isinstance(item, dict) and item.get("name"):
-                backends.append(
-                    BackendRef(
-                        name=str(item["name"]),
-                        version=None if item.get("version") is None else str(item["version"]),
-                    )
-                )
+    raw_diag = dict(er.diagnostics or {})
     return ScientificResult(
         run_id=er.run_id,
         status=er.status,
@@ -67,11 +70,12 @@ def from_execution_result(er: ExecutionResult) -> ScientificResult:
         method=MethodRef(id=er.method.id, version=er.method.version),
         value=dict(er.result or {}),
         assumptions=assumptions,
-        diagnostics=dict(er.diagnostics or {}),
+        diagnostics=diagnostics_from_mapping(raw_diag),
+        diagnostics_raw=raw_diag,
         warnings=list(er.warnings or []),
         validation=dict(er.validation or {}),
-        provenance=dict(er.provenance or {}),
-        backends=backends,
+        provenance=ProvenanceRecord.from_mapping(dict(er.provenance or {})),
+        validity=validity,
         started_at=er.started_at,
         completed_at=er.completed_at,
         duration_ms=er.duration_ms,

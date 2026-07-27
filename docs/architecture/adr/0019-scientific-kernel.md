@@ -40,12 +40,13 @@ Add **`oec.core.ScientificResult`** as an **additive adapter** built from
    | `method` (`VersionedRef`) | `method: MethodRef` |
    | `result`                  | `value`            |
    | `assumptions: list[str]`  | `assumptions: list[Assumption]` (`source="execution"`) |
-   | `diagnostics`             | `diagnostics`      |
+   | `diagnostics`             | `diagnostics: list[Diagnostic]` + `diagnostics_raw` |
    | `warnings`                | `warnings`         |
    | `validation`              | `validation`      |
-   | `provenance`              | `provenance`      |
-   | `provenance["backends"]`  | `backends: list[BackendRef]` |
+   | `provenance`              | `provenance: ProvenanceRecord` |
+   | `provenance["backends"]`  | `backends` property → `ProvenanceRecord.backends` |
    | `started_at` / `completed_at` / `duration_ms` | same |
+   | *(optional caller)*       | `validity: ValidityDomain | None` |
 
    `inputs`, `normalized_inputs`, and `conventions` are intentionally **not**
    forwarded: they belong to the execution layer, not the scientific outcome.
