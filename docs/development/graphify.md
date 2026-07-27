@@ -92,6 +92,26 @@ Per section 31.4, the graph is updated:
 - before multi-file architectural tasks;
 - before the sprint's final report.
 
+### Last full rebuild (v2.0 handoff)
+
+**2026-07-27** after Scientific Kernel cut + GPT construction handoff:
+
+```bash
+uv tool run --from graphifyy graphify update .
+```
+
+**Rebuild result (2026-07-27):** ~**5058 nodes**, ~**7783 edges**, ~**435 communities**
+(`graph.html` skipped — over viz node limit; use `graph.json` + `GRAPH_REPORT.md`)
+
+Indexed highlights for construction agents:
+
+- `src/oec/core/**` (v2.0 Scientific Kernel)
+- `docs/implementation/GPT_CONSTRUCTION_HANDOFF.md` (GPT builds; Grok validates)
+- `docs/implementation/OEC_V3_IMPLEMENTATION_PLAN.md` (state: v2.0 done → v2.1 next)
+- `docs/concepts/scientific-kernel.md`, ADR 0019
+
+`graphify-out/` remains **gitignored** (ADR 0010). Rebuild locally before multi-agent construction sessions.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

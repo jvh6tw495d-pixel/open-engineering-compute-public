@@ -2,21 +2,24 @@
 
 **Fonte:** Roadmap detalhado de versões até v3.0 (plano V3)
 **Data do plano:** 2026-07-26
-**Baseline real:** incubação `oec==0.1.0` experimental — **40 skills**, 5 agentes, SDK/CLI/REST/MCP, OPS v0.1, HiGHS, validação multi-camada, árvore public-alpha local
+**Actualização de estado:** 2026-07-27 — **`oec==2.0.0` Scientific Kernel cortado** (`51407ec`)
+**Baseline real:** **40 skills**, 5 agentes, SDK/CLI/REST/MCP, OPS v0.1, HiGHS, `oec.core` Scientific Kernel, árvore public-alpha local
 **Marco público V3:** **v3.0 = primeiro lançamento oficial no GitHub**
+**Handoff construção (GPT):** [GPT_CONSTRUCTION_HANDOFF.md](GPT_CONSTRUCTION_HANDOFF.md) — GPT constrói; Grok valida.
 
 ---
 
 ## 0. Resumo executivo
 
-| Bloco V3 | Significado | Estado actual (2026-07-26) | Acção |
+| Bloco V3 | Significado | Estado actual (2026-07-27) | Acção |
 |---|---|---|---|
-| **v0.x – v1.5** | Skill Engine + interfaces + alpha privado | **Substantially done** | Fechar gaps e **renomear/versionar** para v1.5 |
-| **v2.0 – v2.5** | Scientific Kernel + Math Complete | **Parcial** (kernels ad hoc, sem Math IR) | **Próximo foco de implementação** |
+| **v0.x – v1.5** | Skill Engine + interfaces + alpha privado | **DONE** (`1.5.0` closed) | Manter |
+| **v2.0** | Scientific Kernel | **DONE** (`2.0.0` — `oec.core`, ADR 0019) | — |
+| **v2.1 – v2.5** | Quantities → Math IR → Math Complete | **NEXT** (sem Math IR ainda) | **GPT constrói a partir de v2.1** |
 | **v2.6 – v2.8** | Physics / Multiphysics / Chemistry | **Não iniciado** (só eléctrica clássica + energy genérico) | Após v2.5 estável |
 | **v2.9 – v3.0** | Integração + lançamento público | Prep parcial (árvore limpa local) | Gates + publish no fim |
 
-**Tese de execução:** não recomeçar do zero. Mapear o monólito actual para as camadas V3, fechar v1.5 formalmente, e atacar **v2.0→v2.5** em fatias com gates mensuráveis. Física/química são programas multi-trimestre **depois** da matemática completa.
+**Tese de execução:** não recomeçar do zero. **v1.5 e v2.0 fechados.** Empilhar **v2.1→v2.5** em fatias com gates mensuráveis. Física/química são programas multi-trimestre **depois** da matemática completa.
 
 **Regra de ouro (inalterada):**
 

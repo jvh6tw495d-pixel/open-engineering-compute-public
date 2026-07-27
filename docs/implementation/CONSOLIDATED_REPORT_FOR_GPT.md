@@ -1,15 +1,19 @@
 # OEC — Consolidated report for GPT
 
-**Date:** 2026-07-26
+**Date:** 2026-07-26 (baseline) · **Status addendum:** 2026-07-27
 **Product:** Open Engineering Compute (OEC)
 **Purpose:** Single document for external GPT review of product thesis, plan delivery, and empirical LLM vs OEC experiments.
 **Incubation repo:** local private tree (no public remote required to read this file).
+
+> **Construction handoff (current):** [GPT_CONSTRUCTION_HANDOFF.md](GPT_CONSTRUCTION_HANDOFF.md)
+> Package **`2.0.0` Scientific Kernel done**. GPT builds **v2.1+**; Grok validates gates.
+> Refresh Graphify: `uv tool run --from graphifyy graphify update .`
 
 ---
 
 ## 0. One-paragraph summary
 
-OEC is **agent-oriented scientific infrastructure**: specialists formulate problems; OEC validates and executes versioned **skills** with provenance; numerical merit stays with **SciPy / NumPy / pandas / HiGHS**. The GPT construction plan (Alpha S0′–S9′ + Roadmap B S10–S26) is **implemented in code** (~40 skills, 5 agents). Independent Opus review findings were closed. A **Public Alpha sibling tree** was prepared and validated (800 tests) without push. Empirical benchmarks on a **6-period BESS + TOU LP** show **weak local LLMs fail** when solving alone (scores ~0–2/10) but reach **10/10** when they only extract parameters and **OEC multi-agent + HiGHS** owns numerics—supporting the thesis that OEC supplies **method + guaranteed, auditable results**.
+OEC is **agent-oriented scientific infrastructure**: specialists formulate problems; OEC validates and executes versioned **skills** with provenance; numerical merit stays with **SciPy / NumPy / pandas / HiGHS**. The GPT construction plan (Alpha S0′–S9′ + Roadmap B S10–S26) is **implemented in code** (~40 skills, 5 agents). **v1.5** private alpha and **v2.0** Scientific Kernel (`oec.core.ScientificResult`, ADR 0019) are **closed**. Independent Opus review findings were closed. A **Public Alpha sibling tree** was prepared and validated without push. Empirical benchmarks on a **6-period BESS + TOU LP** show **weak local LLMs fail** when solving alone (scores ~0–2/10) but reach **10/10** when they only extract parameters and **OEC multi-agent + HiGHS** owns numerics—supporting the thesis that OEC supplies **method + guaranteed, auditable results**.
 
 ---
 

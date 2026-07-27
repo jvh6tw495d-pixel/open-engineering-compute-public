@@ -3,28 +3,42 @@
 Living summary of OEC's structure. Updated at the end of each sprint (see
 `docs/development/graphify.md` for the tool used to help maintain it).
 
-## Main components (as of Sprint 07)
+**As of 2026-07-27:** package **`oec==2.0.0`** Scientific Kernel.
+**GPT handoff:** [../implementation/GPT_CONSTRUCTION_HANDOFF.md](../implementation/GPT_CONSTRUCTION_HANDOFF.md)
+**Next build:** v2.1 Quantities (`kernel/units` consolidation).
+
+## Main components (v2.0.0)
 
 | Component | Path | Status |
 |---|---|---|
+| **Scientific Kernel (`oec.core`)** | `src/oec/core/` | **v2.0** — `ScientificResult`, `ValidityDomain`, `Diagnostic`, `ProvenanceRecord`, types, core errors; ADR 0019 |
 | Shared value objects | `src/oec/common.py` | implemented — `VersionedRef` |
-| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` + 12 subclasses |
+| Base error hierarchy | `src/oec/errors.py` | implemented — `OECError` + subclasses; core extends with domain errors |
 | Skill manifest model | `src/oec/skills/schemas/manifest.py` | implemented — `SkillManifest`, `MethodRef` (`iterative: bool`, ADR 0013) |
-| Execution models | `src/oec/execution/models.py` | implemented |
+| Execution models | `src/oec/execution/models.py` | implemented — `ExecutionResult` **unchanged** in 2.0 |
 | Skill Loader/Registry/Lifecycle | `src/oec/skills/{loader,registry,lifecycle}/` | implemented |
-| CLI | `src/oec/cli/main.py` | implemented — `oec version`, `oec skills {list,inspect,validate}`, `oec run` (ADR 0014), `oec server {api,mcp}` (ADR 0015) |
-| Public Python SDK | `src/oec/sdk.py` | implemented — `Engine` now serializes executions and supports `.warm()` (ADR 0015) |
+| CLI | `src/oec/cli/main.py` | implemented — `oec version`, skills, run, server |
+| Public Python SDK | `src/oec/sdk.py` | `Engine.run` → ExecutionResult; **`Engine.run_scientific`** → ScientificResult |
 | Validator factory | `src/oec/execution/factory.py` | implemented |
-| Units kernel | `src/oec/kernel/units/` | implemented, not yet wired into a real skill's schema |
-| Numerics kernel | `src/oec/kernel/numerics/{expressions,root_finding}.py` | implemented |
-| Optimization kernel | `src/oec/kernel/optimization/{diagnostics,scalar,constrained,curve_fit}.py` | implemented |
-| Engineering Kernel (rest) | `src/oec/kernel/{statistics,uncertainty}` | empty, scaffolded |
-| Validation Engine | `src/oec/validation/{base,schema,dimensions,mathematical,physical,numerical,invariants,golden}.py` | implemented |
-| Execution Service | `src/oec/execution/{service,runner,sandbox,status,provenance}.py` | implemented |
-| Testing SDK | `src/oec/testing.py` | implemented |
-| MVP skills (6 of 12 planned math skills) | `skills/mathematics/{solve_root,interpolate,integrate,optimize_scalar,optimize_constrained,curve_fit}/` | implemented |
-| **REST API** | `src/oec/api/app.py` | **implemented** — see below |
-| **MCP server** | `src/oec/mcp/server.py` | **implemented** — see below |
+| Units kernel | `src/oec/kernel/units/` | implemented — **v2.1 target** for Quantity consolidation |
+| Numerics kernel | `src/oec/kernel/numerics/` | expressions AST, root finding, vector compile |
+| Optimization kernel | `src/oec/kernel/optimization/` | scalar, constrained, curve_fit, HiGHS path |
+| OPS | `src/oec/ops/` | v0.1 LP/MILP model |
+| Validation Engine | `src/oec/validation/` | multi-layer validators |
+| Execution Service | `src/oec/execution/` | service, runner, sandbox, status, provenance |
+| Agents (outside wheel) | `agents/` | 5 specialists; formulate only |
+| Skills catalog | `skills/**` | ~40 experimental skills |
+| **REST API** | `src/oec/api/app.py` | implemented |
+| **MCP server** | `src/oec/mcp/server.py` | implemented |
+
+### Scientific Kernel modules (`src/oec/core/`)
+
+- `scientific_result.py` — frozen `ScientificResult` + `from_execution_result`
+- `validity.py` — `ValidityDomain`
+- `diagnostics.py` — `Diagnostic`, legacy dict → typed list
+- `provenance.py` — `ProvenanceRecord` + backends
+- `types.py` — `MethodRef`, `BackendRef`, `Assumption`
+- `errors.py` — scientific domain errors (subclass `OECError`)
 
 ### Numerics kernel, module by module
 
