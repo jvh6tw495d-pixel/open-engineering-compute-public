@@ -45,8 +45,9 @@ class Engine:
     """
 
     def __init__(self, skills_root: str | Path = "skills") -> None:
+        self.skills_root = Path(skills_root)
         self.registry = SkillRegistry()
-        report = self.registry.register_all(Path(skills_root))
+        report = self.registry.register_all(self.skills_root)
         # A broken skill directory (e.g. one under active development)
         # does not stop every other skill from running -- mirrors the CLI's
         # existing `skills list`/`inspect` behavior, which also tolerates

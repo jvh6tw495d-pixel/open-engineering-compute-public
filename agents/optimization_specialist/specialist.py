@@ -71,9 +71,11 @@ class OptimizationSpecialist:
             problem = validate_ops(ops_document)
         except Exception:
             raw = ops_document.get("problem_class")
-            if raw in ("lp", "milp"):
-                # Schema may still fail later; class label is advisory.
-                return raw  # type: ignore[return-value]
+            # Schema may still fail later; class label is advisory.
+            if raw == "lp":
+                return "lp"
+            if raw == "milp":
+                return "milp"
             return "out_of_scope"
         return problem.problem_class
 

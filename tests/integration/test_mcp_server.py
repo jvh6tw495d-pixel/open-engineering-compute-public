@@ -16,7 +16,10 @@ import pytest
 from mcp import types as mcp_types
 
 from oec.mcp.server import (
+    LIST_AGENTS_TOOL_NAME,
     LIST_SKILLS_TOOL_NAME,
+    _router_target_for,
+    _run_specialist_by_name,
     build_server,
     build_tools,
     call_tool,
@@ -38,15 +41,21 @@ def _parse_content(result: Any) -> Any:
     return json.loads(result.content[0].text)
 
 
-def test_list_tools_includes_skills_and_list_skills(engine: Engine) -> None:
+def test_list_tools_includes_agents_skills_and_discovery(engine: Engine) -> None:
     tools = build_tools(engine)
     by_name = {tool.name: tool for tool in tools}
 
+    assert LIST_AGENTS_TOOL_NAME in by_name
     assert LIST_SKILLS_TOOL_NAME in by_name
+    assert by_name[LIST_AGENTS_TOOL_NAME].inputSchema == {
+        "type": "object",
+        "properties": {},
+    }
     assert by_name[LIST_SKILLS_TOOL_NAME].inputSchema == {
         "type": "object",
         "properties": {},
     }
+    assert tools[0].name == "agent.default"
 
     skill_ids = {m.id for m in engine.registry.list_skills(include_retired=False)}
     assert "mathematics.solve_root" in skill_ids
@@ -56,12 +65,10 @@ def test_list_tools_includes_skills_and_list_skills(engine: Engine) -> None:
     # inputSchema is the skill's real schema, not a hand-written copy.
     loaded = engine.registry.get_skill("mathematics.solve_root")
     assert by_name["mathematics.solve_root"].inputSchema == loaded.input_schema
-    assert by_name["mathematics.solve_root"].description == (
-        loaded.manifest.description or loaded.manifest.title
-    )
+    assert "Prefer `agent.default`" in by_name["mathematics.solve_root"].description
 
-    # One tool per skill + list_skills.
-    assert len(tools) == len(skill_ids) + 1
+    # Agent-first catalog: fixed agent tools + discovery + raw skills.
+    assert len(tools) == len(skill_ids) + 8
 
 
 def test_call_tool_solve_root_returns_validated_result(engine: Engine) -> None:
@@ -89,6 +96,258 @@ def test_call_tool_list_skills_returns_catalog(engine: Engine) -> None:
     assert "version" in sample
     assert "title" in sample
     assert "domain" in sample
+
+
+def test_call_tool_list_agents_returns_catalog(engine: Engine) -> None:
+    result = call_tool(engine, LIST_AGENTS_TOOL_NAME, {})
+    assert result.isError is False
+    catalog = _parse_content(result)
+    assert isinstance(catalog, list)
+    ids = {entry["id"] for entry in catalog}
+    assert "agent.default" in ids
+    sample = next(entry for entry in catalog if entry["id"] == "agent.default")
+    assert sample["kind"] == "agent_router"
+    assert sample["default"] is True
+
+
+def test_call_tool_default_router_runs_optimization_agent(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "agent.default",
+        {"request": "solve optimization problem", "demo_label": "diet"},
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["router"] == "agent.default"
+    assert payload["selected_agent"] == "agent.optimization_specialist"
+    assert payload["result"]["skill_id"] == "optimization.lp"
+    assert payload["result"]["execution"]["status"] == "VALIDATED"
+
+
+def test_call_tool_optimization_agent_runs_demo(engine: Engine) -> None:
+    result = call_tool(engine, "agent.optimization_specialist", {"demo_label": "diet"})
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["problem_class"] == "lp"
+    assert payload["skill_id"] == "optimization.lp"
+    assert payload["execution"]["status"] == "VALIDATED"
+
+
+def test_call_tool_scientific_reviewer_reviews_agent_output(engine: Engine) -> None:
+    solve = _parse_content(
+        call_tool(engine, "agent.optimization_specialist", {"demo_label": "diet"})
+    )
+    result = call_tool(
+        engine,
+        "agent.scientific_reviewer",
+        {
+            "ops_document": solve["ops"],
+            "execution": solve["execution"],
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["passed"] is True
+
+
+def test_call_tool_domain_agent_runs_explicit_skill(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "agent.applied_mathematics",
+        {
+            "skill_id": "mathematics.solve_root",
+            "inputs": {"expression": "x**2 - 2", "bracket": [0, 2]},
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["agent"] == "applied_mathematics_specialist"
+    assert payload["skill_id"] == "mathematics.solve_root"
+    assert payload["execution"]["status"] == "VALIDATED"
+
+
+def test_call_tool_default_router_respects_explicit_skill(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": "call specific function",
+            "skill_id": "mathematics.solve_root",
+            "inputs": {"expression": "x**2 - 2", "bracket": [0, 2]},
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == "agent.applied_mathematics"
+    assert payload["result"]["skill_id"] == "mathematics.solve_root"
+    assert payload["result"]["execution"]["status"] == "VALIDATED"
+
+
+def test_call_tool_optimization_agent_runs_full_ops(engine: Engine) -> None:
+    ops = {
+        "ops_version": "0.1.0",
+        "problem_class": "lp",
+        "sense": "min",
+        "variables": [
+            {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
+            {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
+        ],
+        "constraints": [{"name": "cover", "coeffs": {"x": 1, "y": 1}, "sense": ">=", "rhs": 1}],
+        "objective": {"coeffs": {"x": 1, "y": 1}},
+    }
+    result = call_tool(engine, "agent.optimization_specialist", {"ops": ops})
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["skill_id"] == "optimization.lp"
+    assert payload["execution"]["status"] == "VALIDATED"
+
+
+def test_call_tool_optimization_agent_requires_ops_or_demo(engine: Engine) -> None:
+    result = call_tool(engine, "agent.optimization_specialist", {})
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "requires 'ops' or 'demo_label'" in payload["error"]
+
+
+def test_call_tool_scientific_reviewer_requires_execution(engine: Engine) -> None:
+    result = call_tool(engine, "agent.scientific_reviewer", {})
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "requires 'execution'" in payload["error"]
+
+
+def test_call_tool_time_series_agent_runs_demo(engine: Engine) -> None:
+    result = call_tool(engine, "agent.time_series", {"demo_label": "resample"})
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["agent"] == "time_series_specialist"
+    assert payload["execution"]["status"] == "VERIFIED"
+
+
+def test_call_tool_energy_agent_runs_demo(engine: Engine) -> None:
+    result = call_tool(engine, "agent.energy", {"demo_label": "balance"})
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["agent"] == "energy_specialist"
+    assert payload["execution"]["status"] == "VERIFIED"
+
+
+def test_call_tool_domain_agent_requires_demo_or_skill(engine: Engine) -> None:
+    result = call_tool(engine, "agent.time_series", {})
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "requires 'demo_label'" in payload["error"]
+
+
+@pytest.mark.parametrize(
+    ("preferred_domain", "expected_agent"),
+    [
+        ("optimization", "agent.optimization_specialist"),
+        ("mathematics", "agent.applied_mathematics"),
+        ("timeseries", "agent.time_series"),
+        ("energy", "agent.energy"),
+    ],
+)
+def test_call_tool_default_router_respects_preferred_domain(
+    engine: Engine, preferred_domain: str, expected_agent: str
+) -> None:
+    demo_by_agent = {
+        "agent.optimization_specialist": "diet",
+        "agent.applied_mathematics": "sqrt2",
+        "agent.time_series": "resample",
+        "agent.energy": "balance",
+    }
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": "route me",
+            "preferred_domain": preferred_domain,
+            "demo_label": demo_by_agent[expected_agent],
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == expected_agent
+
+
+def test_call_tool_default_router_respects_review_preferred_domain(engine: Engine) -> None:
+    solve = _parse_content(
+        call_tool(engine, "agent.optimization_specialist", {"demo_label": "diet"})
+    )
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": "review this",
+            "preferred_domain": "review",
+            "ops_document": solve["ops"],
+            "execution": solve["execution"],
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == "agent.scientific_reviewer"
+    assert payload["result"]["passed"] is True
+
+
+@pytest.mark.parametrize(
+    ("arguments", "expected_agent"),
+    [
+        ({"ops": {"problem_class": "lp"}}, "agent.optimization_specialist"),
+        ({"ops_document": {"problem_class": "lp"}}, "agent.optimization_specialist"),
+        ({"preferred_domain": "review"}, "agent.scientific_reviewer"),
+    ],
+)
+def test_router_target_for_ops_and_review_signals(
+    arguments: dict[str, Any], expected_agent: str
+) -> None:
+    assert _router_target_for(arguments) == expected_agent
+
+
+@pytest.mark.parametrize(
+    ("skill_id", "expected_agent"),
+    [
+        ("optimization.lp", "agent.optimization_specialist"),
+        ("timeseries.resample", "agent.time_series"),
+        ("energy.balance", "agent.energy"),
+        ("battery.soc_step", "agent.energy"),
+        ("electrical.three_phase_balance", "agent.energy"),
+    ],
+)
+def test_call_tool_default_router_infers_agent_from_skill_prefix(
+    engine: Engine, skill_id: str, expected_agent: str
+) -> None:
+    assert _router_target_for({"skill_id": skill_id}) == expected_agent
+
+
+@pytest.mark.parametrize(
+    ("demo_label", "expected_agent"),
+    [
+        ("knapsack", "agent.optimization_specialist"),
+        ("solve_root", "agent.applied_mathematics"),
+        ("fill_missing", "agent.time_series"),
+        ("soc_step", "agent.energy"),
+    ],
+)
+def test_call_tool_default_router_infers_agent_from_demo_label(
+    engine: Engine, demo_label: str, expected_agent: str
+) -> None:
+    assert _router_target_for({"demo_label": demo_label}) == expected_agent
+
+
+def test_call_tool_default_router_raises_when_no_signal(engine: Engine) -> None:
+    result = call_tool(engine, "agent.default", {"request": "do something vague"})
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "could not infer a specialist" in payload["error"]
+
+
+def test_run_specialist_by_name_rejects_unknown_agent_tool(engine: Engine) -> None:
+    """Defensive branch: unreachable through call_tool's `_AGENT_TOOL_SCHEMAS`
+    gate, but guards `_run_specialist_by_name` itself against misuse."""
+    with pytest.raises(ValueError, match="Unknown agent tool"):
+        _run_specialist_by_name(engine, "agent.not_a_real_agent", {})
 
 
 def test_call_tool_unknown_skill_fails_gracefully(engine: Engine) -> None:
