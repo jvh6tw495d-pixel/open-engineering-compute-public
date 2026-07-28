@@ -15,9 +15,9 @@ implementation = load_skill_module(_SKILL_DIR, "implementation")
 
 
 def test_mean_and_shape_of_one_to_five() -> None:
-    out = implementation.execute(
-        {"samples": [1.0, 2.0, 3.0, 4.0, 5.0], "confidence_level": 0.95}
-    )["result"]
+    out = implementation.execute({"samples": [1.0, 2.0, 3.0, 4.0, 5.0], "confidence_level": 0.95})[
+        "result"
+    ]
     assert out["mean"] == 3.0
     assert out["n"] == 5
     assert out["distribution"] == "student_t"
@@ -75,11 +75,61 @@ def test_z_interval_matches_closed_form() -> None:
     assert math.isclose(out["half_width"], expected_half, rel_tol=1e-12)
 
 
+def test_z_interval_two_observations_matches_closed_form() -> None:
+    samples = [0.0, 10.0]
+    sigma = 5.0
+    n = 2
+    mean = 5.0
+    z = float(stats.norm.ppf(0.975))
+    expected_half = z * sigma / math.sqrt(n)
+    out = implementation.execute(
+        {
+            "samples": samples,
+            "confidence_level": 0.95,
+            "population_standard_deviation": sigma,
+        }
+    )["result"]
+    assert out["mean"] == mean
+    assert out["n"] == 2
+    assert math.isclose(out["half_width"], expected_half, rel_tol=1e-9)
+
+
+def test_z_interval_at_99_percent_confidence() -> None:
+    samples = [4.0, 6.0, 8.0]
+    sigma = 3.0
+    n = 3
+    mean = 6.0
+    z = float(stats.norm.ppf(0.995))
+    expected_half = z * sigma / math.sqrt(n)
+    out = implementation.execute(
+        {
+            "samples": samples,
+            "confidence_level": 0.99,
+            "population_standard_deviation": sigma,
+        }
+    )["result"]
+    assert out["mean"] == mean
+    assert math.isclose(out["half_width"], expected_half, rel_tol=1e-9)
+    assert math.isclose(out["lower"], mean - expected_half, rel_tol=1e-9)
+    assert math.isclose(out["upper"], mean + expected_half, rel_tol=1e-9)
+
+
+def test_student_t_textbook_dataset_at_90_percent_confidence() -> None:
+    samples = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
+    n = len(samples)
+    mean = sum(samples) / n
+    s = math.sqrt(sum((x - mean) ** 2 for x in samples) / (n - 1))
+    expected_half = stats.t.ppf(0.95, n - 1) * s / math.sqrt(n)
+    out = implementation.execute({"samples": samples, "confidence_level": 0.90})["result"]
+    assert out["n"] == 8
+    assert out["distribution"] == "student_t"
+    assert math.isclose(out["mean"], mean, rel_tol=1e-12)
+    assert math.isclose(out["half_width"], float(expected_half), rel_tol=1e-9)
+
+
 def test_rejects_known_variance_field() -> None:
     with pytest.raises(ValueError, match="known_variance"):
-        implementation.execute(
-            {"samples": [1.0, 2.0], "known_variance": True}
-        )
+        implementation.execute({"samples": [1.0, 2.0], "known_variance": True})
 
 
 def test_rejects_nonpositive_sigma() -> None:

@@ -59,3 +59,61 @@ def test_mean_forecaster_backtest_mae_greater_than_zero_for_growth_series() -> N
     assert out["result"]["mae"] > 0.0
     # Mean baseline should be worse than naive for monotonic series; skill <= 0
     assert out["result"]["skill_score_vs_naive"] <= 0.0
+
+
+def test_seasonal_naive_on_exactly_periodic_series_is_perfect() -> None:
+    """series=[10,20,30,40]x3 is exactly period-4; every one-step
+    seasonal_naive forecast in the last 8 windows matches its held-out
+    actual exactly, so mae=rmse=0 and skill vs. naive baseline is perfect."""
+    series = [10.0, 20.0, 30.0, 40.0] * 3
+    out = implementation.execute(
+        {
+            "series": series,
+            "steps_ahead": 1,
+            "method": "seasonal_naive",
+            "period": 4,
+            "n_evaluations": 8,
+        }
+    )["result"]
+    assert out["n_series"] == 12
+    assert out["n_evaluations"] == 8
+    assert out["errors"] == [0.0] * 8
+    assert out["mae"] == 0.0
+    assert out["rmse"] == 0.0
+    assert out["skill_score_vs_naive"] == 1.0
+
+
+def test_mean_forecaster_single_evaluation_matches_closed_form() -> None:
+    """series=[1,2,3,4,5,4,3,2,1], n_evaluations=1: the sole training
+    window is the first 8 values (mean=3.0), held-out actual is the last
+    value (1.0), so error=-2.0 exactly."""
+    out = implementation.execute(
+        {
+            "series": [1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 3.0, 2.0, 1.0],
+            "steps_ahead": 1,
+            "method": "mean",
+            "n_evaluations": 1,
+        }
+    )["result"]
+    assert out["errors"] == [-2.0]
+    assert out["mae"] == 2.0
+    assert out["rmse"] == 2.0
+    assert out["skill_score_vs_naive"] == -1.0
+
+
+def test_naive_forecaster_single_evaluation_matches_closed_form() -> None:
+    """series=[1,1,1,1,5], n_evaluations=1: training window is [1,1,1,1]
+    (naive forecast=1.0), held-out actual is 5.0, error=4.0 exactly --
+    identical to the naive baseline itself, so skill score is exactly 0."""
+    out = implementation.execute(
+        {
+            "series": [1.0, 1.0, 1.0, 1.0, 5.0],
+            "steps_ahead": 1,
+            "method": "naive",
+            "n_evaluations": 1,
+        }
+    )["result"]
+    assert out["errors"] == [4.0]
+    assert out["mae"] == 4.0
+    assert out["rmse"] == 4.0
+    assert out["skill_score_vs_naive"] == 0.0
