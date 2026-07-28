@@ -1,25 +1,30 @@
 # Technical debt
 
-**Current-state review:** 2026-07-27 at `oec==2.1.0`.
+**Current-state review:** 2026-07-28 at `oec==2.3.0` (package metadata still
+unbumped past 2.3.0 despite v2.4/v2.5 kernel-unification, verification, and
+golden-set work already committed on `codex/oec-v2.5` — see
+`docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md` for the
+metadata/version-bump backlog this predates).
 
 This file began as a Phase A snapshot. Historical entries remain for
 traceability; the current queue below is the canonical starting point for new
-work. An item is not closed merely because a later roadmap mentions it.
+work. An item is not closed merely because a later roadmap mentions it — each
+closure below cites the commit/file that actually did it.
 
 ## Current queue
 
 | ID | Priority | Item | Target / evidence |
 |---|---|---|---|
-| D-CUR-02 | P1 | Default five-second skill timeout can be consumed by a cold SciPy import on Windows | Measure and decide import/warmup versus timeout policy before public distribution |
-| D-CUR-07 | P1 | `diagnostics_from_mapping` heuristic coverage is thin | Core hardening |
-| D-CUR-08 | P1 | `ProvenanceRecord` permits untyped extra passthrough | Core hardening without breaking ExecutionResult |
-| D-CUR-09 | P1 | No OS-level memory/network/filesystem isolation | Pre-untrusted deployment; ADR 0012 |
-| D-CUR-10 | P1 | REST/MCP have no authentication or rate limiting | Pre-untrusted deployment |
-| D-CUR-11 | P2 | `SkillLifecycle.validate_transition` is unused at runtime | Lifecycle hardening |
-| D-CUR-12 | P2 | Runner subprocess paths have limited direct coverage instrumentation | Test architecture |
-| D-CUR-13 | P2 | Development telemetry/cost per accepted task is not implemented | Operations roadmap |
-| D-CUR-14 | P2 | No formal Backend Registry or VerificationReport pipeline | v2.4 |
-| D-CUR-15 | P2 | No Git tags or remote; “release” currently means private commit milestone | Explicit release-governance decision |
+| D-CUR-02 | P1 | Default five-second skill timeout can be consumed by a cold SciPy import on Windows | Still open — measure and decide import/warmup versus timeout policy before public distribution |
+| D-CUR-07 | P1 | `diagnostics_from_mapping` (`src/oec/core/diagnostics.py`) heuristic coverage is thin | Still open — core hardening |
+| D-CUR-08 | P1 | `oec.core.provenance.ProvenanceRecord` permits untyped extra passthrough (`extra="allow"`) | Still open by design (ADR 0017); revisit only if it starts hiding real schema drift |
+| D-CUR-09 | P1 | No OS-level memory/network/filesystem isolation | Still open — pre-untrusted deployment; ADR 0012 |
+| D-CUR-10 | P1 | REST/MCP have no authentication or rate limiting | Still open — confirmed current in `docs/api/README.md` and `docs/mcp/README.md`'s own "not yet implemented" sections |
+| D-CUR-11 | P2 | `SkillLifecycle.validate_transition` (`src/oec/skills/lifecycle/lifecycle.py`) is unused outside its own test | Still open — confirmed via repo-wide reference search |
+| D-CUR-12 | P2 | Runner subprocess paths have limited direct coverage instrumentation | Still open — `src/oec/execution/runner.py` at 73% (crash/timeout branches uncovered) |
+| D-CUR-13 | P2 | Development telemetry/cost per accepted task is not implemented | Still open — operations roadmap |
+| D-CUR-15 | P2 | No Git tags or remote; “release” currently means private commit milestone | Still open — explicit release-governance decision |
+| D-CUR-19 | P2 | `src/oec/kernel/` package coverage is 86%, below the 90% critical-path bar the rest of the package list clears | 11 submodules ranked weakest-first in `docs/implementation/v2.5-critical-path-coverage.md` §3 |
 
 ## Recently closed
 
@@ -31,6 +36,11 @@ work. An item is not closed merely because a later roadmap mentions it.
 | D-CUR-16 | 2026-07-27 | installation smoke now retains complete child stdout/stderr and separately proves installed CLI/sandbox and numerical backend execution |
 | D-CUR-05 | 2026-07-27 | `scripts/audit_physical_units.py` added — automated bare-physical-float authoring gate, 9 skills scanned, 0 errors (v2.1, commit `abb31c7`) |
 | D-CUR-06 | 2026-07-27 | `energy.balance`, `energy.load_metrics`, `battery.soc_step` migrated to `QuantityValue`-only physical contracts, skill version `0.2.0` (v2.1, commit `abb31c7`) |
+| D-CUR-14 | 2026-07-28 | Backend Capability Registry (`src/oec/backends/{registry,capabilities,selection,fallback}.py`) + Verification Engine (`src/oec/verification/{engine,report}.py`) shipped and operational, ADR 0021 (commit `5b35ae4`, corrected `1f2efa0`) |
+| — | 2026-07-28 | v2.5 golden-set distribution gate closed — every V3-plan domain bucket now meets its minimum (see `docs/implementation/v2.5-golden-set-expansion.md`) |
+| — | 2026-07-28 | v2.5 critical-path coverage measured for the first time: 90% aggregate, meets the gate (see `docs/implementation/v2.5-critical-path-coverage.md`; the kernel-specific shortfall this surfaced is tracked as D-CUR-19 above, not closed) |
+| — | 2026-07-28 | v2.5 public-API docstring coverage measured and closed: 87.8% → 100%, `scripts/audit_public_api_docs.py` added (see `docs/implementation/v2.5-public-api-docs-audit.md`) |
+| — | 2026-07-28 | `forbidden_names` gate back to zero hits — reworded `v2.4-team-brief.md`'s stray forbidden-list word |
 
 ## Historical Phase A view
 

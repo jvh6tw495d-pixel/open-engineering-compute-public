@@ -12,6 +12,8 @@ from oec.ops.schema import OPS_JSON_SCHEMA, OPS_SCHEMA_VERSION
 
 
 class OPSVariable(BaseModel):
+    """One decision variable: name, kind, and its own bounds/objective coefficient."""
+
     model_config = ConfigDict(extra="forbid")
 
     name: str
@@ -22,6 +24,8 @@ class OPSVariable(BaseModel):
 
 
 class OPSConstraint(BaseModel):
+    """One linear constraint: ``sum(coeffs[name] * name) <sense> rhs``."""
+
     model_config = ConfigDict(extra="forbid")
 
     name: str
@@ -31,6 +35,8 @@ class OPSConstraint(BaseModel):
 
 
 class OPSObjective(BaseModel):
+    """Linear objective: ``sum(coeffs[name] * name) + offset``."""
+
     model_config = ConfigDict(extra="forbid")
 
     coeffs: dict[str, float] = Field(default_factory=dict)
@@ -38,6 +44,8 @@ class OPSObjective(BaseModel):
 
 
 class OPSExecutionLimits(BaseModel):
+    """Solver execution limits (e.g. a wall-clock time budget)."""
+
     model_config = ConfigDict(extra="forbid")
 
     time_limit_seconds: float | None = None

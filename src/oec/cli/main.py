@@ -70,6 +70,7 @@ def main(
         bool, typer.Option("--debug", help="Show full tracebacks instead of a short message.")
     ] = False,
 ) -> None:
+    """Open Engineering Compute command-line interface."""
     global _debug
     _debug = debug
 
