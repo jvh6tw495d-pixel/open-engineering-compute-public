@@ -119,28 +119,28 @@ def test_post_verification_residuals_summary_from_numerical_outcomes(tmp_path: P
     assert "poorly conditioned" in by_name["residuals_and_conditioning"].message
 
 
-def test_post_verification_lp_gap_reports_value_when_present(tmp_path: Path) -> None:
+def test_post_verification_lp_gap_report_is_informational_when_present(tmp_path: Path) -> None:
     skill = _load(tmp_path)
     checks = run_post_verification(skill, {"mip_gap": 0.05}, {}, [], {})
     by_name = {c.name: c for c in checks}
-    assert by_name["lp_gap"].passed is True
-    assert by_name["lp_gap"].details["mip_gap"] == 0.05
+    assert by_name["lp_gap_report"].passed is None
+    assert by_name["lp_gap_report"].details["mip_gap"] == 0.05
 
 
-def test_post_verification_lp_gap_not_applicable_when_absent(tmp_path: Path) -> None:
+def test_post_verification_lp_gap_report_omitted_when_absent(tmp_path: Path) -> None:
+    """No mip_gap in the result -> no lp_gap_report entry at all, not a
+    padded always-passing placeholder."""
     skill = _load(tmp_path)
     checks = run_post_verification(skill, {}, {}, [], {})
-    by_name = {c.name: c for c in checks}
-    assert by_name["lp_gap"].passed is True
-    assert "not applicable" in by_name["lp_gap"].message
+    assert "lp_gap_report" not in {c.name for c in checks}
 
 
-def test_post_verification_reproducibility_checks_input_hash(tmp_path: Path) -> None:
+def test_post_verification_provenance_integrity_checks_input_hash(tmp_path: Path) -> None:
     skill = _load(tmp_path)
     checks = run_post_verification(skill, {}, {}, [], {"input_hash": "abc123"})
     by_name = {c.name: c for c in checks}
-    assert by_name["reproducibility"].passed is True
+    assert by_name["provenance_integrity"].passed is True
 
     checks_missing = run_post_verification(skill, {}, {}, [], {})
     by_name_missing = {c.name: c for c in checks_missing}
-    assert by_name_missing["reproducibility"].passed is False
+    assert by_name_missing["provenance_integrity"].passed is False

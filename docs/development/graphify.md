@@ -194,6 +194,19 @@ experimental skill was added (differentiation didn't exist anywhere before).
 expansion to 130 cases and the public-API documentation audit remain
 separate, larger v2.5 slices not started here.
 
+### Post-review Verification Engine correction rebuild
+
+Rebuilt on **2026-07-27** after an independent review (fable) of the day's
+work found the v2.4 Verification Engine's `lp_gap`/`reproducibility`
+post-checks didn't do what their names claimed (ADR 0021 amendment), and
+after rewriting the near-tautological Math IR LP parity test to go through
+the real `optimization.lp` skill instead of duplicating
+`compile_linear`'s own internals. **8061 nodes**, **12077 edges**, **669
+communities** — this count also reflects an unrelated, uncommitted,
+in-progress MCP specialist-agent router (`src/oec/mcp/server.py` and
+friends) another concurrent session was actively editing in the same
+working tree at rebuild time; that work is not part of this commit.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

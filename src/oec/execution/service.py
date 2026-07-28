@@ -11,7 +11,7 @@ Pipeline (plan section 10.4)::
        -> enforce the convergence-declaration contract (ADR 0013)
        -> compute_status (ADR 0007)
        -> build provenance
-       -> post-verification (convergence/residuals/lp_gap/reproducibility, ADR 0021)
+       -> post-verification (convergence/residuals/lp_gap_report/provenance_integrity, ADR 0021)
        -> ExecutionResult
 
 Validators are injected, not imported here — this module only depends on

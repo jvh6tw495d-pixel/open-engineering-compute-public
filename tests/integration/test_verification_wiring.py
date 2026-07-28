@@ -55,7 +55,10 @@ def test_verification_report_present_on_successful_execution() -> None:
     pre_names = {check["name"] for check in verification["pre"]}
     assert {"input_validation", "backend_fit"} <= pre_names
     post_names = {check["name"] for check in verification["post"]}
-    assert {"residuals_and_conditioning", "lp_gap", "reproducibility"} <= post_names
+    # lp_gap_report is omitted entirely when no mip_gap is present (this
+    # fixture skill has none) -- it is informational, not a padded check.
+    assert {"residuals_and_conditioning", "provenance_integrity"} <= post_names
+    assert "lp_gap_report" not in post_names
 
 
 def test_verification_pre_check_reflects_input_error_without_executing() -> None:

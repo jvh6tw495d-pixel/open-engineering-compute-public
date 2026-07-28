@@ -118,9 +118,11 @@ A repo-wide research pass before writing any code found:
    - **Post:** `convergence` (reads `diagnostics["converged"]` under the
      existing ADR 0013 contract, only when `method.iterative`) +
      `residuals_and_conditioning` (derived from the `numerical`-layer
-     outcomes) + `lp_gap` (new: reports `result["mip_gap"]` when present,
-     else "not applicable" — informational, not a pass/fail gate at v0) +
-     `reproducibility` (confirms `provenance["input_hash"]` is present).
+     outcomes) + `provenance_integrity` (new, real pass/fail: confirms
+     `provenance["input_hash"]` is present) + `lp_gap_report` (reports
+     `result["mip_gap"]` **only when present** — `passed` is always
+     `None`, not a pass/fail gate, since no OEC-configured gap tolerance
+     exists to evaluate against; see the amendment below).
    - This is an honest v0, not a claim of "full formal verification"
      without both pre **and** post structure (forbidden per the brief §7).
 9. **Verification does not redefine `ExecutionStatus` (ADR 0007) or the
@@ -168,3 +170,29 @@ A repo-wide research pass before writing any code found:
   `scipy.interpolate` once a kernel module actually calls it, or JAX/SymPy
   as optional extras) without touching `selection.py`/`fallback.py`'s
   logic.
+
+## Amendment (2026-07-27, post-review)
+
+An independent review (fable, requested by the user the same day) found the
+original `lp_gap` post-check was `passed=True` hardcoded — it could never
+fail, making it a reporting field wearing a check's costume despite the
+commit message billing it as one of "two genuinely new checks." The
+original `reproducibility` check was also misnamed: it only confirms
+`provenance["input_hash"]` is present, not that anything was actually
+re-run and compared.
+
+Fixed, not just relabeled:
+
+- `PostVerificationCheck.passed` widened from `bool` to `bool | None`
+  (`None` = informational, not evaluated — same convention
+  `ComputationalDiagnostics.converged` already uses, ADR 0022).
+- `lp_gap` → `lp_gap_report`, `passed` always `None`, and the entry is
+  **omitted entirely** when no `mip_gap` is present, rather than padding
+  the post-check list with an always-passing placeholder.
+- `reproducibility` → `provenance_integrity`, kept as a real `bool`
+  check (it can, in principle, fail if `build_provenance` ever regressed)
+  — its name no longer implies re-execution verification that doesn't
+  exist.
+- `backend_fit` and `provenance_integrity` are the two real pass/fail
+  post/pre checks this engine adds; `lp_gap_report` is reporting, not a
+  check, and is documented as such everywhere it's referenced.

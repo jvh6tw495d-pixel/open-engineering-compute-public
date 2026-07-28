@@ -26,8 +26,15 @@ def test_verification_report_defaults_to_empty_lists() -> None:
 def test_verification_report_round_trips_through_json() -> None:
     report = VerificationReport(
         pre=[PreVerificationCheck(name="backend_fit", passed=False, message="missing")],
-        post=[PostVerificationCheck(name="lp_gap", passed=True, details={"mip_gap": 0.01})],
+        post=[PostVerificationCheck(name="lp_gap_report", passed=None, details={"mip_gap": 0.01})],
     )
     dumped = report.model_dump(mode="json")
     assert dumped["pre"][0]["name"] == "backend_fit"
     assert dumped["post"][0]["details"]["mip_gap"] == 0.01
+
+
+def test_post_check_passed_none_means_informational_not_evaluated() -> None:
+    """A report entry (e.g. lp_gap_report) uses passed=None, distinct from
+    a real pass/fail check -- see PostVerificationCheck's docstring."""
+    check = PostVerificationCheck(name="lp_gap_report", passed=None, details={"mip_gap": 0.05})
+    assert check.passed is None

@@ -9,10 +9,20 @@ hand, not a per-skill pluggable layer.
 Both functions mostly *aggregate* signals the existing validator layers
 already compute (schema/dimensional/mathematical/physical outcomes for
 pre-checks; the ``numerical`` layer's outcomes and ``diagnostics`` for
-post-checks) rather than re-implementing them, plus two genuinely new
-checks: ``backend_fit`` (pre) and ``lp_gap`` (post). This is an honest v0,
-not a claim of "full formal verification" without both pre and post
-structure.
+post-checks) rather than re-implementing them, plus one genuinely new
+pass/fail check: ``backend_fit``. This is an honest v0, not a claim of
+"full formal verification" without both pre and post structure.
+
+``lp_gap_report`` is deliberately *not* a pass/fail check, even though it
+lives in the post-check list: HiGHS's MIP gap has no OEC-configured target
+tolerance to assert against, and adding one without a documented,
+defensible source would be exactly the kind of fabricated number this
+codebase's gates exist to catch. Its ``passed`` is always ``None`` --
+reported, not evaluated -- and it is only emitted when a gap was actually
+returned, rather than padding the list with an always-passing placeholder.
+``provenance_integrity`` (renamed from an earlier "reproducibility") *is*
+a real, narrow pass/fail check -- has ``build_provenance`` set an
+``input_hash`` -- not a claim that anything was re-run and compared.
 """
 
 from __future__ import annotations
@@ -94,19 +104,25 @@ def run_post_verification(
     )
 
     mip_gap = result.get("mip_gap")
-    checks.append(
-        PostVerificationCheck(
-            name="lp_gap",
-            passed=True,
-            message="not applicable (no MIP gap reported)" if mip_gap is None else None,
-            details={} if mip_gap is None else {"mip_gap": mip_gap},
+    if mip_gap is not None:
+        # Reported, not evaluated: HiGHS has no OEC-configured target gap
+        # tolerance to assert against (see module docstring).
+        checks.append(
+            PostVerificationCheck(
+                name="lp_gap_report",
+                passed=None,
+                details={"mip_gap": mip_gap},
+            )
         )
-    )
 
+    # A real, if narrow, pass/fail check: build_provenance always sets
+    # input_hash today, so this should never actually fail -- unlike
+    # lp_gap_report above, it has a well-defined true/false criterion
+    # (unlike "reproducibility," it does not claim anything was re-run).
     input_hash = provenance.get("input_hash")
     checks.append(
         PostVerificationCheck(
-            name="reproducibility",
+            name="provenance_integrity",
             passed=bool(input_hash),
             message=None if input_hash else "provenance is missing input_hash",
             details={"input_hash": input_hash},
