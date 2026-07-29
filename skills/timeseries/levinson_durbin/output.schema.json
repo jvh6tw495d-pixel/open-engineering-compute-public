@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.levinson_durbin output",
+  "type": "object",
+  "properties": {
+    "ar_coefficients": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "reflection_coefficients": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "prediction_error_variance": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "ar_coefficients_by_order": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": "number" }
+      }
+    },
+    "order_requested": { "type": "integer", "minimum": 1 },
+    "order_reached": { "type": "integer", "minimum": 0 },
+    "is_positive_definite": { "type": "boolean" },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": [
+    "ar_coefficients",
+    "reflection_coefficients",
+    "prediction_error_variance",
+    "ar_coefficients_by_order",
+    "order_requested",
+    "order_reached",
+    "is_positive_definite",
+    "backend",
+    "converged"
+  ],
+  "additionalProperties": false
+}

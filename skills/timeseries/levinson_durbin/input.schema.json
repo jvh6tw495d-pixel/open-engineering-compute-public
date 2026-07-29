@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.levinson_durbin input",
+  "type": "object",
+  "properties": {
+    "autocorrelation": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "number" }
+    }
+  },
+  "required": ["autocorrelation"],
+  "additionalProperties": false
+}

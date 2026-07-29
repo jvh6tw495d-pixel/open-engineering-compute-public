@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.pacf output",
+  "type": "object",
+  "properties": {
+    "pacf": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "n": { "type": "integer", "minimum": 2 },
+    "nlags": { "type": "integer", "minimum": 1 },
+    "method": { "type": "string", "enum": ["levinson-durbin"] },
+    "order_reached": { "type": "integer", "minimum": 0 },
+    "is_positive_definite": { "type": "boolean" },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": [
+    "pacf",
+    "n",
+    "nlags",
+    "method",
+    "order_reached",
+    "is_positive_definite",
+    "backend",
+    "converged"
+  ],
+  "additionalProperties": false
+}

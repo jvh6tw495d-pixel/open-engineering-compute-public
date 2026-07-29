@@ -389,6 +389,82 @@ def test_call_tool_default_router_solves_clock_offset_extrema_request(engine: En
     assert math.isclose(max_value, 46.0, rel_tol=0, abs_tol=1e-3)
 
 
+@pytest.mark.parametrize(
+    "request_text",
+    [
+        "What is the autocorrelation of this series?",
+        "Compute the PACF for order selection.",
+        "Fit an AR model using Yule-Walker estimation.",
+        "Run the Levinson-Durbin recursion on this autocovariance sequence.",
+        "Estimate autoregressive coefficients for this time series.",
+    ],
+)
+def test_call_tool_default_router_infers_timeseries_from_ar_request(
+    engine: Engine, request_text: str
+) -> None:
+    """Keyword routing alone (v2.5.1): no NL-argument-extraction parser
+    exists for arbitrary numeric series, so a request-only call still fails
+    -- but it must fail as time_series's own honest 'requires demo_label or
+    skill_id+inputs' error, not the router's generic 'could not infer a
+    specialist' (proving the AR/ACF/PACF/Yule-Walker/Levinson-Durbin
+    keywords are actually recognized as timeseries intent)."""
+    result = call_tool(engine, "agent.default", {"request": request_text})
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "requires 'demo_label'" in payload["error"]
+
+
+def test_call_tool_default_router_executes_ar_yule_walker_via_request_plus_skill(
+    engine: Engine,
+) -> None:
+    """The realistic invocation pattern for this domain: a natural-language
+    request carries intent for routing, while skill_id+inputs -- not a
+    fabricated NL argument parse -- carries the actual numeric input. Proves
+    the full MCP path (router -> agent.time_series -> real skill execution)
+    is callable end-to-end for the new AR package."""
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": "Estimate the AR(1) coefficient of this series via Yule-Walker.",
+            "skill_id": "timeseries.ar_yule_walker",
+            "inputs": {"series": [1.0, -1.0, 1.0, -1.0], "order": 1},
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == "agent.time_series"
+    assert payload["result"]["skill_id"] == "timeseries.ar_yule_walker"
+    assert payload["result"]["execution"]["status"] == "VERIFIED"
+    assert math.isclose(
+        payload["result"]["execution"]["result"]["ar_coefficients"][0],
+        -0.75,
+        rel_tol=0,
+        abs_tol=1e-9,
+    )
+
+
+def test_call_tool_default_router_explicit_skill_id_wins_over_ar_keywords(
+    engine: Engine,
+) -> None:
+    """Explicit skill_id must win over the request-text heuristic even when
+    the request text itself contains AR/timeseries keywords -- routing by
+    skill_id prefix is checked before the request-based fallback."""
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": "This mentions autocorrelation and Yule-Walker but asks for a root.",
+            "skill_id": "mathematics.solve_root",
+            "inputs": {"expression": "x**2 - 2", "bracket": [0, 2]},
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == "agent.applied_mathematics"
+    assert payload["result"]["skill_id"] == "mathematics.solve_root"
+
+
 def test_run_specialist_by_name_rejects_unknown_agent_tool(engine: Engine) -> None:
     """Defensive branch: unreachable through call_tool's `_AGENT_TOOL_SCHEMAS`
     gate, but guards `_run_specialist_by_name` itself against misuse."""

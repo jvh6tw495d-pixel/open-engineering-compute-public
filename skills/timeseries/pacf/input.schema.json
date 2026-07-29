@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.pacf input",
+  "type": "object",
+  "properties": {
+    "series": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "number" }
+    },
+    "nlags": { "type": "integer", "minimum": 1 },
+    "method": {
+      "type": "string",
+      "enum": ["levinson-durbin"]
+    },
+    "demean": { "type": "boolean" }
+  },
+  "required": ["series", "nlags"],
+  "additionalProperties": false
+}

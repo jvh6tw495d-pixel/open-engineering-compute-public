@@ -395,6 +395,21 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "steps_ahead": 1,
         "method": "naive",
     },
+    "timeseries.autocorrelation": {
+        "series": [1.0, -1.0, 1.0, -1.0],
+        "nlags": 3,
+    },
+    "timeseries.pacf": {
+        "series": [1.0, -1.0, 1.0, -1.0],
+        "nlags": 3,
+    },
+    "timeseries.ar_yule_walker": {
+        "series": [1.0, -1.0, 1.0, -1.0],
+        "order": 1,
+    },
+    "timeseries.levinson_durbin": {
+        "autocorrelation": [1.0, 0.5, 0.25, 0.125],
+    },
     "optimization.lp_diagnostics": {
         "ops": {
             "ops_version": "0.1.0",

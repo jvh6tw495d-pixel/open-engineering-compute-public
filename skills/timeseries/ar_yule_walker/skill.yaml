@@ -1,0 +1,39 @@
+id: timeseries.ar_yule_walker
+version: 0.1.0
+status: experimental
+domain: timeseries
+title: AR Coefficient Estimation (Yule-Walker)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: yule_walker_levinson_durbin
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 10
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Box, G.E.P., Jenkins, G.M., Reinsel, G.C. (2015). Time Series Analysis: Forecasting and Control, 5th ed., Wiley, Ch. 3 — Yule-Walker AR estimation."
+
+tags:
+  - timeseries
+  - autocorrelation
+  - v2.5.1

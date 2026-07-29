@@ -257,7 +257,24 @@ def _infer_domain_from_request(request: str) -> str | None:
         return "energy"
     if any(
         token in text
-        for token in ("series", "time series", "série temporal", "resample", "rolling")
+        for token in (
+            "series",
+            "time series",
+            "série temporal",
+            "resample",
+            "rolling",
+            "autocorrelat",
+            "autocorrelação",
+            "pacf",
+            "autocorrelação parcial",
+            "partial autocorrelation",
+            "yule-walker",
+            "yule walker",
+            "levinson",
+            "durbin",
+            "autoregress",
+            "autorregress",
+        )
     ):
         return "timeseries"
     if any(
