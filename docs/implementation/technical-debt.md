@@ -1,10 +1,10 @@
 # Technical debt
 
-**Current-state review:** 2026-07-28 at `oec==2.3.0` (package metadata still
-unbumped past 2.3.0 despite v2.4/v2.5 kernel-unification, verification, and
-golden-set work already committed on `codex/oec-v2.5` — see
-`docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md` for the
-metadata/version-bump backlog this predates).
+**Current-state review:** 2026-07-29 at `oec==2.5.0` — the v2.4/v2.5 release
+metadata closeout (package version, `CHANGELOG.md`, README status, skill
+inventory) landed; see
+`docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md` §6 Step E
+for the consolidation gate this closes.
 
 This file began as a Phase A snapshot. Historical entries remain for
 traceability; the current queue below is the canonical starting point for new
@@ -41,6 +41,7 @@ closure below cites the commit/file that actually did it.
 | — | 2026-07-28 | v2.5 critical-path coverage measured for the first time: 90% aggregate, meets the gate (see `docs/implementation/v2.5-critical-path-coverage.md`; the kernel-specific shortfall this surfaced is tracked as D-CUR-19 above, not closed) |
 | — | 2026-07-28 | v2.5 public-API docstring coverage measured and closed: 87.8% → 100%, `scripts/audit_public_api_docs.py` added (see `docs/implementation/v2.5-public-api-docs-audit.md`) |
 | — | 2026-07-28 | `forbidden_names` gate back to zero hits — reworded `v2.4-team-brief.md`'s stray forbidden-list word |
+| — | 2026-07-29 | v2.4/v2.5 release metadata closeout: package version `2.3.0 → 2.5.0`, `CHANGELOG.md` v2.5.0 entry, README status, `docs/implementation/skill-inventory.md` reconciled (`40 → 63` skills) |
 
 ## Historical Phase A view
 

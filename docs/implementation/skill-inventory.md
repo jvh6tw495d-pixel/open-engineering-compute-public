@@ -1,23 +1,28 @@
 # Skill inventory
 
-**Updated:** 2026-07-26 (GPT plan remainder closed: S7′ + S10 + S19 + S23–S26)
+**Updated:** 2026-07-29 (v2.5 release closeout — reconciled against the real
+`skills/` tree; the count below had drifted from 40 as v2.2–v2.5 work landed
+without an inventory refresh)
 **Registry root:** `skills/`
 
 ## Summary
 
 | Domain | Count | Notes |
 |---|---|---|
-| mathematics | 6 | SciPy scalar methods |
+| mathematics | 8 | + `differentiate`, `solve_ir` (Math IR) since v2.2/v2.5 |
 | electrical | 6 | closed-form + Pint |
-| timeseries | 9 | + timegrid, quality ops |
-| linear | 2 | solve + matrix_properties |
+| timeseries | 12 | + `align`, `backtest`, `forecast_simple`, `lag_features`, `power_to_energy` since v2.3 |
+| linear | 5 | + `eig`, `least_squares`, `residual_norms` since v2.3 |
 | numerical | 2 | ode_ivp, root_system |
-| statistics | 2 | describe + monte_carlo |
-| optimization | 7 | lp, milp, feasibility, scenario, qp, nlp, multiobjective |
+| statistics | 5 | + `bootstrap`, `intervals`, `regression` since v2.3 |
+| optimization | 12 | + `cvar_lp`, `infeasibility_explain`, `lp_diagnostics`, `pareto_lp`, `robust_lp` since v2.3 |
 | energy | 2 | balance, load_metrics |
 | battery | 1 | soc_step |
 | finance | 3 | simple_returns, max_drawdown, var_historical |
-| **Total** | **40** | experimental @ 0.1.0 |
+| control | 2 | `kalman_filter`, `pid_discrete` (v2.3 Wave B) |
+| dynamics | 2 | `stability_margins`, `state_space_simulate` (v2.3 Wave B) |
+| uncertainty | 3 | `lhs`, `morris`, `propagate_linear` (v2.3 Wave B) |
+| **Total** | **63** | experimental @ 0.1.0–0.2.0 (see each skill's `skill.yaml`) |
 
 ## GPT plan coverage
 

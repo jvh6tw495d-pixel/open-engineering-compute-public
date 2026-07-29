@@ -207,6 +207,20 @@ in-progress MCP specialist-agent router (`src/oec/mcp/server.py` and
 friends) another concurrent session was actively editing in the same
 working tree at rebuild time; that work is not part of this commit.
 
+### v2.5.0 release closeout rebuild
+
+Rebuilt on **2026-07-29** after the v2.4/v2.5 release metadata closeout
+(version bump `2.3.0 → 2.5.0`, `CHANGELOG.md` v2.5.0 entry consolidating both
+versions, README status, `skill-inventory.md` reconciled `40 → 63`,
+`technical-debt.md` closures) plus the MCP natural-language scalar-extrema
+routing feature (`agent.default` request-field domain inference,
+`AppliedMathematicsSpecialist.run_request`) committed immediately before this
+closeout. **8328 nodes**, **12547 edges**, **664 communities** — graph now
+above the 5000-node visualization limit, so `graph.html` is the aggregated
+community view; use `graph.json` + `GRAPH_REPORT.md` for node-level detail.
+The closeout changes are committed as the v2.5.0 release commit immediately
+after this rebuild.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

@@ -1,6 +1,7 @@
 # Open Engineering Compute (OEC)
 
-> **Status:** **v2.3.0 Applied Math expansion** (private; V3 roadmap).
+> **Status:** **v2.5.0 Backend Registry, Verification Engine & Mathematics
+> Complete consolidation** (private; V3 roadmap).
 > First **public GitHub** release is planned for **v3.0** — not this history
 > (see [Public Alpha procedure](docs/release/public-alpha.md) and
 > [V3 implementation plan](docs/implementation/OEC_V3_IMPLEMENTATION_PLAN.md)).
@@ -100,12 +101,22 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 ## Status / release
 
 **v2.2.0** delivered Math IR foundation (`oec.modeling`, ADR 0020).
-**v2.3.0** closes the Applied Math expansion (Waves A+B+C): 21 new skills since
+**v2.3.0** closed the Applied Math expansion (Waves A+B+C): 21 new skills since
 2.2 (linear/stats/TS/opt, uncertainty, dynamics, control, Pareto/CVaR/robust LP),
 plus A23/B23 scientific corrections — **accepted** for private incubation
 ([acceptance seal](docs/implementation/v2.3-accepted-and-merge-prep.md)).
-See [CHANGELOG.md](CHANGELOG.md). **Next:** Backend Registry + formal Verification
-([v2.4 team brief](docs/implementation/v2.4-team-brief.md)).
+**v2.5.0** closes v2.4 (Backend Capability Registry + Verification Engine,
+ADR 0021) and v2.5 (computational kernel unification under ADR 0022,
+`mathematics.differentiate`, MCP agent-first tool catalog with
+natural-language routing) in one consolidated release: golden-set
+distribution (193 cases / 8 domains), critical-path coverage (90%), and
+public-API docstring coverage (100%) gates are all met — see
+[CHANGELOG.md](CHANGELOG.md). Catalog is now **63** skills
+([inventory](docs/implementation/skill-inventory.md)). Known open residuals
+(kernel coverage below the aggregate bar, no auth/rate-limiting on REST/MCP,
+no OS-level sandbox isolation) are tracked in
+[technical-debt.md](docs/implementation/technical-debt.md); next scope is
+not yet decided.
 
 This clone is the **incubation** repository (no remote). Public Alpha must use a
 **new directory and clean git history** — see:

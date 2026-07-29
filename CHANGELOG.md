@@ -5,6 +5,113 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.5.0] — 2026-07-29
+
+This release closes both **v2.4** (Backend Registry + Verification Engine)
+and **v2.5** (Math IR / kernel consolidation + release gates) in a single
+version bump — neither had a package version, CHANGELOG, or README update at
+implementation time, by explicit design mirroring the v2.1/v2.2 pattern
+(commits stayed on `oec==2.3.0` while the work landed). See
+[v2.1-delivery-status-and-v2.5-next-steps.md](docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md)
+§6 Step E for the consolidation gate this closes.
+
+### Added — v2.4 Backend Registry + Verification Engine (ADR 0021)
+
+- **Backend Capability Registry** (`src/oec/backends/`): static per-backend
+  capability domains (numpy/scipy/HiGHS), thin availability probes, backend
+  selection by capability, and a structured `ERROR` outcome when a method's
+  declared backend is unavailable instead of a raw exception.
+- **Verification Engine** (`src/oec/verification/`): `VerificationReport`
+  with pre-checks (`input_validation`, `backend_fit`) and post-checks
+  (`convergence`, `residuals_and_conditioning`, `lp_gap_report`,
+  `provenance_integrity`), wired additively into `ExecutionService.execute`
+  as `validation["verification"]`. `ExecutionResult`'s required shape is
+  unchanged.
+- Independent review (fable) found and closed two real defects before this
+  closeout: `lp_gap` had a hardcoded `passed=True` (renamed to
+  `lp_gap_report`, informational — no configured gap tolerance exists to
+  evaluate against); `reproducibility` only confirmed a hash was present, not
+  that anything was re-run (renamed `provenance_integrity`). The Math IR LP
+  parity test was also rewritten to go through the real `optimization.lp`
+  skill instead of re-deriving the same internal call sequence it was meant
+  to check.
+
+### Added — v2.5 computational kernel unification (ADR 0022)
+
+- Root-finding, root-system solving, ODE integration, interpolation, and
+  numerical integration unified under `src/oec/kernel/computational/` behind
+  a shared `ComputationalDiagnostics` model and per-domain result wrappers.
+  Interpolation/integration had no kernel module before this (logic was
+  inline in each skill); differentiation did not exist anywhere.
+- New experimental skill: `mathematics.differentiate` (central/forward/
+  backward finite differences; hand-rolled since `scipy.misc.derivative` was
+  removed from modern SciPy).
+- No existing skill's schema, manifest, version, or golden tests changed —
+  each skill's `implementation.py` already reshaped the kernel's raw output
+  into its own result/diagnostics dict.
+
+### Added — v2.5 release gates
+
+- **Golden-set distribution gate**: the "Mathematics Complete" hard gate
+  (≥130 canonical cases across 8 domains with explicit per-domain minimums,
+  `OEC_V3_IMPLEMENTATION_PLAN.md` §9) is now met — **193** total cases across
+  all 8 buckets, including a new `tests/golden/test_validation_and_failures.py`
+  (22 cases) covering non-convergence, solver infeasibility, and
+  linear-algebra/physical/dimensional/expression/schema validation failures.
+  See `docs/implementation/v2.5-golden-set-expansion.md`.
+- **Critical-path coverage gate**: the scientific-correctness path
+  (execution/validation/verification/kernel/modeling/ops/backends/core/sdk/
+  errors — distinct from CLI/REST/MCP adapters and skill packaging) measured
+  for the first time at **90%** aggregate, meeting the gate.
+  `src/oec/kernel/` alone sits at 86%; see
+  `docs/implementation/v2.5-critical-path-coverage.md` for the 11 weakest
+  submodules, tracked as `D-CUR-19`.
+- **Public API docstring coverage gate**: new `scripts/audit_public_api_docs.py`
+  (AST-based, no import side effects) scanning SDK/CLI/REST/MCP entrypoints
+  and the `ExecutionResult`/OPS/errors contract shapes — **87.8% → 100%**
+  after five one-line docstring additions, no schema/behavior change.
+- `forbidden_names` gate back to zero hits (reworded a stray private-product
+  term in `v2.4-team-brief.md`).
+
+### Added — MCP agent-first tool catalog
+
+- The pre-existing `agents/` companion layer (Optimization Specialist,
+  Scientific Reviewer, Applied Mathematics, Time-Series, Energy) is now
+  wired into the MCP server as first-class tools: an `agent.default` router
+  plus one `agent.<specialist>` tool per domain, and a `list_agents`
+  discovery tool. Raw skill tools remain available, now nudged toward the
+  agent-first path in their descriptions.
+- `agent.default` additionally accepts a free-text `request` field and
+  infers the target specialist from keyword heuristics (mathematics/energy/
+  timeseries/optimization/review) when no other routing signal (`ops`,
+  `execution`, `preferred_domain`, `demo_label`, `skill_id`) is present.
+- The Applied Mathematics Specialist's new `run_request()` handles a narrow
+  class of natural-language scalar-extrema requests ("find the max/min of
+  f(x)=... on [a,b]", including clock-offset phrasing like "t hours after
+  noon"): it normalizes the expression and answers by running
+  `mathematics.optimize_scalar` twice (min, and negated for max) through the
+  governed `Engine` path — no numerical answer is computed outside OEC.
+
+### Changed
+
+- Package version **2.3.0 → 2.5.0**.
+- `docs/implementation/skill-inventory.md` reconciled against the real
+  `skills/` tree: **40 → 63** skill packages (the count had drifted stale
+  across the v2.2–v2.5 work above without an inventory refresh); per-domain
+  counts and the skills added since each prior version are now listed.
+- `docs/implementation/technical-debt.md` reconciled: `D-CUR-14` (Backend
+  Registry/Verification) closed; `D-CUR-19` (kernel coverage residual)
+  opened.
+
+### Notes
+
+- `src/oec/kernel/` coverage (86%) remains below the 90% bar the rest of the
+  critical path clears — tracked as `D-CUR-19`, not blocking this gate
+  (aggregate critical-path coverage is 90%).
+- REST/MCP still ship without authentication or rate limiting (unchanged
+  from prior releases; `D-CUR-10`).
+- Public GitHub release remains a separate **v3.0** milestone.
+
 ## [2.3.0] — 2026-07-27
 
 ### Added — v2.3 Wave C + Applied Math Complete (private)
