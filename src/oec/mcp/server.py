@@ -220,6 +220,65 @@ def _skills_root_for(engine: Engine) -> Path:
     return getattr(engine, "skills_root", Path("skills"))
 
 
+def _infer_domain_from_request(request: str) -> str | None:
+    text = request.lower()
+
+    if any(
+        token in text
+        for token in (
+            "deriv",
+            "integral",
+            "raiz",
+            "root",
+            "equa",
+            "maximize",
+            "maximizar",
+            "minimum",
+            "minimo",
+            "mínimo",
+            "máximo",
+            "maximum",
+            "função",
+            "funcao",
+            "function",
+            "velocidade",
+            "velocidade média",
+            "mais rápido",
+            "mais lento",
+            "faster",
+            "slower",
+        )
+    ):
+        return "mathematics"
+    if any(
+        token in text
+        for token in ("battery", "energia", "energy", "soc", "three phase", "três fases")
+    ):
+        return "energy"
+    if any(
+        token in text
+        for token in ("series", "time series", "série temporal", "resample", "rolling")
+    ):
+        return "timeseries"
+    if any(
+        token in text
+        for token in (
+            "lp",
+            "milp",
+            "ops",
+            "objective",
+            "constraint",
+            "restri",
+            "otimização linear",
+            "optimization",
+        )
+    ):
+        return "optimization"
+    if any(token in text for token in ("review", "audit", "auditar", "revisar")):
+        return "review"
+    return None
+
+
 def _router_target_for(arguments: dict[str, Any]) -> str:
     if "execution" in arguments:
         return _AGENT_REVIEWER_TOOL_NAME
@@ -275,6 +334,20 @@ def _router_target_for(arguments: dict[str, Any]) -> str:
     if demo_label in {"balance", "load_metrics", "soc_step", "three_phase"}:
         return _AGENT_ENERGY_TOOL_NAME
 
+    request = arguments.get("request")
+    if isinstance(request, str):
+        inferred = _infer_domain_from_request(request)
+        if inferred == "optimization":
+            return _AGENT_OPTIMIZATION_TOOL_NAME
+        if inferred == "review":
+            return _AGENT_REVIEWER_TOOL_NAME
+        if inferred == "timeseries":
+            return _AGENT_TIME_SERIES_TOOL_NAME
+        if inferred == "energy":
+            return _AGENT_ENERGY_TOOL_NAME
+        if inferred == "mathematics":
+            return _AGENT_APPLIED_MATH_TOOL_NAME
+
     raise ValueError(
         "agent.default could not infer a specialist. Provide ops/execution, "
         "preferred_domain, demo_label, or explicit skill_id+inputs."
@@ -287,7 +360,6 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
     if name == _AGENT_DEFAULT_TOOL_NAME:
         target = _router_target_for(arguments)
         routed_payload = dict(arguments)
-        routed_payload.pop("request", None)
         routed_payload.pop("preferred_domain", None)
         specialist_result = _run_specialist_by_name(engine, target, routed_payload)
         return {
@@ -320,12 +392,11 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
             claimed_solver_status=arguments.get("claimed_solver_status"),
         ).to_dict()
 
+    from agents.applied_mathematics.specialist import AppliedMathematicsSpecialist
     from agents.common import SkillSpecialist
 
     specialist: SkillSpecialist
     if name == _AGENT_APPLIED_MATH_TOOL_NAME:
-        from agents.applied_mathematics.specialist import AppliedMathematicsSpecialist
-
         specialist = AppliedMathematicsSpecialist(skills_root=skills_root)
     elif name == _AGENT_TIME_SERIES_TOOL_NAME:
         from agents.time_series.specialist import TimeSeriesSpecialist
@@ -342,6 +413,8 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
         return specialist.run_demo(str(arguments["demo_label"])).to_dict()
     if "skill_id" in arguments and "inputs" in arguments:
         return specialist.run_skill(str(arguments["skill_id"]), arguments["inputs"]).to_dict()
+    if isinstance(specialist, AppliedMathematicsSpecialist) and "request" in arguments:
+        return specialist.run_request(str(arguments["request"])).to_dict()
     raise ValueError(f"{name} requires 'demo_label' or both 'skill_id' and 'inputs'")
 
 

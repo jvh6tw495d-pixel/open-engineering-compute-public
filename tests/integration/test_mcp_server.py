@@ -343,6 +343,52 @@ def test_call_tool_default_router_raises_when_no_signal(engine: Engine) -> None:
     assert "could not infer a specialist" in payload["error"]
 
 
+def test_call_tool_default_router_infers_mathematics_from_request(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": (
+                "Determine o máximo e o mínimo de v(t)=t^3 - 10.5*t^2 + 30*t + 20 "
+                "entre 13 e 18 horas, onde t é o número de horas após o meio-dia."
+            )
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == "agent.applied_mathematics"
+    assert payload["result"]["interpreted_as"] == "scalar_extrema_on_closed_interval"
+
+
+def test_call_tool_default_router_solves_clock_offset_extrema_request(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": (
+                "Durante várias semanas, o departamento de trânsito registrou a velocidade "
+                "média v(t)=t^3 - 10,5 t^2 + 30 t + 20 km/h, onde t é o número de horas "
+                "após o meio-dia. Qual o instante, entre 13 e 18 horas, em que o trânsito "
+                "é mais rápido? E qual o instante em que ele é mais lento?"
+            )
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    report = payload["result"]
+    assert payload["selected_agent"] == "agent.applied_mathematics"
+    assert report["bounds"] == [1.0, 6.0]
+    assert report["offset_hours"] == 12.0
+    min_x = report["min_execution"]["result"]["x"]
+    max_x = report["max_execution"]["result"]["x"]
+    min_value = report["min_execution"]["result"]["fun"]
+    max_value = -report["max_execution"]["result"]["fun"]
+    assert math.isclose(min_x, 5.0, rel_tol=0, abs_tol=1e-3)
+    assert math.isclose(max_x, 2.0, rel_tol=0, abs_tol=1e-3)
+    assert math.isclose(min_value, 32.5, rel_tol=0, abs_tol=1e-3)
+    assert math.isclose(max_value, 46.0, rel_tol=0, abs_tol=1e-3)
+
+
 def test_run_specialist_by_name_rejects_unknown_agent_tool(engine: Engine) -> None:
     """Defensive branch: unreachable through call_tool's `_AGENT_TOOL_SCHEMAS`
     gate, but guards `_run_specialist_by_name` itself against misuse."""
