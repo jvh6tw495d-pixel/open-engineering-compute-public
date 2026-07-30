@@ -1,10 +1,10 @@
 # Technical debt
 
-**Current-state review:** 2026-07-29 at `oec==2.5.0` — the v2.4/v2.5 release
-metadata closeout (package version, `CHANGELOG.md`, README status, skill
-inventory) landed; see
+**Current-state review:** 2026-07-30 at `oec==2.5.1` — the v2.5.1 refinement
+release (AR/autocorrelation package, `agent.default` routing, catalog
+reconciliation, kernel coverage push) landed; see
 `docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md` §6 Step E
-for the consolidation gate this closes.
+for the v2.5 consolidation gate closed on 2026-07-29.
 
 This file began as a Phase A snapshot. Historical entries remain for
 traceability; the current queue below is the canonical starting point for new
@@ -24,7 +24,7 @@ closure below cites the commit/file that actually did it.
 | D-CUR-12 | P2 | Runner subprocess paths have limited direct coverage instrumentation | Still open — `src/oec/execution/runner.py` at 73% (crash/timeout branches uncovered) |
 | D-CUR-13 | P2 | Development telemetry/cost per accepted task is not implemented | Still open — operations roadmap |
 | D-CUR-15 | P2 | No Git tags or remote; “release” currently means private commit milestone | Still open — explicit release-governance decision |
-| D-CUR-19 | P2 | `src/oec/kernel/` package coverage is 86%, below the 90% critical-path bar the rest of the package list clears | 11 submodules ranked weakest-first in `docs/implementation/v2.5-critical-path-coverage.md` §3 |
+| D-CUR-20 | P2 | `check_bound_conflicts`/empty-coefficient precheck branches in `src/oec/kernel/optimization/feasibility.py`'s three public functions appear unreachable — `validate_ops` (called first in all three) already rejects the same malformed input earlier | Still open — needs a design decision (remove as dead code / find an undiscovered call path / relax `validate_ops`), not a coverage fix; see `tests/unit/test_kernel_optimization_feasibility.py`'s module docstring |
 
 ## Recently closed
 
@@ -42,6 +42,8 @@ closure below cites the commit/file that actually did it.
 | — | 2026-07-28 | v2.5 public-API docstring coverage measured and closed: 87.8% → 100%, `scripts/audit_public_api_docs.py` added (see `docs/implementation/v2.5-public-api-docs-audit.md`) |
 | — | 2026-07-28 | `forbidden_names` gate back to zero hits — reworded `v2.4-team-brief.md`'s stray forbidden-list word |
 | — | 2026-07-29 | v2.4/v2.5 release metadata closeout: package version `2.3.0 → 2.5.0`, `CHANGELOG.md` v2.5.0 entry, README status, `docs/implementation/skill-inventory.md` reconciled (`40 → 63` skills) |
+| D-CUR-19 | 2026-07-30 | `src/oec/kernel/` package coverage raised 86% → 91.4% via a targeted push on the 4 weakest modules (`timeseries.quality` 67%→100%, `timeseries.ops` 68%→96%, `timeseries.timegrid` 70%→100%, `optimization.feasibility` 77%→84%); now clears the 90% critical-path bar (v2.5.1, commit `45c06e9`) |
+| — | 2026-07-30 | v2.5.1 refinement release: AR/autocorrelation package (`timeseries.{autocorrelation,pacf,ar_yule_walker,levinson_durbin}`), `agent.default` routing extension, `docs/implementation/skill-inventory.md` reconciled again (`63 → 67` skills), package version `2.5.0 → 2.5.1` |
 
 ## Historical Phase A view
 

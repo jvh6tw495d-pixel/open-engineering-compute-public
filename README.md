@@ -1,7 +1,7 @@
 # Open Engineering Compute (OEC)
 
-> **Status:** **v2.5.0 Backend Registry, Verification Engine & Mathematics
-> Complete consolidation** (private; V3 roadmap).
+> **Status:** **v2.5.1 refinement** — AR/autocorrelation time-series
+> package, catalog/routing reconciliation (private; V3 roadmap).
 > First **public GitHub** release is planned for **v3.0** — not this history
 > (see [Public Alpha procedure](docs/release/public-alpha.md) and
 > [V3 implementation plan](docs/implementation/OEC_V3_IMPLEMENTATION_PLAN.md)).
@@ -111,7 +111,13 @@ ADR 0021) and v2.5 (computational kernel unification under ADR 0022,
 natural-language routing) in one consolidated release: golden-set
 distribution (193 cases / 8 domains), critical-path coverage (90%), and
 public-API docstring coverage (100%) gates are all met — see
-[CHANGELOG.md](CHANGELOG.md). Catalog is now **63** skills
+[CHANGELOG.md](CHANGELOG.md). **v2.5.1** is a refinement release (not a new
+domain wave): a `timeseries.*` AR/autocorrelation package
+(`autocorrelation`, `pacf`, `ar_yule_walker`, `levinson_durbin`),
+`agent.default` routing for that domain's intent, catalog reconciliation,
+and a coverage push on the four weakest kernel modules
+(`quality`/`ops`/`timegrid`/`feasibility`, aggregate suite coverage
+90.67% → 92.0%). Catalog is now **67** skills
 ([inventory](docs/implementation/skill-inventory.md)). Known open residuals
 (kernel coverage below the aggregate bar, no auth/rate-limiting on REST/MCP,
 no OS-level sandbox isolation) are tracked in

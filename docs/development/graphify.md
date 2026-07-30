@@ -221,6 +221,20 @@ community view; use `graph.json` + `GRAPH_REPORT.md` for node-level detail.
 The closeout changes are committed as the v2.5.0 release commit immediately
 after this rebuild.
 
+### v2.5.1 refinement release rebuild
+
+Rebuilt on **2026-07-30** after the v2.5.1 refinement release: the
+AR/autocorrelation package (`src/oec/kernel/timeseries/ar.py` +
+`timeseries.{autocorrelation,pacf,ar_yule_walker,levinson_durbin}`),
+`agent.default` routing extension, four new kernel-level coverage-push
+test files, and the release metadata closeout (version `2.5.0 → 2.5.1`,
+`CHANGELOG.md`, README, `skill-inventory.md` `63 → 67`,
+`technical-debt.md`). **8846 nodes**, **13210 edges**, **669
+communities** — still above the 5000-node visualization limit;
+`graph.html` remains the aggregated community view. The closeout changes
+are committed as the v2.5.1 release commit immediately after this
+rebuild.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

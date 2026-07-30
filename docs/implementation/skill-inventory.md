@@ -1,8 +1,7 @@
 # Skill inventory
 
-**Updated:** 2026-07-29 (v2.5 release closeout — reconciled against the real
-`skills/` tree; the count below had drifted from 40 as v2.2–v2.5 work landed
-without an inventory refresh)
+**Updated:** 2026-07-30 (v2.5.1 — reconciled again after the AR/autocorrelation
+package; see 2026-07-29's v2.5 closeout for the prior 40→63 reconciliation)
 **Registry root:** `skills/`
 
 ## Summary
@@ -11,7 +10,7 @@ without an inventory refresh)
 |---|---|---|
 | mathematics | 8 | + `differentiate`, `solve_ir` (Math IR) since v2.2/v2.5 |
 | electrical | 6 | closed-form + Pint |
-| timeseries | 12 | + `align`, `backtest`, `forecast_simple`, `lag_features`, `power_to_energy` since v2.3 |
+| timeseries | 16 | + `autocorrelation`, `pacf`, `ar_yule_walker`, `levinson_durbin` since v2.5.1 |
 | linear | 5 | + `eig`, `least_squares`, `residual_norms` since v2.3 |
 | numerical | 2 | ode_ivp, root_system |
 | statistics | 5 | + `bootstrap`, `intervals`, `regression` since v2.3 |
@@ -22,7 +21,7 @@ without an inventory refresh)
 | control | 2 | `kalman_filter`, `pid_discrete` (v2.3 Wave B) |
 | dynamics | 2 | `stability_margins`, `state_space_simulate` (v2.3 Wave B) |
 | uncertainty | 3 | `lhs`, `morris`, `propagate_linear` (v2.3 Wave B) |
-| **Total** | **63** | experimental @ 0.1.0–0.2.0 (see each skill's `skill.yaml`) |
+| **Total** | **67** | experimental @ 0.1.0–0.2.0 (see each skill's `skill.yaml`) |
 
 ## GPT plan coverage
 

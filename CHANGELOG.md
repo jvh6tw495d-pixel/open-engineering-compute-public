@@ -5,6 +5,89 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.5.1] — 2026-07-30
+
+A refinement release, not a new platform wave (no Physics/Chemistry/
+multiphysics scope): reconciles the published catalog against the real
+repository state, closes the most visible domain gap exposed by
+model-facing tests, improves `agent.default` routing where the contract
+already promises generic entry, and reduces the highest-value residual
+coverage risk left after the v2.5 gate.
+
+### Added — governed capabilities
+
+Four new `timeseries.*` skills for classic autoregressive/autocorrelation
+estimation, none of which existed anywhere in OEC before this release:
+
+- `timeseries.autocorrelation` — sample ACF (biased/unbiased estimators).
+- `timeseries.pacf` — partial ACF via the Levinson-Durbin recursion's
+  reflection coefficients.
+- `timeseries.ar_yule_walker` — AR(`order`) coefficient + innovation
+  variance estimation.
+- `timeseries.levinson_durbin` — the shared `O(p^2)` Toeplitz-solve engine
+  behind the two skills above, exposed directly for callers who already
+  have an autocorrelation/autocovariance sequence in hand. Honestly
+  reports (rather than raising) when an input sequence isn't a valid
+  positive-semidefinite autocorrelation sequence.
+
+All four share one hand-rolled kernel module
+(`src/oec/kernel/timeseries/ar.py` — no SciPy/pandas primitive exists for
+Levinson-Durbin; OEC does not depend on statsmodels) and carry the full
+skill contract (schema/implementation/validation/references/examples/
+golden+validation tests) plus a dedicated kernel-level unit test file with
+hand-derived closed-form expected values.
+
+### Added — improved routing behavior
+
+`agent.default`'s request-keyword router recognizes autocorrelation/PACF/
+Yule-Walker/Levinson-Durbin/autoregression intent and routes it to
+`agent.time_series`. No natural-language argument-extraction parser was
+built for arbitrary numeric series (unlike the existing mathematics
+scalar-extrema case) — a request-only call in this domain now selects the
+right specialist but still fails with the existing honest "requires
+demo_label or skill_id+inputs" message rather than hallucinating a route
+or a number. The realistic invocation — request text for routing,
+explicit `skill_id`+`inputs` for the actual numbers — is proven end-to-end
+in a new integration test. Explicit `skill_id` still wins over
+request-text keywords, even when the text itself contains AR/timeseries
+terms.
+
+### Changed — documentation reconciliation
+
+- Package version **2.5.0 → 2.5.1**.
+- `docs/implementation/skill-inventory.md`: **63 → 67** skills (the four
+  new ones above); per-domain counts refreshed.
+
+### Fixed — residual coverage risk reduction
+
+Targeted coverage push on the four weakest modules named in
+`docs/implementation/v2.5-critical-path-coverage.md`:
+
+- `kernel/timeseries/quality.py`: 67% → **100%**.
+- `kernel/timeseries/ops.py`: 68% → **96%**.
+- `kernel/timeseries/timegrid.py`: 70% → **100%**.
+- `kernel/optimization/feasibility.py`: 77% → **84%**.
+
+Aggregate suite coverage rose from 90.67% to **92.0%** (1362 → 1425 tests).
+
+### Notes — residual limitations that remain open
+
+- `kernel/optimization/feasibility.py`'s remaining coverage gap is not a
+  shortfall to chase further without a design decision first: its
+  precheck branches (`check_bound_conflicts`, empty-coefficient
+  constraint detection) are unreachable through any of its three public
+  entrypoints, because `oec.ops.models.validate_ops` — which all three
+  call first — already rejects the same malformed input earlier
+  (Pydantic rejects `lower > upper`; the OPS JSON Schema requires
+  non-empty `coeffs`). Flagged as a follow-up rather than force-covered
+  or silently fixed.
+- Burg's method (`timeseries.ar_burg`), the documented optional stretch
+  item, was not implemented.
+- No AIC/BIC order selection, standard errors, or confidence intervals are
+  reported by any of the four new skills.
+- REST/MCP still ship without authentication or rate limiting; no
+  OS-level sandbox isolation exists yet (unchanged from prior releases).
+
 ## [2.5.0] — 2026-07-29
 
 This release closes both **v2.4** (Backend Registry + Verification Engine)
