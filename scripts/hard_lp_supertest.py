@@ -149,7 +149,7 @@ def build_ops(
             constraints.append(
                 {
                     "name": f"soc{t}",
-                    "coeffs": {f"s{t}": 1.0, f"s{t-1}": -1.0, f"c{t}": -1.0, f"d{t}": 1.0},
+                    "coeffs": {f"s{t}": 1.0, f"s{t - 1}": -1.0, f"c{t}": -1.0, f"d{t}": 1.0},
                     "sense": "=",
                     "rhs": 0.0,
                 }
@@ -157,7 +157,7 @@ def build_ops(
     constraints.append(
         {
             "name": "terminal_soc",
-            "coeffs": {f"s{len(load)-1}": 1.0},
+            "coeffs": {f"s{len(load) - 1}": 1.0},
             "sense": ">=",
             "rhs": float(soc_end_min),
         }
@@ -499,7 +499,7 @@ def run_arm(
                 "total_grid_mwh": sum(float(primal.get(f"g{t}", 0.0)) for t in range(T)),
                 "total_discharge_mwh": sum(float(primal.get(f"d{t}", 0.0)) for t in range(T)),
                 "total_charge_mwh": sum(float(primal.get(f"c{t}", 0.0)) for t in range(T)),
-                "terminal_soc_mwh": float(primal.get(f"s{T-1}", 0.0)),
+                "terminal_soc_mwh": float(primal.get(f"s{T - 1}", 0.0)),
                 "grid_trajectory": [float(primal.get(f"g{t}", 0.0)) for t in range(T)],
                 "charge_trajectory": [float(primal.get(f"c{t}", 0.0)) for t in range(T)],
                 "discharge_trajectory": [float(primal.get(f"d{t}", 0.0)) for t in range(T)],
