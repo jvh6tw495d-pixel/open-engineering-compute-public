@@ -75,7 +75,7 @@ def test_list_tools_includes_agents_skills_and_discovery(engine: Engine) -> None
     assert "Prefer `agent.default`" in by_name["mathematics.solve_root"].description
 
     # Agent-first catalog: fixed agent tools + discovery + raw skills.
-    assert len(tools) == len(skill_ids) + 8
+    assert len(tools) == len(skill_ids) + 10
 
 
 def test_call_tool_solve_root_returns_validated_result(engine: Engine) -> None:
@@ -612,9 +612,9 @@ def test_call_tool_default_router_infers_agent_from_demo_label(
 
 def test_call_tool_default_router_raises_when_no_signal(engine: Engine) -> None:
     result = call_tool(engine, "agent.default", {"request": "do something vague"})
-    assert result.isError is True
+    assert result.isError is False
     payload = _parse_content(result)
-    assert "could not infer a specialist" in payload["error"]
+    assert payload["status"] == "needs_clarification"
 
 
 def test_call_tool_default_router_infers_mathematics_from_request(engine: Engine) -> None:
@@ -928,6 +928,36 @@ def test_exports_from_package() -> None:
 
     assert exported_build is build_server
     assert exported_run is run_stdio_server
+
+
+@pytest.mark.parametrize(
+    ("request_text", "expected_agent"),
+    [
+        ("maximize profit subject to capacity constraints", "agent.optimization_specialist"),
+        ("design a PID controller", "agent.control_dynamics"),
+    ],
+)
+def test_default_router_uses_weighted_domain_intent(
+    engine: Engine, request_text: str, expected_agent: str
+) -> None:
+    result = call_tool(engine, "agent.default", {"request": request_text})
+    assert result.isError is False
+    assert _parse_content(result)["selected_agent"] == expected_agent
+
+
+def test_default_router_returns_structured_clarification_for_unknown_intent(engine: Engine) -> None:
+    result = call_tool(engine, "agent.default", {"request": "hello engineering world"})
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "needs_clarification"
+    assert payload["reason"] == "intent_absent"
+    assert len(payload["questions"]) == 3
+
+
+def test_default_router_routes_new_demo_labels(engine: Engine) -> None:
+    result = call_tool(engine, "agent.default", {"demo_label": "pid"})
+    assert result.isError is False
+    assert _parse_content(result)["selected_agent"] == "agent.control_dynamics"
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]

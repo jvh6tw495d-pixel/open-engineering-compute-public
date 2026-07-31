@@ -11,7 +11,9 @@ from oec.mcp.discovery import (
     SkillCandidate,
     _first_example,
     build_skill_suggestion_payload,
+    needs_domain_clarification,
     rank_candidate_skills,
+    rank_domain_intents,
 )
 from oec.sdk import Engine
 
@@ -91,6 +93,16 @@ def test_first_example_keeps_legacy_flat_payload(tmp_path: Path) -> None:
     (examples / "flat.json").write_text(json.dumps({"alpha": 0.5}), encoding="utf-8")
 
     assert _first_example(tmp_path) == {"alpha": 0.5}
+
+
+def test_domain_intents_use_router_compatible_combined_names() -> None:
+    intents = rank_domain_intents("design a PID controller")
+    assert intents[0].domain == "control_dynamics"
+    assert needs_domain_clarification(intents) is False
+
+
+def test_domain_intents_empty_request_requires_clarification() -> None:
+    assert needs_domain_clarification(rank_domain_intents("hello world")) is True
 
 
 def test_build_skill_suggestion_payload_default_hint_and_shape() -> None:

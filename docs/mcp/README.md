@@ -88,6 +88,8 @@ run another agent first and pass its result's `execution` back in.
 | `agent.applied_mathematics` | Domain wrapper over math / linear / statistics / numerical skills. |
 | `agent.time_series` | Domain wrapper over `timeseries.*` quality and grid skills. |
 | `agent.energy` | Domain wrapper over public energy / battery / electrical skills. |
+| `agent.control_dynamics` | Domain wrapper over public `control.*` and `dynamics.*` skills. |
+| `agent.finance_uncertainty` | Domain wrapper over public `finance.*` and `uncertainty.*` skills. |
 | `list_agents` | Specialist-agent catalog. Preferred discovery entrypoint for hosts. |
 | `list_skills` | Raw skill catalog, mirroring `oec skills list --json`. |
 | `<skill_id>` | Run a specific low-level skill directly. `inputSchema` is the skill's own `input.schema.json`. Result is the full `ExecutionResult` JSON. |
@@ -99,6 +101,7 @@ run another agent first and pass its result's `execution` back in.
 3. Let the router choose a specialist agent unless the caller explicitly asks for a specific raw function.
 4. Only call a raw `<skill_id>` when the user explicitly asks for that specific function.
 5. If a response comes back with `status: "needs_more_information"`, retry the same agent with a `skill_id` + `inputs` picked from `candidates` — don't treat it as a failure.
+6. If a response comes back with `status: "needs_clarification"`, ask the user the returned questions and retry `agent.default` with supplied information only; never invent missing numeric inputs.
 
 ## Out of scope (Alpha)
 

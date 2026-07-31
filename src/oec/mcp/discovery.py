@@ -29,9 +29,147 @@ from oec.sdk import Engine
 
 _WORD_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
 
+_DOMAIN_ALIASES: dict[str, tuple[str, ...]] = {
+    "optimization": (
+        "optimization",
+        "otimização",
+        "linear program",
+        "milp",
+        "despacho",
+        "maximize",
+        "maximizar",
+        "constraint",
+        "restrição",
+    ),
+    "mathematics": (
+        "math",
+        "matemática",
+        "derivative",
+        "derivada",
+        "integral",
+        "equação",
+        "maximum",
+        "minimum",
+        "máximo",
+        "mínimo",
+        "maximo",
+        "minimo",
+        "rápido",
+        "lento",
+        "velocidade",
+    ),
+    "timeseries": (
+        "time series",
+        "série temporal",
+        "forecast",
+        "previsão",
+        "autocorrelation",
+        "pacf",
+        "yule walker",
+        "levinson durbin",
+        "autoregressive",
+        "autocovariance",
+        "series",
+    ),
+    "energy": ("energy", "energia", "battery", "bateria", "electrical", "elétrico"),
+    "control_dynamics": (
+        "control",
+        "controle",
+        "pid",
+        "kalman",
+        "stability",
+        "estabilidade",
+        "dynamics",
+        "dinâmica",
+    ),
+    "finance_uncertainty": (
+        "finance",
+        "finanças",
+        "return",
+        "retorno",
+        "var",
+        "risk",
+        "risco",
+        "uncertainty",
+        "incerteza",
+    ),
+    "review": ("review", "audit", "revisar", "auditar"),
+}
+_FIELD_WEIGHTS = {"id": 4, "title": 5, "tags": 3, "description": 1}
+
 
 def _tokenize(text: str) -> set[str]:
     return {word.lower() for word in _WORD_RE.findall(text) if len(word) > 2}
+
+
+@dataclass(frozen=True)
+class DomainIntent:
+    domain: str
+    score: int
+    matched_terms: tuple[str, ...]
+
+
+def rank_domain_intents(request: str, *, limit: int = 3) -> list[DomainIntent]:
+    """Rank domains using controlled Portuguese/English vocabulary."""
+    text = request.lower()
+    tokens = _tokenize(text)
+    ranked: list[DomainIntent] = []
+    for domain, aliases in _DOMAIN_ALIASES.items():
+        score = 0
+        matched: list[str] = []
+        for alias in aliases:
+            alias_tokens = _tokenize(alias)
+            if " " in alias and alias in text:
+                score += 6
+                matched.append(alias)
+            elif alias_tokens and alias_tokens <= tokens:
+                score += 3
+                matched.append(alias)
+        if score:
+            ranked.append(DomainIntent(domain, score, tuple(matched)))
+    return sorted(ranked, key=lambda item: (-item.score, item.domain))[:limit]
+
+
+def needs_domain_clarification(candidates: list[DomainIntent]) -> bool:
+    return not candidates or (
+        len(candidates) > 1 and candidates[1].score >= candidates[0].score - 1
+    )
+
+
+def build_clarification_payload(request: str, candidates: list[DomainIntent]) -> dict[str, Any]:
+    """Ask bounded, structured questions instead of guessing missing data."""
+    return {
+        "status": "needs_clarification",
+        "request": request,
+        "message": "OEC cannot safely choose a computation from the information provided.",
+        "candidate_domains": [candidate.domain for candidate in candidates],
+        "questions": [
+            {
+                "id": "goal",
+                "question": (
+                    "What is the goal: optimize, simulate/control, analyze data, "
+                    "quantify risk, or review a prior result?"
+                ),
+                "required": True,
+            },
+            {
+                "id": "data",
+                "question": (
+                    "Provide known variables, values, units, and any time series or matrices."
+                ),
+                "required": True,
+            },
+            {
+                "id": "constraints",
+                "question": "State constraints, bounds, success criterion, and required output.",
+                "required": True,
+            },
+        ],
+        "retry_hint": (
+            "Reply with the answers and call agent.default again; "
+            "do not invent missing numeric inputs."
+        ),
+    }
 
 
 @dataclass(frozen=True)
@@ -65,10 +203,17 @@ def rank_candidate_skills(
     request_tokens = _tokenize(request)
     scored: list[tuple[int, Any]] = []
     for manifest in manifests:
-        haystack = _tokenize(
-            f"{manifest.title} {manifest.description} {manifest.id} {' '.join(manifest.tags)}"
+        fields = {
+            "id": manifest.id,
+            "title": manifest.title,
+            "tags": " ".join(manifest.tags),
+            "description": manifest.description,
+        }
+        score = sum(
+            _FIELD_WEIGHTS[field] * len(request_tokens & _tokenize(text))
+            for field, text in fields.items()
         )
-        scored.append((len(request_tokens & haystack), manifest))
+        scored.append((score, manifest))
 
     scored.sort(key=lambda pair: (-pair[0], pair[1].id))
     ranked = [manifest for score, manifest in scored if score > 0]

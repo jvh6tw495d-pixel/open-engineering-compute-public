@@ -366,6 +366,26 @@ evidence of transport resilience; it did not happen to attempt this exact
 retry leg, so deterministic end-to-end coverage is the acceptance evidence
 for the payload contract.
 
+### v2.5.2 confidence-routing rebuild
+
+Rebuilt on **2026-07-30** while preparing the v2.5.2 commit. **9077 nodes,
+13578 edges, 701 communities** (aggregated HTML: 701 community nodes and 933
+cross-community edges). The prior committed baseline was `f68a951`; the
+Graphify artifacts remain local and gitignored, while this entry records the
+source-tree state that was validated for commit.
+
+This rebuild covers the next `agent.default` reliability pass: deterministic
+weighted domain intent ranking, structured `needs_clarification` for absent or
+tied free-text intent, and new `agent.control_dynamics` plus
+`agent.finance_uncertainty` specialists. Explicit operational signals still
+outrank inference. Focused discovery/MCP coverage passed **84 tests**; the
+final independent Fable review passed. The remaining D-CUR-23 work is not a
+claim of semantic understanding: aliases and weights need a versioned golden
+routing corpus and production-style telemetry before tuning.
+
+Graphify could not enumerate `.pytest-tmp` due to a Windows access-denied
+warning; that transient test directory is outside the committed source scope.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.5.2] — 2026-07-30
+
+### Added
+
+- `agent.default` now returns a structured, non-error
+  `needs_clarification` payload for a genuinely absent or tied free-text
+  domain signal. The response supplies the candidate domains and the minimum
+  questions required to continue, rather than guessing parameters or routing
+  a low-confidence request to an arbitrary skill.
+- Deterministic weighted intent ranking over skill ids, titles, tags and
+  descriptions, plus first-class `agent.control_dynamics` and
+  `agent.finance_uncertainty` specialists. The default router can therefore
+  handle control/dynamics and finance/uncertainty requests instead of leaving
+  those existing skill families orphaned.
+
+### Changed
+
+- Free-text routing checks the shared weighted domain vocabulary before legacy
+  compatibility inference. Explicit `execution`, `ops`, `preferred_domain`,
+  `skill_id`, and `demo_label` signals still take precedence.
+- Added deterministic discovery and MCP integration coverage for ambiguity,
+  weighted selection, new specialist dispatch, and the previous router
+  contracts. Focused suite: 84 passing tests.
+
 ### Fixed
 
 - MCP `agent.*` tools (`agent.default`, `agent.optimization_specialist`,

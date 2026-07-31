@@ -22,7 +22,13 @@ from mcp.types import CallToolResult, TextContent, Tool
 
 from oec import __version__
 from oec.errors import OECError
-from oec.mcp.discovery import build_skill_suggestion_payload, rank_candidate_skills
+from oec.mcp.discovery import (
+    build_clarification_payload,
+    build_skill_suggestion_payload,
+    needs_domain_clarification,
+    rank_candidate_skills,
+    rank_domain_intents,
+)
 from oec.sdk import Engine
 
 _logger = logging.getLogger(__name__)
@@ -68,6 +74,8 @@ _AGENT_REVIEWER_TOOL_NAME = "agent.scientific_reviewer"
 _AGENT_APPLIED_MATH_TOOL_NAME = "agent.applied_mathematics"
 _AGENT_TIME_SERIES_TOOL_NAME = "agent.time_series"
 _AGENT_ENERGY_TOOL_NAME = "agent.energy"
+_AGENT_CONTROL_DYNAMICS_TOOL_NAME = "agent.control_dynamics"
+_AGENT_FINANCE_UNCERTAINTY_TOOL_NAME = "agent.finance_uncertainty"
 
 # Skill-manifest ``domain`` values each specialist's dispatch spans, for the
 # discovery fallback's candidate ranking (agents/*/specialist.py's own
@@ -78,6 +86,8 @@ _DOMAIN_GROUPS: dict[str, tuple[str, ...]] = {
     _AGENT_APPLIED_MATH_TOOL_NAME: ("mathematics", "linear", "statistics", "numerical"),
     _AGENT_TIME_SERIES_TOOL_NAME: ("timeseries",),
     _AGENT_ENERGY_TOOL_NAME: ("energy", "battery", "electrical"),
+    _AGENT_CONTROL_DYNAMICS_TOOL_NAME: ("control", "dynamics"),
+    _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: ("finance", "uncertainty"),
 }
 
 _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
@@ -87,7 +97,15 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "request": {"type": "string"},
             "preferred_domain": {
                 "type": "string",
-                "enum": ["optimization", "review", "mathematics", "timeseries", "energy"],
+                "enum": [
+                    "optimization",
+                    "review",
+                    "mathematics",
+                    "timeseries",
+                    "energy",
+                    "control_dynamics",
+                    "finance_uncertainty",
+                ],
             },
             "ops": {"type": "object"},
             "ops_document": {"type": "object"},
@@ -146,6 +164,24 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         },
         "additionalProperties": False,
     },
+    _AGENT_CONTROL_DYNAMICS_TOOL_NAME: {
+        "type": "object",
+        "properties": {
+            "demo_label": {"type": "string"},
+            "skill_id": {"type": "string"},
+            "inputs": {"type": "object"},
+        },
+        "additionalProperties": False,
+    },
+    _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: {
+        "type": "object",
+        "properties": {
+            "demo_label": {"type": "string"},
+            "skill_id": {"type": "string"},
+            "inputs": {"type": "object"},
+        },
+        "additionalProperties": False,
+    },
 }
 
 _AGENT_TOOL_DESCRIPTIONS: dict[str, str] = {
@@ -169,6 +205,12 @@ _AGENT_TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     _AGENT_ENERGY_TOOL_NAME: (
         "Energy Specialist: domain wrapper over public energy/battery/electrical skills."
+    ),
+    _AGENT_CONTROL_DYNAMICS_TOOL_NAME: (
+        "Control & Dynamics Specialist: control.* and dynamics.* skills."
+    ),
+    _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: (
+        "Finance & Uncertainty Specialist: finance.* and uncertainty.* skills."
     ),
 }
 
@@ -244,6 +286,22 @@ def _agent_catalog() -> list[dict[str, Any]]:
             "default": True,
             "description": _AGENT_TOOL_DESCRIPTIONS[_AGENT_ENERGY_TOOL_NAME],
         },
+        {
+            "id": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
+            "title": "Control & Dynamics Specialist",
+            "kind": "agent",
+            "domain": "control_dynamics",
+            "default": True,
+            "description": _AGENT_TOOL_DESCRIPTIONS[_AGENT_CONTROL_DYNAMICS_TOOL_NAME],
+        },
+        {
+            "id": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
+            "title": "Finance & Uncertainty Specialist",
+            "kind": "agent",
+            "domain": "finance_uncertainty",
+            "default": True,
+            "description": _AGENT_TOOL_DESCRIPTIONS[_AGENT_FINANCE_UNCERTAINTY_TOOL_NAME],
+        },
     ]
 
 
@@ -273,7 +331,10 @@ def _contains_token(text: str, token: str) -> bool:
     text`` matched inside "sh**ops**"/"dr**ops**", silently misrouting
     ordinary requests to the optimization domain.
     """
-    return re.search(r"\b" + re.escape(token), text) is not None
+    pattern = r"\b" + re.escape(token)
+    if len(token) <= 3:
+        pattern += r"\b"
+    return re.search(pattern, text) is not None
 
 
 def _infer_domain_from_request(request: str) -> str | None:
@@ -349,6 +410,16 @@ def _infer_domain_from_request(request: str) -> str | None:
         return "optimization"
     if any(_contains_token(text, token) for token in ("review", "audit", "auditar", "revisar")):
         return "review"
+    if any(
+        _contains_token(text, token)
+        for token in ("pid", "kalman", "stability", "estabilidade", "state space")
+    ):
+        return "control_dynamics"
+    if any(
+        _contains_token(text, token)
+        for token in ("finance", "finanças", "var", "uncertainty", "incerteza", "morris")
+    ):
+        return "finance_uncertainty"
     return None
 
 
@@ -388,6 +459,10 @@ def _router_target_for(arguments: dict[str, Any]) -> str:
         return _AGENT_TIME_SERIES_TOOL_NAME
     if preferred == "energy":
         return _AGENT_ENERGY_TOOL_NAME
+    if preferred == "control_dynamics":
+        return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
+    if preferred == "finance_uncertainty":
+        return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
 
     skill_id = arguments.get("skill_id")
     if isinstance(skill_id, str):
@@ -397,6 +472,10 @@ def _router_target_for(arguments: dict[str, Any]) -> str:
             return _AGENT_TIME_SERIES_TOOL_NAME
         if skill_id.startswith(("energy.", "battery.", "electrical.")):
             return _AGENT_ENERGY_TOOL_NAME
+        if skill_id.startswith(("control.", "dynamics.")):
+            return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
+        if skill_id.startswith(("finance.", "uncertainty.")):
+            return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
         return _AGENT_APPLIED_MATH_TOOL_NAME
 
     demo_label = str(arguments.get("demo_label", "")).strip().lower()
@@ -425,9 +504,25 @@ def _router_target_for(arguments: dict[str, Any]) -> str:
         return _AGENT_TIME_SERIES_TOOL_NAME
     if demo_label in {"balance", "load_metrics", "soc_step", "three_phase"}:
         return _AGENT_ENERGY_TOOL_NAME
+    if demo_label in {"pid", "kalman", "stability"}:
+        return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
+    if demo_label in {"returns", "var", "propagate"}:
+        return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
 
     request = arguments.get("request")
     if isinstance(request, str):
+        intents = rank_domain_intents(request)
+        if intents and not needs_domain_clarification(intents):
+            targets = {
+                "optimization": _AGENT_OPTIMIZATION_TOOL_NAME,
+                "review": _AGENT_REVIEWER_TOOL_NAME,
+                "timeseries": _AGENT_TIME_SERIES_TOOL_NAME,
+                "energy": _AGENT_ENERGY_TOOL_NAME,
+                "mathematics": _AGENT_APPLIED_MATH_TOOL_NAME,
+                "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
+                "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
+            }
+            return targets[intents[0].domain]
         inferred = _infer_domain_from_request(request)
         if inferred == "optimization":
             return _AGENT_OPTIMIZATION_TOOL_NAME
@@ -437,6 +532,10 @@ def _router_target_for(arguments: dict[str, Any]) -> str:
             return _AGENT_TIME_SERIES_TOOL_NAME
         if inferred == "energy":
             return _AGENT_ENERGY_TOOL_NAME
+        if inferred == "control_dynamics":
+            return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
+        if inferred == "finance_uncertainty":
+            return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
         if inferred == "mathematics":
             return _AGENT_APPLIED_MATH_TOOL_NAME
 
@@ -450,6 +549,27 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
     skills_root = _skills_root_for(engine)
 
     if name == _AGENT_DEFAULT_TOOL_NAME:
+        request = arguments.get("request")
+        # Only the free-text branch may clarify. Explicit machine-readable
+        # signals retain their existing precedence in _router_target_for.
+        explicit = any(
+            key in arguments
+            for key in (
+                "execution",
+                "ops",
+                "ops_document",
+                "preferred_domain",
+                "skill_id",
+                "demo_label",
+            )
+        )
+        if isinstance(request, str) and not explicit:
+            intents = rank_domain_intents(request)
+            if needs_domain_clarification(intents):
+                payload = build_clarification_payload(request, intents)
+                payload["router"] = _AGENT_DEFAULT_TOOL_NAME
+                payload["reason"] = "intent_absent" if not intents else "intent_tied"
+                return payload
         target = _router_target_for(arguments)
         routed_payload = dict(arguments)
         routed_payload.pop("preferred_domain", None)
@@ -522,6 +642,14 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
         from agents.energy.specialist import EnergySpecialist
 
         specialist = EnergySpecialist(skills_root=skills_root)
+    elif name == _AGENT_CONTROL_DYNAMICS_TOOL_NAME:
+        from agents.control_dynamics.specialist import ControlDynamicsSpecialist
+
+        specialist = ControlDynamicsSpecialist(skills_root=skills_root)
+    elif name == _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME:
+        from agents.finance_uncertainty.specialist import FinanceUncertaintySpecialist
+
+        specialist = FinanceUncertaintySpecialist(skills_root=skills_root)
     else:
         raise ValueError(f"Unknown agent tool: {name!r}")
 
