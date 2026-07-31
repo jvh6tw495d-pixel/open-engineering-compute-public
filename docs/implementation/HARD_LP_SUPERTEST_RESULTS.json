@@ -1,0 +1,3140 @@
+{
+  "generated_at": "2026-07-28T18:02:27.385434+00:00",
+  "oracle": {
+    "load_sum_mwh": 37.52,
+    "pv_sum_mwh": 11.08,
+    "deficit_mwh": 26.440000000000005,
+    "peak_load_mwh": 3.51,
+    "load_factor": 0.0,
+    "min_tou_cost": 22.8761,
+    "total_grid_mwh": 25.89,
+    "total_discharge_mwh": 4.2,
+    "total_charge_mwh": 3.6500000000000004,
+    "terminal_soc_mwh": 1.8,
+    "grid_trajectory": [
+      2.2199999999999998,
+      2.699999999999999,
+      2.15,
+      1.8700000000000006,
+      2.5,
+      2.3199999999999994,
+      2.17,
+      1.3399999999999999,
+      2.3,
+      2.7300000000000004,
+      1.8800000000000001,
+      1.7100000000000002
+    ],
+    "charge_trajectory": [
+      0.0,
+      0.0,
+      0.0,
+      0.07000000000000028,
+      1.18,
+      1.2,
+      1.2,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "discharge_trajectory": [
+      1.2,
+      0.20000000000000107,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.39999999999999947,
+      1.2,
+      1.2
+    ],
+    "soc_trajectory": [
+      1.1500000000000001,
+      0.9499999999999991,
+      0.9499999999999991,
+      1.0199999999999994,
+      2.1999999999999993,
+      3.3999999999999995,
+      4.6,
+      4.6,
+      4.6,
+      4.2,
+      3.0,
+      1.8
+    ],
+    "impossible_cap_feasible": false
+  },
+  "models": [
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "source": "default",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "provider": "nvidia",
+      "source": "fallback_1",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "z-ai/glm-5.2",
+      "provider": "nvidia",
+      "source": "fallback_2",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "zai-org/glm-5",
+      "provider": "nvidia",
+      "source": "fallback_3",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "zai-org/glm-51",
+      "provider": "nvidia",
+      "source": "fallback_4",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v3.1-terminus",
+      "provider": "nvidia",
+      "source": "fallback_5",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v32-exp-nim",
+      "provider": "nvidia",
+      "source": "fallback_6",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "qwen/qwen3-coder-next",
+      "provider": "nvidia",
+      "source": "fallback_7",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-instruct",
+      "provider": "nvidia",
+      "source": "fallback_8",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-thinking",
+      "provider": "nvidia",
+      "source": "fallback_9",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "qwen/qwen3-32b",
+      "provider": "nvidia",
+      "source": "fallback_10",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "key_env": "NVIDIA_API_KEY"
+    },
+    {
+      "model": "deepseek-r1:8b",
+      "provider": "custom:ollama",
+      "source": "fallback_11",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "key_env": null
+    },
+    {
+      "model": "nemotron-3-nano:4b",
+      "provider": "custom:ollama",
+      "source": "fallback_12",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "key_env": null
+    },
+    {
+      "model": "hf.co/empero-ai/Qwythos-9B-Claude-Mythos-5-1M-GGUF:Q4_K_M",
+      "provider": "custom:ollama",
+      "source": "fallback_13",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "key_env": null
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "provider": "custom:ollama",
+      "source": "fallback_14",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "key_env": null
+    },
+    {
+      "model": "llama3.1:8b",
+      "provider": "custom:ollama",
+      "source": "fallback_15",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "key_env": null
+    },
+    {
+      "model": "grok-4.5",
+      "provider": "opencode-go",
+      "source": "opencode_go_1",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "glm-5.2",
+      "provider": "opencode-go",
+      "source": "opencode_go_2",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "glm-5.1",
+      "provider": "opencode-go",
+      "source": "opencode_go_3",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "kimi-k3",
+      "provider": "opencode-go",
+      "source": "opencode_go_4",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "provider": "opencode-go",
+      "source": "opencode_go_5",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "kimi-k2.6",
+      "provider": "opencode-go",
+      "source": "opencode_go_6",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "provider": "opencode-go",
+      "source": "opencode_go_7",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "provider": "opencode-go",
+      "source": "opencode_go_8",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "mimo-v2.5",
+      "provider": "opencode-go",
+      "source": "opencode_go_9",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "mimo-v2.5-pro",
+      "provider": "opencode-go",
+      "source": "opencode_go_10",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "hy3",
+      "provider": "opencode-go",
+      "source": "opencode_go_11",
+      "base_url": "https://opencode.ai/zen/go/v1",
+      "key_env": "OPENCODE_GO_API_KEY"
+    },
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "source": "claude_cli_1",
+      "base_url": "claude-cli",
+      "key_env": null
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "source": "claude_cli_2",
+      "base_url": "claude-cli",
+      "key_env": null
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "source": "claude_cli_3",
+      "base_url": "claude-cli",
+      "key_env": null
+    }
+  ],
+  "runs": [
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 502: Bad Gateway",
+      "source": "default"
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n  \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n  \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n  \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n  \"CAP\": 4.6,\n  \"PMAX\": 1.2,\n  \"SOC0\": 2.35,\n  \"SOC_END_MIN\": 1.8,\n  \"TOTAL_DISCHARGE_CAP\": 4.2\n}",
+      "error": "",
+      "source": "default"
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"12-period microgrid BESS LP\",\n  \"assumptions\": {\n    \"T\": 12,\n    \"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n    \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n    \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n    \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n    \"CAP\": 4.6,\n    \"PMAX\": 1.2,\n    \"SOC0\": 2.35,\n    \"SOC_MIN_TERMINAL\": 1.8,\n    \"DISCHARGE_BUDGET\": 4.2\n  },\n  \"variables\": [\n    {\n      \"name\": \"charge\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"lb\": 0.0,\n      \"ub\": 1.2\n    },\n    {\n      \"name\": \"discharge\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"lb\": 0.0,\n      \"ub\": 1.2\n    },\n    {\n      \"name\": \"grid\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"lb\": 0.0,\n      \"ub\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2]\n    },\n    {\n      \"name\": \"soc\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"lb\": 0.0,\n      \"ub\": 4.6\n    }\n  ],\n  \"constraints\": [\n    {\n      \"name\": \"power_balance\",\n      \"type\": \"equality\",\n      \"expr\": \"LOAD[t] == PV[t] + grid[t] + discharge[t] - charge[t]\",\n      \"forall\": \"t in 0..11\"\n    },\n    {\n      \"name\": \"soc_dynamics\",\n      \"type\": \"equality\",\n      \"expr\": \"soc[t] == (SOC0 if t == 0 else soc[t-1]) + charge[t] - discharge[t]\",\n      \"forall\": \"t in 0..11\"\n    },\n    {\n      \"name\": \"terminal_soc\",\n      \"type\": \"inequality\",\n      \"expr\": \"soc[11] >= SOC_MIN_TERMINAL\"\n    },\n    {\n      \"name\": \"discharge_budget\",\n      \"type\": \"inequality\",\n      \"expr\": \"sum(discharge[t] for t in 0..11) <= DISCHARGE_BUDGET\"\n    }\n  ],\n  \"objective\": {\n    \"name\": \"minimize_cost\",\n    \"expr\": \"sum(PRICE[t] * grid[t] for t in 0..11)\",\n    \"sense\": \"min\"\n  }\n}",
+      "error": "",
+      "source": "default"
+    },
+    {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "The read operation timed out",
+      "source": "fallback_1"
+    },
+    {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"LOAD\": [3.42,3.08,2.77,2.95,3.18,3.36,3.05,2.88,3.27,3.51,3.14,2.91],\n  \"PV\": [0.0,0.18,0.62,1.15,1.86,2.24,2.08,1.54,0.97,0.38,0.06,0.0],\n  \"PRICE\": [1.42,1.18,0.74,0.39,0.31,0.28,0.33,0.57,0.92,1.36,1.58,1.47],\n  \"GRID_CAP\": [3.4,3.2,2.9,2.7,2.5,2.4,2.4,2.6,2.8,3.0,3.1,3.2],\n  \"CAP\": 4.6,\n  \"PMAX\": 1.2,\n  \"SOC0\": 2.35,\n  \"SOC_END_MIN\": 1.8,\n  \"TOTAL_DISCHARGE_CAP\": 4.2\n}",
+      "error": "",
+      "source": "fallback_1"
+    },
+    {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"Microgrid BESS Hard LP\",\n  \"assumptions\": [\n    \"All variables are continuous.\",\n    \"Perfect foresight of load, PV, prices, and grid limits over the 12 periods.\",\n    \"BESS efficiency is 100% (charge and discharge affect SOC linearly with unit coefficient).\",\n    \"No startup/shutdown costs or minimum up/down times.\",\n    \"The grid can supply any amount up to its period‑specific capacity at the given price.\"\n  ],\n  \"variables\": [\n    {\"name\": \"grid_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.4},\n    {\"name\": \"grid_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.2},\n    {\"name\": \"grid_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 2.9},\n    {\"name\": \"grid_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 2.7},\n    {\"name\": \"grid_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 2.5},\n    {\"name\": \"grid_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 2.4},\n    {\"name\": \"grid_6\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 2.4},\n    {\"name\": \"grid_7\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 2.6},\n    {\"name\": \"grid_8\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 2.8},\n    {\"name\": \"grid_9\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.0},\n    {\"name\": \"grid_10\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.1},\n    {\"name\": \"grid_11\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.2},\n    {\"name\": \"charge_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_6\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_7\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_8\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_9\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_10\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_11\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_6\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_7\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_8\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_9\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_10\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_11\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"s_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_6\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_7\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_8\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_9\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_10\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_11\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 4.6}\n  ],\n  \"constraints\": [\n    {\"name\": \"balance_0\", \"expression\": \"grid_0 + discharge_0 - charge_0\", \"sense\": \"=\", \"rhs\": 3.42},\n    {\"name\": \"balance_1\", \"expression\": \"grid_1 + discharge_1 - charge_1\", \"sense\": \"=\", \"rhs\": 2.90},\n    {\"name\": \"balance_2\", \"expression\": \"grid_2 + discharge_2 - charge_2\", \"sense\": \"=\", \"rhs\": 2.15},\n    {\"name\": \"balance_3\", \"expression\": \"grid_3 + discharge_3 - charge_3\", \"sense\": \"=\", \"rhs\": 1.80},\n    {\"name\": \"balance_4\", \"expression\": \"grid_4 + discharge_4 - charge_4\", \"sense\": \"=\", \"rhs\": 1.32},\n    {\"name\": \"balance_5\", \"expression\": \"grid_5 + discharge_5 - charge_5\", \"sense\": \"=\", \"rhs\": 1.12},\n    {\"name\": \"balance_6\", \"expression\": \"grid_6 + discharge_6 - charge_6\", \"sense\": \"=\", \"rhs\": 0.97},\n    {\"name\": \"balance_7\", \"expression\": \"grid_7 + discharge_7 - charge_7\", \"sense\": \"=\", \"rhs\": 1.34},\n    {\"name\": \"balance_8\", \"expression\": \"grid_8 + discharge_8 - charge_8\", \"sense\": \"=\", \"rhs\": 2.30},\n    {\"name\": \"balance_9\", \"expression\": \"grid_9 + discharge_9 - charge_9\", \"sense\": \"=\", \"rhs\": 3.13},\n    {\"name\": \"balance_10\", \"expression\": \"grid_10 + discharge_10 - charge_10\", \"sense\": \"=\", \"rhs\": 3.08},\n    {\"name\": \"balance_11\", \"expression\": \"grid_11 + discharge_11 - charge_11\", \"sense\": \"=\", \"rhs\": 2.91},\n    {\"name\": \"dynamics_0\", \"expression\": \"s_0 - charge_0 + discharge_0\", \"sense\": \"=\", \"rhs\": 2.35},\n    {\"name\": \"dynamics_1\", \"expression\": \"s_1 - s_0 - charge_1 + discharge_1\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_2\", \"expression\": \"s_2 - s_1 - charge_2 + discharge_2\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_3\", \"expression\": \"s_3 - s_2 - charge_3 + discharge_3\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_4\", \"expression\": \"s_4 - s_3 - charge_4 + discharge_4\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_5\", \"expression\": \"s_5 - s_4 - charge_5 + discharge_5\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_6\", \"expression\": \"s_6 - s_5 - charge_6 + discharge_6\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_7\", \"expression\": \"s_7 - s_6 - charge_7 + discharge_7\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_8\", \"expression\": \"s_8 - s_7 - charge_8 + discharge_8\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_9\", \"expression\": \"s_9 - s_8 - charge_9 + discharge_9\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_10\", \"expression\": \"s_10 - s_9 - charge_10 + discharge_10\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"dynamics_11\", \"expression\": \"s_11 - s_10 - charge_11 + discharge_11\", \"sense\": \"=\", \"rhs\": 0},\n    {\"name\": \"terminal_soc\", \"expression\": \"s_11\", \"sense\": \">=\", \"rhs\": 1.8},\n    {\"name\": \"discharge_budget\", \"expression\": \"discharge_0 + discharge_1 + discharge_2 + discharge_3 + discharge_4 + discharge_5 + discharge_6 + discharge_7 + discharge_8 + discharge_9 + discharge_10 + discharge_11\", \"sense\": \"<=\", \"rhs\": 4.2}\n  ],\n  \"objective\": {\n    \"expression\": \"1.42*grid_0 + 1.18*grid_1 + 0.74*grid_2 + 0.39*grid_3 + 0.31*grid_4 + 0.28*grid_5 + 0.33*grid_6 + 0.57*grid_7 + 0.92*grid_8 + 1.36*grid_9 + 1.58*grid_10 + 1.47*grid_11\",\n    \"sense\": \"min\"\n  }\n}",
+      "error": "",
+      "source": "fallback_1"
+    },
+    {
+      "model": "z-ai/glm-5.2",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 34.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 23.44,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.8214,
+        "min_tou_cost": 30.929,
+        "total_grid_mwh": 23.44,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 4.2,
+        "terminal_soc_mwh": 2.35,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.2,
+          1.2,
+          1.2,
+          0.6,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          3.55,
+          4.6,
+          4.6,
+          4.0,
+          4.0,
+          4.0,
+          2.8,
+          2.35
+        ],
+        "impossible_cap_feasible": true,
+        "reasoning": "The net load (LOAD - PV) totals 23.44 MWh, which must be met entirely by grid imports due to energy conservation. The BESS starts and ends at 2.35 MWh, meaning total charge equals total discharge. The discharge budget of 4.2 MWh is fully utilized to shift grid purchases from expensive periods (t=10,11) to cheap periods (t=4,5,6,7). The BESS charges 4.2 MWh when prices are lowest (0.31, 0.28, 0.33, 0.57) and discharges 4.2 MWh when prices are highest (1.58, 1.47). This results in grid purchases of 23.44 MWh at the minimum possible cost of 30.929. All constraints including SOC bounds, PMAX, GRID_CAP, and terminal SOC are satisfied."
+      },
+      "scores": {
+        "score": 3,
+        "max": 10,
+        "details": {
+          "load_sum": false,
+          "pv_sum": true,
+          "deficit": false,
+          "peak_load": true,
+          "load_factor": false,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": true,
+          "terminal_soc": false,
+          "impossible_cap": false
+        }
+      },
+      "raw": "{\n  \"load_sum_mwh\": 34.52,\n  \"pv_sum_mwh\": 11.08,\n  \"deficit_mwh\": 23.44,\n  \"peak_load_mwh\": 3.51,\n  \"load_factor\": 0.8214,\n  \"min_tou_cost\": 30.929,\n  \"total_grid_mwh\": 23.44,\n  \"total_discharge_mwh\": 4.2,\n  \"total_charge_mwh\": 4.2,\n  \"terminal_soc_mwh\": 2.35,\n  \"grid_trajectory\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],\n  \"charge_trajectory\": [0.0, 0.0, 0.0, 0.0, 1.2, 1.2, 1.2, 0.6, 0.0, 0.0, 0.0, 0.0],\n  \"discharge_trajectory\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.2, 1.2],\n  \"soc_trajectory\": [2.35, 2.35, 2.35, 2.35, 3.55, 4.6, 4.6, 4.0, 4.0, 4.0, 2.8, 2.35],\n  \"impossible_cap_feasible\": true,\n  \"reasoning\": \"The net load (LOAD - PV) totals 23.44 MWh, which must be met entirely by grid imports due to energy conservation. The BESS starts and ends at 2.35 MWh, meaning total charge equals total discharge. The discharge budget of 4.2 MWh is fully utilized to shift grid purchases from expensive periods (t=10,11) to cheap periods (t=4,5,6,7). The BESS charges 4.2 MWh when prices are lowest (0.31, 0.28, 0.33, 0.57) and discharges 4.2 MWh when prices are highest (1.58, 1.47). This results in grid purchases of 23.44 MWh at the minimum possible cost of 30.929. All constraints including SOC bounds, PMAX, GRID_CAP, and terminal SOC are satisfied.\"\n}",
+      "error": "",
+      "source": "fallback_2"
+    },
+    {
+      "model": "z-ai/glm-5.2",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n  \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n  \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n  \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n  \"CAP\": 4.6,\n  \"PMAX\": 1.2,\n  \"SOC0\": 2.35,\n  \"SOC_END_MIN\": 1.8,\n  \"TOTAL_DISCHARGE_CAP\": 4.2\n}",
+      "error": "",
+      "source": "fallback_2"
+    },
+    {
+      "model": "z-ai/glm-5.2",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "```json\n{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"12-period microgrid + BESS hard LP\",\n  \"assumptions\": [\n    \"Time is discrete with 12 periods indexed t=0..11\",\n    \"LOAD, PV, PRICE, and GRID_CAP are deterministic parameters\",\n    \"BESS dynamics are linear and lossless\",\n    \"Charge and discharge cannot occur simultaneously in a degenerate sense but are bounded independently\",\n    \"Grid imports are non-negative and capped per period\",\n    \"Terminal SOC constraint applies at the final period T-1\"\n  ],\n  \"variables\": [\n    {\n      \"name\": \"s\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"bounds\": {\n        \"lower\": 0,\n        \"upper\": 4.6\n      },\n      \"description\": \"State of charge of BESS at end of each period in MWh\"\n    },\n    {\n      \"name\": \"charge\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"bounds\": {\n        \"lower\": 0,\n        \"upper\": 1.2\n      },\n      \"description\": \"BESS charge power per period in MWh\"\n    },\n    {\n      \"name\": \"discharge\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"bounds\": {\n        \"lower\": 0,\n        \"upper\": 1.2\n      },\n      \"description\": \"BESS discharge power per period in MWh\"\n    },\n    {\n      \"name\": \"grid\",\n      \"type\": \"continuous\",\n      \"shape\": [12],\n      \"bounds\": {\n        \"lower\": 0,\n        \"upper\": \"GRID_CAP\"\n      },\n      \"description\": \"Grid import per period in MWh\"\n    }\n  ],\n  \"constraints\": [\n    {\n      \"name\": \"soc_dynamics\",\n      \"type\": \"equality\",\n      \"description\": \"SOC dynamics: s[t] = s[t-1] + charge[t] - discharge[t], with s[-1] = SOC0\",\n      \"expressions\": [\n        \"s[0] = 2.35 + charge[0] - discharge[0]\",\n        \"s[1] = s[0] + charge[1] - discharge[1]\",\n        \"s[2] = s[1] + charge[2] - discharge[2]\",\n        \"s[3] = s[2] + charge[3] - discharge[3]\",\n        \"s[4] = s[3] + charge[4] - discharge[4]\",\n        \"s[5] = s[4] + charge[5] - discharge[5]\",\n        \"s[6] = s[5] + charge[6] - discharge[6]\",\n        \"s[7] = s[6] + charge[7] - discharge[7]\",\n        \"s[8] = s[7] + charge[8] - discharge[8]\",\n        \"s[9] = s[8] + charge[9] - discharge[9]\",\n        \"s[10] = s[9] + charge[10] - discharge[10]\",\n        \"s[11] = s[10] + charge[11] - discharge[11]\"\n      ]\n    },\n    {\n      \"name\": \"power_balance\",\n      \"type\": \"equality\",\n      \"description\": \"Load balance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\",\n      \"expressions\": [\n        \"3.42 = 0.0 + grid[0] + discharge[0] - charge[0]\",\n        \"3.08 = 0.18 + grid[1] + discharge[1] - charge[1]\",\n        \"2.77 = 0.62 + grid[2] + discharge[2] - charge[2]\",\n        \"2.95 = 1.15 + grid[3] + discharge[3] - charge[3]\",\n        \"3.18 = 1.86 + grid[4] + discharge[4] - charge[4]\",\n        \"3.36 = 2.24 + grid[5] + discharge[5] - charge[5]\",\n        \"3.05 = 2.08 + grid[6] + discharge[6] - charge[6]\",\n        \"2.88 = 1.54 + grid[7] + discharge[7] - charge[7]\",\n        \"3.27 = 0.97 + grid[8] + discharge[8] - charge[8]\",\n        \"3.51 = 0.38 + grid[9] + discharge[9] - charge[9]\",\n        \"3.14 = 0.06 + grid[10] + discharge[10] - charge[10]\",\n        \"2.91 = 0.0 + grid[11] + discharge[11] - charge[11]\"\n      ]\n    },\n    {\n      \"name\": \"terminal_soc\",\n      \"type\": \"inequality\",\n      \"description\": \"Terminal SOC must be at least 1.8 MWh\",\n      \"expression\": \"s[11] >= 1.8\"\n    },\n    {\n      \"name\": \"discharge_budget\",\n      \"type\": \"inequality\",\n      \"description\": \"Total discharge budget over all periods must not exceed 4.2 MWh\",\n      \"expression\": \"sum(discharge[t] for t in 0..11) <= 4.2\"\n    },\n    {\n      \"name\": \"grid_capacity\",\n      \"type\": \"inequality\",\n      \"description\": \"Grid import per period bounded by GRID_CAP\",\n      \"expressions\": [\n        \"grid[0] <= 3.4\",\n        \"grid[1] <= 3.2\",\n        \"grid[2] <= 2.9\",\n        \"grid[3] <= 2.7\",\n        \"grid[4] <= 2.5\",\n        \"grid[5] <= 2.4\",\n        \"grid[6] <= 2.4\",\n        \"grid[7] <= 2.6\",\n        \"grid[8] <= 2.8\",\n        \"grid[9] <= 3.0\",\n        \"grid[10] <= 3.1\",\n        \"grid[11] <= 3.2\"\n      ]\n    }\n  ],\n  \"objective\": {\n    \"description\": \"Minimize total cost of grid imports\",\n    \"expression\": \"minimize sum(PRICE[t] * grid[t] for t in 0..11)\",\n    \"coefficients\": {\n      \"grid\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47]\n    }\n  }\n}\n```",
+      "error": "",
+      "source": "fallback_2"
+    },
+    {
+      "model": "zai-org/glm-5",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_3"
+    },
+    {
+      "model": "zai-org/glm-5",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_3"
+    },
+    {
+      "model": "zai-org/glm-5",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_3"
+    },
+    {
+      "model": "zai-org/glm-51",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_4"
+    },
+    {
+      "model": "zai-org/glm-51",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_4"
+    },
+    {
+      "model": "zai-org/glm-51",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_4"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v3.1-terminus",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_5"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v3.1-terminus",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_5"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v3.1-terminus",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_5"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v32-exp-nim",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_6"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v32-exp-nim",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_6"
+    },
+    {
+      "model": "deepseek-ai/deepseek-v32-exp-nim",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_6"
+    },
+    {
+      "model": "qwen/qwen3-coder-next",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_7"
+    },
+    {
+      "model": "qwen/qwen3-coder-next",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_7"
+    },
+    {
+      "model": "qwen/qwen3-coder-next",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_7"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-instruct",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 410: Gone",
+      "source": "fallback_8"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-instruct",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 410: Gone",
+      "source": "fallback_8"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-instruct",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 410: Gone",
+      "source": "fallback_8"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-thinking",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 410: Gone",
+      "source": "fallback_9"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-thinking",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 410: Gone",
+      "source": "fallback_9"
+    },
+    {
+      "model": "qwen/qwen3-next-80b-a3b-thinking",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 410: Gone",
+      "source": "fallback_9"
+    },
+    {
+      "model": "qwen/qwen3-32b",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_10"
+    },
+    {
+      "model": "qwen/qwen3-32b",
+      "provider": "nvidia",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_10"
+    },
+    {
+      "model": "qwen/qwen3-32b",
+      "provider": "nvidia",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 404: Not Found",
+      "source": "fallback_10"
+    },
+    {
+      "model": "deepseek-r1:8b",
+      "provider": "custom:ollama",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "timed out",
+      "source": "fallback_11"
+    },
+    {
+      "model": "deepseek-r1:8b",
+      "provider": "custom:ollama",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "timed out",
+      "source": "fallback_11"
+    },
+    {
+      "model": "deepseek-r1:8b",
+      "provider": "custom:ollama",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "timed out",
+      "source": "fallback_11"
+    },
+    {
+      "model": "nemotron-3-nano:4b",
+      "provider": "custom:ollama",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+      "source": "fallback_12"
+    },
+    {
+      "model": "nemotron-3-nano:4b",
+      "provider": "custom:ollama",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n  \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n  \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n  \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n  \"CAP\": 4.6,\n  \"PMAX\": 1.2,\n  \"SOC0\": 2.35,\n  \"SOC_END_MIN\": 1.8,\n  \"TOTAL_DISCHARGE_CAP\": 4.2\n}",
+      "error": "",
+      "source": "fallback_12"
+    },
+    {
+      "model": "nemotron-3-nano:4b",
+      "provider": "custom:ollama",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"Microgrid BESS Hard LP\",\n  \"assumptions\": [],\n  \"variables\": [\n    {\n      \"name\": \"soc\",\n      \"type\": \"continuous\",\n      \"lower\": 0,\n      \"upper\": 4.6\n    },\n    {\n      \"name\": \"charge\",\n      \"type\": \"continuous\",\n      \"lower\": 0,\n      \"upper\": 1.2\n    },\n    {\n      \"name\": \"discharge\",\n      \"type\": \"continuous\",\n      \"lower\": 0,\n      \"upper\": 1.2\n    },\n    {\n      \"name\": \"grid\",\n      \"type\": \"continuous\",\n      \"lower\": 0,\n      \"upper\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2]\n    }\n  ],\n  \"constraints\": [\n    {\n      \"eq\": \"load[0] == pv[0] + grid[0] + discharge[0] - charge[0]\"\n    },\n    {\n      \"eq\": \"soc[0] == 2.35\"\n    },\n    {\n      \"eq\": \"for t in 1..11: soc[t] == soc[t-1] + charge[t] - discharge[t]\"\n    },\n    {\n      \"ineq\": \"sum(discharge) <= 4.2\"\n    },\n    {\n      \"ineq\": \"soc[11] >= 1.8\"\n    }\n  ],\n  \"objective\": \"min sum(PRICE * grid)\"\n}",
+      "error": "",
+      "source": "fallback_12"
+    },
+    {
+      "model": "hf.co/empero-ai/Qwythos-9B-Claude-Mythos-5-1M-GGUF:Q4_K_M",
+      "provider": "custom:ollama",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "no JSON object in model output: ''",
+      "source": "fallback_13"
+    },
+    {
+      "model": "hf.co/empero-ai/Qwythos-9B-Claude-Mythos-5-1M-GGUF:Q4_K_M",
+      "provider": "custom:ollama",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\"LOAD\":[3.42,3.08,2.77,2.95,3.18,3.36,3.05,2.88,3.27,3.51,3.14,2.91],\"PV\":[0.0,0.18,0.62,1.15,1.86,2.24,2.08,1.54,0.97,0.38,0.06,0.0],\"PRICE\":[1.42,1.18,0.74,0.39,0.31,0.28,0.33,0.57,0.92,1.36,1.58,1.47],\"GRID_CAP\":[3.4,3.2,2.9,2.7,2.5,2.4,2.4,2.6,2.8,3.0,3.1,3.2],\"CAP\":4.6,\"PMAX\":1.2,\"SOC0\":2.35,\"SOC_END_MIN\":1.8,\"TOTAL_DISCHARGE_CAP\":4.2}",
+      "error": "",
+      "source": "fallback_13"
+    },
+    {
+      "model": "hf.co/empero-ai/Qwythos-9B-Claude-Mythos-5-1M-GGUF:Q4_K_M",
+      "provider": "custom:ollama",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "no JSON object in model output: ''",
+      "source": "fallback_13"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "provider": "custom:ollama",
+      "arm": "without_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 36.08,
+        "pv_sum_mwh": 12.95,
+        "deficit_mwh": 23.13,
+        "peak_load_mwh": 3.42,
+        "load_factor": 0.917,
+        "min_tou_cost": 4.634,
+        "total_grid_mwh": 28.87,
+        "total_discharge_mwh": 5.08,
+        "total_charge_mwh": 1.2,
+        "terminal_soc_mwh": 2.33,
+        "grid_trajectory": [
+          3.4,
+          3.2,
+          2.9,
+          2.7,
+          2.5,
+          2.4,
+          2.4,
+          2.6,
+          2.8,
+          3.0,
+          3.1,
+          3.2
+        ],
+        "charge_trajectory": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1.2,
+          0
+        ],
+        "discharge_trajectory": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5.08,
+          0
+        ],
+        "soc_trajectory": [
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          2.35,
+          1.809,
+          2.33
+        ],
+        "impossible_cap_feasible": false,
+        "reasoning": "Given the constraints and the dynamics of the microgrid, it was not possible to fully satisfy the load with available PV generation and grid supply while adhering to the discharge budget and terminal SOC requirement. The system discharged a total of 5.08 MWh from the BESS, which is within the allowed limit, but there was still a significant deficit in meeting the load requirements during peak hours."
+      },
+      "scores": {
+        "score": 1,
+        "max": 10,
+        "details": {
+          "load_sum": false,
+          "pv_sum": false,
+          "deficit": false,
+          "peak_load": false,
+          "load_factor": false,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n\"load_sum_mwh\": 36.08,\n\"pv_sum_mwh\": 12.95,\n\"deficit_mwh\": 23.13,\n\"peak_load_mwh\": 3.42,\n\"load_factor\": 0.917,\n\"min_tou_cost\": 4.634,\n\"total_grid_mwh\": 28.87,\n\"total_discharge_mwh\": 5.08,\n\"total_charge_mwh\": 1.2,\n\"terminal_soc_mwh\": 2.33,\n\"grid_trajectory\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n\"charge_trajectory\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.2, 0],\n\"discharge_trajectory\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.08, 0],\n\"soc_trajectory\": [2.35, 2.35, 2.35, 2.35, 2.35, 2.35, 2.35, 2.35, 2.35, 2.35, 1.809, 2.33],\n\"impossible_cap_feasible\": false,\n\"reasoning\": \"Given the constraints and the dynamics of the microgrid, it was not possible to fully satisfy the load with available PV generation and grid supply while adhering to the discharge budget and terminal SOC requirement. The system discharged a total of 5.08 MWh from the BESS, which is within the allowed limit, but there was still a significant deficit in meeting the load requirements during peak hours.\"\n}",
+      "error": "",
+      "source": "fallback_14"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "provider": "custom:ollama",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n\"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n\"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n\"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n\"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n\"CAP\": 4.6,\n\"PMAX\": 1.2,\n\"SOC0\": 2.35,\n\"SOC_END_MIN\": 1.8,\n\"TOTAL_DISCHARGE_CAP\": 4.2\n}",
+      "error": "",
+      "source": "fallback_14"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "provider": "custom:ollama",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Expecting value: line 32 column 21 (char 1046)",
+      "source": "fallback_14"
+    },
+    {
+      "model": "llama3.1:8b",
+      "provider": "custom:ollama",
+      "arm": "without_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 36.21,
+        "pv_sum_mwh": 7.51,
+        "deficit_mwh": 0.0,
+        "peak_load_mwh": 3.42,
+        "load_factor": 0.93,
+        "min_tou_cost": 17.14,
+        "total_grid_mwh": 28.7,
+        "total_discharge_mwh": 8.51,
+        "total_charge_mwh": 7.19,
+        "terminal_soc_mwh": 1.83,
+        "grid_trajectory": [
+          3.42,
+          2.88,
+          2.77,
+          2.95,
+          3.18,
+          3.36,
+          3.05,
+          2.88,
+          3.27,
+          3.51,
+          3.14,
+          2.91
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.62,
+          1.15,
+          1.86,
+          2.24,
+          2.08,
+          1.54,
+          0.97,
+          0.38,
+          0.06,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          3.42,
+          0.46,
+          0.62,
+          0.13,
+          -0.06,
+          -0.72,
+          -1.01,
+          -0.81,
+          -0.24,
+          0.45,
+          0.08,
+          0.0
+        ],
+        "soc_trajectory": [
+          2.35,
+          3.97,
+          4.59,
+          5.44,
+          6.18,
+          7.5,
+          8.38,
+          9.51,
+          10.29,
+          11.8,
+          12.94,
+          13.85
+        ],
+        "impossible_cap_feasible": false,
+        "reasoning": "A capacidade de armazenamento é suficiente para atender às necessidades da carga e minimizar o custo do TOU."
+      },
+      "scores": {
+        "score": 2,
+        "max": 10,
+        "details": {
+          "load_sum": false,
+          "pv_sum": false,
+          "deficit": false,
+          "peak_load": false,
+          "load_factor": false,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"load_sum_mwh\": 36.21,\n  \"pv_sum_mwh\": 7.51,\n  \"deficit_mwh\": 0.0,\n  \"peak_load_mwh\": 3.42,\n  \"load_factor\": 0.93,\n  \"min_tou_cost\": 17.14,\n  \"total_grid_mwh\": 28.70,\n  \"total_discharge_mwh\": 8.51,\n  \"total_charge_mwh\": 7.19,\n  \"terminal_soc_mwh\": 1.83,\n  \"grid_trajectory\": [3.42, 2.88, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n  \"charge_trajectory\": [0.00, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.00, 0.00],\n  \"discharge_trajectory\": [3.42, 0.46, 0.62, 0.13, -0.06, -0.72, -1.01, -0.81, -0.24, 0.45, 0.08, 0.00],\n  \"soc_trajectory\": [2.35, 3.97, 4.59, 5.44, 6.18, 7.50, 8.38, 9.51, 10.29, 11.80, 12.94, 13.85],\n  \"impossible_cap_feasible\": false,\n  \"reasoning\": \"A capacidade de armazenamento é suficiente para atender às necessidades da carga e minimizar o custo do TOU.\"\n}",
+      "error": "",
+      "source": "fallback_15"
+    },
+    {
+      "model": "llama3.1:8b",
+      "provider": "custom:ollama",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 26.439999999999998,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 2323.5599999999995,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          3.42,
+          2.9,
+          2.15,
+          1.8000000000000003,
+          1.32,
+          1.1199999999999997,
+          0.9699999999999998,
+          1.3399999999999999,
+          2.3,
+          3.13,
+          3.08,
+          2.91
+        ],
+        "soc_trajectory": [
+          2346.58,
+          2343.68,
+          2341.5299999999997,
+          2339.7299999999996,
+          2338.4099999999994,
+          2337.2899999999995,
+          2336.3199999999997,
+          2334.9799999999996,
+          2332.6799999999994,
+          2329.5499999999993,
+          2326.4699999999993,
+          2323.5599999999995
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\n  \"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n  \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n  \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n  \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n  \"CAP\": 4600000,\n  \"PMAX\": 1200,\n  \"SOC0\": 2350,\n  \"SOC_END_MIN\": 1800,\n  \"TOTAL_DISCHARGE_CAP\": 4200\n}",
+      "error": "",
+      "source": "fallback_15"
+    },
+    {
+      "model": "llama3.1:8b",
+      "provider": "custom:ollama",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "Aqui está o documento OPS JSON válido:\n```\n{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"12-period microgrid + BESS hard LP\",\n  \"assumptions\": {\n    \"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n    \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n    \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n    \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n    \"CAP\": 4.6,\n    \"PMAX\": 1.2,\n    \"SOC0\": 2.35\n  },\n  \"variables\": {\n    \"s\": {\"type\": \"continuous\", \"bounds\": [0, 4.6]},\n    \"charge\": {\"type\": \"continuous\", \"bounds\": [0, 1.2]},\n    \"discharge\": {\"type\": \"continuous\", \"bounds\": [0, 1.2]},\n    \"grid\": {\"type\": \"continuous\", \"bounds\": [0, 3.4]}\n  },\n  \"constraints\": [\n    {\"name\": \"balance\", \"type\": \"eq\", \"expr\": \"LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\"},\n    {\"name\": \"terminal_soc\", \"type\": \"geq\", \"expr\": \"s[T-1] >= 1.8\"},\n    {\"name\": \"total_discharge_budget\", \"type\": \"leq\", \"expr\": \"sum(discharge[t]) <= 4.2\"}\n  ],\n  \"objective\": {\n    \"sense\": \"min\",\n    \"expr\": \"sum(PRICE[t] * grid[t])\"\n  }\n}\n```\nEsse documento OPS JSON representa o problema de otimização descrito na sua descrição, com as variáveis, restrições e objetivo definidos.",
+      "error": "",
+      "source": "fallback_15"
+    },
+    {
+      "model": "grok-4.5",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_1"
+    },
+    {
+      "model": "grok-4.5",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_1"
+    },
+    {
+      "model": "grok-4.5",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_1"
+    },
+    {
+      "model": "glm-5.2",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_2"
+    },
+    {
+      "model": "glm-5.2",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_2"
+    },
+    {
+      "model": "glm-5.2",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_2"
+    },
+    {
+      "model": "glm-5.1",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_3"
+    },
+    {
+      "model": "glm-5.1",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_3"
+    },
+    {
+      "model": "glm-5.1",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_3"
+    },
+    {
+      "model": "kimi-k3",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_4"
+    },
+    {
+      "model": "kimi-k3",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_4"
+    },
+    {
+      "model": "kimi-k3",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_4"
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_5"
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_5"
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_5"
+    },
+    {
+      "model": "kimi-k2.6",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_6"
+    },
+    {
+      "model": "kimi-k2.6",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_6"
+    },
+    {
+      "model": "kimi-k2.6",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_6"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_7"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_7"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_7"
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_8"
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_8"
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_8"
+    },
+    {
+      "model": "mimo-v2.5",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_9"
+    },
+    {
+      "model": "mimo-v2.5",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_9"
+    },
+    {
+      "model": "mimo-v2.5",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_9"
+    },
+    {
+      "model": "mimo-v2.5-pro",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_10"
+    },
+    {
+      "model": "mimo-v2.5-pro",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_10"
+    },
+    {
+      "model": "mimo-v2.5-pro",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_10"
+    },
+    {
+      "model": "hy3",
+      "provider": "opencode-go",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_11"
+    },
+    {
+      "model": "hy3",
+      "provider": "opencode-go",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_11"
+    },
+    {
+      "model": "hy3",
+      "provider": "opencode-go",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "HTTP Error 403: Forbidden",
+      "source": "opencode_go_11"
+    },
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Command '['C:\\\\Users\\\\joaop\\\\AppData\\\\Local\\\\hermes\\\\bin\\\\claude.cmd', '-p', '--model', 'sonnet', '--output-format', 'text', '--permission-mode', 'dontAsk', '--tools', '', '--system-prompt', 'Você é um engenheiro de otimização. Resolva o problema sozinho, sem ferramentas.']' timed out after 180 seconds",
+      "source": "claude_cli_1"
+    },
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "```json\n{\"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91], \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0], \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47], \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2], \"CAP\": 4.6, \"PMAX\": 1.2, \"SOC0\": 2.35, \"SOC_END_MIN\": 1.8, \"TOTAL_DISCHARGE_CAP\": 4.2}\n```",
+      "error": "",
+      "source": "claude_cli_1"
+    },
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "```json\n{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"microgrid_bess_12period_hard_lp\",\n  \"assumptions\": {\n    \"time_periods\": 12,\n    \"index_set\": \"t = 0..11\",\n    \"data\": {\n      \"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91],\n      \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0],\n      \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47],\n      \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2],\n      \"CAP\": 4.6,\n      \"PMAX\": 1.2,\n      \"SOC0\": 2.35,\n      \"TERMINAL_SOC_MIN\": 1.8,\n      \"DISCHARGE_BUDGET_MAX\": 4.2\n    },\n    \"units\": \"power/energy in MWh per period (equal period length assumed)\",\n    \"notes\": \"No numeric solution computed here; this is the problem specification only.\"\n  },\n  \"variables\": [\n    {\n      \"name\": \"charge\",\n      \"type\": \"continuous\",\n      \"index\": \"t=0..11\",\n      \"lower_bound\": 0.0,\n      \"upper_bound\": \"PMAX\"\n    },\n    {\n      \"name\": \"discharge\",\n      \"type\": \"continuous\",\n      \"index\": \"t=0..11\",\n      \"lower_bound\": 0.0,\n      \"upper_bound\": \"PMAX\"\n    },\n    {\n      \"name\": \"grid\",\n      \"type\": \"continuous\",\n      \"index\": \"t=0..11\",\n      \"lower_bound\": 0.0,\n      \"upper_bound\": \"GRID_CAP[t]\"\n    },\n    {\n      \"name\": \"s\",\n      \"type\": \"continuous\",\n      \"index\": \"t=0..11\",\n      \"lower_bound\": 0.0,\n      \"upper_bound\": \"CAP\",\n      \"description\": \"state of charge (SOC) at end of period t\"\n    }\n  ],\n  \"constraints\": [\n    {\n      \"name\": \"soc_dynamics_t0\",\n      \"expression\": \"s[0] == SOC0 + charge[0] - discharge[0]\",\n      \"sense\": \"eq\"\n    },\n    {\n      \"name\": \"soc_dynamics_t\",\n      \"expression\": \"s[t] == s[t-1] + charge[t] - discharge[t]\",\n      \"index\": \"t=1..11\",\n      \"sense\": \"eq\"\n    },\n    {\n      \"name\": \"power_balance\",\n      \"expression\": \"LOAD[t] == PV[t] + grid[t] + discharge[t] - charge[t]\",\n      \"index\": \"t=0..11\",\n      \"sense\": \"eq\"\n    },\n    {\n      \"name\": \"grid_upper_bound\",\n      \"expression\": \"grid[t] <= GRID_CAP[t]\",\n      \"index\": \"t=0..11\",\n      \"sense\": \"le\"\n    },\n    {\n      \"name\": \"grid_lower_bound\",\n      \"expression\": \"grid[t] >= 0\",\n      \"index\": \"t=0..11\",\n      \"sense\": \"ge\"\n    },\n    {\n      \"name\": \"charge_bounds\",\n      \"expression\": \"0 <= charge[t] <= PMAX\",\n      \"index\": \"t=0..11\",\n      \"sense\": \"range\"\n    },\n    {\n      \"name\": \"discharge_bounds\",\n      \"expression\": \"0 <= discharge[t] <= PMAX\",\n      \"index\": \"t=0..11\",\n      \"sense\": \"range\"\n    },\n    {\n      \"name\": \"soc_bounds\",\n      \"expression\": \"0 <= s[t] <= CAP\",\n      \"index\": \"t=0..11\",\n      \"sense\": \"range\"\n    },\n    {\n      \"name\": \"terminal_soc_min\",\n      \"expression\": \"s[11] >= TERMINAL_SOC_MIN\",\n      \"sense\": \"ge\"\n    },\n    {\n      \"name\": \"total_discharge_budget\",\n      \"expression\": \"sum(discharge[t], t=0..11) <= DISCHARGE_BUDGET_MAX\",\n      \"sense\": \"le\"\n    }\n  ],\n  \"objective\": {\n    \"name\": \"minimize_grid_cost\",\n    \"sense\": \"min\",\n    \"expression\": \"sum(PRICE[t] * grid[t], t=0..11)\"\n  }\n}\n```",
+      "error": "",
+      "source": "claude_cli_1"
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Command '['C:\\\\Users\\\\joaop\\\\AppData\\\\Local\\\\hermes\\\\bin\\\\claude.cmd', '-p', '--model', 'opus', '--output-format', 'text', '--permission-mode', 'dontAsk', '--tools', '', '--system-prompt', 'Você é um engenheiro de otimização. Resolva o problema sozinho, sem ferramentas.']' timed out after 180 seconds",
+      "source": "claude_cli_2"
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 22.8761,
+        "total_grid_mwh": 25.89,
+        "total_discharge_mwh": 4.2,
+        "total_charge_mwh": 3.6500000000000004,
+        "terminal_soc_mwh": 1.8,
+        "grid_trajectory": [
+          2.2199999999999998,
+          2.699999999999999,
+          2.15,
+          1.8700000000000006,
+          2.5,
+          2.3199999999999994,
+          2.17,
+          1.3399999999999999,
+          2.3,
+          2.7300000000000004,
+          1.8800000000000001,
+          1.7100000000000002
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.07000000000000028,
+          1.18,
+          1.2,
+          1.2,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.2,
+          0.20000000000000107,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.39999999999999947,
+          1.2,
+          1.2
+        ],
+        "soc_trajectory": [
+          1.1500000000000001,
+          0.9499999999999991,
+          0.9499999999999991,
+          1.0199999999999994,
+          2.1999999999999993,
+          3.3999999999999995,
+          4.6,
+          4.6,
+          4.6,
+          4.2,
+          3.0,
+          1.8
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "terminal_soc": true,
+          "impossible_cap": true
+        }
+      },
+      "raw": "{\"LOAD\": [3.42, 3.08, 2.77, 2.95, 3.18, 3.36, 3.05, 2.88, 3.27, 3.51, 3.14, 2.91], \"PV\": [0.0, 0.18, 0.62, 1.15, 1.86, 2.24, 2.08, 1.54, 0.97, 0.38, 0.06, 0.0], \"PRICE\": [1.42, 1.18, 0.74, 0.39, 0.31, 0.28, 0.33, 0.57, 0.92, 1.36, 1.58, 1.47], \"GRID_CAP\": [3.4, 3.2, 2.9, 2.7, 2.5, 2.4, 2.4, 2.6, 2.8, 3.0, 3.1, 3.2], \"CAP\": 4.6, \"PMAX\": 1.2, \"SOC0\": 2.35, \"SOC_END_MIN\": 1.8, \"TOTAL_DISCHARGE_CAP\": 4.2}",
+      "error": "",
+      "source": "claude_cli_2"
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 37.52,
+        "pv_sum_mwh": 11.08,
+        "deficit_mwh": 26.440000000000005,
+        "peak_load_mwh": 3.51,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "terminal_soc_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false
+      },
+      "scores": {
+        "score": 6,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "terminal_soc": false,
+          "impossible_cap": true
+        }
+      },
+      "raw": "```json\n{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"microgrid_bess_12period\",\n  \"assumptions\": [\n    \"Time horizon T = 12 periods, indexed t = 0..11.\",\n    \"State s[t] is the state of charge at the end of period t; the pre-horizon state s[-1] = SOC0 = 2.35 MWh.\",\n    \"Charge and discharge in the same period are both allowed by the model (no explicit anti-simultaneity constraint); energy balance uses net effect.\",\n    \"All powers/energies are expressed in MWh per period (period length normalized to 1).\",\n    \"Grid import only (grid[t] >= 0); no export modeled.\",\n    \"Objective counts only grid energy cost; PV and BESS throughput are free.\",\n    \"Terminal constraint applies to s[11] (>= 1.8 MWh).\"\n  ],\n  \"variables\": [\n    {\"name\": \"charge_0\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_1\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_2\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_3\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_4\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_5\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_6\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_7\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_8\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_9\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_10\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"charge_11\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_0\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_1\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_2\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_3\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_4\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_5\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_6\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_7\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_8\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_9\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_10\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"discharge_11\", \"lb\": 0, \"ub\": 1.2},\n    {\"name\": \"grid_0\", \"lb\": 0, \"ub\": 3.4},\n    {\"name\": \"grid_1\", \"lb\": 0, \"ub\": 3.2},\n    {\"name\": \"grid_2\", \"lb\": 0, \"ub\": 2.9},\n    {\"name\": \"grid_3\", \"lb\": 0, \"ub\": 2.7},\n    {\"name\": \"grid_4\", \"lb\": 0, \"ub\": 2.5},\n    {\"name\": \"grid_5\", \"lb\": 0, \"ub\": 2.4},\n    {\"name\": \"grid_6\", \"lb\": 0, \"ub\": 2.4},\n    {\"name\": \"grid_7\", \"lb\": 0, \"ub\": 2.6},\n    {\"name\": \"grid_8\", \"lb\": 0, \"ub\": 2.8},\n    {\"name\": \"grid_9\", \"lb\": 0, \"ub\": 3.0},\n    {\"name\": \"grid_10\", \"lb\": 0, \"ub\": 3.1},\n    {\"name\": \"grid_11\", \"lb\": 0, \"ub\": 3.2},\n    {\"name\": \"s_0\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_1\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_2\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_3\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_4\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_5\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_6\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_7\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_8\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_9\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_10\", \"lb\": 0, \"ub\": 4.6},\n    {\"name\": \"s_11\", \"lb\": 1.8, \"ub\": 4.6}\n  ],\n  \"constraints\": [\n    {\"name\": \"dynamics_0\", \"terms\": {\"s_0\": 1, \"charge_0\": -1, \"discharge_0\": 1}, \"sense\": \"==\", \"rhs\": 2.35},\n    {\"name\": \"dynamics_1\", \"terms\": {\"s_1\": 1, \"s_0\": -1, \"charge_1\": -1, \"discharge_1\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_2\", \"terms\": {\"s_2\": 1, \"s_1\": -1, \"charge_2\": -1, \"discharge_2\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_3\", \"terms\": {\"s_3\": 1, \"s_2\": -1, \"charge_3\": -1, \"discharge_3\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_4\", \"terms\": {\"s_4\": 1, \"s_3\": -1, \"charge_4\": -1, \"discharge_4\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_5\", \"terms\": {\"s_5\": 1, \"s_4\": -1, \"charge_5\": -1, \"discharge_5\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_6\", \"terms\": {\"s_6\": 1, \"s_5\": -1, \"charge_6\": -1, \"discharge_6\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_7\", \"terms\": {\"s_7\": 1, \"s_6\": -1, \"charge_7\": -1, \"discharge_7\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_8\", \"terms\": {\"s_8\": 1, \"s_7\": -1, \"charge_8\": -1, \"discharge_8\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_9\", \"terms\": {\"s_9\": 1, \"s_8\": -1, \"charge_9\": -1, \"discharge_9\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_10\", \"terms\": {\"s_10\": 1, \"s_9\": -1, \"charge_10\": -1, \"discharge_10\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"dynamics_11\", \"terms\": {\"s_11\": 1, \"s_10\": -1, \"charge_11\": -1, \"discharge_11\": 1}, \"sense\": \"==\", \"rhs\": 0},\n    {\"name\": \"balance_0\", \"terms\": {\"grid_0\": 1, \"discharge_0\": 1, \"charge_0\": -1}, \"sense\": \"==\", \"rhs\": 3.42},\n    {\"name\": \"balance_1\", \"terms\": {\"grid_1\": 1, \"discharge_1\": 1, \"charge_1\": -1}, \"sense\": \"==\", \"rhs\": 2.90},\n    {\"name\": \"balance_2\", \"terms\": {\"grid_2\": 1, \"discharge_2\": 1, \"charge_2\": -1}, \"sense\": \"==\", \"rhs\": 2.15},\n    {\"name\": \"balance_3\", \"terms\": {\"grid_3\": 1, \"discharge_3\": 1, \"charge_3\": -1}, \"sense\": \"==\", \"rhs\": 1.80},\n    {\"name\": \"balance_4\", \"terms\": {\"grid_4\": 1, \"discharge_4\": 1, \"charge_4\": -1}, \"sense\": \"==\", \"rhs\": 1.32},\n    {\"name\": \"balance_5\", \"terms\": {\"grid_5\": 1, \"discharge_5\": 1, \"charge_5\": -1}, \"sense\": \"==\", \"rhs\": 1.12},\n    {\"name\": \"balance_6\", \"terms\": {\"grid_6\": 1, \"discharge_6\": 1, \"charge_6\": -1}, \"sense\": \"==\", \"rhs\": 0.97},\n    {\"name\": \"balance_7\", \"terms\": {\"grid_7\": 1, \"discharge_7\": 1, \"charge_7\": -1}, \"sense\": \"==\", \"rhs\": 1.34},\n    {\"name\": \"balance_8\", \"terms\": {\"grid_8\": 1, \"discharge_8\": 1, \"charge_8\": -1}, \"sense\": \"==\", \"rhs\": 2.30},\n    {\"name\": \"balance_9\", \"terms\": {\"grid_9\": 1, \"discharge_9\": 1, \"charge_9\": -1}, \"sense\": \"==\", \"rhs\": 3.13},\n    {\"name\": \"balance_10\", \"terms\": {\"grid_10\": 1, \"discharge_10\": 1, \"charge_10\": -1}, \"sense\": \"==\", \"rhs\": 3.08},\n    {\"name\": \"balance_11\", \"terms\": {\"grid_11\": 1, \"discharge_11\": 1, \"charge_11\": -1}, \"sense\": \"==\", \"rhs\": 2.91},\n    {\"name\": \"discharge_budget\", \"terms\": {\"discharge_0\": 1, \"discharge_1\": 1, \"discharge_2\": 1, \"discharge_3\": 1, \"discharge_4\": 1, \"discharge_5\": 1, \"discharge_6\": 1, \"discharge_7\": 1, \"discharge_8\": 1, \"discharge_9\": 1, \"discharge_10\": 1, \"discharge_11\": 1}, \"sense\": \"<=\", \"rhs\": 4.2}\n  ],\n  \"objective\": {\n    \"terms\": {\n      \"grid_0\": 1.42,\n      \"grid_1\": 1.18,\n      \"grid_2\": 0.74,\n      \"grid_3\": 0.39,\n      \"grid_4\": 0.31,\n      \"grid_5\": 0.28,\n      \"grid_6\": 0.33,\n      \"grid_7\": 0.57,\n      \"grid_8\": 0.92,\n      \"grid_9\": 1.36,\n      \"grid_10\": 1.58,\n      \"grid_11\": 1.47\n    }\n  }\n}\n```",
+      "error": "",
+      "source": "claude_cli_2"
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Fable 5 requires usage credits. Run /usage-credits to continue or switch models with /model.",
+      "source": "claude_cli_3"
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Fable 5 requires usage credits. Run /usage-credits to continue or switch models with /model.",
+      "source": "claude_cli_3"
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Fable 5 requires usage credits. Run /usage-credits to continue or switch models with /model.",
+      "source": "claude_cli_3"
+    }
+  ]
+}

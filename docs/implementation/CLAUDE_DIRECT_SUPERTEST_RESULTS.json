@@ -1,0 +1,565 @@
+{
+  "generated_at": "2026-07-28T17:02:04.713128+00:00",
+  "config_path": "C:\\Users\\joaop\\AppData\\Local\\hermes\\config.yaml",
+  "env_file": "C:\\Users\\joaop\\AppData\\Local\\hermes\\.env",
+  "oracle": {
+    "load_sum_mwh": 13.7,
+    "pv_sum_mwh": 6.25,
+    "deficit_mwh": 7.449999999999999,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.7365591397849461,
+    "min_tou_cost": 4.2825,
+    "total_grid_mwh": 5.6000000000000005,
+    "total_discharge_mwh": 4.550000000000001,
+    "total_charge_mwh": 2.7,
+    "grid_trajectory": [
+      1.75,
+      0.44999999999999996,
+      0.40000000000000036,
+      2.15,
+      0.3500000000000001,
+      0.5
+    ],
+    "charge_trajectory": [
+      0.0,
+      0.0,
+      1.35,
+      1.35,
+      0.0,
+      0.0
+    ],
+    "discharge_trajectory": [
+      1.35,
+      0.5,
+      0.0,
+      0.0,
+      1.35,
+      1.35
+    ],
+    "soc_trajectory": [
+      0.5,
+      -0.0,
+      1.35,
+      2.7,
+      1.35,
+      0.0
+    ],
+    "impossible_cap_feasible": false,
+    "reviewer_passed": true,
+    "timegrid_n_points": 6
+  },
+  "models": [
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "source": "claude_cli_1",
+      "base_url": "claude-cli",
+      "key_env": null
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "source": "claude_cli_2",
+      "base_url": "claude-cli",
+      "key_env": null
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "source": "claude_cli_3",
+      "base_url": "claude-cli",
+      "key_env": null
+    }
+  ],
+  "runs": [
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "arm": "without_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.45,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.7366,
+        "min_tou_cost": 4.3475,
+        "total_grid_mwh": 5.6,
+        "total_discharge_mwh": 4.05,
+        "total_charge_mwh": 2.2,
+        "grid_trajectory": [
+          1.75,
+          0.95,
+          0.4,
+          1.65,
+          0.35,
+          0.5
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          1.35,
+          0.85,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.35,
+          0.0,
+          0.0,
+          0.0,
+          1.35,
+          1.35
+        ],
+        "soc_trajectory": [
+          0.5,
+          0.5,
+          1.85,
+          2.7,
+          1.35,
+          0.0
+        ],
+        "impossible_cap_feasible": true,
+        "reviewer_passed": true,
+        "reasoning": "Net load (LOAD-PV) = [3.10,0.95,-0.95,0.80,1.70,1.85]. At t2 PV exceeds load by 0.95, and since export is not allowed (grid>=0), charging of at least 0.95 MWh at t2 is mandatory. The three highest-price periods (t5=1.35, t0=1.15, t4=0.95) are each discharged at the full power limit (1.35 MWh), which is feasible because the required energy (4.05 MWh total) is supplied by the initial SOC (1.85 MWh, fully used: 1.35 at t0 and the remaining 0.50 carried forward) plus charging at the two cheapest periods, t2 (1.35 MWh, at PMAX, also satisfying the mandatory PV-absorption constraint) and t3 (0.85 MWh, exactly the remainder needed so SOC reaches 0 at the end with no waste). All charge/discharge stay within PMAX=1.35 and SOC stays within [0,3.75] (max SOC reached = 2.70 MWh), so the 3.75 MWh cap is not binding and the plan is feasible. No cheaper feasible rearrangement exists since all three highest-price slots are already discharging at their power limit and charging uses only the two cheapest slots at the minimum volume required, giving the global LP optimum of 4.3475 (cost units, e.g. $/currency-per-price-unit)."
+      },
+      "scores": {
+        "score": 7,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": false,
+          "impossible_cap": false,
+          "grid_traj_l1": 1.0000000000000004,
+          "grid_traj_ok": false
+        }
+      },
+      "raw": "{\"load_sum_mwh\": 13.70, \"pv_sum_mwh\": 6.25, \"deficit_mwh\": 7.45, \"peak_load_mwh\": 3.10, \"load_factor\": 0.7366, \"min_tou_cost\": 4.3475, \"total_grid_mwh\": 5.60, \"total_discharge_mwh\": 4.05, \"total_charge_mwh\": 2.20, \"grid_trajectory\": [1.75, 0.95, 0.40, 1.65, 0.35, 0.50], \"charge_trajectory\": [0.00, 0.00, 1.35, 0.85, 0.00, 0.00], \"discharge_trajectory\": [1.35, 0.00, 0.00, 0.00, 1.35, 1.35], \"soc_trajectory\": [0.50, 0.50, 1.85, 2.70, 1.35, 0.00], \"impossible_cap_feasible\": true, \"reviewer_passed\": true, \"reasoning\": \"Net load (LOAD-PV) = [3.10,0.95,-0.95,0.80,1.70,1.85]. At t2 PV exceeds load by 0.95, and since export is not allowed (grid>=0), charging of at least 0.95 MWh at t2 is mandatory. The three highest-price periods (t5=1.35, t0=1.15, t4=0.95) are each discharged at the full power limit (1.35 MWh), which is feasible because the required energy (4.05 MWh total) is supplied by the initial SOC (1.85 MWh, fully used: 1.35 at t0 and the remaining 0.50 carried forward) plus charging at the two cheapest periods, t2 (1.35 MWh, at PMAX, also satisfying the mandatory PV-absorption constraint) and t3 (0.85 MWh, exactly the remainder needed so SOC reaches 0 at the end with no waste). All charge/discharge stay within PMAX=1.35 and SOC stays within [0,3.75] (max SOC reached = 2.70 MWh), so the 3.75 MWh cap is not binding and the plan is feasible. No cheaper feasible rearrangement exists since all three highest-price slots are already discharging at their power limit and charging uses only the two cheapest slots at the minimum volume required, giving the global LP optimum of 4.3475 (cost units, e.g. $/currency-per-price-unit).\"}",
+      "error": "",
+      "source": "claude_cli_1"
+    },
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.449999999999999,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.7365591397849461,
+        "min_tou_cost": 4.2825,
+        "total_grid_mwh": 5.6000000000000005,
+        "total_discharge_mwh": 4.550000000000001,
+        "total_charge_mwh": 2.7,
+        "grid_trajectory": [
+          1.75,
+          0.44999999999999996,
+          0.40000000000000036,
+          2.15,
+          0.3500000000000001,
+          0.5
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          1.35,
+          1.35,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.35,
+          0.5,
+          0.0,
+          0.0,
+          1.35,
+          1.35
+        ],
+        "soc_trajectory": [
+          0.5,
+          -0.0,
+          1.35,
+          2.7,
+          1.35,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "timegrid_n_points": 6
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "impossible_cap": true,
+          "grid_traj_l1": 0.0,
+          "grid_traj_ok": true
+        }
+      },
+      "raw": "{\"LOAD\": [3.1, 2.4, 1.6, 2.15, 2.35, 2.1], \"PV\": [0.0, 1.45, 2.55, 1.35, 0.65, 0.25], \"PRICE\": [1.15, 0.55, 0.28, 0.42, 0.95, 1.35], \"CAP\": 3.75, \"PMAX\": 1.35, \"SOC0\": 1.85}",
+      "error": "",
+      "source": "claude_cli_1"
+    },
+    {
+      "model": "sonnet",
+      "provider": "claude-cli",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.449999999999999,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "reasoning": "OPS convertido pelo modelo; OEC validou e executou.",
+        "_run_ids": {
+          "load_metrics": "e8f40d70-e477-4ad0-9278-a2985aa2caf4",
+          "balance": "002c424e-8a0e-4cd3-bcee-e704c55078fa",
+          "lp": "0ed9f333-2e10-4ebd-b923-d8f64de48b90",
+          "feasibility": "43728a57-db56-4b52-a6fe-868b7a3efe4f"
+        }
+      },
+      "scores": {
+        "score": 5,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": false,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "impossible_cap": true,
+          "grid_traj_l1": 5.6000000000000005,
+          "grid_traj_ok": false
+        }
+      },
+      "raw": "```json\n{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"6-period microgrid dispatch with BESS (eta=1)\",\n  \"assumptions\": [\n    \"Battery round-trip efficiency eta = 1 (no losses on charge/discharge).\",\n    \"Grid import only: grid[t] >= 0 (no export to grid).\",\n    \"PV generation is not curtailable; excess PV must be absorbed by charge or export is not allowed, so PV <= LOAD + charge is implied by balance equation.\",\n    \"State of charge s[t] represents energy stored at END of period t; s before t=0 is SOC0 = 1.85 MWh.\",\n    \"Charge and discharge cannot both be nonzero optimally is not enforced explicitly (no complementarity constraint); solver may allow simultaneous charge/discharge only if not economically beneficial.\",\n    \"All time periods have equal duration (implied by using MWh directly as energy per period, consistent with PMAX in MWh per period).\",\n    \"CAP = 3.75 MWh is the battery energy capacity, PMAX = 1.35 MWh per period is the max charge/discharge per period.\",\n    \"Data arrays LOAD, PV, PRICE are indexed t = 0..5 (6 periods).\"\n  ],\n  \"variables\": [\n    {\"name\": \"grid_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": null},\n    {\"name\": \"grid_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": null},\n    {\"name\": \"grid_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": null},\n    {\"name\": \"grid_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": null},\n    {\"name\": \"grid_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": null},\n    {\"name\": \"grid_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": null},\n\n    {\"name\": \"charge_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"charge_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"charge_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"charge_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"charge_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"charge_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n\n    {\"name\": \"discharge_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"discharge_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"discharge_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"discharge_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"discharge_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n    {\"name\": \"discharge_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 1.35},\n\n    {\"name\": \"s_0\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.75},\n    {\"name\": \"s_1\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.75},\n    {\"name\": \"s_2\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.75},\n    {\"name\": \"s_3\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.75},\n    {\"name\": \"s_4\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.75},\n    {\"name\": \"s_5\", \"type\": \"continuous\", \"lb\": 0, \"ub\": 3.75}\n  ],\n  \"constraints\": [\n    {\"name\": \"balance_0\", \"expr\": \"grid_0 + discharge_0 - charge_0 = 3.1\", \"note\": \"LOAD0 - PV0 = 3.1 - 0.0\"},\n    {\"name\": \"balance_1\", \"expr\": \"grid_1 + discharge_1 - charge_1 = 0.95\", \"note\": \"LOAD1 - PV1 = 2.4 - 1.45\"},\n    {\"name\": \"balance_2\", \"expr\": \"grid_2 + discharge_2 - charge_2 = -0.95\", \"note\": \"LOAD2 - PV2 = 1.6 - 2.55\"},\n    {\"name\": \"balance_3\", \"expr\": \"grid_3 + discharge_3 - charge_3 = 0.8\", \"note\": \"LOAD3 - PV3 = 2.15 - 1.35\"},\n    {\"name\": \"balance_4\", \"expr\": \"grid_4 + discharge_4 - charge_4 = 1.7\", \"note\": \"LOAD4 - PV4 = 2.35 - 0.65\"},\n    {\"name\": \"balance_5\", \"expr\": \"grid_5 + discharge_5 - charge_5 = 1.85\", \"note\": \"LOAD5 - PV5 = 2.1 - 0.25\"},\n\n    {\"name\": \"soc_dyn_0\", \"expr\": \"s_0 = 1.85 + charge_0 - discharge_0\", \"note\": \"SOC0 = 1.85 MWh\"},\n    {\"name\": \"soc_dyn_1\", \"expr\": \"s_1 = s_0 + charge_1 - discharge_1\"},\n    {\"name\": \"soc_dyn_2\", \"expr\": \"s_2 = s_1 + charge_2 - discharge_2\"},\n    {\"name\": \"soc_dyn_3\", \"expr\": \"s_3 = s_2 + charge_3 - discharge_3\"},\n    {\"name\": \"soc_dyn_4\", \"expr\": \"s_4 = s_3 + charge_4 - discharge_4\"},\n    {\"name\": \"soc_dyn_5\", \"expr\": \"s_5 = s_4 + charge_5 - discharge_5\"}\n  ],\n  \"objective\": {\n    \"sense\": \"min\",\n    \"expr\": \"1.15*grid_0 + 0.55*grid_1 + 0.28*grid_2 + 0.42*grid_3 + 0.95*grid_4 + 1.35*grid_5\"\n  }\n}\n```",
+      "error": "",
+      "source": "claude_cli_1"
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "arm": "without_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.45,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.7366,
+        "min_tou_cost": 4.2825,
+        "total_grid_mwh": 5.6,
+        "total_discharge_mwh": 4.55,
+        "total_charge_mwh": 2.7,
+        "grid_trajectory": [
+          1.75,
+          0.45,
+          0.4,
+          2.15,
+          0.35,
+          0.5
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          1.35,
+          1.35,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.35,
+          0.5,
+          0.0,
+          0.0,
+          1.35,
+          1.35
+        ],
+        "soc_trajectory": [
+          0.5,
+          0.0,
+          1.35,
+          2.7,
+          1.35,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "reasoning": "Net load (LOAD-PV) = [3.1,0.95,-0.95,0.8,1.7,1.85], sum 7.45. grid[t]=netload[t]+s[t]-s[t-1], so cost = const + 0.60*s0+0.27*s1-0.14*s2-0.53*s3-0.40*s4+1.35*s5 (Abel summation). Minimizing s.t. |delta s|<=PMAX(1.35), grid>=0 (delta2>=0.95 to absorb PV surplus), 0<=s<=3.75: discharge full 1.35 at high-price t0(1.15), 0.5 at t1(0.55), charge 1.35 at cheap t2(0.28, incl PV) and t3(0.42), then discharge 1.35 at t4(0.95) and t5(1.35), draining battery to 0 (final SOC 0 => total grid minimized at 7.45-1.85=5.6). SOC path [0.5,0,1.35,2.7,1.35,0] respects all bounds. Resulting min TOU cost = 1.15*1.75+0.55*0.45+0.28*0.4+0.42*2.15+0.95*0.35+1.35*0.5 = 4.2825. Load factor = (13.7/6)/3.1 = 0.7366."
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "impossible_cap": true,
+          "grid_traj_l1": 4.996003610813204e-16,
+          "grid_traj_ok": true
+        }
+      },
+      "raw": "{\n\"load_sum_mwh\": 13.7,\n\"pv_sum_mwh\": 6.25,\n\"deficit_mwh\": 7.45,\n\"peak_load_mwh\": 3.1,\n\"load_factor\": 0.7366,\n\"min_tou_cost\": 4.2825,\n\"total_grid_mwh\": 5.6,\n\"total_discharge_mwh\": 4.55,\n\"total_charge_mwh\": 2.7,\n\"grid_trajectory\": [1.75, 0.45, 0.4, 2.15, 0.35, 0.5],\n\"charge_trajectory\": [0.0, 0.0, 1.35, 1.35, 0.0, 0.0],\n\"discharge_trajectory\": [1.35, 0.5, 0.0, 0.0, 1.35, 1.35],\n\"soc_trajectory\": [0.5, 0.0, 1.35, 2.7, 1.35, 0.0],\n\"impossible_cap_feasible\": false,\n\"reviewer_passed\": true,\n\"reasoning\": \"Net load (LOAD-PV) = [3.1,0.95,-0.95,0.8,1.7,1.85], sum 7.45. grid[t]=netload[t]+s[t]-s[t-1], so cost = const + 0.60*s0+0.27*s1-0.14*s2-0.53*s3-0.40*s4+1.35*s5 (Abel summation). Minimizing s.t. |delta s|<=PMAX(1.35), grid>=0 (delta2>=0.95 to absorb PV surplus), 0<=s<=3.75: discharge full 1.35 at high-price t0(1.15), 0.5 at t1(0.55), charge 1.35 at cheap t2(0.28, incl PV) and t3(0.42), then discharge 1.35 at t4(0.95) and t5(1.35), draining battery to 0 (final SOC 0 => total grid minimized at 7.45-1.85=5.6). SOC path [0.5,0,1.35,2.7,1.35,0] respects all bounds. Resulting min TOU cost = 1.15*1.75+0.55*0.45+0.28*0.4+0.42*2.15+0.95*0.35+1.35*0.5 = 4.2825. Load factor = (13.7/6)/3.1 = 0.7366.\"\n}",
+      "error": "",
+      "source": "claude_cli_2"
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "arm": "extract_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.449999999999999,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.7365591397849461,
+        "min_tou_cost": 4.2825,
+        "total_grid_mwh": 5.6000000000000005,
+        "total_discharge_mwh": 4.550000000000001,
+        "total_charge_mwh": 2.7,
+        "grid_trajectory": [
+          1.75,
+          0.44999999999999996,
+          0.40000000000000036,
+          2.15,
+          0.3500000000000001,
+          0.5
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          1.35,
+          1.35,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.35,
+          0.5,
+          0.0,
+          0.0,
+          1.35,
+          1.35
+        ],
+        "soc_trajectory": [
+          0.5,
+          -0.0,
+          1.35,
+          2.7,
+          1.35,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "timegrid_n_points": 6
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "impossible_cap": true,
+          "grid_traj_l1": 0.0,
+          "grid_traj_ok": true
+        }
+      },
+      "raw": "{\"LOAD\": [3.1, 2.4, 1.6, 2.15, 2.35, 2.1], \"PV\": [0.0, 1.45, 2.55, 1.35, 0.65, 0.25], \"PRICE\": [1.15, 0.55, 0.28, 0.42, 0.95, 1.35], \"CAP\": 3.75, \"PMAX\": 1.35, \"SOC0\": 1.85}",
+      "error": "",
+      "source": "claude_cli_2"
+    },
+    {
+      "model": "opus",
+      "provider": "claude-cli",
+      "arm": "ops_plus_oec",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.449999999999999,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.0,
+        "min_tou_cost": 0.0,
+        "total_grid_mwh": 0.0,
+        "total_discharge_mwh": 0.0,
+        "total_charge_mwh": 0.0,
+        "grid_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "soc_trajectory": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "reasoning": "OPS convertido pelo modelo; OEC validou e executou.",
+        "_run_ids": {
+          "load_metrics": "609a7984-1988-4b15-8106-aaa5c62facc1",
+          "balance": "13f6f390-c0e7-4238-a622-4b6092ef0b83",
+          "lp": "404e0c2d-02f6-48bf-ab4b-cc0f947f2ef8",
+          "feasibility": "94d44a0e-907f-416f-8f40-c4f006527834"
+        }
+      },
+      "scores": {
+        "score": 5,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": false,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "impossible_cap": true,
+          "grid_traj_l1": 5.6000000000000005,
+          "grid_traj_ok": false
+        }
+      },
+      "raw": "{\n  \"ops_version\": \"0.1.0\",\n  \"problem_class\": \"lp\",\n  \"sense\": \"min\",\n  \"name\": \"microgrid_bess_6period\",\n  \"assumptions\": [\n    \"Battery round-trip efficiency eta = 1 (no losses on charge/discharge).\",\n    \"Initial state of charge before t=0 is SOC0 = 1.85 MWh.\",\n    \"No terminal SOC constraint imposed.\",\n    \"grid import only (grid >= 0), no export allowed.\",\n    \"charge and discharge each bounded by PMAX = 1.35 MWh per period.\",\n    \"SOC bounded within [0, CAP] = [0, 3.75] MWh at end of each period.\",\n    \"LOAD, PV, PRICE are deterministic per-period parameters.\"\n  ],\n  \"variables\": [\n    {\"name\": \"grid_0\", \"type\": \"continuous\", \"lower\": 0, \"upper\": null},\n    {\"name\": \"grid_1\", \"type\": \"continuous\", \"lower\": 0, \"upper\": null},\n    {\"name\": \"grid_2\", \"type\": \"continuous\", \"lower\": 0, \"upper\": null},\n    {\"name\": \"grid_3\", \"type\": \"continuous\", \"lower\": 0, \"upper\": null},\n    {\"name\": \"grid_4\", \"type\": \"continuous\", \"lower\": 0, \"upper\": null},\n    {\"name\": \"grid_5\", \"type\": \"continuous\", \"lower\": 0, \"upper\": null},\n    {\"name\": \"charge_0\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"charge_1\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"charge_2\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"charge_3\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"charge_4\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"charge_5\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"discharge_0\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"discharge_1\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"discharge_2\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"discharge_3\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"discharge_4\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"discharge_5\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 1.35},\n    {\"name\": \"s_0\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 3.75},\n    {\"name\": \"s_1\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 3.75},\n    {\"name\": \"s_2\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 3.75},\n    {\"name\": \"s_3\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 3.75},\n    {\"name\": \"s_4\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 3.75},\n    {\"name\": \"s_5\", \"type\": \"continuous\", \"lower\": 0, \"upper\": 3.75}\n  ],\n  \"constraints\": [\n    {\n      \"name\": \"balance_0\",\n      \"terms\": {\"grid_0\": 1, \"discharge_0\": 1, \"charge_0\": -1},\n      \"sense\": \"==\",\n      \"rhs\": 3.1\n    },\n    {\n      \"name\": \"balance_1\",\n      \"terms\": {\"grid_1\": 1, \"discharge_1\": 1, \"charge_1\": -1},\n      \"sense\": \"==\",\n      \"rhs\": 0.95\n    },\n    {\n      \"name\": \"balance_2\",\n      \"terms\": {\"grid_2\": 1, \"discharge_2\": 1, \"charge_2\": -1},\n      \"sense\": \"==\",\n      \"rhs\": -0.95\n    },\n    {\n      \"name\": \"balance_3\",\n      \"terms\": {\"grid_3\": 1, \"discharge_3\": 1, \"charge_3\": -1},\n      \"sense\": \"==\",\n      \"rhs\": 0.8\n    },\n    {\n      \"name\": \"balance_4\",\n      \"terms\": {\"grid_4\": 1, \"discharge_4\": 1, \"charge_4\": -1},\n      \"sense\": \"==\",\n      \"rhs\": 1.7\n    },\n    {\n      \"name\": \"balance_5\",\n      \"terms\": {\"grid_5\": 1, \"discharge_5\": 1, \"charge_5\": -1},\n      \"sense\": \"==\",\n      \"rhs\": 1.85\n    },\n    {\n      \"name\": \"soc_0\",\n      \"terms\": {\"s_0\": 1, \"charge_0\": -1, \"discharge_0\": 1},\n      \"sense\": \"==\",\n      \"rhs\": 1.85\n    },\n    {\n      \"name\": \"soc_1\",\n      \"terms\": {\"s_1\": 1, \"s_0\": -1, \"charge_1\": -1, \"discharge_1\": 1},\n      \"sense\": \"==\",\n      \"rhs\": 0\n    },\n    {\n      \"name\": \"soc_2\",\n      \"terms\": {\"s_2\": 1, \"s_1\": -1, \"charge_2\": -1, \"discharge_2\": 1},\n      \"sense\": \"==\",\n      \"rhs\": 0\n    },\n    {\n      \"name\": \"soc_3\",\n      \"terms\": {\"s_3\": 1, \"s_2\": -1, \"charge_3\": -1, \"discharge_3\": 1},\n      \"sense\": \"==\",\n      \"rhs\": 0\n    },\n    {\n      \"name\": \"soc_4\",\n      \"terms\": {\"s_4\": 1, \"s_3\": -1, \"charge_4\": -1, \"discharge_4\": 1},\n      \"sense\": \"==\",\n      \"rhs\": 0\n    },\n    {\n      \"name\": \"soc_5\",\n      \"terms\": {\"s_5\": 1, \"s_4\": -1, \"charge_5\": -1, \"discharge_5\": 1},\n      \"sense\": \"==\",\n      \"rhs\": 0\n    }\n  ],\n  \"objective\": {\n    \"sense\": \"min\",\n    \"terms\": {\n      \"grid_0\": 1.15,\n      \"grid_1\": 0.55,\n      \"grid_2\": 0.28,\n      \"grid_3\": 0.42,\n      \"grid_4\": 0.95,\n      \"grid_5\": 1.35\n    }\n  }\n}",
+      "error": "",
+      "source": "claude_cli_2"
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Fable 5 requires usage credits. Run /usage-credits to continue or switch models with /model.",
+      "source": "claude_cli_3"
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "arm": "extract_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Fable 5 requires usage credits. Run /usage-credits to continue or switch models with /model.",
+      "source": "claude_cli_3"
+    },
+    {
+      "model": "fable",
+      "provider": "claude-cli",
+      "arm": "ops_plus_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Fable 5 requires usage credits. Run /usage-credits to continue or switch models with /model.",
+      "source": "claude_cli_3"
+    }
+  ]
+}
