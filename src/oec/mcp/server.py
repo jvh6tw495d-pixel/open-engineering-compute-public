@@ -9,6 +9,9 @@ specific low-level skill id.
 from __future__ import annotations
 
 import json
+import logging
+import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +22,35 @@ from mcp.types import CallToolResult, TextContent, Tool
 
 from oec import __version__
 from oec.errors import OECError
+from oec.mcp.discovery import build_skill_suggestion_payload, rank_candidate_skills
 from oec.sdk import Engine
+
+_logger = logging.getLogger(__name__)
+
+
+def _ensure_agents_importable() -> None:
+    """Make the repo-root ``agents/`` companion package importable.
+
+    ``agents/`` lives outside ``src/oec`` and has no ``__init__.py`` (a PEP
+    420 namespace package), so ``from agents...`` only resolves when the
+    repository root is on ``sys.path``. That happens incidentally under
+    ``pytest`` (which runs from the repo root) but not for the installed
+    ``oec`` console script, whose ``sys.path`` has no reason to include the
+    repo root — callers then hit ``ModuleNotFoundError: No module named
+    'agents'`` regardless of their own cwd. Resolve the root from this
+    file's own location instead of relying on the caller's cwd or an
+    externally exported ``PYTHONPATH``.
+    """
+    # Appended, not inserted at position 0: this should only ever fill in a
+    # name that's otherwise unresolved. If some other installed package were
+    # ever shadowing "agents", inserting first would silently hide it instead
+    # of surfacing a clear conflict.
+    repo_root = Path(__file__).resolve().parents[3]
+    if (repo_root / "agents").is_dir() and str(repo_root) not in sys.path:
+        sys.path.append(str(repo_root))
+
+
+_ensure_agents_importable()
 
 LIST_AGENTS_TOOL_NAME = "list_agents"
 LIST_SKILLS_TOOL_NAME = "list_skills"
@@ -37,6 +68,17 @@ _AGENT_REVIEWER_TOOL_NAME = "agent.scientific_reviewer"
 _AGENT_APPLIED_MATH_TOOL_NAME = "agent.applied_mathematics"
 _AGENT_TIME_SERIES_TOOL_NAME = "agent.time_series"
 _AGENT_ENERGY_TOOL_NAME = "agent.energy"
+
+# Skill-manifest ``domain`` values each specialist's dispatch spans, for the
+# discovery fallback's candidate ranking (agents/*/specialist.py's own
+# ``demos`` dicts already mix these per specialist -- e.g. applied math runs
+# mathematics.*/linear.*/statistics.*/numerical.* skills).
+_DOMAIN_GROUPS: dict[str, tuple[str, ...]] = {
+    _AGENT_OPTIMIZATION_TOOL_NAME: ("optimization",),
+    _AGENT_APPLIED_MATH_TOOL_NAME: ("mathematics", "linear", "statistics", "numerical"),
+    _AGENT_TIME_SERIES_TOOL_NAME: ("timeseries",),
+    _AGENT_ENERGY_TOOL_NAME: ("energy", "battery", "electrical"),
+}
 
 _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
     _AGENT_DEFAULT_TOOL_NAME: {
@@ -220,11 +262,25 @@ def _skills_root_for(engine: Engine) -> Path:
     return getattr(engine, "skills_root", Path("skills"))
 
 
+def _contains_token(text: str, token: str) -> bool:
+    """Match ``token`` at a word boundary, not merely as a bare substring.
+
+    Only the leading boundary is required (no trailing ``\\b``) so
+    deliberate multi-lingual stems like ``"restri"`` (restrição,
+    restringir, restrict...) or ``"autocorrelat"`` (autocorrelation,
+    autocorrelação) still match anywhere inside a longer word. What this
+    fixes: bare ``"lp" in text`` matched inside "he**lp**" and ``"ops" in
+    text`` matched inside "sh**ops**"/"dr**ops**", silently misrouting
+    ordinary requests to the optimization domain.
+    """
+    return re.search(r"\b" + re.escape(token), text) is not None
+
+
 def _infer_domain_from_request(request: str) -> str | None:
     text = request.lower()
 
     if any(
-        token in text
+        _contains_token(text, token)
         for token in (
             "deriv",
             "integral",
@@ -251,12 +307,12 @@ def _infer_domain_from_request(request: str) -> str | None:
     ):
         return "mathematics"
     if any(
-        token in text
+        _contains_token(text, token)
         for token in ("battery", "energia", "energy", "soc", "three phase", "três fases")
     ):
         return "energy"
     if any(
-        token in text
+        _contains_token(text, token)
         for token in (
             "series",
             "time series",
@@ -278,7 +334,7 @@ def _infer_domain_from_request(request: str) -> str | None:
     ):
         return "timeseries"
     if any(
-        token in text
+        _contains_token(text, token)
         for token in (
             "lp",
             "milp",
@@ -291,13 +347,32 @@ def _infer_domain_from_request(request: str) -> str | None:
         )
     ):
         return "optimization"
-    if any(token in text for token in ("review", "audit", "auditar", "revisar")):
+    if any(_contains_token(text, token) for token in ("review", "audit", "auditar", "revisar")):
         return "review"
     return None
 
 
+_EXECUTION_RESULT_REQUIRED_KEYS = ("status", "skill", "method", "started_at")
+
+
+def _has_execution_payload(arguments: dict[str, Any]) -> bool:
+    """True only if ``arguments["execution"]`` looks like a real ExecutionResult.
+
+    Local LLMs sometimes hallucinate an empty/placeholder ``execution: {}``
+    alongside an otherwise clear optimization/other-domain request. Routing
+    on bare key presence sent that straight to agent.scientific_reviewer,
+    which then failed with a validation error even though ``ops``,
+    ``preferred_domain``, or the request text pointed at a different,
+    perfectly runnable specialist.
+    """
+    execution = arguments.get("execution")
+    if not isinstance(execution, dict):
+        return False
+    return all(key in execution for key in _EXECUTION_RESULT_REQUIRED_KEYS)
+
+
 def _router_target_for(arguments: dict[str, Any]) -> str:
-    if "execution" in arguments:
+    if _has_execution_payload(arguments):
         return _AGENT_REVIEWER_TOOL_NAME
     if "ops" in arguments or "ops_document" in arguments:
         return _AGENT_OPTIMIZATION_TOOL_NAME
@@ -394,12 +469,36 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
             return opt_specialist.execute_ops(arguments["ops"]).to_dict()
         if "demo_label" in arguments:
             return opt_specialist.run_demo(str(arguments["demo_label"])).to_dict()
-        raise ValueError(f"{name} requires 'ops' or 'demo_label'")
+        if "skill_id" in arguments and "inputs" in arguments:
+            return opt_specialist.run_skill(
+                str(arguments["skill_id"]), arguments["inputs"]
+            ).to_dict()
+        if "request" in arguments:
+            request_text = str(arguments["request"])
+            return build_skill_suggestion_payload(
+                name,
+                request_text,
+                rank_candidate_skills(engine, request_text, domains=_DOMAIN_GROUPS[name]),
+            )
+        raise ValueError(f"{name} requires 'ops', 'demo_label', or both 'skill_id' and 'inputs'")
 
     if name == _AGENT_REVIEWER_TOOL_NAME:
         from agents.scientific_reviewer.reviewer import ScientificReviewer
 
         if "execution" not in arguments:
+            if "request" in arguments:
+                return build_skill_suggestion_payload(
+                    name,
+                    str(arguments["request"]),
+                    candidates=[],
+                    hint=(
+                        "agent.scientific_reviewer audits a prior ExecutionResult; it "
+                        "does not run skills or accept free text itself. Run an "
+                        "optimization/applied_mathematics/time_series/energy agent "
+                        "first, then call this agent again with that result's "
+                        "'execution' (and optionally 'ops_document')."
+                    ),
+                )
             raise ValueError(f"{name} requires 'execution'")
         reviewer = ScientificReviewer()
         return reviewer.review(
@@ -430,8 +529,18 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
         return specialist.run_demo(str(arguments["demo_label"])).to_dict()
     if "skill_id" in arguments and "inputs" in arguments:
         return specialist.run_skill(str(arguments["skill_id"]), arguments["inputs"]).to_dict()
-    if isinstance(specialist, AppliedMathematicsSpecialist) and "request" in arguments:
-        return specialist.run_request(str(arguments["request"])).to_dict()
+    if "request" in arguments:
+        request_text = str(arguments["request"])
+        if isinstance(specialist, AppliedMathematicsSpecialist):
+            try:
+                return specialist.run_request(request_text).to_dict()
+            except ValueError:
+                pass  # narrow scalar-extrema grammar didn't match -- fall through
+        return build_skill_suggestion_payload(
+            name,
+            request_text,
+            rank_candidate_skills(engine, request_text, domains=_DOMAIN_GROUPS[name]),
+        )
     raise ValueError(f"{name} requires 'demo_label' or both 'skill_id' and 'inputs'")
 
 
@@ -494,7 +603,13 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
         try:
             payload = _run_specialist_by_name(engine, name, arguments)
         except (OECError, ValueError, TypeError) as exc:
-            return _error_result(str(exc), details={"tool": name})
+            return _error_result(str(exc), details={"tool": name, "error_type": type(exc).__name__})
+        except Exception as exc:  # e.g. a specialist's lazy import failing
+            _logger.exception("unexpected error dispatching agent tool %r", name)
+            return _error_result(
+                f"{type(exc).__name__}: {exc}",
+                details={"tool": name, "error_type": type(exc).__name__},
+            )
         return CallToolResult(content=[_json_text(payload)], isError=False)
 
     try:
@@ -506,6 +621,12 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
         result = engine.run(name, arguments)
     except OECError as exc:
         return CallToolResult(content=[_json_text(exc.to_dict())], isError=True)
+    except Exception as exc:
+        _logger.exception("unexpected error running skill %r", name)
+        return _error_result(
+            f"{type(exc).__name__}: {exc}",
+            details={"tool": name, "error_type": type(exc).__name__},
+        )
 
     return CallToolResult(
         content=[_json_text(result.model_dump(mode="json"))],

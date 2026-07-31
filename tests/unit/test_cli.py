@@ -335,6 +335,19 @@ def test_server_api_command_builds_app_and_calls_uvicorn_run(monkeypatch) -> Non
     assert type(captured["app"]).__name__ == type(create_app()).__name__
 
 
+def test_server_api_command_fails_fast_on_missing_skills_root(tmp_path: Path) -> None:
+    """A missing --skills-root must not silently start a server with zero
+    skills (discover_skill_dirs tolerates it; the long-lived server
+    commands must not)."""
+    missing = tmp_path / "does-not-exist"
+    result = runner.invoke(app, ["server", "api", "--skills-root", str(missing)])
+    assert result.exit_code == 1
+    # rich word-wraps stderr at the console width, and tmp_path's length varies
+    # by test name/OS -- normalize whitespace so a wrap point landing inside
+    # the message text can't break this on a substring match.
+    assert "does not exist" in " ".join(result.stderr.split())
+
+
 # --- `oec server mcp` (ADR 0015) ----------------------------------------
 
 
@@ -355,3 +368,13 @@ def test_server_mcp_command_calls_run_stdio_server(monkeypatch) -> None:  # type
 
     assert result.exit_code == 0
     assert str(captured["skills_root"]) == "skills"
+
+
+def test_server_mcp_command_fails_fast_on_missing_skills_root(tmp_path: Path) -> None:
+    """A missing --skills-root must not silently start the MCP server with
+    zero skills -- every agent.*/skill tool call would then fail downstream
+    with no indication the root itself was the problem."""
+    missing = tmp_path / "does-not-exist"
+    result = runner.invoke(app, ["server", "mcp", "--skills-root", str(missing)])
+    assert result.exit_code == 1
+    assert "does not exist" in " ".join(result.stderr.split())

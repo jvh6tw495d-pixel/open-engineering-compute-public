@@ -49,6 +49,14 @@ $env:PYTHONPATH = "$PWD;$env:PYTHONPATH"
 Alternatively run Python from the repo root without modifying
 `PYTHONPATH` (the current working directory is prepended to `sys.path`).
 
+`oec.mcp.server` (the MCP `agent.*` tools) does this automatically: it
+resolves the repo root from its own file location and appends it to
+`sys.path` at import time, so a host launching the MCP server from any cwd
+still gets a working `agents/` import. That is a runtime patch, not a
+packaging fix — see `docs/implementation/technical-debt.md` (D-CUR-21) for
+the open follow-up to make `agents/` importable without any `sys.path`
+patching.
+
 ## Install
 
 ```bash

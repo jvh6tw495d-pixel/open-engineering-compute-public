@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import subprocess
+import sys
+from pathlib import Path
 from typing import Any
 
 import anyio
@@ -18,6 +22,9 @@ from mcp import types as mcp_types
 from oec.mcp.server import (
     LIST_AGENTS_TOOL_NAME,
     LIST_SKILLS_TOOL_NAME,
+    _contains_token,
+    _has_execution_payload,
+    _infer_domain_from_request,
     _router_target_for,
     _run_specialist_by_name,
     build_server,
@@ -206,7 +213,119 @@ def test_call_tool_optimization_agent_requires_ops_or_demo(engine: Engine) -> No
     result = call_tool(engine, "agent.optimization_specialist", {})
     assert result.isError is True
     payload = _parse_content(result)
-    assert "requires 'ops' or 'demo_label'" in payload["error"]
+    assert "requires 'ops', 'demo_label', or both 'skill_id' and 'inputs'" in payload["error"]
+
+
+def test_call_tool_optimization_agent_request_falls_back_to_candidates(engine: Engine) -> None:
+    """A free-text ``request`` (no ops/demo_label) is a dead end for this
+    specialist -- there's no NL-to-OPS parser -- but it must degrade to the
+    discovery fallback's structured needs_more_information payload, not a
+    bare ValueError."""
+    result = call_tool(
+        engine,
+        "agent.optimization_specialist",
+        {"request": "minimize cost of a linear blending problem"},
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "needs_more_information"
+    assert payload["agent"] == "agent.optimization_specialist"
+    assert payload["candidates"]
+    for candidate in payload["candidates"]:
+        assert candidate["skill_id"].startswith("optimization.")
+        assert candidate["input_schema"]
+
+
+def test_call_tool_default_router_optimization_request_returns_optimization_candidates(
+    engine: Engine,
+) -> None:
+    """agent.default with a free-text optimization request + preferred_domain
+    must surface at least one real optimization.* candidate (not silently
+    drop the request or hand back an unrelated domain)."""
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": "minimize cost of a linear blending problem",
+            "preferred_domain": "optimization",
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == "agent.optimization_specialist"
+    inner = payload["result"]
+    assert inner["status"] == "needs_more_information"
+    assert inner["candidates"]
+    for candidate in inner["candidates"]:
+        assert candidate["skill_id"].startswith("optimization.")
+
+
+def test_optimization_agent_skill_id_plus_inputs_retry_closes_the_discovery_loop(
+    engine: Engine,
+) -> None:
+    """Full cycle promised by the discovery fallback: request -> candidate ->
+    retry with skill_id+inputs -> real, non-error ExecutionResult. Exercised
+    both directly against agent.optimization_specialist and routed through
+    agent.default (skill_id prefix routing), proving the loop actually
+    closes end to end rather than dead-ending on 'requires ops or
+    demo_label' as it did before this fix."""
+    suggestion = _parse_content(
+        call_tool(
+            engine,
+            "agent.optimization_specialist",
+            {"request": "minimize cost of a linear blending problem"},
+        )
+    )
+    assert suggestion["status"] == "needs_more_information"
+    candidate = suggestion["candidates"][0]
+    skill_id = candidate["skill_id"]
+    inputs = candidate["example_inputs"]
+    assert isinstance(inputs, dict)
+    assert skill_id.startswith("optimization.")
+
+    direct = call_tool(
+        engine, "agent.optimization_specialist", {"skill_id": skill_id, "inputs": inputs}
+    )
+    assert direct.isError is False
+    direct_payload = _parse_content(direct)
+    assert direct_payload["skill_id"] == skill_id
+    assert direct_payload["execution"]["status"] in {
+        "VALIDATED",
+        "VERIFIED",
+        "CONVERGED_WITH_WARNINGS",
+        "APPROXIMATE",
+    }
+
+    routed = call_tool(engine, "agent.default", {"skill_id": skill_id, "inputs": inputs})
+    assert routed.isError is False
+    routed_payload = _parse_content(routed)
+    assert routed_payload["selected_agent"] == "agent.optimization_specialist"
+    assert routed_payload["result"]["skill_id"] == skill_id
+    assert routed_payload["result"]["execution"]["status"] in {
+        "VALIDATED",
+        "VERIFIED",
+        "CONVERGED_WITH_WARNINGS",
+        "APPROXIMATE",
+    }
+
+
+def test_optimization_agent_rejects_skill_id_outside_its_domain(engine: Engine) -> None:
+    """The specialist must not silently run a non-optimization skill just
+    because it was handed a valid skill_id+inputs pair -- that belongs to a
+    different agent, and the error must be structured and explicit, not a
+    crash or a raw traceback."""
+    result = call_tool(
+        engine,
+        "agent.optimization_specialist",
+        {
+            "skill_id": "mathematics.solve_root",
+            "inputs": {"expression": "x**2 - 2", "bracket": [0, 2]},
+        },
+    )
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "optimization.*" in payload["error"]
+    assert payload["details"]["tool"] == "agent.optimization_specialist"
 
 
 def test_call_tool_scientific_reviewer_requires_execution(engine: Engine) -> None:
@@ -214,6 +333,39 @@ def test_call_tool_scientific_reviewer_requires_execution(engine: Engine) -> Non
     assert result.isError is True
     payload = _parse_content(result)
     assert "requires 'execution'" in payload["error"]
+
+
+def test_call_tool_scientific_reviewer_request_without_execution_explains_prerequisite(
+    engine: Engine,
+) -> None:
+    """The reviewer audits a prior ExecutionResult; it has no skills of its
+    own to suggest. A bare ``request`` must not error -- it should explain
+    that an execution is the actual prerequisite."""
+    result = call_tool(
+        engine, "agent.scientific_reviewer", {"request": "check my optimization result"}
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "needs_more_information"
+    assert payload["candidates"] == []
+    assert "execution" in payload["hint"]
+
+
+def test_call_tool_applied_math_request_falls_back_to_candidates_when_unparseable(
+    engine: Engine,
+) -> None:
+    """``run_request`` only understands a narrow scalar-extrema grammar
+    (f(x)=... over [a, b]); anything else must fall back to the discovery
+    fallback instead of surfacing the parser's raw ValueError."""
+    result = call_tool(
+        engine, "agent.applied_mathematics", {"request": "please analyze my dataset for me"}
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "needs_more_information"
+    assert payload["candidates"]
+    for candidate in payload["candidates"]:
+        assert candidate["input_schema"]
 
 
 def test_call_tool_time_series_agent_runs_demo(engine: Engine) -> None:
@@ -237,6 +389,19 @@ def test_call_tool_domain_agent_requires_demo_or_skill(engine: Engine) -> None:
     assert result.isError is True
     payload = _parse_content(result)
     assert "requires 'demo_label'" in payload["error"]
+
+
+def test_call_tool_energy_agent_request_falls_back_to_candidates(engine: Engine) -> None:
+    result = call_tool(
+        engine, "agent.energy", {"request": "estimate battery state of charge over time"}
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "needs_more_information"
+    assert payload["candidates"]
+    for candidate in payload["candidates"]:
+        assert candidate["skill_id"].split(".", 1)[0] in {"energy", "battery", "electrical"}
+        assert candidate["input_schema"]
 
 
 @pytest.mark.parametrize(
@@ -303,6 +468,115 @@ def test_router_target_for_ops_and_review_signals(
     arguments: dict[str, Any], expected_agent: str
 ) -> None:
     assert _router_target_for(arguments) == expected_agent
+
+
+_VALID_EXECUTION_STUB = {
+    "status": "VALIDATED",
+    "skill": {"id": "optimization.lp", "version": "0.1.0"},
+    "method": {"id": "highs", "version": "0.1.0"},
+    "started_at": "2026-07-30T00:00:00Z",
+}
+
+
+def test_has_execution_payload_rejects_empty_or_incomplete_dicts() -> None:
+    """A hallucinated ``execution: {}`` (or any dict missing an
+    ExecutionResult-required key) must not count as a real execution."""
+    assert _has_execution_payload({"execution": {}}) is False
+    assert _has_execution_payload({"execution": {"status": "VALIDATED"}}) is False
+    assert _has_execution_payload({}) is False
+    assert _has_execution_payload({"execution": "not-a-dict"}) is False
+    assert _has_execution_payload({"execution": _VALID_EXECUTION_STUB}) is True
+
+
+@pytest.mark.parametrize(
+    ("arguments", "expected_agent"),
+    [
+        (
+            {"execution": {}, "ops": {"problem_class": "lp"}},
+            "agent.optimization_specialist",
+        ),
+        (
+            {"execution": {}, "preferred_domain": "mathematics"},
+            "agent.applied_mathematics",
+        ),
+        (
+            {"execution": _VALID_EXECUTION_STUB},
+            "agent.scientific_reviewer",
+        ),
+    ],
+)
+def test_router_target_for_empty_execution_does_not_outrank_real_signals(
+    arguments: dict[str, Any], expected_agent: str
+) -> None:
+    """Regression: local LLMs sometimes hallucinate an empty/placeholder
+    ``execution: {}`` alongside a clear ops/preferred_domain signal. A bare
+    empty dict must not win over those -- only a real ExecutionResult-shaped
+    execution should route to the reviewer."""
+    assert _router_target_for(arguments) == expected_agent
+
+
+def test_call_tool_default_router_knapsack_request_with_empty_execution_does_not_hit_reviewer(
+    engine: Engine,
+) -> None:
+    """The real stress-test failure mode: a local model sends a knapsack
+    optimization request with ``preferred_domain: 'optimization'``, valid
+    ``ops``, AND a hallucinated ``execution: {}`` all in the same call. This
+    must run the optimization specialist and succeed -- not get diverted to
+    agent.scientific_reviewer and fail with a validation error over the
+    empty execution."""
+    # Same shape as OptimizationSpecialist's own "knapsack" demo_ops_from_label
+    # (agents/optimization_specialist/specialist.py), so this test exercises
+    # the router, not OPS-schema edge cases.
+    ops = {
+        "ops_version": "0.1.0",
+        "problem_class": "milp",
+        "sense": "max",
+        "name": "knapsack_regression",
+        "assumptions": ["Binary items", "Single weight constraint"],
+        "variables": [
+            {"name": "a", "kind": "binary"},
+            {"name": "b", "kind": "binary"},
+        ],
+        "constraints": [{"name": "weight", "coeffs": {"a": 2, "b": 1}, "sense": "<=", "rhs": 2}],
+        "objective": {"coeffs": {"a": 3, "b": 2}},
+    }
+    result = call_tool(
+        engine,
+        "agent.default",
+        {
+            "request": "Solve this 0/1 knapsack problem and maximize value under capacity.",
+            "preferred_domain": "optimization",
+            "ops": ops,
+            "execution": {},
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["selected_agent"] == "agent.optimization_specialist"
+    assert payload["result"]["execution"]["status"] in {
+        "VALIDATED",
+        "VERIFIED",
+        "CONVERGED_WITH_WARNINGS",
+        "APPROXIMATE",
+    }
+
+
+def test_contains_token_requires_word_boundary_not_bare_substring() -> None:
+    """Regression: ``"lp" in text``/``"ops" in text`` used to match inside
+    unrelated words ('he**lp**', 'sh**ops**'), silently misrouting generic
+    requests to the optimization domain."""
+    assert _contains_token("please help me", "lp") is False
+    assert _contains_token("browse the shops", "ops") is False
+    assert _contains_token("solve this lp problem", "lp") is True
+    assert _contains_token("opens a new ops document", "ops") is True
+    # Deliberate stem/prefix matches must still work (no trailing boundary).
+    assert _contains_token("respeite as restrições", "restri") is True
+    assert _contains_token("this is about autocorrelation", "autocorrelat") is True
+
+
+def test_infer_domain_from_request_does_not_misroute_on_substring() -> None:
+    assert _infer_domain_from_request("Help me with my engineering problem") is None
+    assert _infer_domain_from_request("Solve this LP problem for me") == "optimization"
 
 
 @pytest.mark.parametrize(
@@ -402,16 +676,24 @@ def test_call_tool_default_router_solves_clock_offset_extrema_request(engine: En
 def test_call_tool_default_router_infers_timeseries_from_ar_request(
     engine: Engine, request_text: str
 ) -> None:
-    """Keyword routing alone (v2.5.1): no NL-argument-extraction parser
-    exists for arbitrary numeric series, so a request-only call still fails
-    -- but it must fail as time_series's own honest 'requires demo_label or
-    skill_id+inputs' error, not the router's generic 'could not infer a
-    specialist' (proving the AR/ACF/PACF/Yule-Walker/Levinson-Durbin
-    keywords are actually recognized as timeseries intent)."""
+    """Keyword routing (v2.5.1): the AR/ACF/PACF/Yule-Walker/Levinson-Durbin
+    keywords route a request-only call to agent.time_series. No
+    NL-argument-extraction parser exists for arbitrary numeric series, so
+    the specialist still can't run anything on its own -- but instead of a
+    bare error it now returns the discovery fallback's structured
+    needs_more_information payload (real candidate skills, not a dead
+    end), proving both that routing recognized the keywords and that the
+    fallback engaged rather than raising."""
     result = call_tool(engine, "agent.default", {"request": request_text})
-    assert result.isError is True
+    assert result.isError is False
     payload = _parse_content(result)
-    assert "requires 'demo_label'" in payload["error"]
+    assert payload["selected_agent"] == "agent.time_series"
+    inner = payload["result"]
+    assert inner["status"] == "needs_more_information"
+    assert inner["candidates"], "expected at least one candidate skill"
+    for candidate in inner["candidates"]:
+        assert candidate["skill_id"].startswith("timeseries.")
+        assert candidate["input_schema"]
 
 
 def test_call_tool_default_router_executes_ar_yule_walker_via_request_plus_skill(
@@ -579,6 +861,55 @@ def test_call_tool_oec_error_from_run_is_error_result(
     assert "message" in payload
 
 
+def test_call_tool_unexpected_exception_from_specialist_is_structured_error(
+    engine: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A specialist's lazy import (or any other unexpected exception, not
+    just OECError/ValueError/TypeError) must still come back as the
+    codebase's own structured {"error", "details": {"tool": ...}} shape --
+    not fall through to the mcp SDK's generic plain-text error path, which
+    drops the tool name and the structured details entirely."""
+    import oec.mcp.server as server_module
+
+    def boom(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        raise ModuleNotFoundError("No module named 'agents'")
+
+    monkeypatch.setattr(server_module, "_run_specialist_by_name", boom)
+    result = call_tool(engine, "agent.optimization_specialist", {"demo_label": "diet"})
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert payload["error"] == "ModuleNotFoundError: No module named 'agents'"
+    assert payload["details"] == {
+        "tool": "agent.optimization_specialist",
+        "error_type": "ModuleNotFoundError",
+    }
+
+
+def test_call_tool_unexpected_exception_from_engine_run_is_structured_error(
+    engine: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same guarantee on the raw-skill dispatch path: an unexpected,
+    non-OECError exception from Engine.run() must not escape as a
+    differently-shaped error."""
+
+    def boom(*_args: Any, **_kwargs: Any) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(engine, "run", boom)
+    result = call_tool(
+        engine,
+        "mathematics.solve_root",
+        {"expression": "x - 1", "bracket": [0, 2]},
+    )
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert payload["error"] == "RuntimeError: boom"
+    assert payload["details"] == {
+        "tool": "mathematics.solve_root",
+        "error_type": "RuntimeError",
+    }
+
+
 def test_call_tool_non_dict_arguments_fails_gracefully(engine: Engine) -> None:
     """call_tool() is a public, directly-callable surface whose whole
     point is 'never raise' -- a non-dict `arguments` (not reachable
@@ -597,3 +928,47 @@ def test_exports_from_package() -> None:
 
     assert exported_build is build_server
     assert exported_run is run_stdio_server
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_agent_tools_importable_outside_repo_root_cwd(tmp_path: Path) -> None:
+    """Reproduces the real Hermes/MCP failure mode: a host process that
+    launches the installed ``oec`` package from a cwd other than the repo
+    root, with no ``PYTHONPATH`` pointing back at it.
+
+    ``agents/`` lives outside ``src/oec`` with no ``__init__.py``, so before
+    ``oec.mcp.server`` learned to resolve its own repo root, importing it
+    from a foreign cwd raised ``ModuleNotFoundError: No module named
+    'agents'`` on every ``agent.*`` tool call -- even though the identical
+    call succeeded under pytest, which happens to run from the repo root.
+    This must not depend on the caller's cwd or on the caller manually
+    exporting ``PYTHONPATH``.
+    """
+    env = dict(os.environ)
+    env.pop("PYTHONPATH", None)
+
+    script = f"""
+import json
+from oec.mcp.server import call_tool
+from oec.sdk import Engine
+
+engine = Engine(skills_root={str(_REPO_ROOT / "skills")!r})
+engine.warm()
+result = call_tool(engine, "agent.optimization_specialist", {{"demo_label": "diet"}})
+print(json.dumps({{"isError": result.isError, "text": result.content[0].text}}))
+"""
+    proc = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=str(tmp_path),
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert "No module named 'agents'" not in proc.stderr, proc.stderr
+    assert proc.returncode == 0, proc.stderr
+
+    payload = json.loads(proc.stdout.strip().splitlines()[-1])
+    assert payload["isError"] is False, payload["text"]

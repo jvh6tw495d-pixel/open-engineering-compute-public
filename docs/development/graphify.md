@@ -235,6 +235,137 @@ communities** — still above the 5000-node visualization limit;
 are committed as the v2.5.1 release commit immediately after this
 rebuild.
 
+### MCP agent-router runtime fix + free-text discovery fallback rebuild
+
+Rebuilt on **2026-07-30** (tool now `graphifyy` v0.9.31, previously v0.9.28
+— command surface unchanged) after a same-day session fixed a real,
+Hermes-reproduced runtime failure in the MCP agent-first layer and a
+follow-on functional gap it surfaced. **8999 nodes, 13434 edges, 671
+communities.** Baseline commit is still `f1c09c31` (the v2.5.1 release) —
+everything below is **uncommitted** in the working tree at rebuild time,
+mirroring the same pattern noted in the "Post-review Verification Engine
+correction rebuild" entry above.
+
+What changed, in the order it was found and fixed:
+
+1. **`agent.*` MCP tools failed with `ModuleNotFoundError: No module named
+   'agents'`** when the server was launched by the real Hermes runtime from
+   a cwd other than the repo root (`agents/` is a PEP 420 namespace package
+   outside `src/oec`, only importable when the repo root happens to be on
+   `sys.path` — true under `pytest`, not guaranteed by any real launcher).
+   Reproduced directly against Hermes's actual `uv.exe --directory … run
+   --extra mcp --extra optimization oec server mcp` launch command before
+   fixing. Fixed via `oec.mcp.server._ensure_agents_importable()`, which
+   resolves the repo root from its own `__file__` at import time instead of
+   relying on the caller's cwd/`PYTHONPATH`.
+2. **`call_tool()` only caught `OECError`/`ValueError`/`TypeError`** around
+   agent and raw-skill dispatch; anything else (like the `ModuleNotFoundError`
+   above) fell through to the `mcp` SDK's own generic handler, which kept the
+   session alive but dropped this codebase's structured `{"error", "details":
+   {"tool", "error_type"}}` error shape in favor of unstructured plain text.
+   `call_tool()` now catches unexpected exceptions on both dispatch paths,
+   logs them, and returns the same structured shape as every other error.
+3. **`oec server mcp`/`oec server api` silently started with zero skills**
+   when `--skills-root`/`OEC_SKILLS_ROOT` pointed at a missing directory
+   (`discover_skill_dirs` tolerates that by design, for one-shot commands
+   like `skills list`) — every tool call then failed downstream with no
+   indication the root itself was wrong. Both server commands now fail fast.
+4. **`agent.default` — the documented default MCP entrypoint — was a dead
+   end for free-text `request` in 4 of 5 domains.** The router correctly
+   inferred a domain from natural language, but every specialist except
+   `agent.applied_mathematics` (and that one only for a narrow scalar-extrema
+   regex grammar) only accepted `demo_label` or `skill_id`+`inputs`, so the
+   bare `request` was rejected with `ValueError` downstream. Confirmed for
+   real via a 41-prompt Ollama-driven stress test against the live server
+   (`nemotron-3-nano:4b-64k` picking its own tool calls — see
+   `docs/implementation/OLLAMA_AGENT_STRESS_TEST_REPORT.md`): 4 of 5 real
+   `agent.default` calls failed identically. Fixed with a new module,
+   `src/oec/mcp/discovery.py` (`rank_candidate_skills`,
+   `build_skill_suggestion_payload`): a specialist that can't act on
+   `request` now returns a non-error `{"status": "needs_more_information",
+   "candidates": [...]}` payload — each candidate carrying its real
+   `input.schema.json` plus a worked example from the skill's `examples/`
+   dir — instead of raising, wired into all four gap points in
+   `_run_specialist_by_name`. Same pass also fixed
+   `_infer_domain_from_request`'s bare substring matching (`"lp" in text`
+   matched inside "he**lp**"; `"ops" in text` matched inside
+   "sh**ops**"/"dr**ops**"), replaced with word-boundary-aware
+   `_contains_token`.
+
+All four points are covered by new tests (`tests/unit/test_mcp_discovery.py`,
+several new cases in `tests/integration/test_mcp_server.py`, plus CLI
+fail-fast tests in `tests/unit/test_cli.py`); full suite is green (1444
+passed) and ruff/mypy are clean across `src/`+`tests/`. Two independent
+reviews (Opus, Fable) ran against this work before and after implementation;
+findings from both were folded back in (see `docs/implementation/
+technical-debt.md` D-CUR-21/22/23 for what each fix actually closed and
+what's still open — ranking-quality heuristic, orphan domains with no
+specialist at all, and the structural `agents/` packaging follow-up).
+Rebuild Graphify again once this lands as a commit.
+
+### Post-audit router corrections rebuild
+
+Rebuilt on **2026-07-30** (still later the same night) after implementing
+the two corrections an independent audit found in the previous entry's
+work (`docs/implementation/oec-agent-router-post-audit-corrections.md`).
+**9043 nodes, 13507 edges, 702 communities.** Baseline commit is still
+`f1c09c31` (the v2.5.1 release) — this, like the previous entry, is
+**uncommitted** in the working tree at rebuild time. Distinguish this from
+the v2.5.1 release baseline: nothing here has shipped yet.
+
+1. **`_has_execution_payload()`** (`src/oec/mcp/server.py`) — the router
+   used to treat bare *presence* of an `execution` key as a signal to route
+   to `agent.scientific_reviewer`, so a local LLM hallucinating an empty
+   `execution: {}` alongside a valid optimization request got diverted
+   there and failed validation instead of running. The router now requires
+   `execution` to actually carry `status`/`skill`/`method`/`started_at`
+   before it counts as a review signal.
+2. **`OptimizationSpecialist.run_skill()`** (`agents/optimization_
+   specialist/specialist.py`) — the discovery fallback added in the
+   previous entry told callers to retry with `skill_id`+`inputs`, but
+   `agent.optimization_specialist` only accepted `ops`/`demo_label`, so the
+   promised retry loop was a dead end. It now runs an explicit
+   `optimization.*` skill directly via `Engine.run`.
+
+Also fixed in the same pass, outside the router itself: two ruff findings
+(`SIM105`, `SIM117`) and one mypy `no-any-return` in
+`scripts/ollama_agent_stress_test.py`, plus a stale technical-debt claim
+(D-CUR-21 said the broad `except Exception` handlers had no logging; they
+do now, from the previous entry's own work — the doc just hadn't been
+updated) and a UTC/local date mismatch in `OLLAMA_AGENT_STRESS_TEST_REPORT.md`'s
+header. See `docs/implementation/technical-debt.md` (D-CUR-24, D-CUR-25)
+for full detail and remaining scope (a live post-fix Ollama rerun was
+kicked off alongside this work; check `OLLAMA_AGENT_STRESS_TEST_REPORT.md`'s
+addendum for whether it landed and what it found).
+
+### Discovery payload normalization rebuild
+
+Rebuilt on **2026-07-30** after the final independent validation of the
+post-audit router work. **9058 nodes, 13523 edges, 679 communities.** The
+aggregated HTML graph contains 679 community nodes and 821 cross-community
+edges. The code graph remains local and gitignored; this entry records the
+working-tree evidence immediately before commit.
+
+The optimization retry transport fix was correct but exposed a final contract
+bug: `discovery._first_example()` returned whole human-readable example files
+such as `{"description": "…", "input": {…}}`, whereas the documented
+`example_inputs` contract says that object can be sent directly as `inputs`.
+That produced an honest but unusable `ExecutionResult(status=INVALID)` because
+the wrapper fields are not part of the skill schema. The function now unwraps
+the nested object when present while preserving legacy flat examples.
+
+This was verified with the exact user-facing loop, with no test-only
+normalization:
+
+`agent.default request → optimization candidate → candidate.example_inputs →
+agent.default skill_id+inputs → agent.optimization_specialist → VALIDATED`.
+
+Focused discovery/MCP tests passed (**78 passed**), Ruff and focused mypy
+passed, and `git diff --check` was clean. The post-fix Ollama artifact remains
+evidence of transport resilience; it did not happen to attempt this exact
+retry leg, so deterministic end-to-end coverage is the acceptance evidence
+for the payload contract.
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

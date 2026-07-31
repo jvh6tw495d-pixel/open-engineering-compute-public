@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
+from agents.common import SkillAgentReport, narrate_execution
+
 from oec.execution.models import ExecutionResult, ExecutionStatus
 from oec.ops.models import OPSProblem, validate_ops
 from oec.ops.schema import OPS_SCHEMA_VERSION
@@ -250,3 +252,29 @@ class OptimizationSpecialist:
     def run_demo(self, label: str) -> SpecialistReport:
         """Acceptance path: fixed label → OPS → execute."""
         return self.execute_ops(self.demo_ops_from_label(label))
+
+    def run_skill(self, skill_id: str, inputs: dict[str, Any]) -> SkillAgentReport:
+        """Run an explicit ``optimization.*`` skill directly, bypassing OPS
+        formulation.
+
+        This is the retry path the MCP discovery fallback
+        (``oec.mcp.discovery``) points callers at when a free-text
+        ``request`` can't be turned into a full OPS document automatically:
+        the caller picks a candidate ``skill_id`` from the suggestion
+        payload and adapts its ``example_inputs``. Restricted to
+        ``optimization.*`` to keep this specialist's scope honest -- other
+        domains have their own agent.
+        """
+        if not skill_id.startswith("optimization."):
+            raise ValueError(
+                f"optimization_specialist only accepts optimization.* skills, " f"got {skill_id!r}"
+            )
+        result = self.engine.run(skill_id, inputs)
+        report = SkillAgentReport(
+            agent="optimization_specialist",
+            skill_id=skill_id,
+            inputs=inputs,
+            execution=result,
+        )
+        report.narrative = narrate_execution("optimization_specialist", result)
+        return report

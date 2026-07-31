@@ -5,6 +5,81 @@ All notable changes to Open Engineering Compute are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- MCP `agent.*` tools (`agent.default`, `agent.optimization_specialist`,
+  `agent.applied_mathematics`, `agent.time_series`, `agent.energy`) failed
+  with `ModuleNotFoundError: No module named 'agents'` when the MCP server
+  was launched by an external host (e.g. Hermes running `uv run oec server
+  mcp`) from a working directory other than the repo root — the `agents/`
+  companion package lives outside `src/oec` and only resolves when the repo
+  root happens to be on `sys.path`, which `pytest` provides incidentally but
+  no real launcher guarantees. `oec.mcp.server` now resolves the repo root
+  from its own file location and makes `agents/` importable at import time,
+  independent of the caller's cwd or `PYTHONPATH`. See
+  `docs/implementation/technical-debt.md` (D-CUR-21) for the open structural
+  follow-up (packaging `agents/` properly instead of patching `sys.path`).
+- MCP `call_tool()` only caught `OECError`/`ValueError`/`TypeError` around
+  agent and raw-skill dispatch; any other exception (e.g. the
+  `ModuleNotFoundError` above, or an unexpected bug in a specialist) escaped
+  to the underlying `mcp` SDK's generic handler, which still returned a
+  clean `isError=True` result but as an unstructured plain-text message
+  instead of this codebase's own `{"error", "details": {"tool",
+  "error_type"}}` JSON shape. `call_tool()` now catches unexpected
+  exceptions on both dispatch paths and logs them (`oec.mcp.server`) before
+  returning the same structured shape as every other error path.
+- `oec server mcp`/`oec server api` silently started with zero registered
+  skills when `--skills-root`/`OEC_SKILLS_ROOT` pointed at a missing or
+  non-existent directory (`discover_skill_dirs` tolerates a missing root by
+  design, for one-shot commands like `skills list`) — every tool call then
+  failed downstream with no indication the root itself was the problem.
+  Both server commands now fail fast with a clear error instead.
+- `agent.default` — the documented default MCP entrypoint — was a dead end
+  for free-text `request` in 4 of 5 domains: the router correctly inferred
+  the domain from natural language, but the resulting specialist (every
+  agent except `agent.applied_mathematics`, and even that one only for a
+  narrow scalar-extrema grammar) immediately rejected the bare `request`
+  with `ValueError`, requiring `demo_label` or `skill_id`+`inputs` instead.
+  Confirmed by a real Ollama-driven stress test (`docs/implementation/
+  OLLAMA_AGENT_STRESS_TEST_REPORT.md`). A specialist that receives a
+  `request` it can't act on now returns a non-error
+  `{"status": "needs_more_information", "candidates": [...]}` payload
+  (new `oec.mcp.discovery` module) with each candidate skill's real input
+  schema and a worked example, instead of raising — see
+  `docs/mcp/README.md` ("Free-text `request` and `needs_more_information`")
+  for the expected host behavior. Also fixed in the same pass:
+  `_infer_domain_from_request`'s `"lp" in text`/`"ops" in text` were bare
+  substring checks that misrouted any request containing "he**lp**" or
+  "sh**ops**"/"dr**ops**" into the optimization domain; matching is now
+  word-boundary-aware. See `docs/implementation/technical-debt.md`
+  (D-CUR-22, D-CUR-23) for what's still open (ranking quality, orphan
+  domains with no specialist at all).
+- `agent.default` treated the mere *presence* of an `execution` key as a
+  signal to route to `agent.scientific_reviewer`, even when it was an empty
+  or incomplete placeholder — something local LLMs sometimes hallucinate
+  alongside an otherwise clear optimization request. That diverted valid
+  `ops`/`preferred_domain`/`request` calls into the reviewer, which then
+  failed validating the empty `execution`. `_router_target_for` now only
+  treats `execution` as a review signal via `_has_execution_payload()`,
+  which requires the dict to actually carry `status`/`skill`/`method`/
+  `started_at`; an empty or incomplete `execution` falls through to the
+  next real signal (`ops`/`ops_document`, `preferred_domain`, `skill_id`,
+  `demo_label`, or `request` inference) instead of winning by default.
+  `agent.scientific_reviewer` called directly is unchanged — it still
+  requires a real `execution` when invoked explicitly.
+- The free-text discovery fallback (previous entry) told callers to retry
+  `agent.optimization_specialist` with `skill_id` + `inputs`, but that
+  specialist only ever accepted `ops` or `demo_label` — the promised retry
+  loop was a dead end, confirmed by a live Ollama-driven stress test and an
+  independent audit (`docs/implementation/oec-agent-router-post-audit-
+  corrections.md`). `OptimizationSpecialist.run_skill()`
+  (`agents/optimization_specialist/specialist.py`) now runs an explicit
+  `optimization.*` skill directly via `Engine.run`, restricted to that
+  domain prefix (anything else is a structured, explicit error); wired into
+  `agent.optimization_specialist`'s dispatch in `src/oec/mcp/server.py`.
+
 ## [2.5.1] — 2026-07-30
 
 A refinement release, not a new platform wave (no Physics/Chemistry/

@@ -90,6 +90,26 @@ def _load_registry(skills_root: Path) -> tuple[SkillRegistry, list[str]]:
     return registry, warnings
 
 
+def _require_skills_root(skills_root: Path) -> None:
+    """Fail fast for long-lived server commands with a missing skills root.
+
+    ``discover_skill_dirs`` treats a missing root as "zero skills" by design
+    (so one-shot commands like ``skills list`` degrade gracefully), but a
+    server that silently starts with zero skills leaves every tool call
+    failing downstream with no indication the root itself was wrong.
+    """
+    try:
+        is_dir = skills_root.is_dir()
+    except OSError:
+        is_dir = False
+    if not is_dir:
+        error_console.print(
+            f"[bold red]error[/bold red]: skills root {skills_root} does not exist or is not a "
+            "directory (pass --skills-root or set OEC_SKILLS_ROOT)"
+        )
+        raise typer.Exit(code=1)
+
+
 def _fail(exc: OECError) -> NoReturn:
     if _debug:
         raise exc
@@ -282,6 +302,7 @@ def server_api(
     ``pip install 'oec[api]'``) — ``fastapi``/``uvicorn`` are optional
     dependencies, not part of the base install.
     """
+    _require_skills_root(skills_root)
     try:
         import uvicorn
 
@@ -306,6 +327,7 @@ def server_mcp(skills_root: SkillsRootOption = Path("skills")) -> None:
     ``pip install 'oec[mcp]'``) — the ``mcp`` package is an optional
     dependency, not part of the base install.
     """
+    _require_skills_root(skills_root)
     try:
         from oec.mcp import run_stdio_server
     except ImportError as exc:
