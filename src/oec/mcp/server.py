@@ -91,6 +91,13 @@ _DOMAIN_GROUPS: dict[str, tuple[str, ...]] = {
     _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: ("finance", "uncertainty"),
 }
 
+# Wave 2 (v2.5.3): a host may voluntarily attach its own belief about the
+# answer alongside the call. Deliberately unconstrained (no "type") — a claim
+# is compared structurally against ``authoritative_answer.values`` post
+# serialization (see ``oec.mcp.divergence``), so it can be any JSON shape.
+# This is the *only* channel for host claims; no new MCP tool is introduced.
+_CLAIMED_ANSWER_SCHEMA: dict[str, Any] = {}
+
 _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
     _AGENT_DEFAULT_TOOL_NAME: {
         "type": "object",
@@ -116,6 +123,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "inputs": {"type": "object"},
             "claimed_objective": {"type": "number"},
             "claimed_solver_status": {"type": "string"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -126,6 +134,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -136,6 +145,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "execution": {"type": "object"},
             "claimed_objective": {"type": "number"},
             "claimed_solver_status": {"type": "string"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "required": ["execution"],
         "additionalProperties": False,
@@ -146,6 +156,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -155,6 +166,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -164,6 +176,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -173,6 +186,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -182,6 +196,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
