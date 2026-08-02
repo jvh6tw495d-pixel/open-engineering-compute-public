@@ -29,6 +29,11 @@ from typing import Any
 _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
+_SCRIPTS_DIR = str(_ROOT / "scripts")
+if _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
+
+import _oec_authority as authority  # noqa: E402
 
 from oec.ops.schema import OPS_SCHEMA_VERSION  # noqa: E402
 from oec.sdk import Engine  # noqa: E402
@@ -158,10 +163,17 @@ def oec_pipeline(
             "freq": "1h",
         },
     )
-    lm = energy.run_skill("energy.load_metrics", {"power_values": load})
+    lm = energy.run_skill(
+        "energy.load_metrics",
+        {"power_values": [{"value": float(x), "unit": "W"} for x in load]},
+    )
     bal = energy.run_skill(
         "energy.balance",
-        {"energy_in": pv, "energy_out": load, "storage_delta": 0.0},
+        {
+            "energy_in": [{"value": float(x), "unit": "Wh"} for x in pv],
+            "energy_out": [{"value": float(x), "unit": "Wh"} for x in load],
+            "storage_delta": {"value": 0.0, "unit": "Wh"},
+        },
     )
     ops = build_ops(load, pv, price, cap=cap, pmax=pmax, soc0=soc0)
     opt_r = opt.execute_ops(ops)
@@ -179,9 +191,10 @@ def oec_pipeline(
     ops_bad = build_ops(load, pv, price, cap=0.5, pmax=pmax, soc0=soc0)
     feas = eng.run("optimization.check_feasibility", {"ops": ops_bad})
 
-    peak = float((lm.execution.result or {}).get("peak") or max(load))
-    avg = float((lm.execution.result or {}).get("average") or (sum(load) / n))
-    lf = float((lm.execution.result or {}).get("load_factor") or (avg / peak))
+    lm_result = authority.flatten_quantities(lm.execution.result or {})
+    peak = float(lm_result.get("peak", max(load)))
+    avg = float(lm_result.get("average", sum(load) / n))
+    lf = float(lm_result.get("load_factor", avg / peak))
 
     return {
         "method": "oec_multiagent",
@@ -244,6 +257,153 @@ Dynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)
 Balance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]
 Minimize sum PRICE[t]*grid[t]
 """
+
+
+class OECAuthorityError(RuntimeError):
+    """An agent-tool step produced no authoritative_answer (OEC execution failure)."""
+
+
+def _envelope_step(
+    engine: Engine, tool: str, args: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Call one agent tool and demand its authoritative_answer (Wave 3a).
+
+    Returns ``(authoritative_answer, full_payload)``. Raises
+    :class:`OECAuthorityError` when the step errors or carries no authority.
+    """
+    from oec.mcp.server import call_tool  # lazy: requires the mcp extra
+
+    result = call_tool(engine, tool, args)
+    payload = authority.coerce_payload(result)
+    if result.isError:
+        raise OECAuthorityError(f"{tool}: MCP error: {authority.read_error(payload) or payload}")
+    answer = authority.read_authority(payload)
+    if answer is None:
+        status = payload.get("status") if isinstance(payload, dict) else None
+        raise OECAuthorityError(f"{tool}: no authoritative_answer in envelope (status={status!r})")
+    return answer, payload or {}
+
+
+def oec_pipeline_envelope(
+    load: list[float],
+    pv: list[float],
+    price: list[float],
+    *,
+    cap: float,
+    pmax: float,
+    soc0: float,
+) -> dict[str, Any]:
+    """Canonical pipeline replayed through the MCP agent-tool surface.
+
+    Same method as :func:`oec_pipeline`, but every step goes through
+    ``oec.mcp.server.call_tool`` and every number is read back from the
+    envelope's ``authoritative_answer`` — the exact contract a well-behaved
+    MCP host consumes (GATE-W3: no host-prose scrape as numeric truth).
+    """
+    skills = _ROOT / "skills"
+    eng = Engine(skills_root=skills)
+    n = len(load)
+
+    tg_aa, _ = _envelope_step(
+        eng,
+        "agent.time_series",
+        {
+            "skill_id": "timeseries.timegrid",
+            "inputs": {
+                "start": "2024-06-01T00:00:00",
+                "end": f"2024-06-01T{n - 1:02d}:00:00",
+                "freq": "1h",
+            },
+        },
+    )
+    lm_aa, _ = _envelope_step(
+        eng,
+        "agent.energy",
+        {
+            "skill_id": "energy.load_metrics",
+            "inputs": {"power_values": [{"value": float(x), "unit": "W"} for x in load]},
+        },
+    )
+    bal_aa, _ = _envelope_step(
+        eng,
+        "agent.energy",
+        {
+            "skill_id": "energy.balance",
+            "inputs": {
+                "energy_in": [{"value": float(x), "unit": "Wh"} for x in pv],
+                "energy_out": [{"value": float(x), "unit": "Wh"} for x in load],
+                "storage_delta": {"value": 0.0, "unit": "Wh"},
+            },
+        },
+    )
+    ops = build_ops(load, pv, price, cap=cap, pmax=pmax, soc0=soc0)
+    opt_aa, opt_payload = _envelope_step(eng, "agent.optimization_specialist", {"ops": ops})
+    rev_aa, _ = _envelope_step(
+        eng,
+        "agent.scientific_reviewer",
+        {"ops_document": opt_payload.get("ops"), "execution": opt_payload.get("execution")},
+    )
+    ops_bad = build_ops(load, pv, price, cap=0.5, pmax=pmax, soc0=soc0)
+    feas_aa, _ = _envelope_step(
+        eng,
+        "agent.optimization_specialist",
+        {"skill_id": "optimization.check_feasibility", "inputs": {"ops": ops_bad}},
+    )
+
+    metrics = authority.flatten_quantities(lm_aa["values"])
+    balance = authority.flatten_quantities(bal_aa["values"])
+    opt_values = opt_aa["values"]
+    primal = opt_values.get("primal") or {}
+    grid = [float(primal.get(f"g{t}", 0.0)) for t in range(n)]
+    charge = [float(primal.get(f"c{t}", 0.0)) for t in range(n)]
+    discharge = [float(primal.get(f"d{t}", 0.0)) for t in range(n)]
+    soc = [float(primal.get(f"s{t}", 0.0)) for t in range(n)]
+    cost = float(opt_values.get("objective_value") or 0.0)
+
+    return {
+        "method": "oec_multiagent_envelope",
+        "auditable": True,
+        "answer": {
+            "load_sum_mwh": balance["total_out"],
+            "pv_sum_mwh": balance["total_in"],
+            "deficit_mwh": balance["total_out"] - balance["total_in"],
+            "peak_load_mwh": metrics["peak"],
+            "load_factor": metrics["load_factor"],
+            "min_tou_cost": cost,
+            "total_grid_mwh": sum(grid),
+            "total_discharge_mwh": sum(discharge),
+            "total_charge_mwh": sum(charge),
+            "grid_trajectory": grid,
+            "charge_trajectory": charge,
+            "discharge_trajectory": discharge,
+            "soc_trajectory": soc,
+            "impossible_cap_feasible": bool(feas_aa["values"].get("feasible")),
+            "reviewer_passed": bool(rev_aa["values"].get("passed")),
+            "timegrid_n_points": tg_aa["values"].get("n_points"),
+        },
+        "provenance": {
+            "timegrid_run_id": tg_aa["provenance"].get("run_id"),
+            "load_metrics_run_id": lm_aa["provenance"].get("run_id"),
+            "balance_run_id": bal_aa["provenance"].get("run_id"),
+            "lp_run_id": opt_aa["provenance"].get("run_id"),
+            "lp_status": opt_aa["provenance"].get("solver_status"),
+            "solver_status": opt_values.get("solver_status"),
+            "input_hash": opt_aa["provenance"].get("input_hash"),
+            "reviewer_passed": bool(rev_aa["values"].get("passed")),
+            "feasibility_run_id": feas_aa["provenance"].get("run_id"),
+        },
+        "params_used": {
+            "LOAD": load,
+            "PV": pv,
+            "PRICE": price,
+            "CAP": cap,
+            "PMAX": pmax,
+            "SOC0": soc0,
+        },
+        # Representative envelope payload for verdict classification:
+        # the LP is the numerical heart of the benchmark.
+        "authority_tool_result": opt_payload,
+    }
 
 
 def extract_json(text: str) -> dict[str, Any]:

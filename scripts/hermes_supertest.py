@@ -11,6 +11,15 @@ The canonical benchmark problem and scoring oracle are imported from
 `scripts/multiagent_with_without_oec.py` so this script stays aligned with
 existing thesis/report artifacts.
 
+Authority (v2.5.3 Wave 3a): `with_oec_*` arms take their numeric truth from
+the OEC envelope `authoritative_answer`, replayed once per run through the
+real MCP agent-tool surface (`THESIS.oec_pipeline_envelope`) — never from
+`extract_json` over host prose. Host prose is kept as `host_answer` (a claim
+for the Wave-3b corruption comparison). Every run is classified with the
+three labeled GATE-W3 verdicts: transport_failure | oec_execution_failure |
+host_corruption (the last stays `pending_wave_3b` until Wave 2 lands
+`claimed_answer`; see `scripts/_oec_authority.py`).
+
 Usage:
   uv run python scripts/hermes_supertest.py --list-models
   uv run python scripts/hermes_supertest.py --limit 3
@@ -36,6 +45,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+_SCRIPTS_DIR = str(ROOT / "scripts")
+if _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
+
+import _oec_authority as authority  # noqa: E402
 
 HERMES_CONFIG = Path(
     os.environ.get("HERMES_CONFIG_PATH", r"C:\Users\joaop\AppData\Local\hermes\config.yaml")
@@ -76,6 +90,12 @@ class ArmRun:
     raw: str = ""
     error: str = ""
     source: str = ""
+    # Wave 3a: authority + 3 labeled verdicts.
+    host_answer: dict[str, Any] | None = None  # host prose JSON (claim for 3b)
+    host_scores: dict[str, Any] = field(default_factory=dict)
+    verdicts: authority.ThreeVerdicts = field(
+        default_factory=lambda: authority.ThreeVerdicts.not_exercised("not run")
+    )
 
 
 def _normalize_models_field(value: Any) -> list[str]:
@@ -212,33 +232,96 @@ def run_hermes_query(
     return proc.stdout.strip()
 
 
-def run_arm(spec: ModelSpec, arm: str, query: str, *, timeout_s: int) -> ArmRun:
+def _failed_run(spec: ModelSpec, arm: str, error: str, verdicts: authority.ThreeVerdicts) -> ArmRun:
+    return ArmRun(
+        model=spec.model,
+        provider=spec.provider,
+        arm=arm,
+        ok=False,
+        error=error,
+        scores={"score": 0, "max": 10, "details": {}},
+        verdicts=verdicts,
+        source=spec.source,
+    )
+
+
+def run_arm(
+    spec: ModelSpec,
+    arm: str,
+    query: str,
+    *,
+    timeout_s: int,
+    probe: dict[str, Any] | None,
+    probe_error: str,
+) -> ArmRun:
     use_oec = arm != "without_oec"
+    if not use_oec:
+        # Control arm: host prose IS the measured surface (no OEC to read).
+        try:
+            raw = run_hermes_query(
+                spec.model, spec.provider, query, use_oec=False, timeout_s=timeout_s
+            )
+            answer = extract_json(raw)
+            return ArmRun(
+                model=spec.model,
+                provider=spec.provider,
+                arm=arm,
+                ok=True,
+                answer=answer,
+                host_answer=answer,
+                raw=raw,
+                scores=THESIS.score(answer, ORACLE),
+                verdicts=authority.three_verdicts(oec_exercised=False),
+                source=spec.source,
+            )
+        except Exception as exc:
+            return _failed_run(
+                spec,
+                arm,
+                str(exc),
+                authority.three_verdicts(transport_error=exc, oec_exercised=False),
+            )
+
+    # with_oec_* arms: numeric truth comes from the authoritative envelope
+    # probe (AA), never from extract_json over host prose.
+    probe_answer = (probe or {}).get("answer")
+    probe_tool_result = (probe or {}).get("authority_tool_result")
     try:
-        raw = run_hermes_query(
-            spec.model, spec.provider, query, use_oec=use_oec, timeout_s=timeout_s
-        )
-        answer = extract_json(raw)
-        return ArmRun(
-            model=spec.model,
-            provider=spec.provider,
-            arm=arm,
-            ok=True,
-            answer=answer,
-            raw=raw,
-            scores=THESIS.score(answer, ORACLE),
-            source=spec.source,
-        )
+        raw = run_hermes_query(spec.model, spec.provider, query, use_oec=True, timeout_s=timeout_s)
     except Exception as exc:
-        return ArmRun(
-            model=spec.model,
-            provider=spec.provider,
-            arm=arm,
-            ok=False,
-            error=str(exc),
-            scores={"score": 0, "max": 10, "details": {}},
-            source=spec.source,
-        )
+        return _failed_run(spec, arm, str(exc), authority.three_verdicts(transport_error=exc))
+    host_answer: dict[str, Any] | None = None
+    transport_error: Exception | None = None
+    try:
+        host_answer = extract_json(raw)
+    except Exception as exc:  # unparseable host output = transport leg failure
+        transport_error = exc
+    verdicts = authority.three_verdicts(
+        probe_tool_result,
+        transport_error=transport_error,
+        expect_authority=True,
+        detail="" if probe is not None else f"authority probe unavailable: {probe_error}",
+    )
+    ok = transport_error is None and probe_answer is not None
+    error = ""
+    if transport_error is not None:
+        error = f"host output not parseable as JSON: {transport_error}"
+    elif probe_answer is None:
+        error = f"authority probe produced no authoritative answer: {probe_error}"
+    return ArmRun(
+        model=spec.model,
+        provider=spec.provider,
+        arm=arm,
+        ok=ok,
+        answer=probe_answer,
+        host_answer=host_answer,
+        raw=raw,
+        scores=THESIS.score(probe_answer, ORACLE),
+        host_scores=THESIS.score(host_answer, ORACLE) if host_answer else {},
+        error=error,
+        verdicts=verdicts,
+        source=spec.source,
+    )
 
 
 def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[ArmRun]) -> None:
@@ -254,6 +337,15 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
         f"**Config source:** `{HERMES_CONFIG}`",
         "**Arms:** `without_oec`, `with_oec_raw`, `with_oec_agent`",
         "",
+        (
+            "> **Authority (v2.5.3 Wave 3a):** `with_oec_*` scores are authority-backed — "
+            "numbers come from the OEC envelope `authoritative_answer` (AA), not from host "
+            "prose. What the host actually returned is scored separately as `host score`. "
+            "Verdicts are the three labeled GATE-W3 classes: `transport_failure`, "
+            "`oec_execution_failure`, `host_corruption` (the last stays `pending_wave_3b` "
+            "until the Wave-2 `claimed_answer` comparator lands)."
+        ),
+        "",
         "## Active models tested",
         "",
         "| Model | Provider | Source |",
@@ -266,8 +358,11 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
         "",
         "## Comparative scoreboard",
         "",
-        "| Model | Provider | A no OEC | B OEC raw | C OEC agent | Best arm |",
-        "|---|---|---:|---:|---:|---|",
+        (
+            "| Model | Provider | A no OEC (host) | B OEC raw (AA) | C OEC agent (AA) "
+            "| B verdict | C verdict | C host prose |"
+        ),
+        "|---|---|---:|---:|---:|---|---|---:|",
     ]
 
     for spec in models:
@@ -275,26 +370,51 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
         a = row.get("without_oec")
         b = row.get("with_oec_raw")
         c = row.get("with_oec_agent")
-        scores = {
-            "without_oec": -1 if a is None else int((a.scores or {}).get("score", 0)),
-            "with_oec_raw": -1 if b is None else int((b.scores or {}).get("score", 0)),
-            "with_oec_agent": -1 if c is None else int((c.scores or {}).get("score", 0)),
-        }
-        best = max(scores, key=scores.get)
-        label = {
-            "without_oec": "A",
-            "with_oec_raw": "B",
-            "with_oec_agent": "C",
-        }[best]
+
+        def _score(run: ArmRun | None, key: str = "scores") -> str:
+            if run is None:
+                return "—"
+            value = int((getattr(run, key) or {}).get("score", 0))
+            return str(value) if run.ok else f"{value}*"
+
+        b_verdict = b.verdicts.primary if b else "—"
+        c_verdict = c.verdicts.primary if c else "—"
+        c_host = _score(c, "host_scores")
         lines.append(
             f"| `{spec.model}` | `{spec.provider}` | "
-            f"{scores['without_oec'] if scores['without_oec'] >= 0 else 'ERR'} | "
-            f"{scores['with_oec_raw'] if scores['with_oec_raw'] >= 0 else 'ERR'} | "
-            f"{scores['with_oec_agent'] if scores['with_oec_agent'] >= 0 else 'ERR'} | "
-            f"{label} |"
+            f"{_score(a)} | {_score(b)} | {_score(c)} | "
+            f"`{b_verdict}` | `{c_verdict}` | {c_host} |"
         )
 
     lines += [
+        "",
+        "*run failed (`ok=false`); score shown for context only.",
+        "",
+        "## Verdict summary (GATE-W3)",
+        "",
+        "Labeled primary-verdict counts per arm — authority health, not accuracy.",
+        "",
+        "| Arm | total | ok | transport_failure | oec_execution_failure | host_corruption | not_exercised |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for arm in ("without_oec", "with_oec_raw", "with_oec_agent"):
+        counts = authority.verdict_counts(r.verdicts for r in runs if r.arm == arm)
+        if counts["total"] == 0:
+            continue
+        lines.append(
+            f"| `{arm}` | {counts['total']} | {counts[authority.OK]} "
+            f"| {counts[authority.TRANSPORT_FAILURE]} "
+            f"| {counts[authority.OEC_EXECUTION_FAILURE]} "
+            f"| {counts[authority.HOST_CORRUPTION]} "
+            f"| {counts[authority.NOT_EXERCISED]} |"
+        )
+    lines += [
+        "",
+        (
+            "`host_corruption` is `pending_wave_3b` by design in Wave 3a: the labeled slot "
+            "and the `claim_compare` hook exist, the Wave-2 `claimed_answer` comparator "
+            "activates it in Wave 3b."
+        ),
         "",
         "## Per-run details",
         "",
@@ -307,12 +427,24 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
             run = row.get(arm)
             if run is None:
                 continue
+            v = run.verdicts
             lines += [
                 f"#### `{arm}`",
                 "",
                 f"- ok: `{run.ok}`",
                 f"- score: `{(run.scores or {}).get('score', 0)}/{(run.scores or {}).get('max', 10)}`",
+                (
+                    f"- verdicts: transport=`{v.transport}` oec_execution=`{v.oec_execution}` "
+                    f"host_corruption=`{v.host_corruption}` → **{v.primary}**"
+                ),
             ]
+            if v.detail:
+                lines.append(f"- verdict detail: `{v.detail}`")
+            if arm != "without_oec":
+                lines.append(
+                    "- answer source: `authoritative_answer` (envelope probe); "
+                    f"host prose score: `{(run.host_scores or {}).get('score', 0)}/10`"
+                )
             if run.error:
                 lines.append(f"- error: `{run.error}`")
             if run.answer is not None:
@@ -320,6 +452,15 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
                     "",
                     "```json",
                     json.dumps(run.answer, indent=2, ensure_ascii=False),
+                    "```",
+                ]
+            if run.host_answer is not None and arm != "without_oec":
+                lines += [
+                    "",
+                    "Host prose answer (claim for Wave-3b comparison):",
+                    "",
+                    "```json",
+                    json.dumps(run.host_answer, indent=2, ensure_ascii=False),
                     "```",
                 ]
             lines.append("")
@@ -350,16 +491,53 @@ def main() -> int:
         return 0
 
     queries = build_queries()
+
+    # Authority probe (Wave 3a): replay the canonical problem once through the
+    # real MCP agent-tool surface and hold its authoritative_answer as the
+    # numeric truth for every with_oec_* run. OEC is deterministic given the
+    # problem, so one probe covers all models.
+    probe: dict[str, Any] | None = None
+    probe_error = ""
+    try:
+        probe = THESIS.oec_pipeline_envelope(
+            THESIS.LOAD,
+            THESIS.PV,
+            THESIS.PRICE,
+            cap=THESIS.CAP,
+            pmax=THESIS.PMAX,
+            soc0=THESIS.SOC0,
+        )
+        print(
+            "[supertest] authority probe ok: "
+            f"min_tou_cost={probe['answer']['min_tou_cost']} "
+            f"reviewer_passed={probe['answer']['reviewer_passed']}",
+            file=sys.stderr,
+        )
+    except Exception as exc:
+        probe_error = f"{type(exc).__name__}: {exc}"
+        print(f"[supertest] authority probe FAILED: {probe_error}", file=sys.stderr)
+
     runs: list[ArmRun] = []
     for spec in models:
         for arm, query in queries.items():
             print(f"[supertest] {spec.model} | {spec.provider} | {arm}", file=sys.stderr)
-            runs.append(run_arm(spec, arm, query, timeout_s=args.timeout))
+            runs.append(
+                run_arm(
+                    spec, arm, query, timeout_s=args.timeout, probe=probe, probe_error=probe_error
+                )
+            )
 
     payload = {
         "generated_at": datetime.now(UTC).isoformat(),
         "config_path": str(args.config),
         "oracle": ORACLE,
+        "authority_probe": {
+            "ok": probe is not None,
+            "error": probe_error,
+            "method": (probe or {}).get("method"),
+            "answer": (probe or {}).get("answer"),
+            "provenance": (probe or {}).get("provenance"),
+        },
         "models": [asdict(m) for m in models],
         "runs": [asdict(r) for r in runs],
     }
