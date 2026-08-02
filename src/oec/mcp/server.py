@@ -29,6 +29,7 @@ from oec.mcp.discovery import (
     rank_candidate_skills,
     rank_domain_intents,
 )
+from oec.mcp.divergence import detect_divergence
 from oec.mcp.envelope import RouteDecision, confidence_from_score, normalize
 from oec.sdk import Engine
 
@@ -838,6 +839,22 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
                 signal="direct",
             )
         payload = normalize(payload, tool_name=name, decision=decision)
+
+        # Wave 2: a host may voluntarily attach ``claimed_answer``. OEC never
+        # trusts or substitutes it -- authoritative_answer above is already
+        # final -- this only ever *adds* an advisory warning key when the
+        # claim disagrees with what OEC just computed (fail-closed, additive).
+        # Scoped to the agent-tool success surface (``status: "ok"``): the
+        # needs_clarification/needs_more_information passthrough shapes never
+        # mint authority by design, so a leftover claim there is not "host
+        # corruption" -- there was nothing to compute yet.
+        if payload.get("status") == "ok":
+            divergence = detect_divergence(
+                payload.get("authoritative_answer"), arguments.get("claimed_answer")
+            )
+            if divergence is not None:
+                payload["host_output_diverged"] = divergence
+
         return CallToolResult(content=[_json_text(payload)], isError=False)
 
     try:

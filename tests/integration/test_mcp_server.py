@@ -1002,3 +1002,111 @@ print(json.dumps({{"isError": result.isError, "text": result.content[0].text}}))
 
     payload = json.loads(proc.stdout.strip().splitlines()[-1])
     assert payload["isError"] is False, payload["text"]
+
+
+# ---------------------------------------------------------------------------
+# Wave 2 (v2.5.3): claimed_answer / host_output_diverged
+# ---------------------------------------------------------------------------
+
+
+def test_call_tool_optimization_agent_corrupted_claim_flags_divergence_without_altering_aa(
+    engine: Engine,
+) -> None:
+    result = call_tool(
+        engine,
+        "agent.optimization_specialist",
+        {"demo_label": "diet", "claimed_answer": {"objective_value": -999999.0}},
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+
+    # AA remains the numeric truth -- never overwritten by the host's claim.
+    assert payload["authoritative_answer"]["values"]["objective_value"] == 1.0
+
+    assert "host_output_diverged" in payload
+    warning = payload["host_output_diverged"]
+    assert warning["policy_version"] == "1.0"
+    assert warning["reason"] == "value_mismatch"
+    assert any(m["path"] == "$.objective_value" for m in warning["mismatches"])
+
+
+def test_call_tool_optimization_agent_matching_claim_has_no_divergence_warning(
+    engine: Engine,
+) -> None:
+    result = call_tool(engine, "agent.optimization_specialist", {"demo_label": "diet"})
+    payload = _parse_content(result)
+    matching_claim = payload["authoritative_answer"]["values"]
+
+    claimed_result = call_tool(
+        engine,
+        "agent.optimization_specialist",
+        {"demo_label": "diet", "claimed_answer": matching_claim},
+    )
+    claimed_payload = _parse_content(claimed_result)
+    assert "host_output_diverged" not in claimed_payload
+
+
+def test_call_tool_without_claimed_answer_has_no_divergence_warning(engine: Engine) -> None:
+    result = call_tool(engine, "agent.optimization_specialist", {"demo_label": "diet"})
+    payload = _parse_content(result)
+    assert "host_output_diverged" not in payload
+
+
+def test_call_tool_default_router_corrupted_claim_flags_divergence_on_top_level_result(
+    engine: Engine,
+) -> None:
+    result = call_tool(
+        engine,
+        "agent.default",
+        {"demo_label": "diet", "claimed_answer": {"objective_value": 0.0}},
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    # Router still nests the specialist report under "result" (Wave 1 nesting
+    # is untouched); the divergence warning mirrors at the top level like the
+    # rest of the envelope.
+    assert payload["result"]["skill_id"] == "optimization.lp"
+    assert "host_output_diverged" in payload
+    assert payload["authoritative_answer"]["values"]["objective_value"] == 1.0
+
+
+def test_call_tool_scientific_reviewer_claimed_answer_coexists_with_claimed_objective(
+    engine: Engine,
+) -> None:
+    solve = _parse_content(
+        call_tool(engine, "agent.optimization_specialist", {"demo_label": "diet"})
+    )
+    result = call_tool(
+        engine,
+        "agent.scientific_reviewer",
+        {
+            "ops_document": solve["ops"],
+            "execution": solve["execution"],
+            "claimed_objective": solve["execution"]["result"]["objective_value"],
+            "claimed_solver_status": "optimal",
+            "claimed_answer": {"passed": False},
+        },
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    # claimed_objective/claimed_solver_status still drive the reviewer's own
+    # domain checks (unaffected -- review passes since both match).
+    assert payload["passed"] is True
+    # claimed_answer disagrees with the actual review verdict (True != False).
+    assert "host_output_diverged" in payload
+    assert payload["authoritative_answer"]["values"]["passed"] is True
+
+
+def test_call_tool_claimed_answer_with_no_authoritative_answer_flags_no_authority(
+    engine: Engine,
+) -> None:
+    result = call_tool(
+        engine,
+        "agent.default",
+        {"request": "hello engineering world", "claimed_answer": {"x": 1.0}},
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "needs_clarification"
+    assert "authoritative_answer" not in payload
+    assert "host_output_diverged" not in payload
