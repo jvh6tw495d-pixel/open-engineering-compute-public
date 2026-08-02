@@ -102,6 +102,71 @@ run another agent first and pass its result's `execution` back in.
 4. Only call a raw `<skill_id>` when the user explicitly asks for that specific function.
 5. If a response comes back with `status: "needs_more_information"`, retry the same agent with a `skill_id` + `inputs` picked from `candidates` — don't treat it as a failure.
 6. If a response comes back with `status: "needs_clarification"`, ask the user the returned questions and retry `agent.default` with supplied information only; never invent missing numeric inputs.
+7. When a solved agent response includes `authoritative_answer`, treat that object as the machine-readable numerical truth — do not rebuild objective values, trajectories, or feasibility from prose or from free-form host narration.
+
+## Canonical agent-tool envelope (`authoritative_answer`)
+
+As of v2.5.3 Wave 1, every **agent tool** response that successfully executed a
+computation (or review) is additively normalized at the `call_tool` boundary
+(`src/oec/mcp/envelope.py`). Existing nesting is preserved — in particular
+`agent.default` still nests the specialist report under `result` — and the
+normalized keys are **mirrored at the top level**.
+
+Raw skill tools (`<skill_id>`) are **not** wrapped: their top-level `status`
+remains an `ExecutionStatus` (`VALIDATED`, `FAILED`, …). The new agent-tool
+`status: "ok"` is scoped to `agent.*` only.
+
+Example (optimization, direct or routed — same `authoritative_answer.values`):
+
+```json
+{
+  "status": "ok",
+  "router": "agent.default",
+  "selected_agent": "agent.optimization_specialist",
+  "problem_classification": {
+    "domain": "optimization",
+    "problem_class": "lp",
+    "confidence": 1.0,
+    "reason": "demo_label=diet"
+  },
+  "method_summary": {
+    "specialist": "agent.optimization_specialist",
+    "skill": "optimization.lp",
+    "backend": "highs",
+    "review_applied": false
+  },
+  "authoritative_answer_schema_version": "1.0",
+  "authoritative_answer": {
+    "kind": "optimization_result",
+    "values": { "...execution.result verbatim..." },
+    "provenance": {
+      "run_id": "...",
+      "input_hash": "...",
+      "solver_status": "..."
+    }
+  },
+  "result": { "...nested specialist report (shape 7 only)..." },
+  "narrative": "optional, non-authoritative"
+}
+```
+
+Rules hosts should rely on:
+
+| Field | Role |
+|---|---|
+| `authoritative_answer` | Machine authority. Present only when an execution status is not `INVALID`/`FAILED` (or for review: always `kind: "review_result"` with `passed` + `checks`). **Absence** (not `null`) is the signal that no authority was minted. |
+| `authoritative_answer.values` | For single executions: `execution.result` **verbatim**. For free-text scalar extrema: closed `{ "min": ..., "max": ... }` shape with `kind: "scalar_extrema_result"`. |
+| `problem_classification` / `method_summary` / `narrative` | Explanation only — never override `authoritative_answer`. |
+| `status: "needs_clarification"` / `"needs_more_information"` | No `authoritative_answer`. Do not invent numbers. |
+
+`kind` taxonomy (v1.0, prefix → kind, fallback `generic_result`):
+`optimization_result`, `mathematics_result`, `linear_result`,
+`statistics_result`, `numerical_result`, `timeseries_result`,
+`energy_result`, `control_dynamics_result`, `finance_uncertainty_result`,
+`scalar_extrema_result`, `review_result`, `generic_result`.
+
+Implementation: wrap-once in `call_tool` for `name in _AGENT_TOOL_SCHEMAS`
+only — never inside `_run_specialist_by_name` (which recurses for the router).
 
 ## Out of scope (Alpha)
 
