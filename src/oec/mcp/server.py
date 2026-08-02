@@ -29,6 +29,7 @@ from oec.mcp.discovery import (
     rank_candidate_skills,
     rank_domain_intents,
 )
+from oec.mcp.envelope import RouteDecision, confidence_from_score
 from oec.sdk import Engine
 
 _logger = logging.getLogger(__name__)
@@ -442,45 +443,76 @@ def _has_execution_payload(arguments: dict[str, Any]) -> bool:
     return all(key in execution for key in _EXECUTION_RESULT_REQUIRED_KEYS)
 
 
-def _router_target_for(arguments: dict[str, Any]) -> str:
+def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
+    """Resolve the specialist target plus confidence / reason / signal.
+
+    Confidence for free-text domain ranking is derived from
+    :func:`rank_domain_intents` scores (mapped onto ``[0, 1]``). Explicit
+    machine-readable signals (ops, preferred_domain, skill_id, demo_label,
+    real execution) are treated as full-confidence decisions.
+    """
     if _has_execution_payload(arguments):
-        return _AGENT_REVIEWER_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_REVIEWER_TOOL_NAME,
+            confidence=1.0,
+            reason="execution payload present",
+            signal="execution",
+        )
     if "ops" in arguments or "ops_document" in arguments:
-        return _AGENT_OPTIMIZATION_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_OPTIMIZATION_TOOL_NAME,
+            confidence=1.0,
+            reason="ops document present",
+            signal="ops",
+        )
 
     preferred = arguments.get("preferred_domain")
-    if preferred == "optimization":
-        return _AGENT_OPTIMIZATION_TOOL_NAME
-    if preferred == "review":
-        return _AGENT_REVIEWER_TOOL_NAME
-    if preferred == "mathematics":
-        return _AGENT_APPLIED_MATH_TOOL_NAME
-    if preferred == "timeseries":
-        return _AGENT_TIME_SERIES_TOOL_NAME
-    if preferred == "energy":
-        return _AGENT_ENERGY_TOOL_NAME
-    if preferred == "control_dynamics":
-        return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
-    if preferred == "finance_uncertainty":
-        return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
+    preferred_targets = {
+        "optimization": _AGENT_OPTIMIZATION_TOOL_NAME,
+        "review": _AGENT_REVIEWER_TOOL_NAME,
+        "mathematics": _AGENT_APPLIED_MATH_TOOL_NAME,
+        "timeseries": _AGENT_TIME_SERIES_TOOL_NAME,
+        "energy": _AGENT_ENERGY_TOOL_NAME,
+        "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
+        "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
+    }
+    if preferred in preferred_targets:
+        return RouteDecision(
+            target=preferred_targets[preferred],
+            confidence=1.0,
+            reason=f"preferred_domain={preferred}",
+            signal="preferred_domain",
+        )
 
     skill_id = arguments.get("skill_id")
     if isinstance(skill_id, str):
         if skill_id.startswith("optimization."):
-            return _AGENT_OPTIMIZATION_TOOL_NAME
-        if skill_id.startswith("timeseries."):
-            return _AGENT_TIME_SERIES_TOOL_NAME
-        if skill_id.startswith(("energy.", "battery.", "electrical.")):
-            return _AGENT_ENERGY_TOOL_NAME
-        if skill_id.startswith(("control.", "dynamics.")):
-            return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
-        if skill_id.startswith(("finance.", "uncertainty.")):
-            return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
-        return _AGENT_APPLIED_MATH_TOOL_NAME
+            target = _AGENT_OPTIMIZATION_TOOL_NAME
+        elif skill_id.startswith("timeseries."):
+            target = _AGENT_TIME_SERIES_TOOL_NAME
+        elif skill_id.startswith(("energy.", "battery.", "electrical.")):
+            target = _AGENT_ENERGY_TOOL_NAME
+        elif skill_id.startswith(("control.", "dynamics.")):
+            target = _AGENT_CONTROL_DYNAMICS_TOOL_NAME
+        elif skill_id.startswith(("finance.", "uncertainty.")):
+            target = _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
+        else:
+            target = _AGENT_APPLIED_MATH_TOOL_NAME
+        return RouteDecision(
+            target=target,
+            confidence=1.0,
+            reason=f"skill_id prefix for {skill_id}",
+            signal="skill_id",
+        )
 
     demo_label = str(arguments.get("demo_label", "")).strip().lower()
     if demo_label in {"diet", "diet lp", "min x+y cover", "knapsack", "binary knapsack"}:
-        return _AGENT_OPTIMIZATION_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_OPTIMIZATION_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
     if demo_label in {
         "sqrt2",
         "solve_root",
@@ -491,7 +523,12 @@ def _router_target_for(arguments: dict[str, Any]) -> str:
         "monte_carlo",
         "ode_decay",
     }:
-        return _AGENT_APPLIED_MATH_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_APPLIED_MATH_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
     if demo_label in {
         "resample",
         "fill_missing",
@@ -501,48 +538,73 @@ def _router_target_for(arguments: dict[str, Any]) -> str:
         "rolling",
         "power_to_energy",
     }:
-        return _AGENT_TIME_SERIES_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_TIME_SERIES_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
     if demo_label in {"balance", "load_metrics", "soc_step", "three_phase"}:
-        return _AGENT_ENERGY_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_ENERGY_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
     if demo_label in {"pid", "kalman", "stability"}:
-        return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_CONTROL_DYNAMICS_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
     if demo_label in {"returns", "var", "propagate"}:
-        return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
+        return RouteDecision(
+            target=_AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
 
     request = arguments.get("request")
     if isinstance(request, str):
+        intent_targets = {
+            "optimization": _AGENT_OPTIMIZATION_TOOL_NAME,
+            "review": _AGENT_REVIEWER_TOOL_NAME,
+            "timeseries": _AGENT_TIME_SERIES_TOOL_NAME,
+            "energy": _AGENT_ENERGY_TOOL_NAME,
+            "mathematics": _AGENT_APPLIED_MATH_TOOL_NAME,
+            "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
+            "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
+        }
         intents = rank_domain_intents(request)
         if intents and not needs_domain_clarification(intents):
-            targets = {
-                "optimization": _AGENT_OPTIMIZATION_TOOL_NAME,
-                "review": _AGENT_REVIEWER_TOOL_NAME,
-                "timeseries": _AGENT_TIME_SERIES_TOOL_NAME,
-                "energy": _AGENT_ENERGY_TOOL_NAME,
-                "mathematics": _AGENT_APPLIED_MATH_TOOL_NAME,
-                "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
-                "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
-            }
-            return targets[intents[0].domain]
+            top = intents[0]
+            matched = ", ".join(top.matched_terms) if top.matched_terms else top.domain
+            return RouteDecision(
+                target=intent_targets[top.domain],
+                confidence=confidence_from_score(top.score),
+                reason=f"matched: {matched}",
+                signal="request_intent",
+            )
         inferred = _infer_domain_from_request(request)
-        if inferred == "optimization":
-            return _AGENT_OPTIMIZATION_TOOL_NAME
-        if inferred == "review":
-            return _AGENT_REVIEWER_TOOL_NAME
-        if inferred == "timeseries":
-            return _AGENT_TIME_SERIES_TOOL_NAME
-        if inferred == "energy":
-            return _AGENT_ENERGY_TOOL_NAME
-        if inferred == "control_dynamics":
-            return _AGENT_CONTROL_DYNAMICS_TOOL_NAME
-        if inferred == "finance_uncertainty":
-            return _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
-        if inferred == "mathematics":
-            return _AGENT_APPLIED_MATH_TOOL_NAME
+        if inferred in intent_targets:
+            return RouteDecision(
+                target=intent_targets[inferred],
+                confidence=0.5,
+                reason=f"inferred domain={inferred}",
+                signal="request_inferred",
+            )
 
     raise ValueError(
         "agent.default could not infer a specialist. Provide ops/execution, "
         "preferred_domain, demo_label, or explicit skill_id+inputs."
     )
+
+
+def _router_target_for(arguments: dict[str, Any]) -> str:
+    """Thin wrapper kept for existing callers/tests; delegates to :func:`_route_decision`."""
+    return _route_decision(arguments).target
 
 
 def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
