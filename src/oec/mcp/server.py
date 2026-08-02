@@ -29,7 +29,7 @@ from oec.mcp.discovery import (
     rank_candidate_skills,
     rank_domain_intents,
 )
-from oec.mcp.envelope import RouteDecision, confidence_from_score
+from oec.mcp.envelope import RouteDecision, confidence_from_score, normalize
 from oec.sdk import Engine
 
 _logger = logging.getLogger(__name__)
@@ -124,6 +124,8 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         "properties": {
             "ops": {"type": "object"},
             "demo_label": {"type": "string"},
+            "skill_id": {"type": "string"},
+            "inputs": {"type": "object"},
         },
         "additionalProperties": False,
     },
@@ -800,6 +802,27 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
                 f"{type(exc).__name__}: {exc}",
                 details={"tool": name, "error_type": type(exc).__name__},
             )
+        # Wrap once at the call_tool boundary (never inside _run_specialist_by_name —
+        # agent.default recurses and would double-wrap). Raw-skill dispatch is
+        # intentionally left untouched so ExecutionStatus semantics stay intact.
+        decision: RouteDecision | None = None
+        if name == _AGENT_DEFAULT_TOOL_NAME:
+            if payload.get("status") not in (
+                "needs_clarification",
+                "needs_more_information",
+            ):
+                try:
+                    decision = _route_decision(arguments)
+                except ValueError:
+                    decision = None
+        else:
+            decision = RouteDecision(
+                target=name,
+                confidence=1.0,
+                reason="direct specialist call",
+                signal="direct",
+            )
+        payload = normalize(payload, tool_name=name, decision=decision)
         return CallToolResult(content=[_json_text(payload)], isError=False)
 
     try:
