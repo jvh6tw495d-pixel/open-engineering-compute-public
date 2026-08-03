@@ -8,11 +8,54 @@ skill-input normalization; ``x-oec-unit`` normalization remains an
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from dataclasses import dataclass
+from types import MappingProxyType
+
 import pint
 
 from oec.kernel.units.quantity import QuantityValue
 from oec.kernel.units.registry import ureg
 from oec.physics.errors import PhysicsError
+from oec.physics.result import ConservationCheck
+from oec.physics.types import PhysicsDomain
+
+
+@dataclass(frozen=True)
+class ToleranceDefaults:
+    """Default tolerance and canonical residual unit for one domain."""
+
+    atol: float
+    rtol: float
+    residual_unit: str
+
+
+CANONICAL_UNITS: Mapping[str, Mapping[str, str]] = MappingProxyType(
+    {
+        "P1": MappingProxyType({"power": "W", "voltage": "V", "current": "A", "resistance": "ohm"}),
+        "P2": MappingProxyType(
+            {
+                "temperature": "K",
+                "thermal_conductivity": "W / (m * K)",
+                "heat": "J",
+                "heat_rate": "W",
+            }
+        ),
+        "P3": MappingProxyType({"length": "m", "velocity": "m / s", "force": "N", "energy": "J"}),
+        "P4": MappingProxyType({"pressure": "Pa", "density": "kg / m ** 3", "velocity": "m / s"}),
+        "P5": MappingProxyType({"stress": "Pa", "density": "kg / m ** 3", "elastic_modulus": "Pa"}),
+    }
+)
+
+TOLERANCE_DEFAULTS: Mapping[PhysicsDomain, ToleranceDefaults] = MappingProxyType(
+    {
+        PhysicsDomain.ELECTRICAL: ToleranceDefaults(1e-6, 1e-9, "W"),
+        PhysicsDomain.THERMAL: ToleranceDefaults(1e-6, 1e-9, "W"),
+        PhysicsDomain.MECHANICS: ToleranceDefaults(1e-9, 1e-9, "N"),
+        PhysicsDomain.FLUIDS: ToleranceDefaults(1e-6, 1e-9, "Pa"),
+        PhysicsDomain.MATERIALS: ToleranceDefaults(1e-3, 1e-9, "Pa"),
+    }
+)
 
 
 class PhysicsUnitError(PhysicsError):
@@ -57,4 +100,40 @@ def as_canonical(quantity: QuantityValue, canonical_unit: str) -> QuantityValue:
         ) from exc
 
 
-__all__ = ["PhysicsUnitError", "as_canonical", "require_compatible"]
+def evaluate_dimensional_residual(
+    residual: QuantityValue,
+    *,
+    domain: PhysicsDomain,
+    scale: QuantityValue,
+    atol: QuantityValue | None = None,
+    rtol: float | None = None,
+) -> ConservationCheck:
+    """Convert tolerance inputs to one unit and apply the conservation policy."""
+    from oec.physics.conservation import evaluate_residual
+
+    defaults = TOLERANCE_DEFAULTS[domain]
+    canonical_residual = as_canonical(residual, defaults.residual_unit)
+    canonical_scale = as_canonical(scale, defaults.residual_unit)
+    canonical_atol = (
+        QuantityValue(value=defaults.atol, unit=defaults.residual_unit)
+        if atol is None
+        else as_canonical(atol, defaults.residual_unit)
+    )
+    return evaluate_residual(
+        canonical_residual.value,
+        atol=canonical_atol.value,
+        rtol=defaults.rtol if rtol is None else rtol,
+        scale=canonical_scale.value,
+        unit=defaults.residual_unit,
+    )
+
+
+__all__ = [
+    "CANONICAL_UNITS",
+    "TOLERANCE_DEFAULTS",
+    "PhysicsUnitError",
+    "ToleranceDefaults",
+    "as_canonical",
+    "evaluate_dimensional_residual",
+    "require_compatible",
+]

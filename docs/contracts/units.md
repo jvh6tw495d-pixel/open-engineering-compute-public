@@ -59,3 +59,42 @@ entrypoint is **not** invoked.
 Unit arithmetic is Pint’s; OEC contributes the **policy** (mandatory
 quantities for physical skills, central normalization, provenance hooks
 for original units when recorded).
+
+## Physics library consumers
+
+Physics APIs reuse the shared registry through `oec.kernel.units`; they never
+create a local Pint registry. Skills declare canonical input units with
+`x-oec-unit`, and `ExecutionService` performs the single normalization pass
+before the skill calls physics. Direct library callers may pass a
+`QuantityValue` to `oec.physics.units.as_canonical`, which fails closed on an
+incompatible dimension. Physics does not call `apply_dimensional_normalization`.
+
+Math IR `Expr` consumers use the `oec.physics.dimensions` facade over
+`modeling.dimensions.infer_dimension`; plain numeric APIs retain the reusable
+physical-limit checks in `oec.validation.physical` where applicable.
+
+| Slice | Quantity | Canonical unit |
+|---|---|---|
+| P1 electrical | active power; voltage; current; resistance | `W`; `V`; `A`; `ohm` (Ω) |
+| P2 thermal | temperature; conductivity; heat; heat rate | `K`; `W/(m*K)`; `J`; `W` |
+| P3 mechanics | length; velocity; force; energy | `m`; `m/s`; `N`; `J` |
+| P4 fluids | pressure; density; velocity | `Pa`; `kg/m^3`; `m/s` |
+| P5 materials | stress; density; elastic modulus | `Pa`; `kg/m^3`; `Pa` |
+
+### Conservation tolerance policy
+
+Every balance uses `abs(residual) <= atol + rtol * scale`. Residual, `atol`,
+and scale are converted to the listed residual unit before comparison; `rtol`
+is dimensionless. Incompatible units raise a structured `PhysicsUnitError`
+and are never silently coerced.
+
+| Domain | Residual unit | Default `atol` | Default `rtol` |
+|---|---:|---:|---:|
+| electrical | `W` | `1e-6 W` | `1e-9` |
+| thermal | `W` | `1e-6 W` | `1e-9` |
+| mechanics | `N` | `1e-9 N` | `1e-9` |
+| fluids | `Pa` | `1e-6 Pa` | `1e-9` |
+| materials | `Pa` (stress) | `1e-3 Pa` | `1e-9` |
+
+Callers may supply an explicit compatible `atol`, `rtol`, and characteristic
+scale. The returned conservation check records the effective values and unit.

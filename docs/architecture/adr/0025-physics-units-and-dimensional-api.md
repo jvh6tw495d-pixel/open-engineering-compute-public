@@ -1,6 +1,6 @@
 # ADR 0025: Physics units and dimensional API (Pint reuse, `atol + rtol×scale` tolerance)
 
-- **Status:** Draft — Wave 0; harden/accepted-candidate on Wave 2; accept on Wave 6
+- **Status:** Accepted
 - **Date:** 2026-08-03
 - **Phase:** v2.6.0 "Physics Foundation P1–P5 v0", Wave 0–2 (`docs/implementation/
   v2.6-EXECUTION-PLAN.md`, decision D5)
