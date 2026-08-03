@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -11,6 +11,9 @@ from oec.core.types import Assumption
 from oec.kernel.units.quantity import QuantityValue
 from oec.physics.errors import PhysicsEvaluationError
 from oec.physics.types import ValidityFrame
+
+if TYPE_CHECKING:
+    from oec.physics.result import ConservationCheck
 
 LawEvaluator = Callable[[Mapping[str, Any]], float]
 
@@ -40,6 +43,20 @@ class PhysicalLaw(BaseModel):
 
 class ConservationLaw(PhysicalLaw):
     """An executable law whose scalar evaluation is a conservation residual."""
+
+    def check(
+        self,
+        state: Mapping[str, Any],
+        *,
+        atol: float,
+        rtol: float,
+        scale: float,
+        unit: str,
+    ) -> ConservationCheck:
+        """Evaluate this law and apply the package conservation policy."""
+        from oec.physics.conservation import evaluate_residual
+
+        return evaluate_residual(self.evaluate(state), atol=atol, rtol=rtol, scale=scale, unit=unit)
 
 
 class MaterialProperty(BaseModel):

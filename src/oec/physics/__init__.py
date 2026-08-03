@@ -1,5 +1,6 @@
 """Public API for the OEC Physics Foundation."""
 
+from oec.physics.conservation import evaluate_residual
 from oec.physics.errors import ConservationError, PhysicsError, PhysicsEvaluationError
 from oec.physics.laws import BoundaryCondition, ConservationLaw, MaterialProperty, PhysicalLaw
 from oec.physics.result import ConservationCheck, PhysicsResult
@@ -18,4 +19,5 @@ __all__ = [
     "PhysicalLaw",
     "Residual",
     "ValidityFrame",
+    "evaluate_residual",
 ]
