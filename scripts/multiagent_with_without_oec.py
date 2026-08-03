@@ -531,6 +531,26 @@ class ArmResult:
     error: str = ""
     provenance: dict[str, Any] | None = None
     params_extracted: dict[str, Any] | None = None
+    # Wave 3a: three labeled GATE-W3 verdicts + facts for the 3b comparator.
+    verdicts: authority.ThreeVerdicts = field(
+        default_factory=lambda: authority.ThreeVerdicts.not_exercised("not run")
+    )
+    params_match_oracle: bool | None = None
+
+
+def _params_match_oracle(params: dict[str, Any]) -> bool:
+    """Fact for the Wave-3b host-corruption comparator: extracted params == canonical?"""
+    try:
+        return (
+            [float(x) for x in params["LOAD"]] == LOAD
+            and [float(x) for x in params["PV"]] == PV
+            and [float(x) for x in params["PRICE"]] == PRICE
+            and float(params["CAP"]) == CAP
+            and float(params["PMAX"]) == PMAX
+            and float(params["SOC0"]) == SOC0
+        )
+    except (KeyError, TypeError, ValueError):
+        return False
 
 
 def arm_a_without_oec(model: str, provider: str) -> ArmResult:
@@ -560,6 +580,7 @@ No markdown.
             ok=True,
             answer=ans,
             raw=raw,
+            verdicts=authority.three_verdicts(oec_exercised=False),
         )
     except Exception as exc:
         return ArmResult(
@@ -568,6 +589,7 @@ No markdown.
             arm="A_without_oec",
             ok=False,
             error=str(exc),
+            verdicts=authority.three_verdicts(transport_error=exc, oec_exercised=False),
         )
 
 
@@ -603,33 +625,57 @@ Copy numbers exactly from the problem. No other keys. No markdown.
         soc0 = float(params["SOC0"])
         if len(load) != 6 or len(pv) != 6 or len(price) != 6:
             raise ValueError("expected length-6 LOAD/PV/PRICE")
-        pipe = oec_pipeline(load, pv, price, cap=cap, pmax=pmax, soc0=soc0)
-        return ArmResult(
-            model=model,
-            provider=provider,
-            arm="C_with_oec",
-            ok=True,
-            answer=pipe["answer"],
-            raw=raw,
-            provenance=pipe["provenance"],
-            params_extracted={
-                "LOAD": load,
-                "PV": pv,
-                "PRICE": price,
-                "CAP": cap,
-                "PMAX": pmax,
-                "SOC0": soc0,
-            },
-        )
     except Exception as exc:
+        # Host never delivered usable parameters -> transport leg failure.
         return ArmResult(
             model=model,
             provider=provider,
             arm="C_with_oec",
             ok=False,
             error=str(exc),
-            raw=getattr(exc, "raw", "") if False else "",
+            verdicts=authority.three_verdicts(transport_error=exc),
         )
+    params_extracted = {
+        "LOAD": load,
+        "PV": pv,
+        "PRICE": price,
+        "CAP": cap,
+        "PMAX": pmax,
+        "SOC0": soc0,
+    }
+    params_match = _params_match_oracle(params_extracted)
+    try:
+        # Numbers come from the envelope authoritative_answer, replayed
+        # through the MCP agent-tool surface (GATE-W3 anti-pattern guard).
+        pipe = oec_pipeline_envelope(load, pv, price, cap=cap, pmax=pmax, soc0=soc0)
+    except OECAuthorityError as exc:
+        return ArmResult(
+            model=model,
+            provider=provider,
+            arm="C_with_oec",
+            ok=False,
+            error=str(exc),
+            raw=raw,
+            params_extracted=params_extracted,
+            params_match_oracle=params_match,
+            verdicts=authority.three_verdicts(None, expect_authority=True, detail=str(exc)),
+        )
+    return ArmResult(
+        model=model,
+        provider=provider,
+        arm="C_with_oec",
+        ok=True,
+        answer=pipe["answer"],
+        raw=raw,
+        provenance=pipe["provenance"],
+        params_extracted=params_extracted,
+        params_match_oracle=params_match,
+        verdicts=authority.three_verdicts(
+            pipe["authority_tool_result"],
+            expect_authority=True,
+            detail=f"params_match_oracle={params_match} (fact for the 3b comparator)",
+        ),
+    )
 
 
 def write_thesis_report(
@@ -757,6 +803,65 @@ def write_thesis_report(
         "",
         "---",
         "",
+        "## Three labeled verdicts (GATE-W3, v2.5.3 Wave 3a)",
+        "",
+        "Authority health per run — **not** accuracy (accuracy is the scoreboard above).",
+        "Arm C numbers are read from the envelope `authoritative_answer` via",
+        "`scripts/_oec_authority.py`; `host_corruption` stays `pending_wave_3b` until",
+        "the Wave-2 `claimed_answer` comparator lands (params-match facts are recorded",
+        "for it below).",
+        "",
+        "| Model | Arm | transport | oec_execution | host_corruption | primary |",
+        "|---|---|---|---|---|---|",
+    ]
+
+    def _verdict_row(model: str, arm_label: str, r: ArmResult | None) -> str:
+        if r is None:
+            return f"| `{model}` | {arm_label} | — | — | — | — |"
+        v = r.verdicts
+        return (
+            f"| `{model}` | {arm_label} | `{v.transport}` | `{v.oec_execution}` "
+            f"| `{v.host_corruption}` | **{v.primary}** |"
+        )
+
+    for m in models:
+        a = next((r for r in results if r.model == m and r.arm == "A_without_oec"), None)
+        c = next((r for r in results if r.model == m and r.arm == "C_with_oec"), None)
+        lines.append(_verdict_row(m, "A", a))
+        lines.append(_verdict_row(m, "C", c))
+
+    lines += [
+        "| **OEC oracle** | — | `not_exercised` | `ok` | `not_applicable` | **ok** |",
+        "",
+        "### Labeled verdict counts",
+        "",
+        "| Arm | total | ok | transport_failure | oec_execution_failure | host_corruption |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    for arm_name, label in (("A_without_oec", "A"), ("C_with_oec", "C")):
+        counts = authority.verdict_counts(r.verdicts for r in results if r.arm == arm_name)
+        lines.append(
+            f"| {label} | {counts['total']} | {counts[authority.OK]} "
+            f"| {counts[authority.TRANSPORT_FAILURE]} "
+            f"| {counts[authority.OEC_EXECUTION_FAILURE]} "
+            f"| {counts[authority.HOST_CORRUPTION]} |"
+        )
+
+    n_c_params_match = sum(
+        1 for r in results if r.arm == "C_with_oec" and r.params_match_oracle is True
+    )
+    n_c_params_total = sum(
+        1 for r in results if r.arm == "C_with_oec" and r.params_match_oracle is not None
+    )
+    lines += [
+        "",
+        (
+            f"- Arm C params matching oracle (fact for the 3b host-corruption comparator): "
+            f"**{n_c_params_match}/{n_c_params_total}**"
+        ),
+        "",
+        "---",
+        "",
         "## Per-model detail",
         "",
     ]
@@ -771,10 +876,15 @@ def write_thesis_report(
             r = next((x for x in results if x.model == m and x.arm == arm_name), None)
             if not r:
                 continue
+            v = r.verdicts
             lines += [
                 f"#### {label}",
                 "",
                 f"- ok: `{r.ok}` score: **{r.scores.get('score', 0)}/10**",
+                (
+                    f"- verdicts: transport=`{v.transport}` oec_execution=`{v.oec_execution}` "
+                    f"host_corruption=`{v.host_corruption}` → **{v.primary}**"
+                ),
                 f"- error: `{r.error or '—'}`",
                 "",
                 "```json",
@@ -784,6 +894,8 @@ def write_thesis_report(
                         "scores": r.scores,
                         "provenance": r.provenance,
                         "params_extracted": r.params_extracted,
+                        "params_match_oracle": r.params_match_oracle,
+                        "verdicts": v.to_dict(),
                     },
                     indent=2,
                     default=str,

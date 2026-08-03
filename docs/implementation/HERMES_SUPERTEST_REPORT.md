@@ -1,0 +1,627 @@
+# Hermes supertest report
+
+**Date:** 2026-07-31 03:12 UTC
+**Config source:** `C:\Users\joaop\AppData\Local\hermes\config.yaml`
+**Arms:** `without_oec`, `with_oec_raw`, `with_oec_agent`
+
+## Active models tested
+
+| Model | Provider | Source |
+|---|---|---|
+| `auto/smart` | `omniroute` | `default` |
+| `nvidia/nemotron-3-ultra-550b-a55b` | `nvidia` | `fallback_1` |
+| `nvidia/nemotron-3-super-120b-a12b` | `nvidia` | `fallback_2` |
+| `z-ai/glm-5.2` | `nvidia` | `fallback_3` |
+| `qwen3.5:4b-64k` | `custom:ollama` | `fallback_4` |
+| `phi4-mini:3.8b-64k` | `custom:ollama` | `fallback_5` |
+| `granite4:7b-a1b-h-64k` | `custom:ollama` | `fallback_6` |
+| `nemotron-3-nano:4b-64k` | `custom:ollama` | `fallback_7` |
+
+## Comparative scoreboard
+
+| Model | Provider | A no OEC | B OEC raw | C OEC agent | Best arm |
+|---|---|---:|---:|---:|---|
+| `auto/smart` | `omniroute` | 0 | 0 | 0 | A |
+| `nvidia/nemotron-3-ultra-550b-a55b` | `nvidia` | 0 | 0 | 0 | A |
+| `nvidia/nemotron-3-super-120b-a12b` | `nvidia` | 6 | 0 | 0 | A |
+| `z-ai/glm-5.2` | `nvidia` | 5 | 0 | 0 | A |
+| `qwen3.5:4b-64k` | `custom:ollama` | 0 | 0 | 0 | A |
+| `phi4-mini:3.8b-64k` | `custom:ollama` | 0 | 2 | 1 | B |
+| `granite4:7b-a1b-h-64k` | `custom:ollama` | 2 | 0 | 2 | A |
+| `nemotron-3-nano:4b-64k` | `custom:ollama` | 0 | 0 | 0 | A |
+
+## Per-run details
+
+### `auto/smart` (omniroute)
+
+#### `without_oec`
+
+- ok: `False`
+- score: `0/10`
+- error: `Command '['hermes', 'chat', '-q', 'Resolva este problema sozinho. Não use ferramentas, MCP ou OEC. Faça o cálculo você mesmo.\n\n6-period microgrid + BESS (eta=1).\n\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\nCAP = 3.75 MWh\nPMAX = 1.35 MWh per period\nSOC0 = 1.85 MWh\n\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\nMinimize sum PRICE[t]*grid[t]\n\nRetorne SOMENTE JSON com as chaves: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. Sem markdown.', '-m', 'auto/smart', '--provider', 'omniroute', '-Q', '--max-turns', '40', '--source', 'tool']' timed out after 180 seconds`
+
+#### `with_oec_raw`
+
+- ok: `False`
+- score: `0/10`
+- error: `no JSON object in model output: 'Vou usar as ferramentas MCP do OEC conforme solicitado, sem `agent.default`.\n\nPrimeiro, as mÃ©tricas de carga e o balanÃ§o de energia:\n\n<ï½œï½œDSMLï½œï½œtool_calls>\n<ï½œï½œDSMLï½œï½œinvoke name="mcp__oec__energy_load_metrics">\n<ï½œï½œDSMLï½œï½œparameter name="load" string="true">[3.1, 2.4, 1.6, 2.15, 2.35, 2.1]</ï½œï½œDSMLï½œï½œparameter>\n<ï½œï½œDSMLï½œï½œparameter name="pv" string="true">[0.0, 1.45, 2.55, 1.35, 0.65, 0.25]</ï½œï½œDSMLï½œï½œparameter>\n</ï½œï½œDSMLï½œï½œinvoke>\n<ï½œï½œDSMLï½œï½œinvoke name="mcp__oec__energy_balance">\n<ï½œï½œDSMLï½œï½œparameter name="load" string="true">[3.1, 2.'`
+
+#### `with_oec_agent`
+
+- ok: `False`
+- score: `0/10`
+- error: `no JSON object in model output: 'Vou chamar o MCP OEC com o problema de microgrid+BESS conforme solicitado.\n\n<ï½œï½œDSMLï½œï½œtool_calls>\n<ï½œï½œDSMLï½œï½œinvoke name="mcp__oec__agent.default">\n<ï½œï½œDSMLï½œï½œparameter name="input" string="true">Resolva o problema de otimizaÃ§Ã£o de microgrid de 6 perÃ\xadodos com BESS (eficiÃªncia eta=1).\n\nDADOS:\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1] MWh\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25] MWh\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35] $/MWh\nCAP = 3.75 MWh (capacidade BESS)\nPMAX = 1.35 MWh por perÃ\xadodo (potÃªncia mÃ¡x carga/descarga)\nSOC0 = 1.85 MWh (SOC antes de t=0)\n\nDINÃ‚MIC'`
+
+### `nvidia/nemotron-3-ultra-550b-a55b` (nvidia)
+
+#### `without_oec`
+
+- ok: `False`
+- score: `0/10`
+- error: `Command '['hermes', 'chat', '-q', 'Resolva este problema sozinho. Não use ferramentas, MCP ou OEC. Faça o cálculo você mesmo.\n\n6-period microgrid + BESS (eta=1).\n\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\nCAP = 3.75 MWh\nPMAX = 1.35 MWh per period\nSOC0 = 1.85 MWh\n\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\nMinimize sum PRICE[t]*grid[t]\n\nRetorne SOMENTE JSON com as chaves: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. Sem markdown.', '-m', 'nvidia/nemotron-3-ultra-550b-a55b', '--provider', 'nvidia', '-Q', '--max-turns', '40', '--source', 'tool']' timed out after 180 seconds`
+
+#### `with_oec_raw`
+
+- ok: `False`
+- score: `0/10`
+- error: `Extra data: line 2 column 1 (char 142)`
+
+#### `with_oec_agent`
+
+- ok: `True`
+- score: `0/10`
+
+```json
+{
+  "tool": "mcp_oec_agent_default",
+  "params": {
+    "task": "6-period microgrid + BESS (eta=1). LOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]; PV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]; PRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]; CAP = 3.75 MWh; PMAX = 1.35 MWh per period; SOC0 = 1.85 MWh. Dynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0). 0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0. Balance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]. Minimize sum PRICE[t]*grid[t]. Return ONLY JSON with keys: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. No markdown."
+  }
+}
+```
+
+### `nvidia/nemotron-3-super-120b-a12b` (nvidia)
+
+#### `without_oec`
+
+- ok: `True`
+- score: `6/10`
+
+```json
+{
+  "load_sum_mwh": 13.7,
+  "pv_sum_mwh": 6.25,
+  "deficit_mwh": 7.45,
+  "peak_load_mwh": 3.1,
+  "load_factor": 0.737,
+  "min_tou_cost": 4.964,
+  "total_grid_mwh": 6.65,
+  "total_discharge_mwh": 4.05,
+  "total_charge_mwh": 3.25,
+  "grid_trajectory": [
+    1.75,
+    2.3,
+    0.4,
+    1.35,
+    0.35,
+    0.5
+  ],
+  "charge_trajectory": [
+    0,
+    1.35,
+    1.35,
+    0.55,
+    0,
+    0
+  ],
+  "discharge_trajectory": [
+    1.35,
+    0,
+    0,
+    0,
+    1.35,
+    1.35
+  ],
+  "soc_trajectory": [
+    0.5,
+    1.85,
+    3.2,
+    3.75,
+    2.4,
+    1.05
+  ],
+  "impossible_cap_feasible": false,
+  "reviewer_passed": true,
+  "reasoning": "Charged battery using excess PV at low-price period 2 and grid at periods 1 and 3, then discharged during high-price periods 0,4,5 respecting power and capacity limits."
+}
+```
+
+#### `with_oec_raw`
+
+- ok: `False`
+- score: `0/10`
+- error: `Expecting ',' delimiter: line 3 column 1 (char 44)`
+
+#### `with_oec_agent`
+
+- ok: `True`
+- score: `0/10`
+
+```json
+{
+  "tool": "mcp",
+  "arguments": {
+    "server": "oec",
+    "input": {
+      "agent": "agent.default",
+      "problem": {
+        "load": [
+          3.1,
+          2.4,
+          1.6,
+          2.15,
+          2.35,
+          2.1
+        ],
+        "pv": [
+          0.0,
+          1.45,
+          2.55,
+          1.35,
+          0.65,
+          0.25
+        ],
+        "price": [
+          1.15,
+          0.55,
+          0.28,
+          0.42,
+          0.95,
+          1.35
+        ],
+        "cap": 3.75,
+        "pmax": 1.35,
+        "soc0": 1.85,
+        "periods": 6
+      }
+    }
+  }
+}
+```
+
+### `z-ai/glm-5.2` (nvidia)
+
+#### `without_oec`
+
+- ok: `True`
+- score: `5/10`
+
+```json
+{
+  "load_sum_mwh": 13.7,
+  "pv_sum_mwh": 6.25,
+  "deficit_mwh": 7.45,
+  "peak_load_mwh": 3.1,
+  "load_factor": 0.7386,
+  "min_tou_cost": 2.148,
+  "total_grid_mwh": 7.45,
+  "total_discharge_mwh": 0.0,
+  "total_charge_mwh": 0.0,
+  "grid_trajectory": [
+    3.1,
+    0.95,
+    0.0,
+    0.8,
+    1.7,
+    1.85
+  ],
+  "charge_trajectory": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "discharge_trajectory": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "soc_trajectory": [
+    1.85,
+    1.85,
+    1.85,
+    1.85,
+    1.85,
+    1.85
+  ],
+  "impossible_cap_feasible": "feasible",
+  "reviewer_passed": true,
+  "reasoning": "Deficit total = LOAD_total - PV_total = 13.70 - 6.25 = 7.45 MWh, todo atendido por grid. BESS com eta=1 em problema sem restricao de SOC minimo final: arbitragem so vale a pena se comprar barato e vender caro. Periodo 2 (price=0.28) e o mais barato; carregar la custa 0.28/MWh. Periodos 0 (1.15) e 5 (1.35) sao os mais caros. Para deslocar 1 MWh do periodo 5 para o periodo 2: custo 0.28 (compra) vs ganho 1.35 (evita), lucro 1.07. PMAX=1.35 e CAP=3.75 deixam folga. Testei: carregar 1.35 no periodo 2 (sobe SOC de 1.85 para 3.20), descarregar 1.35 no periodo 5 (desce para 1.85). Grid periodo 2 sobe 1.35 (era 0, fica 1.35), grid periodo 5 baixa 1.35 (era 1.85, fica 0.50). Novo periodo 2 custa 0.28*1.35 = 0.378; periodo 5 baixa para 0.42... espera, periodo 5 reajustado: precisa GDP=2.1 LOAD - 0.25 PV = 1.85 liquido; com 1.35 descarga fica 0.50 grid, custo 1.35*0.50=0.675 (era 1.843), poupa 1.168. Custo extra periodo 2 = 0.378. Poupa liquido 0.790. Entao min_tou_cost = 2.148 - 0.790? Recalculei o baseline: grid = [3.1, 0.95, 0.0, 0.8, 1.7, 1.85], custo = 3.1*1.15 + 0.95*0.55 + 0 + 0.8*0.42 + 1.7*0.95 + 1.85*1.35 = 3.565 + 0.5225 + 0.336 + 1.615 + 2.4975 = 8.536? Nao. 3.565+0.5225+0+0.336+1.615+2.4975 = 8.536. Com arbitragem o custo baixa. Reexaminei: min_tou_cost reportado = 2.148 esta errado; valor correto com arbitragem ~7.746. Porem o JSON acima foi preenchido incorretamente â€” o custo real e ~7.746."
+}
+```
+
+#### `with_oec_raw`
+
+- ok: `False`
+- score: `0/10`
+- error: `Command '['hermes', 'chat', '-q', 'Use o MCP oec, mas NÃO use agent.default. Use explicitamente ferramentas cruas do OEC quando necessário, priorizando: mcp__oec__energy_load_metrics, mcp__oec__energy_balance, mcp__oec__optimization_lp e mcp__oec__optimization_check_feasibility. Monte a resposta final a partir dos resultados dessas ferramentas.\n\n6-period microgrid + BESS (eta=1).\n\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\nCAP = 3.75 MWh\nPMAX = 1.35 MWh per period\nSOC0 = 1.85 MWh\n\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\nMinimize sum PRICE[t]*grid[t]\n\nRetorne SOMENTE JSON com as chaves: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. Sem markdown.', '-m', 'z-ai/glm-5.2', '--provider', 'nvidia', '-Q', '--max-turns', '40', '--source', 'tool', '-t', 'oec']' timed out after 180 seconds`
+
+#### `with_oec_agent`
+
+- ok: `False`
+- score: `0/10`
+- error: `Expecting property name enclosed in double quotes: line 1 column 2 (char 1)`
+
+### `qwen3.5:4b-64k` (custom:ollama)
+
+#### `without_oec`
+
+- ok: `False`
+- score: `0/10`
+- error: `Expecting property name enclosed in double quotes: line 1 column 2 (char 1)`
+
+#### `with_oec_raw`
+
+- ok: `False`
+- score: `0/10`
+- error: `Expecting ',' delimiter: line 7 column 27 (char 145)`
+
+#### `with_oec_agent`
+
+- ok: `False`
+- score: `0/10`
+- error: `no JSON object in model output: 'Aqui estÃ¡ a soluÃ§Ã£o gerada pelo agente OEC (Optimization Engine with Collaboration), selecionando automaticamente o modelo linear programÃ¡tico para resolver este problema de microgrid com restriÃ§Ãµes dinÃ¢micas de bateria e preÃ§os variÃ¡veis TOU. NÃ£o foi necessÃ¡rio recorrer Ã\xa0 simulaÃ§Ã£o por Monte Carlo devido Ã\xa0 natureza determinÃ\xadstica do sistema linear.\n\nA anÃ¡lise indicou que, dada a capacidade mÃ¡xima da bateria (3,75 MWh) e o perfil de demanda, Ã© possÃ\xadvel atingir um balanÃ§o perfeito em todos os perÃ\xadodos, mas com picos relevantes no inÃ\xadcio onde solar nÃ£o estÃ¡ disponÃ\xadvel ('`
+
+### `phi4-mini:3.8b-64k` (custom:ollama)
+
+#### `without_oec`
+
+- ok: `False`
+- score: `0/10`
+- error: `Command '['hermes', 'chat', '-q', 'Resolva este problema sozinho. Não use ferramentas, MCP ou OEC. Faça o cálculo você mesmo.\n\n6-period microgrid + BESS (eta=1).\n\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\nCAP = 3.75 MWh\nPMAX = 1.35 MWh per period\nSOC0 = 1.85 MWh\n\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\nMinimize sum PRICE[t]*grid[t]\n\nRetorne SOMENTE JSON com as chaves: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. Sem markdown.', '-m', 'phi4-mini:3.8b-64k', '--provider', 'custom:ollama', '-Q', '--max-turns', '40', '--source', 'tool']' timed out after 180 seconds`
+
+#### `with_oec_raw`
+
+- ok: `True`
+- score: `2/10`
+
+```json
+{
+  "load_sum_mwh": 12.5,
+  "pv_sum_mwh": 7.1,
+  "deficit_mwh": 3.74,
+  "peak_load_mwh": 2.35,
+  "load_factor": 0.8,
+  "min_tou_cost": 0.28,
+  "total_grid_mwh": 5.6,
+  "total_discharge_mwh": 4.9,
+  "total_charge_mwh": 1.65,
+  "grid_trajectory": [
+    3.1,
+    2.85,
+    2.75,
+    2.55,
+    2.35
+  ],
+  "charge_trajectory": [
+    0,
+    0.45,
+    0.6,
+    0.7,
+    0.8
+  ],
+  "discharge_trajectory": [
+    0,
+    0.65,
+    1.05,
+    1.25,
+    1.4
+  ],
+  "soc_trajectory": [
+    1.85,
+    2.0,
+    2.15,
+    2.75,
+    3.35
+  ],
+  "impossible_cap_feasible": false,
+  "reviewer_passed": true
+}
+```
+
+#### `with_oec_agent`
+
+- ok: `True`
+- score: `1/10`
+
+```json
+{
+  "load_sum_mwh": 13.5,
+  "pv_sum_mwh": 7.1,
+  "deficit_mwh": 6.4,
+  "peak_load_mwh": 3.75,
+  "load_factor": 0.9,
+  "min_tou_cost": 2.55,
+  "total_grid_mwh": 11.5,
+  "total_discharge_mwh": 6.4,
+  "total_charge_mwh": 7.1,
+  "grid_trajectory": [
+    3.1,
+    0.6,
+    -0.9,
+    -1.35,
+    -2.05,
+    -1.65
+  ],
+  "charge_trajectory": [
+    -0.5,
+    0.15,
+    0.45,
+    1.08,
+    1.68,
+    2.25
+  ],
+  "discharge_trajectory": [
+    0.55,
+    1.37500001,
+    1.8250018,
+    2.18,
+    2.5250029,
+    3.0250038
+  ],
+  "soc_trajectory": [
+    1.85,
+    2.35,
+    1.45,
+    0.07500002,
+    -1.17,
+    -2.25
+  ],
+  "impossible_cap_feasible": false,
+  "reviewer_passed": true,
+  "reasoning": "Optimal dispatch achieved with grid utilization and load shedding within capacity constraints."
+}
+```
+
+### `granite4:7b-a1b-h-64k` (custom:ollama)
+
+#### `without_oec`
+
+- ok: `True`
+- score: `2/10`
+
+```json
+{
+  "load_sum_mwh": 12.0,
+  "pv_sum_mwh": 7.5,
+  "deficit_mwh": 4.85,
+  "peak_load_mwh": 3.15,
+  "load_factor": 1,
+  "min_tou_cost": 10.7625,
+  "total_grid_mwh": 6.05,
+  "total_discharge_mwh": 5.35,
+  "total_charge_mwh": 0.0,
+  "grid_trajectory": [
+    2.1,
+    0.65,
+    0.7,
+    0.55,
+    0.4,
+    0.35
+  ],
+  "charge_trajectory": [
+    0.0,
+    0.0,
+    0.6,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "discharge_trajectory": [
+    0.65,
+    0.0,
+    0.05,
+    1.55,
+    1.95,
+    1.75
+  ],
+  "soc_trajectory": [
+    3.5,
+    4.45,
+    5.0,
+    4.45,
+    2.5,
+    0.55
+  ],
+  "impossible_cap_feasible": false,
+  "reviewer_passed": true,
+  "reasoning": "The utility can supply the demand during periods where PV output covered most but not all needs by importing grid power at optimal times with minimal cost: charge from grid when prices low and discharge when price high plus needed import to cover excess, resulting in net export of <=1.35 each period to stay within cap. Remaining deficit met via grid imports minimized over the six periods."
+}
+```
+
+#### `with_oec_raw`
+
+- ok: `True`
+- score: `0/10`
+
+```json
+{
+  "load_sum_mwh": 9.65,
+  "pv_sum_mwh": 7.95,
+  "deficit_mwh": 0.25,
+  "peak_load_mwh": 3.75,
+  "load_factor": 91.2,
+  "min_tou_cost": 10.425,
+  "total_grid_mwh": 9.65,
+  "total_discharge_mwh": 1.85,
+  "total_charge_mwh": 0.0,
+  "grid_trajectory": [
+    3.25,
+    3.33,
+    3.16,
+    3.15,
+    3.1,
+    3.15
+  ],
+  "charge_trajectory": [
+    0.4,
+    0.85,
+    1.12,
+    1.35,
+    1.4,
+    1.25
+  ],
+  "discharge_trajectory": [
+    0.95,
+    2,
+    1.87,
+    1.65,
+    2.15,
+    0
+  ],
+  "soc_trajectory": [
+    -2.8,
+    -3.85,
+    -3.97,
+    -4.32,
+    -4.68,
+    -5.02
+  ],
+  "impossible_cap_feasible": true,
+  "reviewer_passed": false,
+  "reasoning": "As cargas somam mais que a soma dos PV disponÃ­veis e da energia que pode ser carregada/disparada em cada perÃ­odo, o que necessita de ajustes nas curvas de carga/carregamento para garantir equilÃ­brio. O mÃ­nimo de custo TOU sugere priorizaÃ§Ã£o do uso de PV e minimizaÃ§Ã£o de despesas com a rede."
+}
+```
+
+#### `with_oec_agent`
+
+- ok: `True`
+- score: `2/10`
+
+```json
+{
+  "load_sum_mwh": 8.6,
+  "pv_sum_mwh": 7.35,
+  "deficit_mwh": 0,
+  "peak_load_mwh": 3.1,
+  "load_factor": 0.965,
+  "min_tou_cost": 4.0725,
+  "total_grid_mwh": 2.25,
+  "total_discharge_mwh": 1.45,
+  "total_charge_mwh": 0,
+  "grid_trajectory": [
+    0,
+    0,
+    0,
+    0.35,
+    0,
+    0
+  ],
+  "charge_trajectory": [
+    0.65,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "discharge_trajectory": [
+    1.45,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "soc_trajectory": [
+    1.85,
+    2.35,
+    2.55,
+    3.25,
+    3.45,
+    3.75
+  ],
+  "impossible_cap_feasible": false,
+  "reviewer_passed": true,
+  "reasoning": "Utilizado modelo de energia PV e demanda LOAD para otimizar uso da microgrids com BESS sob restriÃ§Ãµes de capacidade, Pmax e custos TOU. Equilibrado consumo/desembalancamento, gerando deficiÃªncia zero. Custo mÃ­nimo alcanÃ§ado atravÃ©s distribuiÃ§Ã£o inteligente do excesso PV e necessidade de carga quando PV insuficiente."
+}
+```
+
+### `nemotron-3-nano:4b-64k` (custom:ollama)
+
+#### `without_oec`
+
+- ok: `False`
+- score: `0/10`
+- error: `Expecting property name enclosed in double quotes: line 1 column 40 (char 39)`
+
+#### `with_oec_raw`
+
+- ok: `True`
+- score: `0/10`
+
+```json
+{
+  "load_sum_mwh": 15.6,
+  "pv_sum_mwh": 8.0,
+  "deficit_abs_mwh": 7.6,
+  "peak_load_abs_mwh": 2.15,
+  "load_factor_ratio": 0.42,
+  "min_tou_cost_mwk": 8.7875,
+  "total_grid_rmwh": -4.6,
+  "total_discharge": 5.9,
+  "total_charge": 2.35,
+  "grid_trajectory": [
+    "-2.7",
+    "-1.485",
+    "-0.295",
+    "1.035",
+    "2.375",
+    "0.2",
+    "-2.5"
+  ],
+  "charge_trajectory": [
+    1.6,
+    "0.7",
+    "0.85",
+    "0.095",
+    0.0,
+    -0.45,
+    -0.6
+  ],
+  "discharge_trajectory": [
+    0.35,
+    "-1.45",
+    "-2.15",
+    "-1.0",
+    "-0.3",
+    "-1.35",
+    "-6"
+  ],
+  "soc_trajectory": [
+    1.85,
+    0.15,
+    -0.095,
+    -0.425,
+    1.75,
+    0.215,
+    -3.785
+  ],
+  "impossible_energy_mwh": 89.432625,
+  "capacity_feasibility": true,
+  "optimizer_pass": false,
+  "reviewer_passed": true,
+  "reasoning": "Load exceeds possible from PV plus PMAX discharge (7.1 MWh) and charges cannot offset all deficit while respecting SOC limits, making optimization infeasible. Grid negative values required but violate non-negative grid constraint."
+}
+```
+
+#### `with_oec_agent`
+
+- ok: `False`
+- score: `0/10`
+- error: `Expecting property name enclosed in double quotes: line 10 column 2 (char 196)`
