@@ -1,5 +1,36 @@
 # OEC Physics Foundation API v0
 
+This package is a library surface below skills and interfaces. It does not
+expose MCP tools and its function results are not MCP envelopes.
+
+## Public surface
+
+The stable imports published by `oec.physics` in Wave 1 are:
+
+- domain types: `PhysicsDomain`, `ValidityFrame`, `Residual`;
+- executable objects: `PhysicalLaw`, `ConservationLaw`;
+- data objects: `MaterialProperty`, `BoundaryCondition`;
+- function result types: `PhysicsResult`, `ConservationCheck`;
+- conservation entry point: `evaluate_residual`;
+- errors: `PhysicsError`, `PhysicsEvaluationError`, `ConservationError`.
+
+Hypotheses on all four domain objects use `oec.core.types.Assumption`. The
+package does not define a parallel assumption type.
+
+## Module paths
+
+| Module | Responsibility |
+|---|---|
+| `oec.physics.types` | Domain identifiers, validity frames, residual DTO |
+| `oec.physics.laws` | Immutable domain objects and executable law hooks |
+| `oec.physics.result` | Stable physics-function result shapes |
+| `oec.physics.conservation` | Generic residual decision owner |
+| `oec.physics.errors` | Physics-specific `OECError` subclasses |
+
+Allowed lower-layer dependencies are `oec.core`, `oec.kernel`,
+`oec.modeling`, and `oec.validation`. Interface, agent, and skill packages are
+outside the dependency boundary.
+
 ## P1 contract: `dc_power_flow`
 
 `dc_power_flow` is the canonical P1 **linear DC power-flow model for meshed
@@ -54,3 +85,11 @@ balance; self-generated outputs are not an oracle.
 the `abs(residual) <= atol + rtol * scale` decision. The existing
 `oec.kernel.energy.metrics.energy_balance` API remains unchanged in 2.6.0 and is
 treated as an energy-scoped consumer/parity target. It is not a second owner.
+
+## D3 status
+
+`PhysicsResult` and `ConservationCheck` are internal library outputs. They do
+not add an `authoritative_answer.kind` in Wave 1. The MCP mapping for
+`physics_result` and authoritative-answer schema version 1.1 arrive together
+only in Wave 4; schema version 1.0 and `src/oec/mcp/envelope.py` remain
+unchanged here.
