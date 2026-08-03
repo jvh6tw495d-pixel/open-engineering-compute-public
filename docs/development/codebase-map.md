@@ -171,6 +171,50 @@ new validator-wiring story, no scientific-content reshaping (ADR 0005).
   API (Claude Code) — the first successful Grok parallel handoff since
   Sprint 04 (blocked by the environment's permission classifier in
   Sprints 05 and 06; see "Decisions").
+
+#### `oec.mcp` agent-tool surface, v2.5.3 (envelope + `claimed_answer`)
+
+This subsection is the current (2026-08-03, `oec==2.5.3`) state of the
+`agent.*` tool surface layered on top of the `src/oec/mcp/server.py`
+description above; the rest of this file (below "Dependencies") predates
+it and still describes the v2.0.0 snapshot. See ADR 0023 and
+`docs/contracts/authoritative-answer.md` for the normative version of
+everything summarized here.
+
+- **`src/oec/mcp/envelope.py`** (new) — `normalize(payload, tool_name,
+  decision)` runs once at the `call_tool` boundary, for `name in
+  _AGENT_TOOL_SCHEMAS` only (never inside `_run_specialist_by_name`, which
+  recurses for `agent.default`'s router path — running it there too would
+  double-wrap). Additive: existing nesting (`payload["result"]` for the
+  router) is untouched; normalized keys (`authoritative_answer`,
+  `authoritative_answer_schema_version`, `problem_classification`,
+  `method_summary`, `status: "ok"`) are mirrored at the top level across
+  all nine live `agent.*` response shapes. `authoritative_answer.values`
+  is `execution.result` verbatim (one exception: dual `min_execution`/
+  `max_execution` free-text math extrema close into `kind:
+  "scalar_extrema_result"` with an explicit `{min, max}`). Raw
+  (non-`agent.*`) skill tools are never wrapped; their `ExecutionStatus`
+  surface is unchanged.
+- **`src/oec/mcp/divergence.py`** (new) — `compare_values` +
+  `build_host_output_diverged`. Every `_AGENT_TOOL_SCHEMAS` entry gained an
+  optional `claimed_answer` property (not a new tool); OEC compares it
+  against the just-computed `authoritative_answer` post-serialization
+  (`json.dumps(..., sort_keys=True, separators=(",", ":"), default=str)`),
+  with versioned numeric tolerance and fail-closed NaN/Infinity handling,
+  and adds a `host_output_diverged` warning on mismatch —
+  `authoritative_answer` itself is never overwritten by the claim.
+- **`schemas/authoritative_answer.schema.json`** (new, v1.0) — JSON Schema
+  for both wire shapes above.
+- **Benchmark harnesses** (`scripts/_oec_authority.py`,
+  `scripts/hermes_supertest.py`, `scripts/multiagent_with_without_oec.py`)
+  now read `authoritative_answer` as the numeric source of truth for the
+  `with_oec_*` arms instead of scraping host prose, and classify each run
+  into one of three verdicts (`transport_failure` /
+  `oec_execution_failure` / `host_corruption`) rather than a single score.
+  Four older single-score scripts were marked `STALE vs 2.5.3` in their
+  module header rather than migrated.
+- Live weak+strong smoke evidence:
+  `docs/implementation/v2.5.3-WAVE4-SMOKE-REPORT.md`.
 - **`oec.sdk.Engine` now serializes every execution through one lock**
   (`threading.Lock`, added this sprint): at most one skill subprocess
   runs at a time per `Engine` instance, regardless of how many

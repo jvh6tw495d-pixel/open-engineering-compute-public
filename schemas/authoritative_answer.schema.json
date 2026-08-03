@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oec.dev/schemas/authoritative_answer.schema.json",
+  "title": "OEC authoritative_answer envelope",
+  "description": "Schema for the `authoritative_answer` object mirrored onto oec.mcp agent-tool (`agent.*`) responses at the call_tool boundary (v2.5.3 Wave 1), plus the optional `host_output_diverged` warning added when a host-supplied `claimed_answer` disagrees with it (Wave 2). See docs/contracts/authoritative-answer.md for the normative prose.",
+  "version": "1.0",
+  "$defs": {
+    "authoritativeAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "values", "provenance"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "Closed kind taxonomy v1.0 — prefix-derived from the skill id, or a structural kind for extrema/review results.",
+          "enum": [
+            "optimization_result",
+            "timeseries_result",
+            "energy_result",
+            "control_dynamics_result",
+            "finance_uncertainty_result",
+            "mathematics_result",
+            "linear_result",
+            "statistics_result",
+            "numerical_result",
+            "scalar_extrema_result",
+            "review_result",
+            "generic_result"
+          ]
+        },
+        "values": {
+          "type": "object",
+          "description": "For a single execution: execution.result verbatim. For kind=scalar_extrema_result: closed {min, max} shape. For kind=review_result: {passed, checks}."
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Non-authoritative bookkeeping (run_id / input_hash / solver_status, or the min/max equivalents for scalar_extrema_result). Never overrides values."
+        }
+      }
+    },
+    "hostOutputDivergedMismatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reason"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "JSON-Pointer-ish path rooted at authoritative_answer.values, e.g. $.objective_value"
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "value_mismatch",
+            "type_mismatch",
+            "list_length_mismatch",
+            "null_vs_value",
+            "claimed_key_not_in_authoritative",
+            "nan_or_inf_unverifiable",
+            "authoritative_answer_absent"
+          ]
+        },
+        "authoritative": {
+          "description": "Authoritative value at this path (absent when reason=authoritative_answer_absent)."
+        },
+        "claimed": {
+          "description": "Host-claimed value at this path."
+        }
+      }
+    },
+    "hostOutputDiverged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_version", "reason", "mismatches"],
+      "properties": {
+        "policy_version": {
+          "type": "string",
+          "description": "src/oec/mcp/divergence.py::DIVERGENCE_POLICY_VERSION"
+        },
+        "reason": {
+          "type": "string",
+          "enum": ["value_mismatch", "no_authoritative_answer"]
+        },
+        "mismatches": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hostOutputDivergedMismatch" }
+        }
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "authoritative_answer_schema_version": {
+      "const": "1.0"
+    },
+    "authoritative_answer": { "$ref": "#/$defs/authoritativeAnswer" },
+    "host_output_diverged": { "$ref": "#/$defs/hostOutputDiverged" }
+  }
+}

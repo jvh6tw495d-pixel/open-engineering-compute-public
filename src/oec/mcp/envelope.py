@@ -49,6 +49,7 @@ class AuthoritativeAnswer:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the wire shape mirrored onto ``authoritative_answer``."""
         return {
             "kind": self.kind,
             "values": self.values,
@@ -66,6 +67,7 @@ class ProblemClassification:
     reason: str = ""
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the wire shape mirrored onto ``problem_classification``."""
         return {
             "domain": self.domain,
             "problem_class": self.problem_class,
@@ -84,6 +86,7 @@ class MethodSummary:
     review_applied: bool = False
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the wire shape mirrored onto ``method_summary``."""
         return {
             "specialist": self.specialist,
             "skill": self.skill,

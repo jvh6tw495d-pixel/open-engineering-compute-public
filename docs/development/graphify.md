@@ -386,6 +386,22 @@ routing corpus and production-style telemetry before tuning.
 Graphify could not enumerate `.pytest-tmp` due to a Windows access-denied
 warning; that transient test directory is outside the committed source scope.
 
+### v2.5.3 authoritative-answer hardening rebuild
+
+Rebuilt on **2026-08-03** (tool now `graphifyy` v0.9.32, previously v0.9.31)
+after the v2.5.3 Waves 1-5 work: `src/oec/mcp/envelope.py` (authoritative
+answer envelope), `src/oec/mcp/divergence.py` (`claimed_answer` +
+`host_output_diverged`), `scripts/_oec_authority.py` + updated
+`hermes_supertest.py`/`multiagent_with_without_oec.py` harnesses,
+`schemas/authoritative_answer.schema.json`, ADR 0023, and the release
+metadata closeout (version bump `2.5.2 → 2.5.3`, `CHANGELOG.md`,
+`technical-debt.md` D-CUR-26 closure + new D-CUR-27 residual entry).
+**9587 nodes, 14346 edges, 730 communities** (aggregated HTML: 730
+community nodes, 960 cross-community edges — still above the 5000-node
+visualization limit). Baseline commit is still `129dcc0` (Wave 3b); this,
+like several prior entries, is **uncommitted** in the working tree at
+rebuild time. `graphify-out/` remains local and gitignored (ADR 0010).
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown

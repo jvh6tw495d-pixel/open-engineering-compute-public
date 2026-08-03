@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.5.3] — 2026-08-03
+
+Authoritative-answer hardening: a weak host must never be able to turn a
+correct OEC solve into an incorrect final JSON answer. Scope is
+`oec.mcp` agent tools (`agent.*`) only — REST/SDK/CLI are unaffected.
+
+### Added
+
+- `src/oec/mcp/envelope.py`: `authoritative_answer` envelope, additively
+  normalized once at the `call_tool` boundary for every `agent.*` tool.
+  Covers all nine live MCP response shapes (clarification states,
+  specialist/skill-agent reports, dual min/max math extrema, review
+  reports, the router wrapper, bare `ExecutionResult`, structured
+  errors) behind a closed `kind` taxonomy
+  (`AUTHORITATIVE_ANSWER_SCHEMA_VERSION = "1.0"`). Existing
+  `payload["result"]` nesting is preserved unchanged; normalized keys
+  are mirrored at the top level only.
+- `claimed_answer`: an optional, host-voluntary field on every
+  `_AGENT_TOOL_SCHEMAS` entry. `src/oec/mcp/divergence.py` compares it
+  against the freshly computed `authoritative_answer` post-serialization
+  (`DIVERGENCE_POLICY_VERSION = "1.0"`, numeric tolerance, fail-closed
+  NaN/Infinity handling, subset-claim and null-vs-absence rules) and
+  adds a structured `host_output_diverged` warning on disagreement.
+  `authoritative_answer` itself is never overwritten by a claim.
+- `scripts/_oec_authority.py`: shared `read_authority` / `three_verdicts`
+  helpers so benchmark harnesses classify a run as `transport_failure`,
+  `oec_execution_failure`, or `host_corruption` instead of scraping host
+  prose for numbers.
+- `schemas/authoritative_answer.schema.json` (v1.0): JSON Schema for the
+  `authoritative_answer` / `host_output_diverged` wire shapes.
+- `docs/contracts/authoritative-answer.md`: normative envelope + claim
+  comparison policy.
+- ADR 0023: wrap-once additive envelope, `claimed_answer` channel, and
+  the MCP-only scope decision.
+
+### Changed
+
+- `scripts/hermes_supertest.py` and `scripts/multiagent_with_without_oec.py`
+  now read `authoritative_answer` from the envelope as the numeric source
+  of truth for the `with_oec_*` arms, and report three labeled verdicts
+  (transport / OEC execution / host corruption) instead of a single
+  pass/fail score.
+- `agent.optimization_specialist`'s input schema now declares `skill_id`
+  + `inputs` explicitly (previously accepted implicitly).
+- `direct_model_supertest.py`, `hard_lp_supertest.py`,
+  `multiagent_llm_benchmark.py`, `llama_oec_experiment.py`: marked
+  `STALE vs 2.5.3` in their module header — superseded by the
+  envelope-reading harnesses above, not deleted.
+
+### Fixed
+
+- Benchmark/host paths that previously reconstructed numeric answers by
+  scraping free-form host JSON could silently carry forward a corrupted
+  number even when OEC's own execution was correct; the `with_oec_agent`
+  arm now surfaces `authoritative_answer` directly. See
+  `docs/implementation/v2.5.3-WAVE4-SMOKE-REPORT.md` for the weak/strong
+  model smoke evidence.
+
 ## [2.5.2] — 2026-07-30
 
 ### Added

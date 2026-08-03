@@ -205,6 +205,27 @@ ever preferring the host's number over its own. Hosts should treat this the
 same way they'd treat any other warning — surface it, don't silently trust
 the claim, and keep reading `authoritative_answer` as the numeric truth.
 
+## Hermes / Odysseus integration guide (short version)
+
+For any host driving `agent.*` tools — Hermes, Odysseus, or a third party —
+the whole contract above reduces to two rules:
+
+1. **Read `authoritative_answer`.** After a successful agent-tool call, the
+   number/values a host presents to its user (or feeds into a downstream
+   step) should come from `response["authoritative_answer"]["values"]`, not
+   from re-parsing the specialist's `narrative` string or any nested report
+   text. This is true whether the call went through `agent.default`
+   (routed) or a specialist directly — both paths mirror the identical
+   `authoritative_answer` shape.
+2. **`claimed_answer` is optional, not required.** A host that already has
+   its own downstream JSON pipeline may attach `claimed_answer` to the same
+   call to get a free `host_output_diverged` consistency check against
+   OEC's own computation (see above). A host with no such pipeline can
+   simply omit it — nothing else changes.
+
+Live weak+strong smoke evidence for this guidance:
+`docs/implementation/v2.5.3-WAVE4-SMOKE-REPORT.md`.
+
 ## Out of scope (Alpha)
 
 Authentication, authorization, and rate-limiting are intentionally not

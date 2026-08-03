@@ -34,6 +34,7 @@ _PUBLIC_API_FILES: tuple[str, ...] = (
     "src/oec/cli/main.py",
     "src/oec/api/app.py",
     "src/oec/mcp/server.py",
+    "src/oec/mcp/envelope.py",
     "src/oec/execution/models.py",
     "src/oec/errors.py",
     "src/oec/ops/models.py",
