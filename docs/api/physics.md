@@ -65,7 +65,7 @@ def dc_power_flow(
 ### Hypotheses
 
 - linear DC approximation on a connected meshed network;
-- `R >> X`;
+- `R << X` (line resistance negligible relative to reactance);
 - voltage-angle differences are small;
 - voltage magnitudes are approximately `1 pu`;
 - reactive power and losses are outside this v0 contract;
