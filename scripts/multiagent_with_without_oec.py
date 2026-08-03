@@ -670,6 +670,13 @@ Copy numbers exactly from the problem. No other keys. No markdown.
         provenance=pipe["provenance"],
         params_extracted=params_extracted,
         params_match_oracle=params_match,
+        # Wave 3b: arm_c's host leg only extracts input parameters -- it never
+        # renders a final numeric answer for OEC to compare against, so there
+        # is no host claim to run through default_claim_compare here (unlike
+        # hermes_supertest.py's with_oec_* arms, which do have host prose
+        # narrating a final answer). host_corruption legitimately stays
+        # pending_wave_3b for this arm; params_match_oracle is the closest
+        # analogue (did the host at least transcribe the *inputs* correctly).
         verdicts=authority.three_verdicts(
             pipe["authority_tool_result"],
             expect_authority=True,

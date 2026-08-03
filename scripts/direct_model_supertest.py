@@ -14,6 +14,23 @@ Sources of models:
 
 OmniRouters is intentionally skipped unless OMNIROUTERS_API_KEY exists and
 the model is included explicitly later.
+
+STALE vs 2.5.3 (Wave 3b inventory decision): `run_extract_plus_oec` /
+`run_ops_plus_oec` below call `THESIS.oec_pipeline` / `Engine.run(...)`
+directly and never cross the `oec.mcp.server.call_tool` boundary, so this
+harness predates and bypasses the v2.5.3 `authoritative_answer` envelope /
+`claimed_answer` / divergence contract entirely (see
+`docs/contracts/authoritative-answer.md`). Its scores are direct-skill
+scrapes of `ExecutionResult.result`, not authority-backed, and it does not
+participate in the GATE-W3 three-verdict classification
+(`scripts/_oec_authority.py`). Migrating it would mean rewriting every call
+site to go through `agent.*` MCP tools the way
+`multiagent_with_without_oec.py::oec_pipeline_envelope` does -- out of scope
+for a migrate-min pass. Superseded for authority-backed, envelope-verified
+comparison by `scripts/hermes_supertest.py` (via Hermes) and
+`scripts/multiagent_with_without_oec.py` (direct). Kept for its historical
+multi-provider coverage; do not treat its scores as an authority-backed
+2.5.3 stability signal.
 """
 
 from __future__ import annotations

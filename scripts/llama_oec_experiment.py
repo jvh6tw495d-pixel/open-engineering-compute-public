@@ -9,6 +9,19 @@ Open Science GUI is not used (no API). Ollama + OEC only.
 Usage:
   uv run python scripts/llama_oec_experiment.py
   uv run python scripts/llama_oec_experiment.py --report docs/implementation/LLAMA_VS_OEC_REPORT.md
+
+STALE vs 2.5.3 (Wave 3b inventory decision): arm B calls `Engine.run(...)`
+directly (see `Engine(skills_root=...)` below) and never crosses the
+`oec.mcp.server.call_tool` boundary, so this harness predates and bypasses
+the v2.5.3 `authoritative_answer` envelope / `claimed_answer` / divergence
+contract entirely (see `docs/contracts/authoritative-answer.md`). It does
+not participate in the GATE-W3 three-verdict classification
+(`scripts/_oec_authority.py`). Migrating it would mean rewriting arm B to go
+through `agent.*` MCP tools the way
+`multiagent_with_without_oec.py::oec_pipeline_envelope` does -- out of scope
+for a migrate-min pass. Kept for its historical single-model experiment
+value; do not treat its scores as an authority-backed 2.5.3 stability
+signal.
 """
 
 from __future__ import annotations

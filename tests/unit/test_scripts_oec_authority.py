@@ -218,6 +218,27 @@ def test_three_verdicts_host_corruption_comparator_hook() -> None:
     assert dirty.primary == authority.HOST_CORRUPTION
 
 
+def test_default_claim_compare_wraps_mcp_divergence_policy() -> None:
+    envelope = _energy_envelope()
+    authoritative_answer = envelope["authoritative_answer"]
+
+    matching_claim = {"peak": authoritative_answer["values"]["peak"]}
+    assert authority.default_claim_compare(matching_claim, authoritative_answer) is True
+
+    diverging_claim = {"peak": {"value": 999.0, "unit": "W"}}
+    assert authority.default_claim_compare(diverging_claim, authoritative_answer) is False
+
+    verdicts = authority.three_verdicts(
+        envelope, host_claim=matching_claim, claim_compare=authority.default_claim_compare
+    )
+    assert verdicts.host_corruption == authority.OK
+
+    verdicts = authority.three_verdicts(
+        envelope, host_claim=diverging_claim, claim_compare=authority.default_claim_compare
+    )
+    assert verdicts.host_corruption == authority.HOST_CORRUPTION
+
+
 def test_three_verdicts_not_exercised_legs() -> None:
     verdicts = authority.three_verdicts(transport_error=None, oec_exercised=False)
     assert verdicts.transport == authority.OK

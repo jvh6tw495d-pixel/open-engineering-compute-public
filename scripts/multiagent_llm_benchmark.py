@@ -10,6 +10,20 @@ LLM arms (no tools unless noted):
 Usage:
   uv run python scripts/multiagent_llm_benchmark.py
   uv run python scripts/multiagent_llm_benchmark.py --skip-claude
+
+STALE vs 2.5.3 (Wave 3b inventory decision): the OEC oracle here calls
+`Engine.run(...)` directly and never crosses the `oec.mcp.server.call_tool`
+boundary, so this harness predates and bypasses the v2.5.3
+`authoritative_answer` envelope / `claimed_answer` / divergence contract
+entirely (see `docs/contracts/authoritative-answer.md`). It does not
+participate in the GATE-W3 three-verdict classification
+(`scripts/_oec_authority.py`). Migrating it would mean rewriting the oracle
+to go through `agent.*` MCP tools the way
+`multiagent_with_without_oec.py::oec_pipeline_envelope` does -- out of scope
+for a migrate-min pass. Superseded for authority-backed comparison by
+`scripts/multiagent_with_without_oec.py`, which covers the same problem.
+Kept for its independent multi-provider run history; do not treat its
+scores as an authority-backed 2.5.3 stability signal.
 """
 
 from __future__ import annotations

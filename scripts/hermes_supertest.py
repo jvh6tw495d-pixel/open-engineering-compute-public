@@ -11,14 +11,15 @@ The canonical benchmark problem and scoring oracle are imported from
 `scripts/multiagent_with_without_oec.py` so this script stays aligned with
 existing thesis/report artifacts.
 
-Authority (v2.5.3 Wave 3a): `with_oec_*` arms take their numeric truth from
-the OEC envelope `authoritative_answer`, replayed once per run through the
-real MCP agent-tool surface (`THESIS.oec_pipeline_envelope`) — never from
-`extract_json` over host prose. Host prose is kept as `host_answer` (a claim
-for the Wave-3b corruption comparison). Every run is classified with the
-three labeled GATE-W3 verdicts: transport_failure | oec_execution_failure |
-host_corruption (the last stays `pending_wave_3b` until Wave 2 lands
-`claimed_answer`; see `scripts/_oec_authority.py`).
+Authority (v2.5.3 Wave 3a/3b): `with_oec_*` arms take their numeric truth
+from the OEC envelope `authoritative_answer`, replayed once per run through
+the real MCP agent-tool surface (`THESIS.oec_pipeline_envelope`) — never from
+`extract_json` over host prose. Host prose is parsed as `host_answer` and
+compared against the authority probe's curated answer using the same
+fail-closed policy `oec.mcp.divergence` runs for a real host `claimed_answer`
+(`scripts/_oec_authority.py::default_claim_compare`). Every run is classified
+with the three labeled GATE-W3 verdicts: transport_failure |
+oec_execution_failure | host_corruption.
 
 Usage:
   uv run python scripts/hermes_supertest.py --list-models
@@ -296,10 +297,24 @@ def run_arm(
         host_answer = extract_json(raw)
     except Exception as exc:  # unparseable host output = transport leg failure
         transport_error = exc
+
+    def _claim_compare(claim: dict[str, Any], _authority: dict[str, Any]) -> bool:
+        # The probe's representative envelope (an LP step) uses raw solver
+        # field names (primal/objective_value/...), not the curated schema
+        # the host was asked for -- compare against probe_answer instead,
+        # which shares the host's schema. See default_claim_compare's
+        # docstring for why comparing against the raw envelope would be
+        # spurious here.
+        if probe_answer is None:
+            return True
+        return authority.default_claim_compare(claim, {"values": probe_answer})
+
     verdicts = authority.three_verdicts(
         probe_tool_result,
         transport_error=transport_error,
         expect_authority=True,
+        host_claim=host_answer,
+        claim_compare=_claim_compare if host_answer is not None else None,
         detail="" if probe is not None else f"authority probe unavailable: {probe_error}",
     )
     ok = transport_error is None and probe_answer is not None
@@ -338,12 +353,12 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
         "**Arms:** `without_oec`, `with_oec_raw`, `with_oec_agent`",
         "",
         (
-            "> **Authority (v2.5.3 Wave 3a):** `with_oec_*` scores are authority-backed — "
+            "> **Authority (v2.5.3 Wave 3a/3b):** `with_oec_*` scores are authority-backed — "
             "numbers come from the OEC envelope `authoritative_answer` (AA), not from host "
             "prose. What the host actually returned is scored separately as `host score`. "
             "Verdicts are the three labeled GATE-W3 classes: `transport_failure`, "
-            "`oec_execution_failure`, `host_corruption` (the last stays `pending_wave_3b` "
-            "until the Wave-2 `claimed_answer` comparator lands)."
+            "`oec_execution_failure`, `host_corruption` (Wave 3b: compared against AA via the "
+            "same fail-closed policy `oec.mcp.divergence` runs for a real `claimed_answer`)."
         ),
         "",
         "## Active models tested",
@@ -411,9 +426,11 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
     lines += [
         "",
         (
-            "`host_corruption` is `pending_wave_3b` by design in Wave 3a: the labeled slot "
-            "and the `claim_compare` hook exist, the Wave-2 `claimed_answer` comparator "
-            "activates it in Wave 3b."
+            "`host_corruption` (Wave 3b) compares each run's parsed host prose against the "
+            "authority probe's curated answer via `_oec_authority.default_claim_compare` — "
+            "the same fail-closed comparison policy `oec.mcp.divergence` runs in production "
+            "for a real `claimed_answer`. It only evaluates when the OEC leg itself is `ok` "
+            "(otherwise `not_evaluated`)."
         ),
         "",
         "## Per-run details",

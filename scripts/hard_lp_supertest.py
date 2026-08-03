@@ -1,5 +1,21 @@
 # ruff: noqa: E501
 
+"""Harder 12-period BESS/TOU LP benchmark across multiple LLM providers.
+
+STALE vs 2.5.3 (Wave 3b inventory decision): this harness calls `Engine.run(...)`
+directly (see the two `Engine(skills_root=...)` construction sites below) and
+never crosses the `oec.mcp.server.call_tool` boundary, so it predates and
+bypasses the v2.5.3 `authoritative_answer` envelope / `claimed_answer` /
+divergence contract entirely (see `docs/contracts/authoritative-answer.md`).
+Its scores are direct-skill scrapes, not authority-backed, and it does not
+participate in the GATE-W3 three-verdict classification
+(`scripts/_oec_authority.py`). Migrating it would mean rewriting every call
+site to go through `agent.*` MCP tools the way
+`multiagent_with_without_oec.py::oec_pipeline_envelope` does -- out of scope
+for a migrate-min pass. Kept for its harder-LP historical coverage; do not
+treat its scores as an authority-backed 2.5.3 stability signal.
+"""
+
 from __future__ import annotations
 
 import argparse

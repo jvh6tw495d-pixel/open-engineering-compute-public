@@ -42,6 +42,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from oec.mcp.divergence import detect_divergence  # noqa: E402
 from oec.mcp.envelope import AUTHORITATIVE_ANSWER_SCHEMA_VERSION  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -347,3 +348,28 @@ def verdict_counts(verdicts: Iterable[ThreeVerdicts]) -> dict[str, int]:
         key = verdict.primary if verdict.primary in counts else OK
         counts[key] += 1
     return counts
+
+
+def default_claim_compare(
+    claim: Mapping[str, Any], authoritative_answer: Mapping[str, Any]
+) -> bool:
+    """Wave-3b default host-corruption comparator.
+
+    Wraps ``oec.mcp.divergence.detect_divergence`` — the exact fail-closed,
+    post-serialization policy the MCP server itself runs for a host-supplied
+    ``claimed_answer`` (Wave 2) — so benchmarks judge host corruption by the
+    same policy the product enforces, not a second ad-hoc comparator. Matches
+    the ``claim_compare`` signature :func:`three_verdicts` expects: ``True``
+    means the claim matches within policy.
+
+    Only valid when ``claim`` and ``authoritative_answer["values"]`` share the
+    same key schema. Some harnesses (``hermes_supertest.py``) ask the host for
+    a curated answer schema (``load_sum_mwh``, ``min_tou_cost``, ...) that
+    differs from the raw envelope values of the representative tool call it
+    probes (e.g. an LP's ``primal``/``objective_value``). In that case, build
+    a synthetic ``{"values": <curated dict in the host's schema>}`` mapping
+    and pass that as ``authoritative_answer`` instead of the raw envelope
+    answer — comparing across mismatched schemas would flag every field as
+    ``claimed_key_not_in_authoritative`` regardless of correctness.
+    """
+    return detect_divergence(dict(authoritative_answer), claim) is None

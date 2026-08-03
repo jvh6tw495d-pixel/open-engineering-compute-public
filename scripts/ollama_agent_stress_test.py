@@ -12,6 +12,15 @@ local model against the REAL MCP server and measures *robustness*, not accuracy:
 The driver model genuinely picks the tool and builds the arguments itself
 (Ollama `/api/chat` native function calling); nothing is hand-scripted.
 
+Wave 3 inventory (GATE-W3 scope decision): this harness deliberately stays
+outside the `scripts/_oec_authority.py` three-verdict classification. It
+scores crash-resistance and structured-error shape, not numeric accuracy, so
+there is no `authoritative_answer` to compare against a host claim -- most
+prompts are adversarial/ambiguous by design and expected to end in
+`needs_more_information` or a structured error, not a solved answer. See
+`docs/contracts/authoritative-answer.md` for the envelope/claim contract this
+harness does not exercise.
+
 Usage:
   .venv/Scripts/python.exe scripts/ollama_agent_stress_test.py
   .venv/Scripts/python.exe scripts/ollama_agent_stress_test.py --limit 5
