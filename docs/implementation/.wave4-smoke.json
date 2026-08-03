@@ -1,0 +1,585 @@
+{
+  "generated_at": "2026-08-03T15:43:08.450567+00:00",
+  "config_path": "C:\\Users\\joaop\\AppData\\Local\\hermes\\config.yaml",
+  "oracle": {
+    "load_sum_mwh": 13.7,
+    "pv_sum_mwh": 6.25,
+    "deficit_mwh": 7.449999999999999,
+    "peak_load_mwh": 3.1,
+    "load_factor": 0.7365591397849461,
+    "min_tou_cost": 4.2825,
+    "total_grid_mwh": 5.6000000000000005,
+    "total_discharge_mwh": 4.550000000000001,
+    "total_charge_mwh": 2.7,
+    "grid_trajectory": [
+      1.75,
+      0.44999999999999996,
+      0.40000000000000036,
+      2.15,
+      0.3500000000000001,
+      0.5
+    ],
+    "charge_trajectory": [
+      0.0,
+      0.0,
+      1.35,
+      1.35,
+      0.0,
+      0.0
+    ],
+    "discharge_trajectory": [
+      1.35,
+      0.5,
+      0.0,
+      0.0,
+      1.35,
+      1.35
+    ],
+    "soc_trajectory": [
+      0.5,
+      -0.0,
+      1.35,
+      2.7,
+      1.35,
+      0.0
+    ],
+    "impossible_cap_feasible": false,
+    "reviewer_passed": true,
+    "timegrid_n_points": 6
+  },
+  "authority_probe": {
+    "ok": true,
+    "error": "",
+    "method": "oec_multiagent_envelope",
+    "answer": {
+      "load_sum_mwh": 13.7,
+      "pv_sum_mwh": 6.25,
+      "deficit_mwh": 7.449999999999999,
+      "peak_load_mwh": 3.1,
+      "load_factor": 0.7365591397849461,
+      "min_tou_cost": 4.2825,
+      "total_grid_mwh": 5.6000000000000005,
+      "total_discharge_mwh": 4.550000000000001,
+      "total_charge_mwh": 2.7,
+      "grid_trajectory": [
+        1.75,
+        0.44999999999999996,
+        0.40000000000000036,
+        2.15,
+        0.3500000000000001,
+        0.5
+      ],
+      "charge_trajectory": [
+        0.0,
+        0.0,
+        1.35,
+        1.35,
+        0.0,
+        0.0
+      ],
+      "discharge_trajectory": [
+        1.35,
+        0.5,
+        0.0,
+        0.0,
+        1.35,
+        1.35
+      ],
+      "soc_trajectory": [
+        0.5,
+        -0.0,
+        1.35,
+        2.7,
+        1.35,
+        0.0
+      ],
+      "impossible_cap_feasible": false,
+      "reviewer_passed": true,
+      "timegrid_n_points": 6
+    },
+    "provenance": {
+      "timegrid_run_id": "b99243c6-89bc-465d-b948-50de1c4b3649",
+      "load_metrics_run_id": "62dbfe86-e0d2-434d-a779-3c99173c82d0",
+      "balance_run_id": "c0a263ef-1ea0-40ee-984f-249a9ea1b587",
+      "lp_run_id": "9b128506-2d6c-4204-8081-25448eb16630",
+      "lp_status": "VALIDATED",
+      "solver_status": "optimal",
+      "input_hash": "421775f010291d316a9cf0256a058e8012bb2eafbbc2cf4c7edce0864631fba8",
+      "reviewer_passed": true,
+      "feasibility_run_id": "46f6b2c5-49b9-4758-9f6f-7a594eda2e03"
+    }
+  },
+  "models": [
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "source": "fallback_1"
+    },
+    {
+      "model": "granite4:7b-a1b-h-64k",
+      "provider": "custom:ollama",
+      "source": "fallback_6"
+    }
+  ],
+  "runs": [
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Command '['hermes', 'chat', '-q', 'Resolva este problema sozinho. Não use ferramentas, MCP ou OEC. Faça o cálculo você mesmo.\\n\\n6-period microgrid + BESS (eta=1).\\n\\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\\nCAP = 3.75 MWh\\nPMAX = 1.35 MWh per period\\nSOC0 = 1.85 MWh\\n\\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\\nMinimize sum PRICE[t]*grid[t]\\n\\nRetorne SOMENTE JSON com as chaves: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. Sem markdown.', '-m', 'nvidia/nemotron-3-ultra-550b-a55b', '--provider', 'nvidia', '-Q', '--max-turns', '40', '--source', 'tool']' timed out after 120 seconds",
+      "source": "fallback_1",
+      "host_answer": null,
+      "host_scores": {},
+      "verdicts": {
+        "transport": "transport_failure",
+        "oec_execution": "not_reached",
+        "host_corruption": "not_evaluated",
+        "primary": "transport_failure",
+        "detail": "transport error: Command '['hermes', 'chat', '-q', 'Resolva este problema sozinho. Não use ferramentas, MCP ou OEC. Faça o cálculo você mesmo.\\n\\n6-period microgrid + BESS (eta=1).\\n\\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35"
+      }
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "arm": "with_oec_raw",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Command '['hermes', 'chat', '-q', 'Use o MCP oec, mas NÃO use agent.default. Use explicitamente ferramentas cruas do OEC quando necessário, priorizando: mcp__oec__energy_load_metrics, mcp__oec__energy_balance, mcp__oec__optimization_lp e mcp__oec__optimization_check_feasibility. Monte a resposta final a partir dos resultados dessas ferramentas.\\n\\n6-period microgrid + BESS (eta=1).\\n\\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\\nCAP = 3.75 MWh\\nPMAX = 1.35 MWh per period\\nSOC0 = 1.85 MWh\\n\\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\\nMinimize sum PRICE[t]*grid[t]\\n\\nRetorne SOMENTE JSON com as chaves: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. Sem markdown.', '-m', 'nvidia/nemotron-3-ultra-550b-a55b', '--provider', 'nvidia', '-Q', '--max-turns', '40', '--source', 'tool', '-t', 'oec']' timed out after 120 seconds",
+      "source": "fallback_1",
+      "host_answer": null,
+      "host_scores": {},
+      "verdicts": {
+        "transport": "transport_failure",
+        "oec_execution": "not_reached",
+        "host_corruption": "not_evaluated",
+        "primary": "transport_failure",
+        "detail": "transport error: Command '['hermes', 'chat', '-q', 'Use o MCP oec, mas NÃO use agent.default. Use explicitamente ferramentas cruas do OEC quando necessário, priorizando: mcp__oec__energy_load_metrics, mcp__oec__energy"
+      }
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "arm": "with_oec_agent",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.449999999999999,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.7365591397849461,
+        "min_tou_cost": 4.2825,
+        "total_grid_mwh": 5.6000000000000005,
+        "total_discharge_mwh": 4.550000000000001,
+        "total_charge_mwh": 2.7,
+        "grid_trajectory": [
+          1.75,
+          0.44999999999999996,
+          0.40000000000000036,
+          2.15,
+          0.3500000000000001,
+          0.5
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          1.35,
+          1.35,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.35,
+          0.5,
+          0.0,
+          0.0,
+          1.35,
+          1.35
+        ],
+        "soc_trajectory": [
+          0.5,
+          -0.0,
+          1.35,
+          2.7,
+          1.35,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "timegrid_n_points": 6
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "impossible_cap": true,
+          "grid_traj_l1": 0.0,
+          "grid_traj_ok": true
+        }
+      },
+      "raw": "{\"tool\": \"mcp\", \"action\": \"call\", \"server\": \"oec\", \"tool\": \"agent.default\", \"arguments\": {\"task\": \"Solve 6-period microgrid + BESS optimization:\\n\\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\\nCAP = 3.75 MWh\\nPMAX = 1.35 MWh per period\\nSOC0 = 1.85 MWh\\n\\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\\nMinimize sum PRICE[t]*grid[t]\\n\\nReturn ONLY JSON with keys: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. No markdown.\"}}",
+      "error": "",
+      "source": "fallback_1",
+      "host_answer": {
+        "tool": "agent.default",
+        "action": "call",
+        "server": "oec",
+        "arguments": {
+          "task": "Solve 6-period microgrid + BESS optimization:\n\nLOAD = [3.1, 2.4, 1.6, 2.15, 2.35, 2.1]\nPV = [0.0, 1.45, 2.55, 1.35, 0.65, 0.25]\nPRICE (TOU) = [1.15, 0.55, 0.28, 0.42, 0.95, 1.35]\nCAP = 3.75 MWh\nPMAX = 1.35 MWh per period\nSOC0 = 1.85 MWh\n\nDynamics: s[t] = s[t-1] + charge[t] - discharge[t] (s before t=0 is SOC0)\n0 <= s[t] <= CAP; 0 <= charge,discharge <= PMAX; grid >= 0\nBalance: LOAD[t] = PV[t] + grid[t] + discharge[t] - charge[t]\nMinimize sum PRICE[t]*grid[t]\n\nReturn ONLY JSON with keys: load_sum_mwh, pv_sum_mwh, deficit_mwh, peak_load_mwh, load_factor, min_tou_cost, total_grid_mwh, total_discharge_mwh, total_charge_mwh, grid_trajectory, charge_trajectory, discharge_trajectory, soc_trajectory, impossible_cap_feasible, reviewer_passed, reasoning. No markdown."
+        }
+      },
+      "host_scores": {
+        "score": 0,
+        "max": 10,
+        "details": {
+          "load_sum": false,
+          "pv_sum": false,
+          "deficit": false,
+          "peak_load": false,
+          "load_factor": false,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "impossible_cap": false,
+          "grid_traj_ok": false
+        }
+      },
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "host_corruption",
+        "primary": "host_corruption",
+        "detail": "host claim diverges from authoritative_answer"
+      }
+    },
+    {
+      "model": "granite4:7b-a1b-h-64k",
+      "provider": "custom:ollama",
+      "arm": "without_oec",
+      "ok": false,
+      "answer": null,
+      "scores": {
+        "score": 0,
+        "max": 10,
+        "details": {}
+      },
+      "raw": "",
+      "error": "Expecting value: line 6 column 15 (char 125)",
+      "source": "fallback_6",
+      "host_answer": null,
+      "host_scores": {},
+      "verdicts": {
+        "transport": "transport_failure",
+        "oec_execution": "not_reached",
+        "host_corruption": "not_evaluated",
+        "primary": "transport_failure",
+        "detail": "transport error: Expecting value: line 6 column 15 (char 125)"
+      }
+    },
+    {
+      "model": "granite4:7b-a1b-h-64k",
+      "provider": "custom:ollama",
+      "arm": "with_oec_raw",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.449999999999999,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.7365591397849461,
+        "min_tou_cost": 4.2825,
+        "total_grid_mwh": 5.6000000000000005,
+        "total_discharge_mwh": 4.550000000000001,
+        "total_charge_mwh": 2.7,
+        "grid_trajectory": [
+          1.75,
+          0.44999999999999996,
+          0.40000000000000036,
+          2.15,
+          0.3500000000000001,
+          0.5
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          1.35,
+          1.35,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.35,
+          0.5,
+          0.0,
+          0.0,
+          1.35,
+          1.35
+        ],
+        "soc_trajectory": [
+          0.5,
+          -0.0,
+          1.35,
+          2.7,
+          1.35,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "timegrid_n_points": 6
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "impossible_cap": true,
+          "grid_traj_l1": 0.0,
+          "grid_traj_ok": true
+        }
+      },
+      "raw": "{\n  \"load_sum_mwh\": 11.5,\n  \"pv_sum_mwh\": 7.4,\n  \"deficit_mwh\": 0.8,\n  \"peak_load_mwh\": 2.35,\n  \"load_factor\": 1.22,\n  \"min_tou_cost\": 6.48,\n  \"total_grid_mwh\": 3.75,\n  \"total_discharge_mwh\": 4.15,\n  \"total_charge_mwh\": 5.85,\n  \"grid_trajectory\": [\n    0,\n    2.35,\n    1.9,\n    0,\n    1.05,\n    0\n  ],\n  \"charge_trajectory\": [\n    2.75,\n    0,\n    0,\n    0,\n    0,\n    4.15\n  ],\n  \"discharge_trajectory\": [\n    2.35,\n    0,\n    0,\n    1.85,\n    1.65,\n    0\n  ],\n  \"soc_trajectory\": [\n    1.85,\n    3.45,\n    5.05,\n    4.9,\n    3.05,\n    1.15\n  ],\n  \"impossible_cap_feasible\": false,\n  \"reviewer_passed\": true,\n  \"reasoning\": \"O balance é mantido para todo o horizonte, utilizando PV quando disponível e carregando/descargando conforme a demanda e preços da tope. O total de carga externa não excede a capacidade do microgrid. Tudo dentro das restrições dadas (capacidade máxima do sistema, PO/DEs, custos mínimos).\"\n}",
+      "error": "",
+      "source": "fallback_6",
+      "host_answer": {
+        "load_sum_mwh": 11.5,
+        "pv_sum_mwh": 7.4,
+        "deficit_mwh": 0.8,
+        "peak_load_mwh": 2.35,
+        "load_factor": 1.22,
+        "min_tou_cost": 6.48,
+        "total_grid_mwh": 3.75,
+        "total_discharge_mwh": 4.15,
+        "total_charge_mwh": 5.85,
+        "grid_trajectory": [
+          0,
+          2.35,
+          1.9,
+          0,
+          1.05,
+          0
+        ],
+        "charge_trajectory": [
+          2.75,
+          0,
+          0,
+          0,
+          0,
+          4.15
+        ],
+        "discharge_trajectory": [
+          2.35,
+          0,
+          0,
+          1.85,
+          1.65,
+          0
+        ],
+        "soc_trajectory": [
+          1.85,
+          3.45,
+          5.05,
+          4.9,
+          3.05,
+          1.15
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "reasoning": "O balance é mantido para todo o horizonte, utilizando PV quando disponível e carregando/descargando conforme a demanda e preços da tope. O total de carga externa não excede a capacidade do microgrid. Tudo dentro das restrições dadas (capacidade máxima do sistema, PO/DEs, custos mínimos)."
+      },
+      "host_scores": {
+        "score": 1,
+        "max": 10,
+        "details": {
+          "load_sum": false,
+          "pv_sum": false,
+          "deficit": false,
+          "peak_load": false,
+          "load_factor": false,
+          "min_cost": false,
+          "total_grid": false,
+          "total_discharge": false,
+          "impossible_cap": true,
+          "grid_traj_l1": 8.5,
+          "grid_traj_ok": false
+        }
+      },
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "host_corruption",
+        "primary": "host_corruption",
+        "detail": "host claim diverges from authoritative_answer"
+      }
+    },
+    {
+      "model": "granite4:7b-a1b-h-64k",
+      "provider": "custom:ollama",
+      "arm": "with_oec_agent",
+      "ok": true,
+      "answer": {
+        "load_sum_mwh": 13.7,
+        "pv_sum_mwh": 6.25,
+        "deficit_mwh": 7.449999999999999,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.7365591397849461,
+        "min_tou_cost": 4.2825,
+        "total_grid_mwh": 5.6000000000000005,
+        "total_discharge_mwh": 4.550000000000001,
+        "total_charge_mwh": 2.7,
+        "grid_trajectory": [
+          1.75,
+          0.44999999999999996,
+          0.40000000000000036,
+          2.15,
+          0.3500000000000001,
+          0.5
+        ],
+        "charge_trajectory": [
+          0.0,
+          0.0,
+          1.35,
+          1.35,
+          0.0,
+          0.0
+        ],
+        "discharge_trajectory": [
+          1.35,
+          0.5,
+          0.0,
+          0.0,
+          1.35,
+          1.35
+        ],
+        "soc_trajectory": [
+          0.5,
+          -0.0,
+          1.35,
+          2.7,
+          1.35,
+          0.0
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "timegrid_n_points": 6
+      },
+      "scores": {
+        "score": 10,
+        "max": 10,
+        "details": {
+          "load_sum": true,
+          "pv_sum": true,
+          "deficit": true,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": true,
+          "total_grid": true,
+          "total_discharge": true,
+          "impossible_cap": true,
+          "grid_traj_l1": 0.0,
+          "grid_traj_ok": true
+        }
+      },
+      "raw": "{\n  \"load_sum_mwh\": 9.4,\n  \"pv_sum_mwh\": 8.95,\n  \"deficit_mwh\": 0.55,\n  \"peak_load_mwh\": 3.1,\n  \"load_factor\": 0.78,\n  \"min_tou_cost\": 2.77,\n  \"total_grid_mwh\": 5.45,\n  \"total_discharge_mwh\": 3.75,\n  \"total_charge_mwh\": 3.75,\n  \"grid_trajectory\": [1, 1, 0, 1, 1, 1],\n  \"charge_trajectory\": [2.25, 1.5, 1.35, 0, 1.15, 1.25],\n  \"discharge_trajectory\": [0.9, 0, 0, 1.85, 1.65, 0],\n  \"soc_trajectory\": [3.6, 4.05, 4.2, 3.35, 4.5, 5.75],\n  \"impossible_cap_feasible\": false,\n  \"reviewer_passed\": true,\n  \"reasoning\": \"A microgrid é capaz de atender totalmente a demanda consumindo parte da energia solar disponível (8.95 MWh) e carregando excesso diariamente para compensar picos noturnos, chegando ao déficit mínimo de 0.55MWh ao final do horizonte. Saturou capacidade máxima por período (PMAX=1.35) no máximo dois períodos (peaks 3.1 e 2.15), resultando em necessidade mínima de energia da rede. A curva total apresenta crescimento exponencial durante horas solares elevadas, recuo noturno e reposição do nível mínimo esperado a partir da carga retornado pela bateria.\"\n}",
+      "error": "",
+      "source": "fallback_6",
+      "host_answer": {
+        "load_sum_mwh": 9.4,
+        "pv_sum_mwh": 8.95,
+        "deficit_mwh": 0.55,
+        "peak_load_mwh": 3.1,
+        "load_factor": 0.78,
+        "min_tou_cost": 2.77,
+        "total_grid_mwh": 5.45,
+        "total_discharge_mwh": 3.75,
+        "total_charge_mwh": 3.75,
+        "grid_trajectory": [
+          1,
+          1,
+          0,
+          1,
+          1,
+          1
+        ],
+        "charge_trajectory": [
+          2.25,
+          1.5,
+          1.35,
+          0,
+          1.15,
+          1.25
+        ],
+        "discharge_trajectory": [
+          0.9,
+          0,
+          0,
+          1.85,
+          1.65,
+          0
+        ],
+        "soc_trajectory": [
+          3.6,
+          4.05,
+          4.2,
+          3.35,
+          4.5,
+          5.75
+        ],
+        "impossible_cap_feasible": false,
+        "reviewer_passed": true,
+        "reasoning": "A microgrid é capaz de atender totalmente a demanda consumindo parte da energia solar disponível (8.95 MWh) e carregando excesso diariamente para compensar picos noturnos, chegando ao déficit mínimo de 0.55MWh ao final do horizonte. Saturou capacidade máxima por período (PMAX=1.35) no máximo dois períodos (peaks 3.1 e 2.15), resultando em necessidade mínima de energia da rede. A curva total apresenta crescimento exponencial durante horas solares elevadas, recuo noturno e reposição do nível mínimo esperado a partir da carga retornado pela bateria."
+      },
+      "host_scores": {
+        "score": 4,
+        "max": 10,
+        "details": {
+          "load_sum": false,
+          "pv_sum": false,
+          "deficit": false,
+          "peak_load": true,
+          "load_factor": true,
+          "min_cost": false,
+          "total_grid": true,
+          "total_discharge": false,
+          "impossible_cap": true,
+          "grid_traj_l1": 4.0,
+          "grid_traj_ok": false
+        }
+      },
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "host_corruption",
+        "primary": "host_corruption",
+        "detail": "host claim diverges from authoritative_answer"
+      }
+    }
+  ]
+}
