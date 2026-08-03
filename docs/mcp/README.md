@@ -168,6 +168,43 @@ Rules hosts should rely on:
 Implementation: wrap-once in `call_tool` for `name in _AGENT_TOOL_SCHEMAS`
 only — never inside `_run_specialist_by_name` (which recurses for the router).
 
+## Host claims and divergence (`claimed_answer`, v2.5.3 Wave 2)
+
+Every `agent.*` tool accepts an optional `claimed_answer` argument — a host
+may voluntarily state what it believes the answer is, in any JSON shape.
+This is **not** a new tool and does not change how a tool is called; it is
+just one more optional property alongside `demo_label` / `skill_id` /
+`inputs` / etc.
+
+OEC compares the claim against the `authoritative_answer` it just computed
+(post-serialization, with numeric tolerance — see
+`docs/contracts/authoritative-answer.md` for the full comparison policy) and,
+on disagreement, adds a `host_output_diverged` warning:
+
+```json
+{
+  "host_output_diverged": {
+    "policy_version": "1.0",
+    "reason": "value_mismatch",
+    "mismatches": [
+      {
+        "path": "$.objective_value",
+        "reason": "value_mismatch",
+        "authoritative": 1.0,
+        "claimed": -999999.0
+      }
+    ]
+  }
+}
+```
+
+**`authoritative_answer` is never overwritten by a claim.** This is
+fail-closed advisory only: absence of `host_output_diverged` means either no
+claim was sent, or it matched; its presence flags disagreement without OEC
+ever preferring the host's number over its own. Hosts should treat this the
+same way they'd treat any other warning — surface it, don't silently trust
+the claim, and keep reading `authoritative_answer` as the numeric truth.
+
 ## Out of scope (Alpha)
 
 Authentication, authorization, and rate-limiting are intentionally not

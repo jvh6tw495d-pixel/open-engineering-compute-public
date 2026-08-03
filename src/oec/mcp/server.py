@@ -29,6 +29,7 @@ from oec.mcp.discovery import (
     rank_candidate_skills,
     rank_domain_intents,
 )
+from oec.mcp.divergence import detect_divergence
 from oec.mcp.envelope import RouteDecision, confidence_from_score, normalize
 from oec.sdk import Engine
 
@@ -91,6 +92,13 @@ _DOMAIN_GROUPS: dict[str, tuple[str, ...]] = {
     _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: ("finance", "uncertainty"),
 }
 
+# Wave 2 (v2.5.3): a host may voluntarily attach its own belief about the
+# answer alongside the call. Deliberately unconstrained (no "type") — a claim
+# is compared structurally against ``authoritative_answer.values`` post
+# serialization (see ``oec.mcp.divergence``), so it can be any JSON shape.
+# This is the *only* channel for host claims; no new MCP tool is introduced.
+_CLAIMED_ANSWER_SCHEMA: dict[str, Any] = {}
+
 _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
     _AGENT_DEFAULT_TOOL_NAME: {
         "type": "object",
@@ -116,6 +124,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "inputs": {"type": "object"},
             "claimed_objective": {"type": "number"},
             "claimed_solver_status": {"type": "string"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -126,6 +135,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -136,6 +146,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "execution": {"type": "object"},
             "claimed_objective": {"type": "number"},
             "claimed_solver_status": {"type": "string"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "required": ["execution"],
         "additionalProperties": False,
@@ -146,6 +157,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -155,6 +167,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -164,6 +177,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -173,6 +187,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -182,6 +197,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "demo_label": {"type": "string"},
             "skill_id": {"type": "string"},
             "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
         },
         "additionalProperties": False,
     },
@@ -823,6 +839,22 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
                 signal="direct",
             )
         payload = normalize(payload, tool_name=name, decision=decision)
+
+        # Wave 2: a host may voluntarily attach ``claimed_answer``. OEC never
+        # trusts or substitutes it -- authoritative_answer above is already
+        # final -- this only ever *adds* an advisory warning key when the
+        # claim disagrees with what OEC just computed (fail-closed, additive).
+        # Scoped to the agent-tool success surface (``status: "ok"``): the
+        # needs_clarification/needs_more_information passthrough shapes never
+        # mint authority by design, so a leftover claim there is not "host
+        # corruption" -- there was nothing to compute yet.
+        if payload.get("status") == "ok":
+            divergence = detect_divergence(
+                payload.get("authoritative_answer"), arguments.get("claimed_answer")
+            )
+            if divergence is not None:
+                payload["host_output_diverged"] = divergence
+
         return CallToolResult(content=[_json_text(payload)], isError=False)
 
     try:
