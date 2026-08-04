@@ -8,6 +8,7 @@ from oec.kernel.units.quantity import QuantityValue
 from oec.physics.mechanics import (
     kinetic_energy,
     mechanical_energy_balance,
+    mechanical_energy_deltas,
     potential_energy,
     uniform_acceleration_position,
     uniform_acceleration_velocity,
@@ -101,3 +102,30 @@ def test_mechanical_energy_balance_accounts_for_explicit_losses() -> None:
         losses=QuantityValue(value=40.0, unit="J"),
     )
     assert check.balanced is True
+
+
+def test_mechanical_energy_deltas_matches_manual_subtraction() -> None:
+    """mechanical_energy_deltas must agree with manual KE/PE subtraction."""
+    ke_i = kinetic_energy(
+        QuantityValue(value=2.0, unit="kg"),
+        QuantityValue(value=3.0, unit="m / s"),
+    )
+    ke_f = kinetic_energy(
+        QuantityValue(value=2.0, unit="kg"),
+        QuantityValue(value=5.0, unit="m / s"),
+    )
+    pe_i = potential_energy(
+        QuantityValue(value=2.0, unit="kg"),
+        QuantityValue(value=10.0, unit="m"),
+    )
+    pe_f = potential_energy(
+        QuantityValue(value=2.0, unit="kg"),
+        QuantityValue(value=6.0, unit="m"),
+    )
+    d_ke, d_pe = mechanical_energy_deltas(ke_i, ke_f, pe_i, pe_f)
+    # ΔKE = 0.5*2*(25-9) = 16 J
+    assert d_ke.value == pytest.approx(16.0)
+    assert d_ke.unit == "J"
+    # ΔPE = 2*9.80665*(6-10) = -78.4532 J
+    assert d_pe.value == pytest.approx(-78.4532, abs=0.01)
+    assert d_pe.unit == "J"

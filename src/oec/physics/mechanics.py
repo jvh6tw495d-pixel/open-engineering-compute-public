@@ -153,6 +153,25 @@ def work_done(force: QuantityValue, displacement: QuantityValue) -> QuantityValu
     return QuantityValue(value=value, unit="J")
 
 
+def mechanical_energy_deltas(
+    ke_initial: QuantityValue,
+    ke_final: QuantityValue,
+    pe_initial: QuantityValue,
+    pe_final: QuantityValue,
+) -> tuple[QuantityValue, QuantityValue]:
+    """Return the energy deltas ``(ΔKE, ΔPE)`` over a mechanical transition.
+
+    Both are **joules**. Computed via :class:`QuantityValue` dimensional
+    subtraction (kernel arithmetic, not a domain formula), so callers stay
+    thin and never perform physics arithmetic themselves. This is the
+    single delegated source for forming ``ΔKE`` and ``ΔPE`` from initial
+    and final states.
+    """
+    delta_kinetic = as_canonical(ke_final, "J").subtract(as_canonical(ke_initial, "J"))
+    delta_potential = as_canonical(pe_final, "J").subtract(as_canonical(pe_initial, "J"))
+    return delta_kinetic, delta_potential
+
+
 def mechanical_energy_balance(
     work_in: QuantityValue,
     delta_kinetic: QuantityValue,
@@ -201,6 +220,7 @@ __all__ = [
     "WORK_LAW",
     "kinetic_energy",
     "mechanical_energy_balance",
+    "mechanical_energy_deltas",
     "potential_energy",
     "uniform_acceleration_position",
     "uniform_acceleration_velocity",

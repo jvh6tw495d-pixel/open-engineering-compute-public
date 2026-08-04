@@ -2,9 +2,9 @@
 
 Runs inside the sandboxed subprocess (ADR 0012). Thin adapter (skill-first,
 per plan section 8): validates/adapts inputs into ``QuantityValue``s and
-calls ``oec.physics.mechanics``. This module performs no physics
-arithmetic of its own — only unit-checked ``QuantityValue`` subtraction
-(kernel dimensional arithmetic, not a domain formula) to form the deltas.
+calls ``oec.physics.mechanics``. This module performs **no** physics
+arithmetic of its own — every computation (energies, deltas and the
+work-energy balance) is delegated to ``oec.physics.mechanics``.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ from oec.physics.mechanics import (
     STANDARD_GRAVITY,
     kinetic_energy,
     mechanical_energy_balance,
+    mechanical_energy_deltas,
     potential_energy,
 )
 
@@ -41,8 +42,9 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
     pe_initial = potential_energy(mass, height_initial, gravity)
     pe_final = potential_energy(mass, height_final, gravity)
 
-    delta_kinetic = ke_final.subtract(ke_initial)
-    delta_potential = pe_final.subtract(pe_initial)
+    delta_kinetic, delta_potential = mechanical_energy_deltas(
+        ke_initial, ke_final, pe_initial, pe_final
+    )
 
     balance = mechanical_energy_balance(work_in, delta_kinetic, delta_potential, losses)
 
