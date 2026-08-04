@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "thermal.conduction_1d input",
+  "type": "object",
+  "properties": {
+    "conductivity": {
+      "type": "object",
+      "properties": { "value": { "type": "number", "exclusiveMinimum": 0 }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W / (m * K)"
+    },
+    "area": {
+      "type": "object",
+      "properties": { "value": { "type": "number", "exclusiveMinimum": 0 }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m ** 2"
+    },
+    "length": {
+      "type": "object",
+      "properties": { "value": { "type": "number", "exclusiveMinimum": 0 }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m"
+    },
+    "hot_temperature": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "K",
+      "description": "Any temperature-compatible unit (K, degC, degF) is accepted."
+    },
+    "cold_temperature": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "K",
+      "description": "Any temperature-compatible unit (K, degC, degF) is accepted."
+    },
+    "heat_out": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W",
+      "description": "Optional measured/assumed outgoing heat rate. Defaults to the computed heat_rate (trivially balanced) when omitted."
+    }
+  },
+  "required": ["conductivity", "area", "length", "hot_temperature", "cold_temperature"],
+  "additionalProperties": false
+}
