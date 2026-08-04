@@ -1,6 +1,6 @@
 # ADR 0026: Physics Foundation multidomain scope for v2.6 (P1–P5 v0, DC power flow canon, energy-rich deferral)
 
-- **Status:** Draft — Wave 0; accept on Wave 6
+- **Status:** Accepted
 - **Date:** 2026-08-03
 - **Phase:** v2.6.0 "Physics Foundation P1–P5 v0", Wave 0 (`docs/implementation/
   v2.6-EXECUTION-PLAN.md`, decisions D1, D4, D6, D7)

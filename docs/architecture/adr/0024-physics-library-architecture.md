@@ -1,6 +1,6 @@
 # ADR 0024: Physics library architecture (`src/oec/physics/`, layering, domain objects, envelope schema 1.1, conservation ownership)
 
-- **Status:** Draft — Wave 0; accept on Wave 6
+- **Status:** Accepted
 - **Date:** 2026-08-03
 - **Phase:** v2.6.0 "Physics Foundation P1–P5 v0", Wave 0–1 (`docs/implementation/
   v2.6-EXECUTION-PLAN.md`, decisions D2, D3, D5)
