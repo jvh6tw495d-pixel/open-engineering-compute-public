@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mechanics.energy_1d input",
+  "type": "object",
+  "properties": {
+    "mass": {
+      "type": "object",
+      "properties": { "value": { "type": "number", "exclusiveMinimum": 0 }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "kg"
+    },
+    "height_initial": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m"
+    },
+    "height_final": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m"
+    },
+    "velocity_initial": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m / s"
+    },
+    "velocity_final": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m / s"
+    },
+    "work_in": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "J",
+      "description": "External work done on the system between the two states. Defaults to 0 J."
+    },
+    "losses": {
+      "type": "object",
+      "properties": { "value": { "type": "number", "minimum": 0 }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "J",
+      "description": "Non-conservative losses (friction, drag, ...). Defaults to 0 J."
+    },
+    "gravity": {
+      "type": "object",
+      "properties": { "value": { "type": "number", "exclusiveMinimum": 0 }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m / s ** 2",
+      "description": "Defaults to standard gravity (9.80665 m/s^2)."
+    }
+  },
+  "required": ["mass", "height_initial", "height_final", "velocity_initial", "velocity_final"],
+  "additionalProperties": false
+}

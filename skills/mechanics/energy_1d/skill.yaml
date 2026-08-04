@@ -1,0 +1,41 @@
+id: mechanics.energy_1d
+version: 0.1.0
+status: experimental
+domain: mechanics
+title: 1D Mechanical Energy Balance
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: work_energy_balance
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6-EXECUTION-PLAN.md, PHYSICS-CATALOG P3 (1D kinematics and mechanical energy)."
+  - "Serway, R. A., Jewett, J. W. Physics for Scientists and Engineers, 9th ed., Cengage, Chapter 7-8."
+
+tags:
+  - mvp
+  - physics
+  - mechanics
+  - conservation

@@ -1,0 +1,10 @@
+{
+  "description": "2 kg mass in free fall from 8 m (v0=0) to ground level (h=0), no external work or losses -- all potential energy converts to kinetic energy.",
+  "input": {
+    "mass": { "value": 2.0, "unit": "kg" },
+    "height_initial": { "value": 8.0, "unit": "m" },
+    "height_final": { "value": 0.0, "unit": "m" },
+    "velocity_initial": { "value": 0.0, "unit": "m / s" },
+    "velocity_final": { "value": 12.526228482667877, "unit": "m / s" }
+  }
+}

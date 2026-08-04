@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mechanics.energy_1d output",
+  "type": "object",
+  "$defs": {
+    "energyQuantity": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "J" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "kinetic_energy_initial": { "$ref": "#/$defs/energyQuantity" },
+    "kinetic_energy_final": { "$ref": "#/$defs/energyQuantity" },
+    "potential_energy_initial": { "$ref": "#/$defs/energyQuantity" },
+    "potential_energy_final": { "$ref": "#/$defs/energyQuantity" },
+    "delta_kinetic": { "$ref": "#/$defs/energyQuantity" },
+    "delta_potential": { "$ref": "#/$defs/energyQuantity" },
+    "balance": {
+      "type": "object",
+      "properties": {
+        "residual": { "type": "number" },
+        "balanced": { "type": "boolean" },
+        "atol": { "type": "number", "minimum": 0 },
+        "rtol": { "type": "number", "minimum": 0 },
+        "scale": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string", "const": "J" }
+      },
+      "required": ["residual", "balanced", "atol", "rtol", "scale", "unit"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "kinetic_energy_initial",
+    "kinetic_energy_final",
+    "potential_energy_initial",
+    "potential_energy_final",
+    "delta_kinetic",
+    "delta_potential",
+    "balance"
+  ],
+  "additionalProperties": false
+}
