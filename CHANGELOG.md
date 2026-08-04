@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.6.0] — 2026-08-04
+
+Engineering Physics Foundation — P1–P5 v0 (domain objects + laws + multidomain
+foundation). New framework `src/oec/physics/` (conservation, units, dimensions,
+laws, types, result, errors) + schema `authoritative_answer` 1.1 (`kind`
+`physics_result`) + skills P1–P4.
+
+### Added
+
+- `src/oec/physics/` package: conservation (OWNER of residual), units,
+  dimensions, laws, types, result, errors, plus domain modules electrical,
+  thermal, mechanics, fluids, materials, harmonics.
+- Skills: `electrical.dc_power_flow`, `thermal.conduction_1d`,
+  `mechanics.energy_1d`, `fluids.bernoulli`, `materials.*` (linear
+  constitutive and related), harmonics THD.
+- Schema `authoritative_answer` 1.1 with `kind` `physics_result`.
+- Docs/contracts for the physics envelope and physics discovery inventory.
+- ADRs 0024 (physics library architecture), 0025 (units/dimensional API),
+  0026 (Foundation multidomain scope P1–P5 v0).
+
+### Deferred
+
+- Energy-rich scope (PV/BESS/hybrid/grid-zero/`service_metrics`) is deferred
+  to **2.6.1** (energy feature release). See ADR 0026.
+
 ## [2.5.3] — 2026-08-03
 
 Authoritative-answer hardening: a weak host must never be able to turn a
