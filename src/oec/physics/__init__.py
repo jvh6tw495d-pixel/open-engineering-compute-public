@@ -10,6 +10,14 @@ from oec.physics.electrical import (
 )
 from oec.physics.errors import ConservationError, PhysicsError, PhysicsEvaluationError
 from oec.physics.laws import BoundaryCondition, ConservationLaw, MaterialProperty, PhysicalLaw
+from oec.physics.mechanics import (
+    kinetic_energy,
+    mechanical_energy_balance,
+    potential_energy,
+    uniform_acceleration_position,
+    uniform_acceleration_velocity,
+    work_done,
+)
 from oec.physics.result import ConservationCheck, PhysicsResult
 from oec.physics.thermal import (
     conduction_heat_rate,
@@ -40,6 +48,12 @@ __all__ = [
     "dc_power_flow",
     "evaluate_residual",
     "evaluate_vector_residual",
+    "kinetic_energy",
+    "mechanical_energy_balance",
+    "potential_energy",
     "steady_conduction_balance",
     "stored_thermal_energy",
+    "uniform_acceleration_position",
+    "uniform_acceleration_velocity",
+    "work_done",
 ]
