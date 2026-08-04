@@ -1,0 +1,496 @@
+{
+  "generated_at": "2026-08-04 17:25 UTC",
+  "baseline": "cc763fb",
+  "started": "2026-08-04 17:21 UTC",
+  "finished": "2026-08-04 17:25 UTC",
+  "oracles": {
+    "hybrid_6period": {
+      "n": 6,
+      "balanced": true,
+      "residuals": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "supply": [
+        3.1,
+        2.4,
+        1.6,
+        2.15,
+        2.35,
+        2.1
+      ],
+      "unit": "Wh"
+    },
+    "soc_trajectory": {
+      "soc_path": [
+        0.5,
+        0.6,
+        0.4
+      ],
+      "soc_final": 0.4,
+      "any_clipped": false,
+      "delta_soc": [
+        0.1,
+        -0.2
+      ],
+      "energy_delta": [
+        10.0,
+        -20.0
+      ],
+      "unit": "Wh"
+    },
+    "grid_zero_feasibility": {
+      "feasible": true,
+      "deficit_per_period": [
+        0.0,
+        0.0
+      ],
+      "balance_residual": [
+        0.0,
+        0.0
+      ],
+      "n": 2,
+      "flags": {
+        "balance_ok": true,
+        "has_deficit": false,
+        "has_grid_import": false,
+        "grid_zero": true
+      },
+      "unit": "Wh"
+    },
+    "min_storage_capacity": {
+      "optimal_capacity": 3.0,
+      "solver_status": "optimal",
+      "backend": "highs",
+      "n": 2,
+      "grid_import": [
+        0.0,
+        0.0
+      ],
+      "discharge": [
+        2.0,
+        1.0
+      ]
+    },
+    "fixture": {
+      "load": [
+        3.1,
+        2.4,
+        1.6,
+        2.15,
+        2.35,
+        2.1
+      ],
+      "pv": [
+        0.0,
+        1.45,
+        2.55,
+        1.35,
+        0.65,
+        0.25
+      ],
+      "charge": [
+        0.0,
+        0.0,
+        0.5,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "discharge": [
+        0.0,
+        0.5,
+        0.0,
+        0.3,
+        0.7,
+        0.85
+      ],
+      "grid_import": [
+        3.1,
+        0.45,
+        -0.45,
+        0.5,
+        1.0,
+        1.0
+      ],
+      "unit": "MWh",
+      "n": 6
+    }
+  },
+  "aa_exercises": [
+    {
+      "name": "hybrid_6period",
+      "skill_id": "energy.hybrid_balance",
+      "exercise_class": "physics_assertion",
+      "tool": "agent.energy",
+      "ok": true,
+      "kind": "energy_result",
+      "oracle_match": true,
+      "aa_slice": {
+        "n": 6,
+        "balanced": true,
+        "residuals": [
+          0.0,
+          0.0,
+          4.440892098500626e-16,
+          0.0,
+          4.440892098500626e-16,
+          0.0
+        ],
+        "supply": [
+          3.1,
+          2.4,
+          1.5999999999999996,
+          2.15,
+          2.3499999999999996,
+          2.1
+        ],
+        "unit": "Wh"
+      },
+      "oracle": {
+        "n": 6,
+        "balanced": true,
+        "residuals": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "supply": [
+          3.1,
+          2.4,
+          1.6,
+          2.15,
+          2.35,
+          2.1
+        ],
+        "unit": "Wh"
+      },
+      "elapsed_ms": 826.6,
+      "error": "",
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "pending_wave_3b",
+        "primary": "ok",
+        "detail": ""
+      },
+      "envelope_schema": "1.1"
+    },
+    {
+      "name": "soc_trajectory",
+      "skill_id": "battery.soc_trajectory",
+      "exercise_class": "physics_assertion",
+      "tool": "agent.energy",
+      "ok": true,
+      "kind": "energy_result",
+      "oracle_match": true,
+      "aa_slice": {
+        "soc_path": [
+          0.5,
+          0.6,
+          0.39999999999999997
+        ],
+        "soc_final": 0.39999999999999997,
+        "any_clipped": false,
+        "delta_soc": [
+          0.1,
+          -0.2
+        ],
+        "energy_delta": [
+          10.0,
+          -20.0
+        ],
+        "unit": "Wh"
+      },
+      "oracle": {
+        "soc_path": [
+          0.5,
+          0.6,
+          0.4
+        ],
+        "soc_final": 0.4,
+        "any_clipped": false,
+        "delta_soc": [
+          0.1,
+          -0.2
+        ],
+        "energy_delta": [
+          10.0,
+          -20.0
+        ],
+        "unit": "Wh"
+      },
+      "elapsed_ms": 788.9,
+      "error": "",
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "pending_wave_3b",
+        "primary": "ok",
+        "detail": ""
+      },
+      "envelope_schema": "1.1"
+    },
+    {
+      "name": "grid_zero_feasibility",
+      "skill_id": "energy.grid_zero_feasibility",
+      "exercise_class": "physics_assertion",
+      "tool": "agent.energy",
+      "ok": true,
+      "kind": "energy_result",
+      "oracle_match": true,
+      "aa_slice": {
+        "feasible": true,
+        "deficit_per_period": [
+          0.0,
+          0.0
+        ],
+        "balance_residual": [
+          0.0,
+          0.0
+        ],
+        "n": 2,
+        "flags": {
+          "balance_ok": true,
+          "has_deficit": false,
+          "has_grid_import": false,
+          "grid_zero": true
+        },
+        "unit": "Wh"
+      },
+      "oracle": {
+        "feasible": true,
+        "deficit_per_period": [
+          0.0,
+          0.0
+        ],
+        "balance_residual": [
+          0.0,
+          0.0
+        ],
+        "n": 2,
+        "flags": {
+          "balance_ok": true,
+          "has_deficit": false,
+          "has_grid_import": false,
+          "grid_zero": true
+        },
+        "unit": "Wh"
+      },
+      "elapsed_ms": 789.5,
+      "error": "",
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "pending_wave_3b",
+        "primary": "ok",
+        "detail": ""
+      },
+      "envelope_schema": "1.1"
+    },
+    {
+      "name": "min_storage_capacity_lp",
+      "skill_id": "energy.min_storage_capacity",
+      "exercise_class": "optimization",
+      "tool": "agent.energy",
+      "ok": true,
+      "kind": "energy_result",
+      "oracle_match": true,
+      "aa_slice": {
+        "optimal_capacity": 3.0,
+        "solver_status": "optimal",
+        "backend": "highs",
+        "n": 2,
+        "grid_import": [
+          0.0,
+          0.0
+        ],
+        "discharge": [
+          2.0,
+          1.0
+        ]
+      },
+      "oracle": {
+        "optimal_capacity": 3.0,
+        "solver_status": "optimal",
+        "backend": "highs",
+        "n": 2,
+        "grid_import": [
+          0.0,
+          0.0
+        ],
+        "discharge": [
+          2.0,
+          1.0
+        ]
+      },
+      "elapsed_ms": 839.2,
+      "error": "",
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "pending_wave_3b",
+        "primary": "ok",
+        "detail": ""
+      },
+      "envelope_schema": "1.1"
+    },
+    {
+      "name": "hybrid_6period_routed",
+      "skill_id": "energy.hybrid_balance",
+      "exercise_class": "physics_assertion",
+      "tool": "agent.default",
+      "ok": true,
+      "kind": "energy_result",
+      "oracle_match": true,
+      "aa_slice": {
+        "n": 6,
+        "balanced": true,
+        "residuals": [
+          0.0,
+          0.0,
+          4.440892098500626e-16,
+          0.0,
+          4.440892098500626e-16,
+          0.0
+        ],
+        "supply": [
+          3.1,
+          2.4,
+          1.5999999999999996,
+          2.15,
+          2.3499999999999996,
+          2.1
+        ],
+        "unit": "Wh"
+      },
+      "oracle": {
+        "n": 6,
+        "balanced": true,
+        "residuals": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "supply": [
+          3.1,
+          2.4,
+          1.6,
+          2.15,
+          2.35,
+          2.1
+        ],
+        "unit": "Wh"
+      },
+      "elapsed_ms": 796.1,
+      "error": "",
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "pending_wave_3b",
+        "primary": "ok",
+        "detail": ""
+      },
+      "envelope_schema": "1.1"
+    }
+  ],
+  "host_arms": [
+    {
+      "role": "weak",
+      "model": "granite4:7b-a1b-h-64k",
+      "provider": "custom:ollama",
+      "arm": "with_oec_agent",
+      "ok": true,
+      "aa_ok": true,
+      "host_parse_ok": true,
+      "host_matches_aa": false,
+      "primary_verdict": "host_corruption",
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "host_corruption",
+        "primary": "host_corruption",
+        "detail": "host claim diverges from authoritative_answer"
+      },
+      "aa_values": {
+        "feasible": true,
+        "deficit_per_period": [
+          0.0,
+          0.0
+        ],
+        "n": 2
+      },
+      "host_claim": {
+        "feasible": false,
+        "deficit_per_period": [
+          0.5,
+          0.5
+        ],
+        "balance_residual": [
+          2.5,
+          1.5
+        ],
+        "n": 10,
+        "unit": "W"
+      },
+      "raw_tail": "{\n  \"feasible\": false,\n  \"deficit_per_period\": [0.5, 0.5],\n  \"balance_residual\": [2.5, 1.5],\n  \"n\": 10,\n  \"unit\": \"W\"\n}",
+      "error": "",
+      "elapsed_s": 27.69
+    },
+    {
+      "role": "strong",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia",
+      "arm": "with_oec_agent",
+      "ok": true,
+      "aa_ok": true,
+      "host_parse_ok": true,
+      "host_matches_aa": true,
+      "primary_verdict": "ok",
+      "verdicts": {
+        "transport": "ok",
+        "oec_execution": "ok",
+        "host_corruption": "ok",
+        "primary": "ok",
+        "detail": ""
+      },
+      "aa_values": {
+        "feasible": true,
+        "deficit_per_period": [
+          0.0,
+          0.0
+        ],
+        "n": 2
+      },
+      "host_claim": {
+        "feasible": true,
+        "deficit_per_period": [
+          0.0,
+          0.0
+        ],
+        "balance_residual": [
+          0.0,
+          0.0
+        ],
+        "n": 2,
+        "unit": "Wh"
+      },
+      "raw_tail": ", deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_residual (list), n (int), unit (str). No markdown.\nRead numbers only from the tool's authoritative_answer — do not recompute.\nReturn ONLY JSON with keys: feasible (bool), deficit_per_period (list), balance_res{\"feasible\": true, \"deficit_per_period\": [0.0, 0.0], \"balance_residual\": [0.0, 0.0], \"n\": 2, \"unit\": \"Wh\"}",
+      "error": "",
+      "elapsed_s": 211.38
+    }
+  ],
+  "aa_pass": true,
+  "aa_pass_count": 5,
+  "aa_total": 5
+}
