@@ -11,6 +11,11 @@ from oec.physics.electrical import (
 from oec.physics.errors import ConservationError, PhysicsError, PhysicsEvaluationError
 from oec.physics.laws import BoundaryCondition, ConservationLaw, MaterialProperty, PhysicalLaw
 from oec.physics.result import ConservationCheck, PhysicsResult
+from oec.physics.thermal import (
+    conduction_heat_rate,
+    steady_conduction_balance,
+    stored_thermal_energy,
+)
 from oec.physics.types import PhysicsDomain, Residual, ValidityFrame
 
 __all__ = [
@@ -31,7 +36,10 @@ __all__ = [
     "Residual",
     "ValidityFrame",
     "aggregate_balance",
+    "conduction_heat_rate",
     "dc_power_flow",
     "evaluate_residual",
     "evaluate_vector_residual",
+    "steady_conduction_balance",
+    "stored_thermal_energy",
 ]
