@@ -1,0 +1,12 @@
+{
+  "description": "3-bus triangle network (A-B-C, all susceptance 10 pu), injections summing to zero (-1.0, 0.4, 0.6) with slack at A. See tests/test_golden.py for the hand-solved reduced-matrix oracle.",
+  "input": {
+    "lines": [
+      { "from_bus": "A", "to_bus": "B", "susceptance": 10.0 },
+      { "from_bus": "B", "to_bus": "C", "susceptance": 10.0 },
+      { "from_bus": "A", "to_bus": "C", "susceptance": 10.0 }
+    ],
+    "injections": { "A": -1.0, "B": 0.4, "C": 0.6 },
+    "slack_bus": "A"
+  }
+}
