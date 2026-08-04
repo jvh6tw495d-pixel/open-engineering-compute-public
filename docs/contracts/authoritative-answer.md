@@ -1,4 +1,4 @@
-# `authoritative_answer` contract (v2.5.3, Waves 1–2)
+# `authoritative_answer` contract (v2.5.3 Waves 1–2 + v2.6 Wave 4 schema 1.1)
 
 **Status:** normative for `oec.mcp` agent-tool responses (`_AGENT_TOOL_SCHEMAS`
 in `src/oec/mcp/server.py`).
@@ -6,13 +6,30 @@ in `src/oec/mcp/server.py`).
 for this release (see `v2.5.3-EXECUTION-PLAN.md` §16).
 **Meta:** a weak host must never be able to turn a correct OEC solve into an
 incorrect final JSON answer.
+**Schema version:** `1.1` (additive over `1.0`). Published JSON Schema:
+`schemas/authoritative_answer.schema.json`.
 
-## Envelope (Wave 1)
+## Envelope (Wave 1 + schema 1.1)
 
 Every successful `agent.*` call is additively normalized at the `call_tool`
 boundary (`src/oec/mcp/envelope.py::normalize`). See `docs/mcp/README.md` for
 the full envelope shape, `kind` taxonomy, and the nine live response shapes.
-This document covers the Wave 2 addition: `claimed_answer` and
+
+### Schema 1.1 (v2.6 Wave 4 / D3)
+
+- Enum gains `physics_result` for multi-domain physics skills
+  (`thermal.*`, `mechanics.*`, `fluids.*`, `materials.*`).
+- `electrical.*` / `energy.*` / `battery.*` continue to emit
+  `energy_result` (no host-facing kind migration for classic electrical
+  skills or `electrical.dc_power_flow`).
+- `authoritative_answer_schema_version` accepts `"1.0"` or `"1.1"`;
+  the boundary emits the maximum supported version (`"1.1"`).
+- Shape of `authoritative_answer` is unchanged: `{kind, values, provenance}`
+  with `values == execution.result` verbatim (no double-wrap).
+- Wrap-once (ADR 0023) and the Wave 2 `claimed_answer` /
+  `host_output_diverged` channel are intact.
+
+This document also covers the Wave 2 addition: `claimed_answer` and
 `host_output_diverged`.
 
 ## `claimed_answer` (Wave 2, host-voluntary)

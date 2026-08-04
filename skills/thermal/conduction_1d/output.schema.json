@@ -15,13 +15,18 @@
     },
     "balance": {
       "type": "object",
+      "description": "ConservationCheck (not a QuantityValue) — residual of heat_in - heat_out.",
       "properties": {
         "residual": { "type": "number" },
         "balanced": { "type": "boolean" },
         "atol": { "type": "number", "minimum": 0 },
         "rtol": { "type": "number", "minimum": 0 },
         "scale": { "type": "number", "minimum": 0 },
-        "unit": { "type": "string", "const": "W" }
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Physical unit of the residual (W). Not a QuantityValue DTO."
+        }
       },
       "required": ["residual", "balanced", "atol", "rtol", "scale", "unit"],
       "additionalProperties": false

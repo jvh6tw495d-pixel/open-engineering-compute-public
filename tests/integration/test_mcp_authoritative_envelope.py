@@ -178,7 +178,7 @@ def test_smoke_all_seven_agents_normalize_without_crash(engine: Engine) -> None:
         assert result.isError is False, name
         payload = _parse_content(result)
         assert payload.get("status") == "ok", name
-        assert payload.get("authoritative_answer_schema_version") == "1.0", name
+        assert payload.get("authoritative_answer_schema_version") == "1.1", name
         assert "authoritative_answer" in payload, name
         assert "problem_classification" in payload, name
         assert "method_summary" in payload, name
@@ -225,3 +225,130 @@ def test_optimization_schema_declares_skill_id_and_inputs(engine: Engine) -> Non
     assert "inputs" in props
     assert "ops" in props
     assert "demo_label" in props
+
+
+# ---------------------------------------------------------------------------
+# Wave 4 / schema 1.1: physics_result + energy_result regression + jsonschema
+# ---------------------------------------------------------------------------
+
+
+def _aa_schema() -> dict[str, Any]:
+    from pathlib import Path
+
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "schemas" / "authoritative_answer.schema.json"
+    )
+    return json.loads(schema_path.read_text(encoding="utf-8"))
+
+
+def test_schema_document_is_version_1_1_with_physics_result() -> None:
+    schema = _aa_schema()
+    assert schema["version"] == "1.1"
+    kind_enum = schema["$defs"]["authoritativeAnswer"]["properties"]["kind"]["enum"]
+    assert "physics_result" in kind_enum
+    # v1.0 kinds remain.
+    assert "energy_result" in kind_enum
+    assert "optimization_result" in kind_enum
+    version_enum = schema["properties"]["authoritative_answer_schema_version"]["enum"]
+    assert set(version_enum) == {"1.0", "1.1"}
+
+
+def test_thermal_skill_emits_physics_result_schema_1_1(engine: Engine) -> None:
+    """New multi-domain physics skill → kind physics_result under schema 1.1."""
+    import jsonschema
+
+    inputs = {
+        "conductivity": {"value": 1.5, "unit": "W / (m * K)"},
+        "area": {"value": 0.5, "unit": "m ** 2"},
+        "length": {"value": 0.02, "unit": "m"},
+        "hot_temperature": {"value": 80.0, "unit": "degC"},
+        "cold_temperature": {"value": 20.0, "unit": "degC"},
+    }
+    # Unknown skill prefixes fall through to applied_mathematics; Engine still runs.
+    result = call_tool(
+        engine,
+        "agent.applied_mathematics",
+        {"skill_id": "thermal.conduction_1d", "inputs": inputs},
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "ok"
+    assert payload["authoritative_answer_schema_version"] == "1.1"
+    aa = payload["authoritative_answer"]
+    assert aa["kind"] == "physics_result"
+    # values == execution.result verbatim (no double-wrap).
+    execution = payload["execution"]
+    assert aa["values"] == execution["result"]
+    assert aa["values"]["heat_rate"]["value"] == pytest.approx(2250.0)
+
+    # Real envelope validates against the published JSON Schema.
+    validator = jsonschema.Draft202012Validator(_aa_schema())
+    slice_for_schema = {
+        "authoritative_answer_schema_version": payload["authoritative_answer_schema_version"],
+        "authoritative_answer": aa,
+    }
+    validator.validate(slice_for_schema)
+
+
+def test_electrical_dc_power_flow_stays_energy_result(engine: Engine) -> None:
+    """Regression: electrical.* (including P1 dc_power_flow) stays energy_result."""
+    import jsonschema
+
+    inputs = {
+        "lines": [
+            {"from_bus": "A", "to_bus": "B", "susceptance": 10.0},
+            {"from_bus": "B", "to_bus": "C", "susceptance": 10.0},
+            {"from_bus": "A", "to_bus": "C", "susceptance": 10.0},
+        ],
+        "injections": {"A": -1.0, "B": 0.4, "C": 0.6},
+        "slack_bus": "A",
+    }
+    direct = call_tool(
+        engine,
+        "agent.energy",
+        {"skill_id": "electrical.dc_power_flow", "inputs": inputs},
+    )
+    routed = call_tool(
+        engine,
+        "agent.default",
+        {"skill_id": "electrical.dc_power_flow", "inputs": inputs},
+    )
+    assert direct.isError is False
+    assert routed.isError is False
+    direct_payload = _parse_content(direct)
+    routed_payload = _parse_content(routed)
+
+    assert direct_payload["authoritative_answer"]["kind"] == "energy_result"
+    assert routed_payload["authoritative_answer"]["kind"] == "energy_result"
+    # routed == direct AA values (host-facing truth identity).
+    assert (
+        direct_payload["authoritative_answer"]["values"]
+        == routed_payload["authoritative_answer"]["values"]
+    )
+    assert direct_payload["authoritative_answer_schema_version"] == "1.1"
+    assert direct_payload["authoritative_answer"]["values"] == direct_payload["execution"]["result"]
+
+    validator = jsonschema.Draft202012Validator(_aa_schema())
+    validator.validate(
+        {
+            "authoritative_answer_schema_version": direct_payload[
+                "authoritative_answer_schema_version"
+            ],
+            "authoritative_answer": direct_payload["authoritative_answer"],
+        }
+    )
+
+
+def test_legacy_schema_version_1_0_still_validates() -> None:
+    """Additive policy: a pure v1.0 envelope remains schema-valid."""
+    import jsonschema
+
+    legacy = {
+        "authoritative_answer_schema_version": "1.0",
+        "authoritative_answer": {
+            "kind": "energy_result",
+            "values": {"x": 1},
+            "provenance": {"run_id": "legacy"},
+        },
+    }
+    jsonschema.Draft202012Validator(_aa_schema()).validate(legacy)

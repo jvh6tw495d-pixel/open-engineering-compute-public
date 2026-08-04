@@ -76,7 +76,7 @@ def test_dataclass_to_dict_shapes() -> None:
         review_applied=False,
     )
     assert ms.to_dict()["skill"] == "optimization.lp"
-    assert AUTHORITATIVE_ANSWER_SCHEMA_VERSION == "1.0"
+    assert AUTHORITATIVE_ANSWER_SCHEMA_VERSION == "1.1"
 
 
 def test_confidence_from_score_maps_to_unit_interval() -> None:
@@ -93,6 +93,14 @@ def test_kind_for_skill_closed_table() -> None:
     assert kind_for_skill("timeseries.pacf") == "timeseries_result"
     assert kind_for_skill("energy.balance") == "energy_result"
     assert kind_for_skill("battery.soc_step") == "energy_result"
+    # electrical.* stays energy_result (classic + dc_power_flow; no regression).
+    assert kind_for_skill("electrical.three_phase_power") == "energy_result"
+    assert kind_for_skill("electrical.dc_power_flow") == "energy_result"
+    # Multi-domain physics prefixes → physics_result (schema 1.1 / D3).
+    assert kind_for_skill("thermal.conduction_1d") == "physics_result"
+    assert kind_for_skill("mechanics.energy_1d") == "physics_result"
+    assert kind_for_skill("fluids.bernoulli") == "physics_result"
+    assert kind_for_skill("materials.linear_constitutive") == "physics_result"
     assert kind_for_skill("control.pid_discrete") == "control_dynamics_result"
     assert kind_for_skill("finance.var") == "finance_uncertainty_result"
     assert kind_for_skill("unknown.foo") == "generic_result"
@@ -366,7 +374,7 @@ def test_normalize_direct_optimization_adds_authority_additively() -> None:
     assert out["problem_class"] == "lp"
     assert out["execution"] is ex or out["execution"] == ex
     assert out["status"] == "ok"
-    assert out["authoritative_answer_schema_version"] == "1.0"
+    assert out["authoritative_answer_schema_version"] == "1.1"
     aa = out["authoritative_answer"]
     assert aa["kind"] == "optimization_result"
     assert aa["values"] == {"objective_value": 1.0, "x": {"a": 1}}

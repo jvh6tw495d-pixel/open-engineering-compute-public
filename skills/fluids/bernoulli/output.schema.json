@@ -19,13 +19,18 @@
     "head_loss": { "$ref": "#/$defs/headQuantity" },
     "balance": {
       "type": "object",
+      "description": "ConservationCheck (not a QuantityValue) — residual of H_up - H_down - h_loss.",
       "properties": {
         "residual": { "type": "number" },
         "balanced": { "type": "boolean" },
         "atol": { "type": "number", "minimum": 0 },
         "rtol": { "type": "number", "minimum": 0 },
         "scale": { "type": "number", "minimum": 0 },
-        "unit": { "type": "string", "const": "m" }
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Physical unit of the residual (m of head). Not a QuantityValue DTO."
+        }
       },
       "required": ["residual", "balanced", "atol", "rtol", "scale", "unit"],
       "additionalProperties": false

@@ -22,13 +22,18 @@
     "delta_potential": { "$ref": "#/$defs/energyQuantity" },
     "balance": {
       "type": "object",
+      "description": "ConservationCheck (not a QuantityValue) — residual of the mechanical energy balance.",
       "properties": {
         "residual": { "type": "number" },
         "balanced": { "type": "boolean" },
         "atol": { "type": "number", "minimum": 0 },
         "rtol": { "type": "number", "minimum": 0 },
         "scale": { "type": "number", "minimum": 0 },
-        "unit": { "type": "string", "const": "J" }
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Physical unit of the residual (J). Not a QuantityValue DTO."
+        }
       },
       "required": ["residual", "balanced", "atol", "rtol", "scale", "unit"],
       "additionalProperties": false

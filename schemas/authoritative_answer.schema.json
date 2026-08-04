@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://oec.dev/schemas/authoritative_answer.schema.json",
   "title": "OEC authoritative_answer envelope",
-  "description": "Schema for the `authoritative_answer` object mirrored onto oec.mcp agent-tool (`agent.*`) responses at the call_tool boundary (v2.5.3 Wave 1), plus the optional `host_output_diverged` warning added when a host-supplied `claimed_answer` disagrees with it (Wave 2). See docs/contracts/authoritative-answer.md for the normative prose.",
-  "version": "1.0",
+  "description": "Schema for the `authoritative_answer` object mirrored onto oec.mcp agent-tool (`agent.*`) responses at the call_tool boundary (v2.5.3 Wave 1 + v2.6 Wave 4 schema 1.1), plus the optional `host_output_diverged` warning added when a host-supplied `claimed_answer` disagrees with it (Wave 2). Schema 1.1 is additive: every 1.0 kind remains valid; `physics_result` is the sole new enum member for multi-domain physics skills. See docs/contracts/authoritative-answer.md for the normative prose.",
+  "version": "1.1",
   "$defs": {
     "authoritativeAnswer": {
       "type": "object",
@@ -12,11 +12,12 @@
       "properties": {
         "kind": {
           "type": "string",
-          "description": "Closed kind taxonomy v1.0 — prefix-derived from the skill id, or a structural kind for extrema/review results.",
+          "description": "Closed kind taxonomy v1.1 — prefix-derived from the skill id, or a structural kind for extrema/review results. v1.0 kinds are unchanged; physics_result is additive (v2.6).",
           "enum": [
             "optimization_result",
             "timeseries_result",
             "energy_result",
+            "physics_result",
             "control_dynamics_result",
             "finance_uncertainty_result",
             "mathematics_result",
@@ -90,7 +91,8 @@
   "type": "object",
   "properties": {
     "authoritative_answer_schema_version": {
-      "const": "1.0"
+      "description": "Additive versioning: envelopes emitted under schema 1.0 remain valid; the boundary emits the maximum supported version (1.1 after v2.6 Wave 4).",
+      "enum": ["1.0", "1.1"]
     },
     "authoritative_answer": { "$ref": "#/$defs/authoritativeAnswer" },
     "host_output_diverged": { "$ref": "#/$defs/hostOutputDiverged" }

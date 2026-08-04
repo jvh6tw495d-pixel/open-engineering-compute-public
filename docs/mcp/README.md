@@ -135,7 +135,7 @@ Example (optimization, direct or routed — same `authoritative_answer.values`):
     "backend": "highs",
     "review_applied": false
   },
-  "authoritative_answer_schema_version": "1.0",
+  "authoritative_answer_schema_version": "1.1",
   "authoritative_answer": {
     "kind": "optimization_result",
     "values": { "...execution.result verbatim..." },
@@ -159,11 +159,23 @@ Rules hosts should rely on:
 | `problem_classification` / `method_summary` / `narrative` | Explanation only — never override `authoritative_answer`. |
 | `status: "needs_clarification"` / `"needs_more_information"` | No `authoritative_answer`. Do not invent numbers. |
 
-`kind` taxonomy (v1.0, prefix → kind, fallback `generic_result`):
+`kind` taxonomy (v1.1, prefix → kind, fallback `generic_result`):
 `optimization_result`, `mathematics_result`, `linear_result`,
 `statistics_result`, `numerical_result`, `timeseries_result`,
-`energy_result`, `control_dynamics_result`, `finance_uncertainty_result`,
-`scalar_extrema_result`, `review_result`, `generic_result`.
+`energy_result`, `physics_result`, `control_dynamics_result`,
+`finance_uncertainty_result`, `scalar_extrema_result`, `review_result`,
+`generic_result`.
+
+Schema **1.1** is additive over **1.0**: every v1.0 kind remains valid;
+`physics_result` is the sole new enum member (v2.6 Wave 4 / D3). The
+published schema accepts `authoritative_answer_schema_version` of either
+`"1.0"` or `"1.1"`; the boundary emits the maximum supported version
+(`"1.1"`). Prefix map highlights:
+
+| Skill prefix | `kind` |
+|---|---|
+| `electrical.*` / `energy.*` / `battery.*` | `energy_result` (unchanged — includes `electrical.dc_power_flow`) |
+| `thermal.*` / `mechanics.*` / `fluids.*` / `materials.*` | `physics_result` (new) |
 
 Implementation: wrap-once in `call_tool` for `name in _AGENT_TOOL_SCHEMAS`
 only — never inside `_run_specialist_by_name` (which recurses for the router).

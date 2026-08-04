@@ -15,18 +15,26 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-AUTHORITATIVE_ANSWER_SCHEMA_VERSION = "1.0"
+AUTHORITATIVE_ANSWER_SCHEMA_VERSION = "1.1"
 
 # ExecutionStatus values that must never mint an authoritative_answer.
 _AUTHORITY_BLOCKED_STATUSES = frozenset({"INVALID", "FAILED"})
 
-# Closed kind taxonomy v1.0 — longest / most-specific prefixes first.
+# Closed kind taxonomy v1.1 — longest / most-specific prefixes first.
+# Additive over v1.0: existing energy_result prefixes for electrical./battery./
+# energy. are unchanged; thermal./mechanics./fluids./materials. map to the new
+# physics_result kind (schema 1.1 / D3). electrical.* deliberately stays on
+# energy_result for host compatibility (classic electrical + dc_power_flow).
 _KIND_BY_PREFIX: tuple[tuple[str, str], ...] = (
     ("optimization.", "optimization_result"),
     ("timeseries.", "timeseries_result"),
     ("energy.", "energy_result"),
     ("battery.", "energy_result"),
     ("electrical.", "energy_result"),
+    ("thermal.", "physics_result"),
+    ("mechanics.", "physics_result"),
+    ("fluids.", "physics_result"),
+    ("materials.", "physics_result"),
     ("control.", "control_dynamics_result"),
     ("dynamics.", "control_dynamics_result"),
     ("finance.", "finance_uncertainty_result"),
