@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.6.1] — 2026-08-04
+
+**Feature release (patch number, feature scope).** Energy-rich physics on top
+of the 2.6.0 Foundation: storage (energy-based SOC), PV, hybrid multiperiod,
+grid-zero feasibility, service metrics, plus `min_storage_capacity` via
+`optimization.lp`. SemVer patch number is sequencing legacy after 2.6.0;
+content is a minor/feature slice (ADR 0027). Never use `2.6.1.0`.
+
+### Added
+
+- `oec.physics.storage` — multi-step BESS trajectory, **energy-based SOC**
+  (`energy_based_soc_update`), η_c/η_d, clip; wraps/extends
+  `kernel.energy.metrics.soc_update` (not coulomb-counting).
+- `oec.physics.pv` — generic PV v0 (irradiance × area × efficiency, or
+  pre-computed power/energy series).
+- `oec.physics.hybrid` — multiperiod balance
+  `LOAD = PV + grid + discharge − charge`.
+- `oec.physics.grid_zero` — **deterministic** `grid_zero_feasibility` over a
+  provided trajectory (no solver / no HiGHS).
+- `oec.physics.service_metrics` — public EaaS concept metrics (energy
+  delivered, autonomy hours); no commercial scoring.
+- Skills (new; legacy untouched): `battery.soc_trajectory`,
+  `energy.pv_power`, `energy.hybrid_balance`, `energy.grid_zero_feasibility`,
+  `energy.min_storage_capacity` (composes `optimization.lp`),
+  `energy.service_metrics`.
+- Energy Specialist demos/docs for the new energy-rich path; MCP kind remains
+  `energy_result` (no new MCP tools).
+- ADR 0027 accepted: energy-systems physics scope, energy-based SOC naming,
+  grid-zero feasibility vs min-capacity split, conservation ownership
+  **inherited** from 2.6 D5 / ADR 0024 (not reopened), no legacy skill
+  migration in this release.
+- Wave 3 smoke: `docs/implementation/v2.6.1-WAVE3-SMOKE-REPORT.md` (AA
+  authority on hybrid / SOC / grid-zero feasibility / min capacity via LP).
+- Closeout: `docs/implementation/v2.6.1-CLOSEOUT.md`; PHYSICS-CATALOG energy
+  rows marked ✔ no repo.
+
+### Notes
+
+- Patch SemVer number, **feature** content (D7 / ADR 0027 §7). Do not claim
+  bugfix-only.
+- Legacy `energy.balance` / `battery.soc_step` remain intact; thin-wrap
+  migration only after proven parity in a later release.
+- Conservation residual owner stays `oec.physics.conservation`; kernel energy
+  metrics stay adapters/consumers.
+
+### Deferred / residual debt
+
+- Migrate legacy energy/battery skills after parity evidence.
+- Align kernel `soc_update` docstring (still imprecise “coulomb-counting”
+  wording) — docs-only or small patch.
+- Multiphysics coupling → **2.7**; cell electrochemistry / coulomb-by-Ah →
+  **2.8 C4**; commercial TOU scoring remains out of scope.
+
 ## [2.6.0] — 2026-08-04
 
 Engineering Physics Foundation — P1–P5 v0 (domain objects + laws + multidomain
@@ -30,7 +83,7 @@ laws, types, result, errors) + schema `authoritative_answer` 1.1 (`kind`
 ### Deferred
 
 - Energy-rich scope (PV/BESS/hybrid/grid-zero/`service_metrics`) is deferred
-  to **2.6.1** (energy feature release). See ADR 0026.
+  to **2.6.1** (energy feature release). See ADR 0026. **Delivered in 2.6.1.**
 
 ## [2.5.3] — 2026-08-03
 

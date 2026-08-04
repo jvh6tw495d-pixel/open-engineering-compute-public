@@ -1,8 +1,9 @@
 # ADR 0027: Energy-systems physics scope on top of `oec.physics`
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-04
-- **Phase:** v2.6.1 "Energy-rich feature release", Wave 0 (`docs/implementation/v2.6.1-EXECUTION-PLAN.md`, decisions D3–D8)
+- **Accepted:** 2026-08-04 (Wave 4 closeout — `docs/implementation/v2.6.1-CLOSEOUT.md`)
+- **Phase:** v2.6.1 "Energy-rich feature release" (`docs/implementation/v2.6.1-EXECUTION-PLAN.md`, decisions D3–D8)
 
 ## Context
 
@@ -193,4 +194,4 @@ Implications:
 
 ---
 
-*Fim do ADR 0027 draft — pronto para revisão Sonnet / gate Opus*
+*ADR 0027 accepted 2026-08-04 — Wave 4 energy-rich feature release closeout.*

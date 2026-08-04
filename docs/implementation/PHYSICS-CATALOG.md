@@ -53,13 +53,13 @@ Valores típicos por célula:
 
 | Área | Exemplos / objetos | Kernel / primitive | Skill | API `oec.physics` | Fatia |
 |------|--------------------|--------------------|-------|-------------------|-------|
-| Energia genérica (primitiva) | `energy_balance`, `soc_update` (**energy-based**, não coulomb), `load_metrics`, power_to_energy | ✔ no repo — `kernel/energy/metrics.py` | ✔ no repo — `energy.*` / `battery.soc_step` (**não migrar** em 2.6.1 até parity) | plano v2.6 — reuso via `conservation` (owner); 2.6.1 wrap storage | base pré-2.6 |
-| Armazenamento / BESS rico | trajectory multi-step, **energy-based SOC**, η_c/η_d, clip | wrap de `soc_update` | plano v2.6.1 — `battery.soc_trajectory` (nova); legada `soc_step` intacta | plano v2.6.1 — `storage` | energy-rich |
-| Fotovoltaico (FV) genérico | irradiância × área × eficiência, série PV | — | plano v2.6.1 — `energy.pv_power` | plano v2.6.1 — `pv` | energy-rich |
-| Híbrido multiperíodo | LOAD = PV + grid + discharge − charge | — | plano v2.6.1 — `energy.hybrid_balance` | plano v2.6.1 — `hybrid` | energy-rich |
-| Grid-zero feasibility | avaliação **determinística** de trajectória fornecida (deficit / factível) | — | plano v2.6.1 — `energy.grid_zero_feasibility` | plano v2.6.1 — `grid_zero` | energy-rich |
-| Min storage capacity | sizing óptimo (horizonte, curtailment, η) | compõe kernel optimization | plano v2.6.1 — `energy.min_storage_capacity` → **`optimization.lp`** | **não** em physics (só helpers de dados se necessário) | energy-rich / optimização |
-| Métricas de serviço de energia (EaaS) | energy delivered, autonomy hours (sem score comercial) | — | plano v2.6.1 — `energy.service_metrics` | plano v2.6.1 — `service_metrics` | energy-rich |
+| Energia genérica (primitiva) | `energy_balance`, `soc_update` (**energy-based**, não coulomb), `load_metrics`, power_to_energy | ✔ no repo — `kernel/energy/metrics.py` | ✔ no repo — `energy.balance` / `energy.load_metrics` / `battery.soc_step` (**não migrados** em 2.6.1; parity posterior) | ✔ no repo — reuso via `conservation` (owner); wrap storage 2.6.1 | base pré-2.6 |
+| Armazenamento / BESS rico | trajectory multi-step, **energy-based SOC**, η_c/η_d, clip | wrap de `soc_update` | ✔ no repo — `battery.soc_trajectory` (nova); legada `soc_step` intacta | ✔ no repo — `storage` (`energy_based_soc_update`, `storage_trajectory`) | energy-rich **2.6.1** |
+| Fotovoltaico (FV) genérico | irradiância × área × eficiência, série PV | — | ✔ no repo — `energy.pv_power` | ✔ no repo — `pv` (`pv_power`, `pv_energy_from_series`) | energy-rich **2.6.1** |
+| Híbrido multiperíodo | LOAD = PV + grid + discharge − charge | — | ✔ no repo — `energy.hybrid_balance` | ✔ no repo — `hybrid` (`hybrid_balance`, `hybrid_period_residual`) | energy-rich **2.6.1** |
+| Grid-zero feasibility | avaliação **determinística** de trajectória fornecida (deficit / factível); **≠** sizing | — | ✔ no repo — `energy.grid_zero_feasibility` | ✔ no repo — `grid_zero` (feasibility only; no solver) | energy-rich **2.6.1** |
+| Min storage capacity | sizing óptimo (horizonte, curtailment, η) | compõe kernel optimization | ✔ no repo — `energy.min_storage_capacity` → **`optimization.lp`** | **não** em physics (composição LP; physics só feasibility) | energy-rich / optimização **2.6.1** |
+| Métricas de serviço de energia (EaaS) | energy delivered, autonomy hours (sem score comercial) | — | ✔ no repo — `energy.service_metrics` | ✔ no repo — `service_metrics` (`energy_delivered`, `autonomy_hours`) | energy-rich **2.6.1** |
 | Coulomb-counting (corrente/Ah) | ∫I dt / Q | futuro (se input de corrente) | futuro | futuro | — |
 | TOU / despacho econômico | curvas de tarifa, dispatch horário | — | futuro / `optimization.lp` | — | — |
 | Termossolar / CSP | concentração, ciclo térmico (acopla com P2) | — | futuro | futuro | P2+ / v2.7 |
@@ -199,11 +199,12 @@ Valores típicos por célula:
    **Gates:** ≥1 skill por fatia P1–P4 com conservação/unidades/hipóteses; zero
    private engines; e2e skill→engine→envelope em **P1–P4**; schema AA **1.1** +
    kind `physics_result`; conservation owner único + tol `atol+rtol×scale`.
-2. **v2.6.1 — Energy-rich (feature release, número patch):** storage
-   energy-based SOC, pv, hybrid, `grid_zero_feasibility`,
+2. **v2.6.1 — Energy-rich (feature release, número patch) — ✔ shipped 2026-08-04:**
+   storage energy-based SOC, pv, hybrid, `grid_zero_feasibility`,
    `min_storage_capacity` via `optimization.lp`, service_metrics — consome a
    plataforma 2.6.0 + `kernel.energy` + Energy Specialist; **não** migra skills
-   legadas até parity em release posterior; ownership de conservação **herdado**.
+   legadas até parity em release posterior; ownership de conservação **herdado**
+   (ADR 0027 Accepted). See [v2.6.1-CLOSEOUT.md](v2.6.1-CLOSEOUT.md).
 3. **v2.7 — Multiphysics** (V3 §11): coupling graph, co-sim v0, acoplamentos
    eléctrico+térmico, solar+térmico+eléctrico.
    **Gate adicional — coupling readiness contract** (obrigatório no plano v2.7):
@@ -219,14 +220,14 @@ Valores típicos por célula:
 5. **Pós-v2.9**: óptica, acústica, matéria condensada, física moderna/quântica,
    núcleo/astro/campos — conforme demanda e maturidade do IR.
 
-### ADRs de física (propostos nos planos)
+### ADRs de física
 
-| ADR | Tema | Release |
-|-----|------|---------|
-| 0024 | Architecture `oec.physics` + domain objects + schema AA 1.1 / `physics_result` + **ownership `conservation`** | v2.6 |
-| 0025 | Units / dimensional API + **tol `atol+rtol×scale`** | v2.6 |
-| 0026 | Escopo Physics Foundation P1–P5 v0 + P1 DC meshed + claim + deferral energy → 2.6.1 + THD opcional | v2.6 |
-| 0027 | Escopo energy-systems rich + SOC energy-based + grid-zero split + **ownership herdado** + feature release 2.6.1 | v2.6.1 |
+| ADR | Tema | Release | Status |
+|-----|------|---------|--------|
+| 0024 | Architecture `oec.physics` + domain objects + schema AA 1.1 / `physics_result` + **ownership `conservation`** | v2.6 | Accepted |
+| 0025 | Units / dimensional API + **tol `atol+rtol×scale`** | v2.6 | Accepted |
+| 0026 | Escopo Physics Foundation P1–P5 v0 + P1 DC meshed + claim + deferral energy → 2.6.1 + THD opcional | v2.6 | Accepted |
+| 0027 | Escopo energy-systems rich + SOC energy-based + grid-zero split + **ownership herdado** + feature release 2.6.1 | v2.6.1 | **Accepted 2026-08-04** |
 
 > **Nota de gate (V3 §10):** qualquer nova área de física exige conservação,
 > unidades dimensionais (ADR 0016) e hipóteses explícitas. Zero import de
