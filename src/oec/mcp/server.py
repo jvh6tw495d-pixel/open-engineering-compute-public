@@ -562,7 +562,13 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             reason=f"demo_label={demo_label}",
             signal="demo_label",
         )
-    if demo_label in {"balance", "load_metrics", "soc_step", "three_phase"}:
+    if demo_label in {
+        "balance",
+        "load_metrics",
+        "soc_step",
+        "three_phase",
+        "dc_power_flow",
+    }:
         return RouteDecision(
             target=_AGENT_ENERGY_TOOL_NAME,
             confidence=1.0,

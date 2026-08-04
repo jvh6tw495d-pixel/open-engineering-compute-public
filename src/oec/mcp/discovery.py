@@ -71,7 +71,26 @@ _DOMAIN_ALIASES: dict[str, tuple[str, ...]] = {
         "autocovariance",
         "series",
     ),
-    "energy": ("energy", "energia", "battery", "bateria", "electrical", "elétrico"),
+    # Electrical / energy specialist surface. Multi-domain physics skills
+    # (thermal/mechanics/fluids/materials) are invoked via skill_id+inputs or
+    # raw skill tools — Wave 4 deliberately does not add free-text-routable
+    # domains without a matching agent (no new agent.* tools; intent_targets
+    # only covers existing specialists). Skill title/tags still rank them
+    # under list_skills / raw tools and explicit domain filters.
+    "energy": (
+        "energy",
+        "energia",
+        "battery",
+        "bateria",
+        "electrical",
+        "elétrico",
+        "power flow",
+        "fluxo de potência",
+        "dc power flow",
+        "powerflow",
+        "three phase",
+        "trifásico",
+    ),
     "control_dynamics": (
         "control",
         "controle",

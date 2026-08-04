@@ -101,6 +101,14 @@ def test_domain_intents_use_router_compatible_combined_names() -> None:
     assert needs_domain_clarification(intents) is False
 
 
+def test_domain_intents_rank_dc_power_flow_under_energy() -> None:
+    """Wave 4 discovery aliases: power-flow vocabulary → energy specialist domain."""
+    intents = rank_domain_intents("solve a dc power flow on a meshed network")
+    assert intents
+    assert intents[0].domain == "energy"
+    assert needs_domain_clarification(intents) is False
+
+
 def test_domain_intents_empty_request_requires_clarification() -> None:
     assert needs_domain_clarification(rank_domain_intents("hello world")) is True
 

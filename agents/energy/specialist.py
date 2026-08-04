@@ -62,4 +62,17 @@ class EnergySpecialist(SkillSpecialist):
                 "power_factor_type": "lagging",
             },
         ),
+        # Wave 4 / P1: canonical meshed DC linear power flow (D4).
+        "dc_power_flow": (
+            "electrical.dc_power_flow",
+            {
+                "lines": [
+                    {"from_bus": "A", "to_bus": "B", "susceptance": 10.0},
+                    {"from_bus": "B", "to_bus": "C", "susceptance": 10.0},
+                    {"from_bus": "A", "to_bus": "C", "susceptance": 10.0},
+                ],
+                "injections": {"A": -1.0, "B": 0.4, "C": 0.6},
+                "slack_bus": "A",
+            },
+        ),
     }
