@@ -54,7 +54,7 @@ _VALIDITY = ValidityFrame(
     constraints=("connected graph", "flat |V| ~= 1 pu", "active power only"),
 )
 
-_KCL_LAW = ConservationLaw(
+KCL_LAW = ConservationLaw(
     id="electrical.dc_power_flow.kcl",
     name="Nodal KCL residual (active power, DC linear model)",
     hypotheses=DC_POWER_FLOW_ASSUMPTIONS,
@@ -145,7 +145,7 @@ def dc_power_flow(
     ``sum(injections) == 0``, and any mismatch shows up as a nonzero KCL
     residual at the slack bus (and in the network-level aggregate).
 
-    Every KCL residual is produced by the executed :data:`_KCL_LAW`
+    Every KCL residual is produced by the executed :data:`KCL_LAW`
     :class:`~oec.physics.laws.ConservationLaw`; the per-node checks are
     aggregated into ``balance`` via :func:`oec.physics.conservation.aggregate_balance`
     (the D5 owner), never by a locally reimplemented tolerance formula.
@@ -208,7 +208,7 @@ def dc_power_flow(
 
     scale = max((abs(value) for value in injections.values()), default=0.0)
     node_balance = {
-        bus: _KCL_LAW.check(
+        bus: KCL_LAW.check(
             {"injection": injections[bus], "outflow": outflow[bus]},
             atol=atol,
             rtol=rtol,
@@ -233,6 +233,7 @@ __all__ = [
     "DC_POWER_FLOW_ASSUMPTIONS",
     "DcPowerFlowResult",
     "ElectricalNetworkError",
+    "KCL_LAW",
     "LineFlow",
     "NetworkLine",
     "dc_power_flow",
