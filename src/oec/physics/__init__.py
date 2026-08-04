@@ -9,6 +9,13 @@ from oec.physics.electrical import (
     dc_power_flow,
 )
 from oec.physics.errors import ConservationError, PhysicsError, PhysicsEvaluationError
+from oec.physics.fluids import (
+    bernoulli_balance,
+    bernoulli_head,
+    continuity_balance,
+    continuity_mass_flow,
+    darcy_weisbach_head_loss,
+)
 from oec.physics.laws import BoundaryCondition, ConservationLaw, MaterialProperty, PhysicalLaw
 from oec.physics.mechanics import (
     kinetic_energy,
@@ -44,7 +51,12 @@ __all__ = [
     "Residual",
     "ValidityFrame",
     "aggregate_balance",
+    "bernoulli_balance",
+    "bernoulli_head",
     "conduction_heat_rate",
+    "continuity_balance",
+    "continuity_mass_flow",
+    "darcy_weisbach_head_loss",
     "dc_power_flow",
     "evaluate_residual",
     "evaluate_vector_residual",
