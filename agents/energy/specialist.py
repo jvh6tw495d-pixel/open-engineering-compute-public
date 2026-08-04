@@ -1,4 +1,4 @@
-"""Energy Specialist v0.1 — generic energy skills only (no private dispatch)."""
+"""Energy Specialist v0.2 — public energy skills (no private dispatch)."""
 
 from __future__ import annotations
 
@@ -73,6 +73,125 @@ class EnergySpecialist(SkillSpecialist):
                 ],
                 "injections": {"A": -1.0, "B": 0.4, "C": 0.6},
                 "slack_bus": "A",
+            },
+        ),
+        # v2.6.1 Wave 2 — energy-rich skills
+        "hybrid_balance": (
+            "energy.hybrid_balance",
+            {
+                "load": [
+                    {"value": 3.0, "unit": "W"},
+                    {"value": 2.0, "unit": "W"},
+                ],
+                "pv": [
+                    {"value": 0.0, "unit": "W"},
+                    {"value": 3.0, "unit": "W"},
+                ],
+                "grid_import": [
+                    {"value": 3.0, "unit": "W"},
+                    {"value": -0.5, "unit": "W"},
+                ],
+                "storage_charge": [
+                    {"value": 0.0, "unit": "W"},
+                    {"value": 0.5, "unit": "W"},
+                ],
+                "storage_discharge": [
+                    {"value": 0.0, "unit": "W"},
+                    {"value": 0.0, "unit": "W"},
+                ],
+                "dt_hours": {"value": 1.0, "unit": "h"},
+            },
+        ),
+        "grid_zero_feasibility": (
+            "energy.grid_zero_feasibility",
+            {
+                "load": [
+                    {"value": 2.0, "unit": "W"},
+                    {"value": 1.0, "unit": "W"},
+                ],
+                "pv": [
+                    {"value": 0.5, "unit": "W"},
+                    {"value": 1.5, "unit": "W"},
+                ],
+                "storage_charge": [
+                    {"value": 0.0, "unit": "W"},
+                    {"value": 0.5, "unit": "W"},
+                ],
+                "storage_discharge": [
+                    {"value": 1.5, "unit": "W"},
+                    {"value": 0.0, "unit": "W"},
+                ],
+                "grid_import": [
+                    {"value": 0.0, "unit": "W"},
+                    {"value": 0.0, "unit": "W"},
+                ],
+                "dt_hours": {"value": 1.0, "unit": "h"},
+            },
+        ),
+        "pv_power": (
+            "energy.pv_power",
+            {
+                "irradiance": {"value": 1000.0, "unit": "W / m ** 2"},
+                "area": {"value": 10.0, "unit": "m ** 2"},
+                "efficiency": 0.2,
+            },
+        ),
+        "min_storage_capacity": (
+            "energy.min_storage_capacity",
+            {
+                "load": [
+                    {"value": 2.0, "unit": "Wh"},
+                    {"value": 1.0, "unit": "Wh"},
+                ],
+                "pv": [
+                    {"value": 0.0, "unit": "Wh"},
+                    {"value": 0.0, "unit": "Wh"},
+                ],
+                "eta_charge": 1.0,
+                "eta_discharge": 1.0,
+                "soc_min": 0.0,
+                "soc_max": 1.0,
+                "initial_soc": 1.0,
+                "horizon_hours": {"value": 2.0, "unit": "h"},
+                "curtailment_allowed": False,
+            },
+        ),
+        "soc_trajectory": (
+            "battery.soc_trajectory",
+            {
+                "initial_soc": 0.5,
+                "powers": [
+                    {"value": 10.0, "unit": "W"},
+                    {"value": -20.0, "unit": "W"},
+                ],
+                "dt_hours": {"value": 1.0, "unit": "h"},
+                "capacity": {"value": 100.0, "unit": "Wh"},
+                "eta_charge": 1.0,
+                "eta_discharge": 1.0,
+            },
+        ),
+        "service_metrics": (
+            "energy.service_metrics",
+            {
+                "load": [
+                    {"value": 10.0, "unit": "W"},
+                    {"value": 20.0, "unit": "W"},
+                ],
+                "pv": [
+                    {"value": 0.0, "unit": "W"},
+                    {"value": 0.0, "unit": "W"},
+                ],
+                "storage_discharge": [
+                    {"value": 10.0, "unit": "W"},
+                    {"value": 20.0, "unit": "W"},
+                ],
+                "grid_import": [
+                    {"value": 0.0, "unit": "W"},
+                    {"value": 0.0, "unit": "W"},
+                ],
+                "dt_hours": {"value": 1.0, "unit": "h"},
+                "capacity": {"value": 50.0, "unit": "Wh"},
+                "initial_soc": 1.0,
             },
         ),
     }

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "battery.soc_trajectory output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "soc_path",
+    "soc",
+    "delta_soc",
+    "energy_delta",
+    "unit",
+    "clipped",
+    "any_clipped",
+    "soc_final"
+  ],
+  "properties": {
+    "soc_path": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0, "maximum": 1 },
+      "description": "Length N+1 (initial + after each step)."
+    },
+    "soc": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0, "maximum": 1 },
+      "description": "Length N (SOC after each step)."
+    },
+    "delta_soc": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "energy_delta": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Per-step energy delta into the pack in Wh (power × dt × η)."
+    },
+    "unit": { "type": "string", "const": "Wh" },
+    "clipped": {
+      "type": "array",
+      "items": { "type": "boolean" }
+    },
+    "any_clipped": { "type": "boolean" },
+    "soc_final": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    }
+  }
+}

@@ -1,4 +1,4 @@
-# Energy Specialist v0.1
+# Energy Specialist v0.2
 
 ## Scope
 
@@ -6,18 +6,26 @@
 
 | Task | Skill |
 |---|---|
-| Energy balance | `energy.balance` |
+| Energy balance (legacy) | `energy.balance` |
 | Load metrics | `energy.load_metrics` |
-| Battery SOC step (coulomb counting) | `battery.soc_step` |
+| Hybrid multiperiod balance | `energy.hybrid_balance` |
+| Grid-zero feasibility (trajectory given) | `energy.grid_zero_feasibility` |
+| Min storage capacity (LP sizing) | `energy.min_storage_capacity` → composes `optimization.lp` |
+| PV instantaneous power | `energy.pv_power` |
+| Service metrics (delivered / autonomy) | `energy.service_metrics` |
+| Battery SOC step (legacy) | `battery.soc_step` |
+| Battery SOC trajectory (energy-based) | `battery.soc_trajectory` |
 | Power → energy series | `timeseries.power_to_energy` |
 | Classical electrical identities | `electrical.*` (optional) |
+| Meshed DC power flow | `electrical.dc_power_flow` |
 
 ## Refusals (hard)
 
 - Private dispatch / commercial BTM / proprietary scoring
-- Inventing tariffs, forecasts, or optimal schedules
+- Inventing tariffs, forecasts, or optimal schedules not backed by a public skill
 - Optimization of private objective functions (use Optimization Specialist
   only with public OPS and public skills)
+- Pricing / TOU commercial scoring
 
 ## Pipeline
 
@@ -28,5 +36,7 @@
 
 ## Success criteria
 
-Demo labels (`balance`, `load_metrics`, `soc_step`) run successfully and
-the narrative cites `run_id`.
+Demo labels run successfully and the narrative cites `run_id`.
+Energy-rich demos (`hybrid_balance`, `grid_zero_feasibility`, `pv_power`,
+`soc_trajectory`, `service_metrics`, `min_storage_capacity`) return
+`authoritative_answer.kind == "energy_result"` on agent paths.

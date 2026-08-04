@@ -1,0 +1,43 @@
+id: energy.min_storage_capacity
+version: 0.1.0
+status: experimental
+domain: energy
+title: Minimum Storage Capacity (LP via optimization.lp)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: min_storage_capacity_lp
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 60
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6.1-EXECUTION-PLAN.md D4 — min capacity is an optimization problem."
+  - "Composes skills/optimization/lp (HiGHS) — no direct HiGHS import in this skill."
+  - "Grid-zero sizing: grid_import forced to 0; distinct from energy.grid_zero_feasibility."
+
+tags:
+  - mvp
+  - energy
+  - optimization
+  - storage
+  - lp

@@ -1,0 +1,41 @@
+id: battery.soc_trajectory
+version: 0.1.0
+status: experimental
+domain: battery
+title: Battery SOC Trajectory (Energy-Based)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: energy_based_storage_trajectory
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6.1 Wave 2 — multi-step energy-based SOC via oec.physics.storage.storage_trajectory."
+  - "Energy-based (power × time × η / capacity), not coulomb-counting by current/Ah."
+
+tags:
+  - mvp
+  - battery
+  - storage
+  - energy-based

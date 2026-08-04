@@ -352,3 +352,67 @@ def test_legacy_schema_version_1_0_still_validates() -> None:
         },
     }
     jsonschema.Draft202012Validator(_aa_schema()).validate(legacy)
+
+
+# ---------------------------------------------------------------------------
+# v2.6.1 Wave 2: energy-rich skills → energy_result; routed ≡ direct AA
+# ---------------------------------------------------------------------------
+
+
+def test_energy_hybrid_balance_routed_equals_direct_energy_result(engine: Engine) -> None:
+    """New energy.* skill: kind energy_result; routed≡direct values; no double-wrap."""
+    import jsonschema
+
+    inputs = {
+        "load": [{"value": 3.0, "unit": "W"}, {"value": 2.0, "unit": "W"}],
+        "pv": [{"value": 0.0, "unit": "W"}, {"value": 3.0, "unit": "W"}],
+        "grid_import": [{"value": 3.0, "unit": "W"}, {"value": -0.5, "unit": "W"}],
+        "storage_charge": [{"value": 0.0, "unit": "W"}, {"value": 0.5, "unit": "W"}],
+        "storage_discharge": [{"value": 0.0, "unit": "W"}, {"value": 0.0, "unit": "W"}],
+        "dt_hours": {"value": 1.0, "unit": "h"},
+    }
+    direct = call_tool(
+        engine,
+        "agent.energy",
+        {"skill_id": "energy.hybrid_balance", "inputs": inputs},
+    )
+    routed = call_tool(
+        engine,
+        "agent.default",
+        {"skill_id": "energy.hybrid_balance", "inputs": inputs},
+    )
+    assert direct.isError is False
+    assert routed.isError is False
+    direct_payload = _parse_content(direct)
+    routed_payload = _parse_content(routed)
+
+    assert direct_payload["authoritative_answer"]["kind"] == "energy_result"
+    assert routed_payload["authoritative_answer"]["kind"] == "energy_result"
+    assert (
+        direct_payload["authoritative_answer"]["values"]
+        == routed_payload["authoritative_answer"]["values"]
+    )
+    assert direct_payload["authoritative_answer"]["values"] == direct_payload["execution"]["result"]
+    assert direct_payload["authoritative_answer"]["values"]["balanced"] is True
+
+    validator = jsonschema.Draft202012Validator(_aa_schema())
+    validator.validate(
+        {
+            "authoritative_answer_schema_version": direct_payload[
+                "authoritative_answer_schema_version"
+            ],
+            "authoritative_answer": direct_payload["authoritative_answer"],
+        }
+    )
+
+
+def test_energy_pv_power_agent_demo_energy_result(engine: Engine) -> None:
+    result = call_tool(engine, "agent.energy", {"demo_label": "pv_power"})
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "ok"
+    assert payload["authoritative_answer"]["kind"] == "energy_result"
+    assert payload["authoritative_answer"]["values"]["power"]["value"] == pytest.approx(2000.0)
+    # values are execution.result verbatim (no nested authoritative_answer).
+    assert payload["authoritative_answer"]["values"] == payload["execution"]["result"]
+    assert "authoritative_answer" not in payload["authoritative_answer"]["values"]

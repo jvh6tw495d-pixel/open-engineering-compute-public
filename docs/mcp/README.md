@@ -174,11 +174,31 @@ published schema accepts `authoritative_answer_schema_version` of either
 
 | Skill prefix | `kind` |
 |---|---|
-| `electrical.*` / `energy.*` / `battery.*` | `energy_result` (unchanged — includes `electrical.dc_power_flow`) |
+| `electrical.*` / `energy.*` / `battery.*` | `energy_result` (unchanged — includes `electrical.dc_power_flow` and v2.6.1 energy-rich skills) |
 | `thermal.*` / `mechanics.*` / `fluids.*` / `materials.*` | `physics_result` (new) |
 
 Implementation: wrap-once in `call_tool` for `name in _AGENT_TOOL_SCHEMAS`
 only — never inside `_run_specialist_by_name` (which recurses for the router).
+
+### Energy-rich skills (v2.6.1 Wave 2)
+
+New public skills under existing prefixes (no new MCP tools, no new AA kinds):
+
+| Skill | Role | Path |
+|---|---|---|
+| `energy.hybrid_balance` | Multiperiod hybrid residual | `oec.physics.hybrid` |
+| `energy.grid_zero_feasibility` | Deterministic trajectory check (no solver) | `oec.physics.grid_zero` |
+| `energy.min_storage_capacity` | Min capacity LP (grid-zero sizing) | composes `optimization.lp` |
+| `energy.pv_power` | Instantaneous PV power | `oec.physics.pv` |
+| `energy.service_metrics` | Energy delivered + autonomy hours | `oec.physics.service_metrics` |
+| `battery.soc_trajectory` | Multi-step energy-based SOC | `oec.physics.storage` |
+
+`energy.grid_zero_feasibility` and `energy.min_storage_capacity` are **distinct
+contracts** (feasibility of a provided trajectory vs optimization sizing).
+Both map to `authoritative_answer.kind == "energy_result"`; values are
+`execution.result` **verbatim** (0 double-wrap). Discovery aliases in
+`src/oec/mcp/discovery.py` include PV / BESS / grid-zero / autonomy vocabulary
+for free-text domain ranking.
 
 ## Host claims and divergence (`claimed_answer`, v2.5.3 Wave 2)
 

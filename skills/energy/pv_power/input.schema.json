@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "energy.pv_power input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["irradiance", "area", "efficiency"],
+  "properties": {
+    "irradiance": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W / m ** 2"
+    },
+    "area": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m ** 2"
+    },
+    "efficiency": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    },
+    "temperature": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "degC",
+      "description": "Optional; requires temperature_coefficient."
+    },
+    "temperature_coefficient": {
+      "type": "number",
+      "x-oec-dimensionless": true,
+      "description": "γ in 1/°C when temperature is in °C (e.g. -0.004)."
+    },
+    "reference_temperature": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "degC"
+    }
+  }
+}

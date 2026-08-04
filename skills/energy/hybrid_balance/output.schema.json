@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "energy.hybrid_balance output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["residuals", "supply", "period_checks", "aggregate", "balanced", "n", "unit"],
+  "$defs": {
+    "conservationCheck": {
+      "type": "object",
+      "properties": {
+        "residual": { "type": "number" },
+        "balanced": { "type": "boolean" },
+        "atol": { "type": "number", "minimum": 0 },
+        "rtol": { "type": "number", "minimum": 0 },
+        "scale": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string", "minLength": 1 }
+      },
+      "required": ["residual", "balanced", "atol", "rtol", "scale", "unit"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "n": { "type": "integer", "minimum": 1, "x-oec-dimensionless": true },
+    "residuals": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Period residuals in Wh (power × dt)."
+    },
+    "supply": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Period supply pv + grid + discharge − charge (Wh)."
+    },
+    "period_checks": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/conservationCheck" }
+    },
+    "aggregate": { "$ref": "#/$defs/conservationCheck" },
+    "balanced": { "type": "boolean" },
+    "unit": { "type": "string", "const": "Wh" },
+    "atol": { "type": "number", "minimum": 0 },
+    "rtol": { "type": "number", "minimum": 0 },
+    "scale": { "type": "number", "minimum": 0 }
+  }
+}

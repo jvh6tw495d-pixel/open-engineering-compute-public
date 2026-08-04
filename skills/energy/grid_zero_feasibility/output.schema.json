@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "energy.grid_zero_feasibility output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["feasible", "deficit_per_period", "balance_residual", "flags"],
+  "properties": {
+    "feasible": { "type": "boolean" },
+    "deficit_per_period": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0 },
+      "description": "Local unmet load if grid were removed (Wh after power×dt)."
+    },
+    "balance_residual": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Hybrid residuals including the provided grid (Wh)."
+    },
+    "flags": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "balance_ok": { "type": "boolean" },
+        "has_deficit": { "type": "boolean" },
+        "has_grid_import": { "type": "boolean" },
+        "has_grid_export": { "type": "boolean" },
+        "grid_zero": { "type": "boolean" }
+      }
+    },
+    "n": { "type": "integer", "minimum": 1, "x-oec-dimensionless": true },
+    "unit": { "type": "string", "const": "Wh" },
+    "tolerance": { "type": "number", "minimum": 0 }
+  }
+}

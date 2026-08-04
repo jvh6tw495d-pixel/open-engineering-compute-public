@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "energy.service_metrics input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "load",
+    "pv",
+    "storage_discharge",
+    "grid_import",
+    "dt_hours",
+    "capacity",
+    "initial_soc"
+  ],
+  "properties": {
+    "load": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number", "minimum": 0 },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    },
+    "pv": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number", "minimum": 0 },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    },
+    "storage_discharge": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number", "minimum": 0 },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    },
+    "grid_import": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number" },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    },
+    "dt_hours": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "h"
+    },
+    "capacity": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "initial_soc": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    }
+  }
+}
