@@ -17,6 +17,11 @@ from oec.physics.fluids import (
     darcy_weisbach_head_loss,
 )
 from oec.physics.laws import BoundaryCondition, ConservationLaw, MaterialProperty, PhysicalLaw
+from oec.physics.materials import (
+    material_property,
+    uniaxial_strain_from_deformation,
+    uniaxial_stress,
+)
 from oec.physics.mechanics import (
     kinetic_energy,
     mechanical_energy_balance,
@@ -61,10 +66,13 @@ __all__ = [
     "evaluate_residual",
     "evaluate_vector_residual",
     "kinetic_energy",
+    "material_property",
     "mechanical_energy_balance",
     "potential_energy",
     "steady_conduction_balance",
     "stored_thermal_energy",
+    "uniaxial_strain_from_deformation",
+    "uniaxial_stress",
     "uniform_acceleration_position",
     "uniform_acceleration_velocity",
     "work_done",
