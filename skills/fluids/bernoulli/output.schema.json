@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "fluids.bernoulli output",
+  "type": "object",
+  "$defs": {
+    "headQuantity": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "m" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "head_upstream": { "$ref": "#/$defs/headQuantity" },
+    "head_downstream": { "$ref": "#/$defs/headQuantity" },
+    "head_loss": { "$ref": "#/$defs/headQuantity" },
+    "balance": {
+      "type": "object",
+      "properties": {
+        "residual": { "type": "number" },
+        "balanced": { "type": "boolean" },
+        "atol": { "type": "number", "minimum": 0 },
+        "rtol": { "type": "number", "minimum": 0 },
+        "scale": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string", "const": "m" }
+      },
+      "required": ["residual", "balanced", "atol", "rtol", "scale", "unit"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["head_upstream", "head_downstream", "head_loss", "balance"],
+  "additionalProperties": false
+}

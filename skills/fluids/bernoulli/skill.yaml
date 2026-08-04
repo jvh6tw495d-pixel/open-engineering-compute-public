@@ -1,0 +1,41 @@
+id: fluids.bernoulli
+version: 0.1.0
+status: experimental
+domain: fluids
+title: Bernoulli Head Balance with Friction Losses
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: bernoulli_darcy_weisbach_head_balance
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6-EXECUTION-PLAN.md, PHYSICS-CATALOG P4 (Bernoulli, Darcy-Weisbach losses with f as input, continuity)."
+  - "White, F. M. (2016). Fluid Mechanics, 8th ed., McGraw-Hill, Chapters 3 and 6."
+
+tags:
+  - mvp
+  - physics
+  - fluids
+  - conservation

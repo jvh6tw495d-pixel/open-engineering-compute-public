@@ -1,0 +1,15 @@
+{
+  "description": "50 m of 0.1 m diameter pipe, f=0.02, water (1000 kg/m^3), equal 2 m/s velocity and 10 m elevation upstream/downstream; pressure drop (300000 -> 280000 Pa) chosen to exactly match the Darcy-Weisbach loss.",
+  "input": {
+    "pressure_upstream": { "value": 300000.0, "unit": "Pa" },
+    "pressure_downstream": { "value": 280000.0, "unit": "Pa" },
+    "velocity_upstream": { "value": 2.0, "unit": "m / s" },
+    "velocity_downstream": { "value": 2.0, "unit": "m / s" },
+    "elevation_upstream": { "value": 10.0, "unit": "m" },
+    "elevation_downstream": { "value": 10.0, "unit": "m" },
+    "density": { "value": 1000.0, "unit": "kg / m ** 3" },
+    "friction_factor": 0.02,
+    "length": { "value": 50.0, "unit": "m" },
+    "diameter": { "value": 0.1, "unit": "m" }
+  }
+}
