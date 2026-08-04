@@ -1,0 +1,41 @@
+id: materials.linear_constitutive
+version: 0.1.0
+status: experimental
+domain: materials
+title: Linear Uniaxial Constitutive (Hooke)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: hookes_law_uniaxial
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6-EXECUTION-PLAN.md, PHYSICS-CATALOG P5 (material tables + linear uniaxial constitutive)."
+  - "Gere, J. M., Goodno, B. J. Mechanics of Materials — Hooke's law (uniaxial)."
+
+tags:
+  - mvp
+  - physics
+  - materials
+  - constitutive

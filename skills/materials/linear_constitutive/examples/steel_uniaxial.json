@@ -1,0 +1,7 @@
+{
+  "description": "ASTM A36 steel (E = 200 GPa) under uniaxial engineering strain 0.001 → stress 200 MPa via Hooke's law.",
+  "input": {
+    "material_id": "steel_astm_a36",
+    "strain": 0.001
+  }
+}
