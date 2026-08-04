@@ -16,6 +16,7 @@ from oec.physics.fluids import (
     continuity_mass_flow,
     darcy_weisbach_head_loss,
 )
+from oec.physics.harmonics import total_harmonic_distortion
 from oec.physics.laws import BoundaryCondition, ConservationLaw, MaterialProperty, PhysicalLaw
 from oec.physics.materials import (
     material_property,
@@ -71,6 +72,7 @@ __all__ = [
     "potential_energy",
     "steady_conduction_balance",
     "stored_thermal_energy",
+    "total_harmonic_distortion",
     "uniaxial_strain_from_deformation",
     "uniaxial_stress",
     "uniform_acceleration_position",
