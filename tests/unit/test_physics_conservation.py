@@ -77,3 +77,26 @@ def test_aggregate_balance_rejects_mismatched_tolerance_policy() -> None:
 def test_aggregate_balance_rejects_empty_input() -> None:
     with pytest.raises(ConservationError):
         aggregate_balance({})
+
+
+def test_evaluate_residual_rejects_non_finite_inputs() -> None:
+    with pytest.raises(ConservationError, match="must be finite"):
+        evaluate_residual(float("nan"), atol=1e-6, rtol=1e-9, scale=1.0, unit="W")
+    with pytest.raises(ConservationError, match="must be finite"):
+        evaluate_residual(0.0, atol=1e-6, rtol=float("inf"), scale=1.0, unit="W")
+    with pytest.raises(ConservationError, match="must be finite"):
+        evaluate_residual(0.0, atol=1e-6, rtol=1e-9, scale=float("-inf"), unit="W")
+
+
+def test_evaluate_residual_rejects_negative_tolerances_or_scale() -> None:
+    with pytest.raises(ConservationError, match="non-negative"):
+        evaluate_residual(0.0, atol=-1e-6, rtol=1e-9, scale=1.0, unit="W")
+    with pytest.raises(ConservationError, match="non-negative"):
+        evaluate_residual(0.0, atol=1e-6, rtol=-1e-9, scale=1.0, unit="W")
+    with pytest.raises(ConservationError, match="non-negative"):
+        evaluate_residual(0.0, atol=1e-6, rtol=1e-9, scale=-1.0, unit="W")
+
+
+def test_evaluate_residual_rejects_empty_unit() -> None:
+    with pytest.raises(ConservationError, match="must not be empty"):
+        evaluate_residual(0.0, atol=1e-6, rtol=1e-9, scale=1.0, unit="")
