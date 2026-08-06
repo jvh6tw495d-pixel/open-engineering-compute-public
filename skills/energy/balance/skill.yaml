@@ -1,5 +1,5 @@
 id: energy.balance
-version: 0.2.0
+version: 0.2.1
 status: experimental
 domain: energy
 title: Energy Balance Check
@@ -14,7 +14,7 @@ schemas:
 
 method:
   id: sum_in_out_storage
-  version: 0.1.0
+  version: 0.1.1
   iterative: false
 
 execution:
