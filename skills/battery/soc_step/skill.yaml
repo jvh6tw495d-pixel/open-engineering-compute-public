@@ -1,8 +1,8 @@
 id: battery.soc_step
-version: 0.2.0
+version: 0.2.1
 status: experimental
 domain: battery
-title: Battery SOC Step (Coulomb Counting)
+title: Battery SOC Step (Energy-Based)
 
 entrypoint:
   module: implementation
@@ -13,8 +13,8 @@ schemas:
   output: output.schema.json
 
 method:
-  id: coulomb_count_step
-  version: 0.1.0
+  id: energy_based_step
+  version: 0.1.1
   iterative: false
 
 execution:
@@ -31,7 +31,7 @@ validation:
   numerical: true
 
 references:
-  - "Generic coulomb-counting SOC (not a proprietary battery model or dispatch policy)"
+  - "Generic energy-based SOC integration (power × time × efficiency / capacity)"
 
 tags:
   - mvp

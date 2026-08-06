@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from oec.kernel.energy.metrics import soc_update
 from oec.kernel.units.quantity import QuantityValue
+from oec.physics.storage import energy_based_soc_update
 
 
 def _value(raw: dict[str, Any], unit: str) -> float:
@@ -11,7 +11,7 @@ def _value(raw: dict[str, Any], unit: str) -> float:
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
-    out = soc_update(
+    out = energy_based_soc_update(
         float(inputs["soc"]),
         _value(inputs["power"], "W"),
         _value(inputs["dt_hours"], "h"),
