@@ -1,6 +1,6 @@
 ---
 id: energy.balance
-version: 0.2.0
+version: 0.2.1
 status: experimental
 domain: energy
 title: Energy Balance Check

@@ -1,19 +1,19 @@
 ---
 id: battery.soc_step
-version: 0.2.0
+version: 0.2.1
 status: experimental
 domain: battery
-title: Battery SOC Step (Coulomb Counting)
+title: Battery SOC Step (Energy-Based)
 ---
 
 # Purpose
 
-Battery SOC Step (Coulomb Counting). OEC provides the skill contract; numerical/time-series merit belongs
+Battery SOC Step (Energy-Based). OEC provides the skill contract; numerical/time-series merit belongs
 to NumPy/SciPy/pandas as documented in references.
 
 # Official methodology
 
-Method id: `coulomb_count_step`.
+Method id: `energy_based_step`.
 
 # Changelog
 
