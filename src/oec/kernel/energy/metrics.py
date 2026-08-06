@@ -38,10 +38,12 @@ def soc_update(
     efficiency_charge: float = 1.0,
     efficiency_discharge: float = 1.0,
 ) -> dict[str, Any]:
-    """Coulomb-counting SOC step (generic).
+    """Energy-based SOC step (generic).
 
     power > 0 charges the storage; power < 0 discharges.
-    SOC returned in [0, 1] fraction of capacity (same power*time unit as capacity).
+    SOC updated by the integrated energy (power × time × efficiency / capacity),
+    NOT by ampere-hour (Ah) coulomb counting. SOC returned in [0, 1] fraction of
+    capacity (same power*time unit as capacity).
     """
     if capacity <= 0:
         raise ValueError("capacity must be positive")

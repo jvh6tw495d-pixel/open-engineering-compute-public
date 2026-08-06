@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.6.2] — 2026-08-05
+
+**Feature release (patch number, feature scope).** Legacy energy/battery skills
+thin-wrapped onto `oec.physics`, converting them into parity-preserving
+adapters over the physics owners. Migration gated by a new side-by-side parity
+stress harness (atol 1e-9, shape bit-identical) that must stay green.
+
+### Changed
+
+- `battery.soc_step` — thin-wrap over `oec.physics.storage.energy_based_soc_update`
+  (was `kernel.energy.metrics.soc_update`); public id / input / output schemas and
+  output shape unchanged. The `method.id` was corrected from `coulomb_count_step`
+  to `energy_based_step` and the title/reference from "Coulomb Counting" to
+  energy-based, since SOC integration is power × time × efficiency / capacity
+  (not ampere-hour coulomb counting).
+- `energy.balance` — thin-wrap delegating the conservation/residual check to the
+  conservation owner (`oec.physics.conservation.evaluate_residual`, `rtol=0` to
+  preserve the legacy absolute tolerance); public id / schemas / output shape
+  unchanged.
+
+### Fixed
+
+- `kernel.energy.metrics.soc_update` docstring corrected from "coulomb-counting"
+  to energy-based (no numerical change).
+
+### Added
+
+- `scripts/stress_parity_v262.py` + `tests/unit/test_physics_legacy_parity.py` —
+  side-by-side legacy↔physics parity stress harness (3000 SOC + 91 balance cases,
+  bit-identical shape, atol 1e-9).
+
 ## [2.6.1] — 2026-08-04
 
 **Feature release (patch number, feature scope).** Energy-rich physics on top
