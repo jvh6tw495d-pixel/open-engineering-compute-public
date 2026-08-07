@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-08-06
+
+**Feature — Chemistry module complete foundation (local, no publish).**
+
+### Added
+
+- `oec.chemistry.formula` — parse simple formulas, conventional molar mass
+- `Species.from_formula_string`, mixture mass / element inventory
+- `parse_reaction` string → balanced reaction
+- `batch_extent_trajectory`, mole-fraction Qc, `kp_from_kc`, `gas_delta_n`
+- `nernst_potential_from_concentrations`
+- Skills: `chemistry.arrhenius`, `chemistry.equilibrium`, `chemistry.batch_kinetics`
+- Expanded unit tests + goldens; Model Registry seeds for C2/C3
+
+### Notes
+
+- Still not: multi-reaction G-minimiser, parenthesized formulas, CFD, GitHub push
+- Package remains local until you publish
+
 ## [3.1.1] - 2026-08-06
 
 **Option A realignment + 2.9 RC residual + publishable 3.1 cut.**

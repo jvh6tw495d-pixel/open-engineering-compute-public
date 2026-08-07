@@ -8,15 +8,24 @@ import pytest
 
 from oec.chemistry import (
     Composition,
+    Mixture,
     Species,
     arrhenius_rate_constant,
     batch_extent_euler_step,
+    batch_extent_trajectory,
     equilibrium_constant_from_delta_g,
     evaluate_equilibrium,
     extent_to_equilibrium_binary,
     fick_flux_1d,
+    gas_delta_n,
+    kp_from_kc,
+    molar_mass_g_per_mol,
     nernst_potential,
+    nernst_potential_from_concentrations,
+    parse_formula,
+    parse_reaction,
     power_law_rate,
+    reaction_quotient_mole_fraction,
     two_node_diffusion_step,
     water_formation_reaction,
 )
@@ -208,3 +217,80 @@ def test_arrhenius_known_value() -> None:
 def test_delta_g_zero_gives_k_one() -> None:
     k = equilibrium_constant_from_delta_g(delta_g_j_per_mol=0.0, temperature_k=298.15)
     assert abs(k - 1.0) < 1e-12
+
+
+def test_parse_formula_and_molar_mass() -> None:
+    f = parse_formula("H2O")
+    assert f == {"H": 2, "O": 1}
+    m = molar_mass_g_per_mol(f)
+    assert abs(m - (2 * 1.00794 + 15.9994)) < 1e-9
+    water = Species.from_formula_string(id="H2O", name="Water", formula="H2O", phase="g")
+    assert abs(water.molar_mass_g_per_mol - m) < 1e-12
+
+
+def test_mixture_element_inventory() -> None:
+    h2 = Species(id="H2", name="H2", formula={"H": 2})
+    o2 = Species(id="O2", name="O2", formula={"O": 2})
+    mix = Mixture(
+        species={"H2": h2, "O2": o2},
+        composition=Composition(amounts_mol={"H2": 2.0, "O2": 1.0}),
+    )
+    inv = mix.element_moles()
+    assert abs(inv["H"] - 4.0) < 1e-15
+    assert abs(inv["O"] - 2.0) < 1e-15
+    assert mix.mass_g() > 0.0
+
+
+def test_parse_reaction_water() -> None:
+    h2 = Species(id="H2", name="H2", formula={"H": 2}, phase="g")
+    o2 = Species(id="O2", name="O2", formula={"O": 2}, phase="g")
+    h2o = Species(id="H2O", name="H2O", formula={"H": 2, "O": 1}, phase="g")
+    rxn = parse_reaction(
+        "2 H2 + O2 -> 2 H2O",
+        {"H2": h2, "O2": o2, "H2O": h2o},
+        id="w",
+    )
+    assert rxn.nu["H2"] == -2.0
+    assert abs(gas_delta_n(rxn) - (-1.0)) < 1e-15  # 2 products - 3 reactants gases
+
+
+def test_mole_fraction_quotient_and_kp() -> None:
+    a = Species(id="A", name="A", formula={"C": 1}, phase="g")
+    b = Species(id="B", name="B", formula={"C": 1}, phase="g")
+    rxn = Reaction(id="iso", name="iso", nu={"A": -1.0, "B": 1.0}, species={"A": a, "B": b})
+    comp = Composition(amounts_mol={"A": 1.0, "B": 1.0})
+    qx = reaction_quotient_mole_fraction(rxn, comp)
+    assert abs(qx - 1.0) < 1e-12
+    # delta_n=0 → Kp=Kc
+    assert abs(kp_from_kc(kc=2.0, delta_n_gas=0.0, temperature_k=300.0) - 2.0) < 1e-12
+
+
+def test_batch_trajectory_consumes_reactant() -> None:
+    a = Species(id="A", name="A", formula={"C": 1})
+    b = Species(id="B", name="B", formula={"C": 1})
+    rxn = Reaction(id="r", name="r", nu={"A": -1.0, "B": 1.0}, species={"A": a, "B": b})
+    comp = Composition(amounts_mol={"A": 1.0, "B": 0.0})
+    traj = batch_extent_trajectory(
+        rxn,
+        comp,
+        k=0.5,
+        orders={"A": 1.0},
+        volume_m3=1.0,
+        dt_s=0.1,
+        n_steps=20,
+    )
+    assert traj.times_s[0] == 0.0
+    assert traj.compositions[-1].amounts_mol["A"] < 1.0
+    assert traj.extents_mol[-1] > 0.0
+
+
+def test_nernst_from_concentrations_q1() -> None:
+    res = nernst_potential_from_concentrations(
+        e0_v=1.0,
+        n_electrons=1,
+        reactant_concentrations={"R": 1.0},
+        product_concentrations={"P": 1.0},
+        temperature_k=298.15,
+        c_ref_mol_m3=1.0,
+    )
+    assert abs(res.e_v - 1.0) < 1e-12

@@ -179,9 +179,9 @@ Valores típicos por célula:
 
 | Área | Exemplos / objetos | Kernel / primitive | Skill | API `oec.physics` / chemistry | Fatia |
 |------|--------------------|--------------------|-------|-------------------------------|-------|
-| Reações / estequiometria / equilíbrio | V3 chemistry | — | futuro v2.8 | futuro v2.8 | v2.8 |
-| Eletroquímica de célula genérica (C4) | ≠ BESS energy-based SOC do 2.6.1 | — | futuro v2.8 | futuro v2.8 | v2.8 C4 |
-| **Species transport / diffusion v0** | transporte e difusão de espécies (≠ hidráulica P4) | — | futuro v2.8 — **pré-condição ou 1ª wave** | futuro v2.8 | **pré-v2.8 / Wave 0–1 de chemistry** |
+| Reações / estequiometria / equilíbrio | V3 chemistry | — | **DONE** `oec.chemistry` + skills | `chemistry.*` | v2.8 / 3.2.0 |
+| Eletroquímica de célula genérica (C4) | ≠ BESS energy-based SOC do 2.6.1 | — | **DONE** Nernst | `chemistry.nernst` | v2.8 C4 |
+| **Species transport / diffusion v0** | transporte e difusão de espécies (≠ hidráulica P4) | — | **DONE** Fick 1-D | `chemistry.fick_flux` | v2.8 wave-0 |
 
 > **v2.8:** P4 cobre hidráulica/Bernoulli/perdas, **não** transporte de espécies.
 > Declarar **species transport/diffusion v0** como pré-condição ou primeira wave

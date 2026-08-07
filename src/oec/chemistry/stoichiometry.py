@@ -6,11 +6,12 @@ products positive). Atom and charge balance are enforced at construction.
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from oec.chemistry.errors import StoichiometryError
+from oec.chemistry.errors import ChemistryEvaluationError, StoichiometryError
 from oec.chemistry.species import Composition, Species
 from oec.physics.conservation import evaluate_residual
 from oec.physics.result import ConservationCheck
@@ -147,4 +148,74 @@ def water_formation_reaction() -> Reaction:
     )
 
 
-__all__ = ["Reaction", "water_formation_reaction"]
+_SPECIES_TOKEN = re.compile(r"^\s*(\d+(?:\.\d+)?\s+)?([A-Za-z0-9_+-]+)\s*$")
+
+
+def _parse_side(side: str, *, sign: float) -> dict[str, float]:
+    """Parse '2 H2 + O2' into nu contributions with the given sign."""
+    if not side.strip():
+        raise ChemistryEvaluationError("reaction side must be non-empty")
+    parts = re.split(r"\s*\+\s*", side.strip())
+    out: dict[str, float] = {}
+    for part in parts:
+        m = _SPECIES_TOKEN.match(part)
+        if not m:
+            raise ChemistryEvaluationError(
+                f"could not parse species term {part!r}",
+                details={"term": part},
+            )
+        coeff_s, sid = m.group(1), m.group(2)
+        coeff = float(coeff_s) if coeff_s else 1.0
+        if coeff <= 0.0:
+            raise ChemistryEvaluationError(f"stoichiometric coefficient must be > 0 in {part!r}")
+        out[sid] = out.get(sid, 0.0) + sign * coeff
+    return out
+
+
+def parse_reaction(
+    expression: str,
+    species: dict[str, Species],
+    *,
+    id: str = "parsed_reaction",
+    name: str | None = None,
+) -> Reaction:
+    """Parse ``a A + b B = c C`` or ``... → ...`` into a balanced :class:`Reaction`.
+
+    Species ids in the expression must exist in ``species``. Atom/charge balance
+    is enforced by :class:`Reaction` construction.
+    """
+    text = expression.strip()
+    if not text:
+        raise ChemistryEvaluationError("reaction expression must be non-empty")
+    if "->" in text:
+        left, right = text.split("->", 1)
+    elif "→" in text:
+        left, right = text.split("→", 1)
+    elif "=" in text:
+        left, right = text.split("=", 1)
+    else:
+        raise ChemistryEvaluationError(
+            "reaction expression must contain '=', '->', or '→'",
+            details={"expression": expression},
+        )
+    nu: dict[str, float] = {}
+    for sid, c in _parse_side(left, sign=-1.0).items():
+        nu[sid] = nu.get(sid, 0.0) + c
+    for sid, c in _parse_side(right, sign=1.0).items():
+        nu[sid] = nu.get(sid, 0.0) + c
+    used = {sid: species[sid] for sid in nu if sid in species}
+    missing = set(nu) - set(species)
+    if missing:
+        raise ChemistryEvaluationError(
+            f"unknown species in expression: {sorted(missing)}",
+            details={"missing": sorted(missing)},
+        )
+    return Reaction(
+        id=id,
+        name=name or expression.strip(),
+        nu=nu,
+        species=used,
+    )
+
+
+__all__ = ["Reaction", "parse_reaction", "water_formation_reaction"]

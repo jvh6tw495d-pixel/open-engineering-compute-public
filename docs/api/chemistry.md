@@ -1,39 +1,50 @@
-# OEC Chemistry API v0 (milestone 2.8)
+# OEC Chemistry API (module complete foundation)
 
-Library surface under `oec.chemistry`. Skills are thin adapters; do not put
-stoichiometry arithmetic in skill modules.
+Library: `oec.chemistry`. Skills are thin adapters.
 
-## Public surface
+## Install / import
 
 ```python
 from oec.chemistry import (
-    Species, Composition, Reaction, water_formation_reaction,
+    Species, Composition, Mixture, Reaction,
+    parse_formula, parse_reaction, molar_mass_g_per_mol,
+    water_formation_reaction,
     fick_flux_1d, two_node_diffusion_step,
     evaluate_equilibrium, extent_to_equilibrium_binary,
-    arrhenius_rate_constant, batch_extent_euler_step,
-    nernst_potential, equilibrium_constant_from_delta_g,
+    equilibrium_constant_from_delta_g, kp_from_kc,
+    reaction_quotient_mole_fraction,
+    arrhenius_rate_constant, batch_extent_euler_step, batch_extent_trajectory,
+    nernst_potential, nernst_potential_from_concentrations,
 )
 ```
 
+## Modules
+
 | Module | Role |
 |--------|------|
-| `species` | Species + composition (mol) |
-| `stoichiometry` | Atom/charge-balanced reactions, extent ξ |
+| `formula` | Parse `H2O`-style formulas; conventional molar mass |
+| `species` | Species, composition, mixture mass / element inventory |
+| `stoichiometry` | Balanced reactions, extent ξ, `parse_reaction` |
 | `transport` | Fick 1-D + two-node diffusion |
-| `equilibrium` | Qc/Kc, extent-to-equilibrium, ΔG°→K |
-| `kinetics` | Arrhenius + batch Euler |
-| `electrochemistry` | Nernst (≠ BESS SOC) |
+| `equilibrium` | Qc/Kc, ΔG°→K, Kp, mole-fraction Q |
+| `kinetics` | Arrhenius, power-law rate, batch Euler + trajectory |
+| `electrochemistry` | Nernst (+ concentration form) |
 
-Conservation atom residuals use `oec.physics.conservation`.
+## Skills
 
-## Skills (thin)
+| Skill | Owner |
+|-------|--------|
+| `chemistry.reaction_extent` | stoichiometry / water formation |
+| `chemistry.fick_flux` | transport |
+| `chemistry.equilibrium` | Qc/Kc isomerisation check |
+| `chemistry.arrhenius` | Arrhenius k(T) |
+| `chemistry.batch_kinetics` | A→B batch Euler step |
+| `chemistry.nernst` | Nernst E(Q) |
 
-| Skill id | Library owner |
-|----------|---------------|
-| `chemistry.nernst` | `nernst_potential` |
-| `chemistry.fick_flux` | `fick_flux_1d` |
-| `chemistry.reaction_extent` | `Reaction.apply_extent` |
+## Explicitly out of scope (still)
 
-## Out of scope v0
-
-Full multi-reaction G-minimisation, CFD transport, pack SOC models.
+- Full multi-reaction Gibbs free-energy minimisation
+- Parenthesized formulas `(OH)2`, mechanism reduction
+- CFD / multi-D transport
+- Pack/BESS energy SOC (`oec.physics.storage`)
+- Strong chemistry↔thermal multiphysics

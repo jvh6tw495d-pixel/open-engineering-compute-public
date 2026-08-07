@@ -41,6 +41,52 @@ class NernstVoltage(BaseModel):
     assumptions: tuple[Assumption, ...] = NERNST_ASSUMPTIONS
 
 
+def nernst_potential_from_concentrations(
+    *,
+    e0_v: float,
+    n_electrons: int,
+    reactant_concentrations: dict[str, float],
+    product_concentrations: dict[str, float],
+    reactant_orders: dict[str, float] | None = None,
+    product_orders: dict[str, float] | None = None,
+    temperature_k: float = 298.15,
+    c_ref_mol_m3: float = 1.0,
+) -> NernstVoltage:
+    """Nernst with Q built from concentrations: Q = Π (c_p/c°)α / Π (c_r/c°)β.
+
+    Orders default to 1.0 for each listed species. Concentrations in mol/m³.
+    """
+    c_ref = float(c_ref_mol_m3)
+    if not math.isfinite(c_ref) or c_ref <= 0.0:
+        raise ChemistryEvaluationError("c_ref_mol_m3 must be positive finite")
+    r_ord = reactant_orders or {k: 1.0 for k in reactant_concentrations}
+    p_ord = product_orders or {k: 1.0 for k in product_concentrations}
+    log_q = 0.0
+    for sid, c in product_concentrations.items():
+        cc = float(c)
+        if not math.isfinite(cc) or cc <= 0.0:
+            raise ChemistryEvaluationError(
+                f"product concentration for {sid!r} must be positive",
+                details={"species_id": sid},
+            )
+        log_q += float(p_ord.get(sid, 1.0)) * math.log(cc / c_ref)
+    for sid, c in reactant_concentrations.items():
+        cc = float(c)
+        if not math.isfinite(cc) or cc <= 0.0:
+            raise ChemistryEvaluationError(
+                f"reactant concentration for {sid!r} must be positive",
+                details={"species_id": sid},
+            )
+        log_q -= float(r_ord.get(sid, 1.0)) * math.log(cc / c_ref)
+    q = math.exp(log_q)
+    return nernst_potential(
+        e0_v=e0_v,
+        n_electrons=n_electrons,
+        reaction_quotient=q,
+        temperature_k=temperature_k,
+    )
+
+
 def nernst_potential(
     *,
     e0_v: float,
@@ -98,4 +144,5 @@ __all__ = [
     "NERNST_ASSUMPTIONS",
     "NernstVoltage",
     "nernst_potential",
+    "nernst_potential_from_concentrations",
 ]

@@ -1,0 +1,39 @@
+id: chemistry.batch_kinetics
+version: 0.1.0
+status: experimental
+domain: chemistry
+title: Batch Extent Euler Step (A→B)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: power_law_batch_euler
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "Isothermal batch extent Euler step for first-order A→B"
+
+tags:
+  - chemistry
+  - kinetics
+  - 2.8

@@ -10,6 +10,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from oec.chemistry.errors import ChemistryEvaluationError
+from oec.chemistry.formula import molar_mass_g_per_mol, parse_formula
 
 
 class Species(BaseModel):
@@ -40,6 +41,30 @@ class Species(BaseModel):
                 raise ValueError(f"atom count for {element!r} must be positive")
             cleaned[element] = int(count)
         return cleaned
+
+    @classmethod
+    def from_formula_string(
+        cls,
+        *,
+        id: str,
+        name: str,
+        formula: str,
+        charge: int = 0,
+        phase: str | None = None,
+    ) -> Species:
+        """Build a species by parsing a simple formula string (no parentheses)."""
+        return cls(
+            id=id,
+            name=name,
+            formula=parse_formula(formula),
+            charge=charge,
+            phase=phase,
+        )
+
+    @property
+    def molar_mass_g_per_mol(self) -> float:
+        """Conventional molar mass from the elemental map."""
+        return molar_mass_g_per_mol(self.formula)
 
 
 class Composition(BaseModel):
@@ -109,6 +134,21 @@ class Mixture(BaseModel):
         if unknown:
             raise ValueError(f"composition references unknown species: {sorted(unknown)}")
         return self
+
+    def mass_g(self) -> float:
+        """Total mass Σ n_i M_i (g) for the current composition."""
+        total = 0.0
+        for sid, n in self.composition.amounts_mol.items():
+            total += n * self.species[sid].molar_mass_g_per_mol
+        return total
+
+    def element_moles(self) -> dict[str, float]:
+        """Elemental atom-mol inventory Σ n_i · ν_{i,el}."""
+        inv: dict[str, float] = {}
+        for sid, n in self.composition.amounts_mol.items():
+            for el, count in self.species[sid].formula.items():
+                inv[el] = inv.get(el, 0.0) + n * count
+        return inv
 
 
 __all__ = ["Composition", "Mixture", "Species"]

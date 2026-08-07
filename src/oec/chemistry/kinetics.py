@@ -150,12 +150,72 @@ def batch_extent_euler_step(
     )
 
 
+class BatchTrajectory(BaseModel):
+    """Multi-step isothermal batch extent trajectory."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    times_s: tuple[float, ...]
+    extents_mol: tuple[float, ...]
+    compositions: tuple[Composition, ...]
+    rates_mol_per_m3_s: tuple[float, ...]
+
+
+def batch_extent_trajectory(
+    reaction: Reaction,
+    composition: Composition,
+    *,
+    k: float,
+    orders: dict[str, float],
+    volume_m3: float,
+    dt_s: float,
+    n_steps: int,
+) -> BatchTrajectory:
+    """Integrate ``n_steps`` explicit Euler extent steps (constant V, T → k)."""
+    n = int(n_steps)
+    if n < 1:
+        raise ChemistryEvaluationError("n_steps must be >= 1", details={"n_steps": n_steps})
+    times: list[float] = [0.0]
+    extents: list[float] = [0.0]
+    comps: list[Composition] = [composition]
+    rates: list[float] = []
+    comp = composition
+    xi_total = 0.0
+    t = 0.0
+    for _ in range(n):
+        step = batch_extent_euler_step(
+            reaction,
+            comp,
+            k=k,
+            orders=orders,
+            volume_m3=volume_m3,
+            dt_s=dt_s,
+        )
+        xi_total += step.extent_step_mol
+        t += float(dt_s)
+        comp = step.composition
+        times.append(t)
+        extents.append(xi_total)
+        comps.append(comp)
+        rates.append(step.rate_mol_per_m3_s)
+        if step.extent_step_mol <= 0.0 and reaction.max_extent_mol(comp) <= 0.0:
+            break
+    return BatchTrajectory(
+        times_s=tuple(times),
+        extents_mol=tuple(extents),
+        compositions=tuple(comps),
+        rates_mol_per_m3_s=tuple(rates),
+    )
+
+
 __all__ = [
     "KINETICS_ASSUMPTIONS",
     "R_GAS_J_PER_MOL_K",
     "ArrheniusRate",
     "BatchExtentStep",
+    "BatchTrajectory",
     "arrhenius_rate_constant",
     "batch_extent_euler_step",
+    "batch_extent_trajectory",
     "power_law_rate",
 ]

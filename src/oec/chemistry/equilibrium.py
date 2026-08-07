@@ -123,6 +123,70 @@ def evaluate_equilibrium(
     return ReactionQuotient(qc=qc, kc=k, driving_force=drive, at_equilibrium=at_eq)
 
 
+def reaction_quotient_mole_fraction(
+    reaction: Reaction,
+    composition: Composition,
+) -> float:
+    """Qx = Π x_i^{ν_i} for ideal solutions (activity ≈ mole fraction)."""
+    total = composition.total_mol
+    if total <= 0.0:
+        raise ChemistryEvaluationError("composition total must be positive for mole fractions")
+    log_q = 0.0
+    for sid, nu in reaction.nu.items():
+        n = composition.amounts_mol.get(sid, 0.0)
+        if n <= 0.0:
+            if nu > 0:
+                return 0.0
+            return float("inf")
+        x = n / total
+        log_q += nu * math.log(x)
+    q = math.exp(log_q)
+    if not math.isfinite(q) or q <= 0.0:
+        raise ChemistryEvaluationError("mole-fraction quotient is not positive finite")
+    return q
+
+
+def kp_from_kc(
+    *,
+    kc: float,
+    delta_n_gas: float,
+    temperature_k: float,
+    gas_constant: float = 8.314462618,
+    p_ref_pa: float = 101325.0,
+) -> float:
+    """Ideal-gas conversion Kp = Kc · (RT / p°)Δn  (SI: c in mol/m³, p in Pa).
+
+    ``delta_n_gas`` is Σ ν_i for gas-phase species in the reaction as written.
+    """
+    k = float(kc)
+    dn = float(delta_n_gas)
+    t = float(temperature_k)
+    r = float(gas_constant)
+    p_ref = float(p_ref_pa)
+    for name, val in (
+        ("kc", k),
+        ("delta_n_gas", dn),
+        ("temperature_k", t),
+        ("gas_constant", r),
+        ("p_ref_pa", p_ref),
+    ):
+        if not math.isfinite(val):
+            raise ChemistryEvaluationError(f"{name} must be finite", details={name: val})
+    if k <= 0.0 or t <= 0.0 or r <= 0.0 or p_ref <= 0.0:
+        raise ChemistryEvaluationError("kc, T, R, p_ref must be positive")
+    return float(k * (r * t / p_ref) ** dn)
+
+
+def gas_delta_n(reaction: Reaction) -> float:
+    """Σ ν_i over species with phase ``g`` (0 if phase unset — not counted as gas)."""
+    total = 0.0
+    for sid, nu in reaction.nu.items():
+        sp = reaction.species[sid]
+        if sp.phase == "g":
+            total += float(nu)
+    return float(total)
+
+
 def equilibrium_constant_from_delta_g(
     *,
     delta_g_j_per_mol: float,
@@ -209,7 +273,11 @@ def extent_to_equilibrium_binary(
 __all__ = [
     "EQUILIBRIUM_ASSUMPTIONS",
     "ReactionQuotient",
+    "equilibrium_constant_from_delta_g",
     "evaluate_equilibrium",
     "extent_to_equilibrium_binary",
+    "gas_delta_n",
+    "kp_from_kc",
     "reaction_quotient_concentration",
+    "reaction_quotient_mole_fraction",
 ]

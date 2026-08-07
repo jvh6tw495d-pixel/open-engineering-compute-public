@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["qc", "kc", "driving_force", "at_equilibrium"],
+  "properties": {
+    "qc": { "type": "number", "exclusiveMinimum": 0 },
+    "kc": { "type": "number", "exclusiveMinimum": 0 },
+    "driving_force": { "type": "number" },
+    "at_equilibrium": { "type": "boolean" }
+  }
+}
