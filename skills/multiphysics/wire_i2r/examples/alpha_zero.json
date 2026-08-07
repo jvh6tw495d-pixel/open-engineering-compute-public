@@ -1,0 +1,11 @@
+{
+  "description": "alpha=0: T = 293.15 + I^2 R / UA = 293.15 + 10 = 303.15",
+  "input": {
+    "current_a": 10.0,
+    "r0_ohm": 0.1,
+    "t_amb_k": 293.15,
+    "ua_w_per_k": 1.0,
+    "alpha_per_k": 0.0,
+    "t0_k": 293.15
+  }
+}

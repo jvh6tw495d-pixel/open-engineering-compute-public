@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["irradiance_w_m2", "area_m2", "eta0"],
+  "properties": {
+    "irradiance_w_m2": { "type": "number", "minimum": 0 },
+    "area_m2": { "type": "number", "exclusiveMinimum": 0 },
+    "eta0": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+    "t_amb_c": { "type": "number" },
+    "ua_w_per_k": { "type": "number", "exclusiveMinimum": 0 },
+    "gamma_per_c": { "type": "number" },
+    "t_ref_c": { "type": "number" },
+    "t_init_c": { "type": "number" }
+  }
+}

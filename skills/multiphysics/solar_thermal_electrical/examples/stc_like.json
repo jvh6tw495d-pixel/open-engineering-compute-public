@@ -1,0 +1,12 @@
+{
+  "description": "G=1000, A=1, eta0=0.2; energy closure q_solar ≈ p_gen + q_diss",
+  "input": {
+    "irradiance_w_m2": 1000.0,
+    "area_m2": 1.0,
+    "eta0": 0.2,
+    "t_amb_c": 25.0,
+    "ua_w_per_k": 50.0,
+    "gamma_per_c": -0.004,
+    "t_ref_c": 25.0
+  }
+}

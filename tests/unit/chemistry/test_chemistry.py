@@ -294,3 +294,25 @@ def test_nernst_from_concentrations_q1() -> None:
         c_ref_mol_m3=1.0,
     )
     assert abs(res.e_v - 1.0) < 1e-12
+
+
+def test_sequential_reaction_network() -> None:
+    from oec.chemistry import ReactionStep, apply_reaction_network
+
+    a = Species(id="A", name="A", formula={"C": 1})
+    b = Species(id="B", name="B", formula={"C": 1})
+    c = Species(id="C", name="C", formula={"C": 1})
+    r1 = Reaction(id="r1", name="A→B", nu={"A": -1.0, "B": 1.0}, species={"A": a, "B": b})
+    r2 = Reaction(id="r2", name="B→C", nu={"B": -1.0, "C": 1.0}, species={"B": b, "C": c})
+    result = apply_reaction_network(
+        Composition(amounts_mol={"A": 2.0, "B": 0.0, "C": 0.0}),
+        [
+            ReactionStep(reaction=r1, extent_mol=1.0),
+            ReactionStep(reaction=r2, extent_mol=0.5),
+        ],
+    )
+    am = result.composition.amounts_mol
+    assert abs(am["A"] - 1.0) < 1e-12
+    assert abs(am["B"] - 0.5) < 1e-12
+    assert abs(am["C"] - 0.5) < 1e-12
+    assert result.extents_applied == (1.0, 0.5)

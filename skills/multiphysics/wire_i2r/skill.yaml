@@ -1,0 +1,39 @@
+id: multiphysics.wire_i2r
+version: 0.1.0
+status: experimental
+domain: multiphysics
+title: Wire I²R Electrical–Thermal Coupling
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: weak_gs_i2r_lumped
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC ADR 0028 weak co-sim; I²R + lumped thermal"
+
+tags:
+  - multiphysics
+  - coupling
+  - 2.7

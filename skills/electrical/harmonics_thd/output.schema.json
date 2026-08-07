@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["thd", "thd_percent"],
+  "properties": {
+    "thd": { "type": "number", "minimum": 0 },
+    "thd_percent": { "type": "number", "minimum": 0 }
+  }
+}

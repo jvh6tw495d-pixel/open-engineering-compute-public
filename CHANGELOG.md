@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-08-06
+
+**Feature — Multiphysics skills + THD + sequential chemistry network.**
+
+### Added
+
+- `electrical.harmonics_thd` (THD-F from magnitudes)
+- `multiphysics.wire_i2r`, `multiphysics.solar_thermal_electrical` thin skills
+- `oec.chemistry.network.apply_reaction_network` (ordered multi-reaction extents)
+- `docs/api/coupling.md`; skill inventory → **87** skills
+
+### Notes
+
+- Local only; no GitHub publish in this cut
+
 ## [3.2.0] - 2026-08-06
 
 **Feature — Chemistry module complete foundation (local, no publish).**

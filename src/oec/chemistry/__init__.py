@@ -47,6 +47,7 @@ from oec.chemistry.kinetics import (
     batch_extent_trajectory,
     power_law_rate,
 )
+from oec.chemistry.network import NetworkResult, ReactionStep, apply_reaction_network
 from oec.chemistry.species import Composition, Mixture, Species
 from oec.chemistry.stoichiometry import Reaction, parse_reaction, water_formation_reaction
 from oec.chemistry.transport import (
@@ -70,13 +71,16 @@ __all__ = [
     "KINETICS_ASSUMPTIONS",
     "Mixture",
     "NERNST_ASSUMPTIONS",
+    "NetworkResult",
     "NernstVoltage",
     "R_GAS_J_PER_MOL_K",
     "Reaction",
     "ReactionQuotient",
+    "ReactionStep",
     "Species",
     "StoichiometryError",
     "TRANSPORT_ASSUMPTIONS",
+    "apply_reaction_network",
     "arrhenius_rate_constant",
     "batch_extent_euler_step",
     "batch_extent_trajectory",

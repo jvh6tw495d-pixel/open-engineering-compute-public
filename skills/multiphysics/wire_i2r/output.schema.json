@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "current_a",
+    "resistance_ohm",
+    "q_gen_w",
+    "temperature_k",
+    "iterations",
+    "residual"
+  ],
+  "properties": {
+    "current_a": { "type": "number" },
+    "resistance_ohm": { "type": "number", "minimum": 0 },
+    "q_gen_w": { "type": "number" },
+    "temperature_k": { "type": "number" },
+    "iterations": { "type": "integer", "minimum": 0 },
+    "residual": { "type": "number", "minimum": 0 }
+  }
+}
