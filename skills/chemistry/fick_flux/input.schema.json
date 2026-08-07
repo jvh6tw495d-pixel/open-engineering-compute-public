@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "concentration_a_mol_m3",
+    "concentration_b_mol_m3",
+    "distance_m",
+    "diffusivity_m2_s"
+  ],
+  "properties": {
+    "concentration_a_mol_m3": { "type": "number", "minimum": 0 },
+    "concentration_b_mol_m3": { "type": "number", "minimum": 0 },
+    "distance_m": { "type": "number", "exclusiveMinimum": 0 },
+    "diffusivity_m2_s": { "type": "number", "exclusiveMinimum": 0 }
+  }
+}

@@ -40,6 +40,7 @@ INCLUDE: tuple[str, ...] = (
     "CONTRIBUTING.md",
     "CHANGELOG.md",
     "CODE_OF_CONDUCT.md",
+    "GOVERNANCE.md",
     "Dockerfile",
     ".gitignore",
     ".pre-commit-config.yaml",

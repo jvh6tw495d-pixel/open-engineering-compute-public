@@ -11,6 +11,7 @@ from oec.chemistry import (
     Species,
     arrhenius_rate_constant,
     batch_extent_euler_step,
+    equilibrium_constant_from_delta_g,
     evaluate_equilibrium,
     extent_to_equilibrium_binary,
     fick_flux_1d,
@@ -202,3 +203,8 @@ def test_arrhenius_known_value() -> None:
     )
     assert abs(res.k - 42.0) < 1e-12
     assert math.isfinite(res.k)
+
+
+def test_delta_g_zero_gives_k_one() -> None:
+    k = equilibrium_constant_from_delta_g(delta_g_j_per_mol=0.0, temperature_k=298.15)
+    assert abs(k - 1.0) < 1e-12

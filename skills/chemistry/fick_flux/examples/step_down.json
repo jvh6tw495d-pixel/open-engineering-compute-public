@@ -1,0 +1,9 @@
+{
+  "description": "c_A=10, c_B=0, dx=0.1, D=1e-5 → J = 0.001 mol/(m2 s)",
+  "input": {
+    "concentration_a_mol_m3": 10.0,
+    "concentration_b_mol_m3": 0.0,
+    "distance_m": 0.1,
+    "diffusivity_m2_s": 1.0e-5
+  }
+}

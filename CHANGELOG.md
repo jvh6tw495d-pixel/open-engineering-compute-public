@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-08-06
+
+**Option A realignment + 2.9 RC residual.**
+
+Restores the original V3 strategy (v3.0 = public GitHub only after 2.8–2.9).
+Withdraws the premature Option C “official 3.0” local claim.
+
+### Added
+
+- `docs/implementation/OPTION-A-REALIGNMENT.md`, `v2.9-RC-CLOSEOUT.md`,
+  `v3.0-PUBLIC-CHECKLIST.md`; `GOVERNANCE.md`; `docs/contracts/migrations.md`
+- Domain docs `docs/api/chemistry.md`, `docs/api/registry.md`
+- Chemistry skills: `chemistry.nernst`, `chemistry.fick_flux`,
+  `chemistry.reaction_extent` (thin + golden)
+- `equilibrium_constant_from_delta_g` (simplified Gibbs link ΔG°→K)
+
+### Changed
+
+- `prepare_public_alpha` INCLUDE adds `GOVERNANCE.md`
+- `v3.0-CLOSEOUT.md` supersession under Option A
+
 ## [3.1.0] - 2026-08-06
 
 **Feature release — Chemistry foundation (2.8) + Scientific IR / Model Registry (2.9).**

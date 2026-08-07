@@ -2,10 +2,11 @@
 
 **Fonte:** Roadmap detalhado de versões até v3.0 (plano V3)
 **Data do plano:** 2026-07-26
-**Actualização de estado:** 2026-07-27 — **`oec==2.3.0` Applied Math ACCEPTED** (Waves A+B+C + A23/B23; seal [v2.3-accepted-and-merge-prep.md](v2.3-accepted-and-merge-prep.md)); **NEXT = v2.4** ([v2.4-team-brief.md](v2.4-team-brief.md))
-**Baseline real:** **62 skills**, 5 agentes, SDK/CLI/REST/MCP, OPS v0.1, HiGHS, `oec.core` Scientific Kernel, Quantities (v2.1), Math IR foundation (v2.2), Applied Math (v2.3), árvore public-alpha local
-**Marco público V3:** **v3.0 = primeiro lançamento oficial no GitHub**
+**Actualização de estado:** 2026-08-06 — **Option A restored** ([OPTION-A-REALIGNMENT.md](OPTION-A-REALIGNMENT.md)). Physics 2.6–2.7, chemistry foundation 2.8, Sci IR + Model Registry 2.9 library in tree (`oec==3.1.x` incubation SemVer). **NEXT = 2.9 RC residual → public v3.0 (human push).** Option C early “3.0 claimable” is **withdrawn** as official v3.0.
+**Baseline real:** skill engine + kernel + math + physics coupling + `oec.chemistry` + `oec.registry` + Scientific IR; árvore public-alpha local
+**Marco público V3:** **v3.0 = primeiro lançamento oficial no GitHub** (só após 2.8–2.9 RC)
 **Handoff construção (GPT):** [GPT_CONSTRUCTION_HANDOFF.md](GPT_CONSTRUCTION_HANDOFF.md) — GPT constrói; Grok valida.
+**Estratégia:** **Opção A** (fiel ao texto V3) — ver §18.
 
 ---
 
@@ -20,8 +21,8 @@
 | **v2.3** | Applied Math (Waves A+B+C) | **DONE / ACCEPTED** (`2.3.0`, 62 skills) | Merge prep local; tag `v2.3.0` |
 | **v2.4** | Computational + Verification + Backend Registry | **NEXT** | [v2.4-team-brief.md](v2.4-team-brief.md) |
 | **v2.5** | Mathematics Complete (gate duro) | **Bloqueado em v2.4** | Após Verification + registry |
-| **v2.6 – v2.8** | Physics / Multiphysics / Chemistry | **Não iniciado** (só eléctrica clássica + energy genérico) | Após v2.5 estável |
-| **v2.9 – v3.0** | Integração + lançamento público | Prep parcial (árvore limpa local) | Gates + publish no fim |
+| **v2.6 – v2.8** | Physics / Multiphysics / Chemistry | **2.6–2.7 DONE**; **2.8 foundation + skills v0** | RC residual / deepen as needed |
+| **v2.9 – v3.0** | Integração + lançamento público | Sci IR + Registry v0; migrations/GOVERNANCE | **2.9 RC → public v3.0 human** |
 
 **Tese de execução:** não recomeçar do zero. **v1.5→v2.3 fechados** (private incubation). Empilhar **v2.4→v2.5** em fatias com gates mensuráveis. Física/química são programas multi-trimestre **depois** da matemática completa.
 
@@ -600,6 +601,8 @@ O roadmap V3 define v3.0 como **Math+Physics+Chem unificados**. Isso é **anos**
 **Opção C:** v3.0 = “public launch da plataforma skill-based actual + kernel v2.x parcial” com roadmap physics/chem como 3.x.
 
 Este plano assume **Opção A** no papel; recomenda **Opção B** se o marco “público no GitHub” for urgente.
+
+**Decisão 2026-08-06:** a equipa **restaura Opção A**. Um corte Option C local (`3.0.0` “claimable platform”) foi ensaiado e **não** conta como v3.0 oficial. Ver [OPTION-A-REALIGNMENT.md](OPTION-A-REALIGNMENT.md).
 
 ---
 

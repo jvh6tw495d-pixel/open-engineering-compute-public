@@ -123,6 +123,39 @@ def evaluate_equilibrium(
     return ReactionQuotient(qc=qc, kc=k, driving_force=drive, at_equilibrium=at_eq)
 
 
+def equilibrium_constant_from_delta_g(
+    *,
+    delta_g_j_per_mol: float,
+    temperature_k: float,
+    gas_constant: float = 8.314462618,
+) -> float:
+    """Simplified Gibbs link: K = exp(−ΔG° / RT) (ideal, single reaction).
+
+    This is **not** a multi-species Gibbs free-energy minimiser. It only
+    converts a supplied standard free-energy change into an equilibrium
+    constant for use with :func:`evaluate_equilibrium`.
+    """
+    dg = float(delta_g_j_per_mol)
+    t = float(temperature_k)
+    r = float(gas_constant)
+    for name, val in (
+        ("delta_g_j_per_mol", dg),
+        ("temperature_k", t),
+        ("gas_constant", r),
+    ):
+        if not math.isfinite(val):
+            raise ChemistryEvaluationError(f"{name} must be finite", details={name: val})
+    if t <= 0.0 or r <= 0.0:
+        raise ChemistryEvaluationError("temperature_k and gas_constant must be positive")
+    k = math.exp(-dg / (r * t))
+    if not math.isfinite(k) or k <= 0.0:
+        raise ChemistryEvaluationError(
+            "equilibrium constant from ΔG is not positive finite",
+            details={"k": k},
+        )
+    return k
+
+
 def extent_to_equilibrium_binary(
     reaction: Reaction,
     composition: Composition,

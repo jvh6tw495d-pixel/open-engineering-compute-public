@@ -20,6 +20,7 @@ from oec.chemistry.electrochemistry import (
 from oec.chemistry.equilibrium import (
     EQUILIBRIUM_ASSUMPTIONS,
     ReactionQuotient,
+    equilibrium_constant_from_delta_g,
     evaluate_equilibrium,
     extent_to_equilibrium_binary,
     reaction_quotient_concentration,
@@ -64,6 +65,7 @@ __all__ = [
     "TRANSPORT_ASSUMPTIONS",
     "arrhenius_rate_constant",
     "batch_extent_euler_step",
+    "equilibrium_constant_from_delta_g",
     "evaluate_equilibrium",
     "extent_to_equilibrium_binary",
     "fick_flux_1d",

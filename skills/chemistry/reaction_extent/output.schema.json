@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["extent_mol", "max_extent_mol", "amounts_mol", "atom_balance_ok"],
+  "properties": {
+    "extent_mol": { "type": "number" },
+    "max_extent_mol": { "type": "number", "minimum": 0 },
+    "amounts_mol": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    },
+    "atom_balance_ok": { "type": "boolean" }
+  }
+}

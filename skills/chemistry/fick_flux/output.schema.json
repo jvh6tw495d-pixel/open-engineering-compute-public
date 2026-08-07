@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["flux_mol_per_m2_s", "diffusivity_m2_s", "dc_dx_mol_per_m4"],
+  "properties": {
+    "flux_mol_per_m2_s": { "type": "number" },
+    "diffusivity_m2_s": { "type": "number", "exclusiveMinimum": 0 },
+    "dc_dx_mol_per_m4": { "type": "number" }
+  }
+}

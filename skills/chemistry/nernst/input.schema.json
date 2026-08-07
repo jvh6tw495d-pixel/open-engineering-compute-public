@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["e0_v", "n_electrons", "reaction_quotient"],
+  "properties": {
+    "e0_v": { "type": "number", "description": "Standard cell potential E° in volts" },
+    "n_electrons": { "type": "integer", "minimum": 1 },
+    "reaction_quotient": { "type": "number", "exclusiveMinimum": 0 },
+    "temperature_k": { "type": "number", "exclusiveMinimum": 0, "default": 298.15 }
+  }
+}

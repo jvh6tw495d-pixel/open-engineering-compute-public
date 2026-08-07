@@ -1,0 +1,9 @@
+{
+  "description": "4 mol H2 + 1 mol O2, ξ=1 → O2 exhausted, 2 mol H2O",
+  "input": {
+    "h2_mol": 4.0,
+    "o2_mol": 1.0,
+    "h2o_mol": 0.0,
+    "extent_mol": 1.0
+  }
+}

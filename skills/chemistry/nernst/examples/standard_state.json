@@ -1,0 +1,9 @@
+{
+  "description": "Q=1 → E = E0 (1.23 V water electrolysis scale, illustrative)",
+  "input": {
+    "e0_v": 1.23,
+    "n_electrons": 2,
+    "reaction_quotient": 1.0,
+    "temperature_k": 298.15
+  }
+}
