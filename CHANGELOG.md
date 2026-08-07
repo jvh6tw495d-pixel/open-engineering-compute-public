@@ -7,14 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [3.0.0] � 2026-08-06
+## [3.1.0] - 2026-08-06
+
+**Feature release — Chemistry foundation (2.8) + Scientific IR / Model Registry (2.9).**
+
+Closes the deferred V3 work packages that sat after multiphysics (2.7) and the
+Option C platform cut (3.0). Package version is `3.1.0` (not a rewind to
+`2.8.0`/`2.9.0`) because `3.0.0` was already claimed as the public-claimable
+platform baseline.
+
+### Added
+
+- `src/oec/chemistry/` — species, stoichiometry (atom/charge balance, extent),
+  Fick 1-D transport, Qc/Kc equilibrium, Arrhenius + batch Euler kinetics,
+  Nernst cell potential (C1–C4 + wave-0; ADR 0029).
+- `src/oec/modeling/scientific_ir.py` — Scientific IR document v0 (species,
+  reactions, law/property refs, conservation goals; ADR 0030).
+- `src/oec/registry/` — Model Registry with fidelity tags
+  `reduced|mid|high`, deprecate path, JSON catalog, seeded defaults.
+- ADR `0029-chemistry-foundation.md`, `0030-scientific-ir-and-model-registry.md`
+- Closeouts `v2.8-CLOSEOUT.md`, `v2.9-CLOSEOUT.md`
+- Tests: `tests/unit/chemistry/`, `tests/unit/test_scientific_ir_and_registry.py`
+
+### Notes
+
+- Nernst (C4) is **not** BESS energy-based SOC (`oec.physics.storage`).
+- Public remote push remains **HUMAN_GATE** (ADR 0008).
+- Multi-reaction networks, Gibbs minimiser, strong coupling: still deferred.
+
+## [3.0.0] - 2026-08-06
 
 **Public platform claim (local).** First `3.0.0` cut of the skill-based engineering
 compute platform including Scientific Kernel through multiphysics weak co-sim (2.7).
 
 ### Claim (explicit Option C from V3 plan)
 
-- **In scope:** installable `oec` library, skills, SDK/CLI/REST/MCP, physics P1�P5 +
+- **In scope:** installable `oec` library, skills, SDK/CLI/REST/MCP, physics P1–P5 +
   energy, multiphysics coupling v0, agents (out of wheel).
 - **Deferred to 3.1+:** chemistry complete, Model Registry full V3, public remote push
   (human step), strong coupling.
@@ -23,13 +51,14 @@ compute platform including Scientific Kernel through multiphysics weak co-sim (2
 
 ### Changed
 
-- `scripts/check_forbidden_names.py` � product brands case-sensitive (avoid false
+- `scripts/check_forbidden_names.py` - product brands case-sensitive (avoid false
   positive on English "horizon").
-- `scripts/prepare_public_alpha.py` � exclude `docs/implementation` incubation reports.
+- `scripts/prepare_public_alpha.py` - exclude `docs/implementation` incubation reports.
 
 ### Added
 
 - `docs/implementation/v3.0-CLOSEOUT.md`
+
 ## [2.7.0] — 2026-08-06
 
 **Feature release — Multiphysics coupling (weak co-sim v0).** Platform extension

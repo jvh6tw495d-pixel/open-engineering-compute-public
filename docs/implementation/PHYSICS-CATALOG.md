@@ -214,9 +214,10 @@ Valores típicos por célula:
    - critério de convergência / residual de coupling
    - rollback / checkpoint em falha de co-sim
    - **não** basta “≥2 físicas estáveis”
-4. **v2.8 — Chemistry** (V3): reações, estequiometria, equilíbrio químico básico;
-   C4 eletroquímica de célula genérica (≠ BESS energy-based SOC do 2.6.1).
-   **Pré-condição / 1ª wave:** species transport/diffusion v0.
+4. **v2.8 — Chemistry** (V3): **DELIVERED as foundation v0 in `oec==3.1.0`**
+   (`src/oec/chemistry/`, ADR 0029) — species/stoichiometry, Qc/Kc equilibrium,
+   Arrhenius batch, Nernst C4 (≠ BESS SOC), Fick 1-D transport wave-0.
+   Skills thin-wraps / multi-reaction / Gibbs minimiser: still deferred.
 5. **Pós-v2.9**: óptica, acústica, matéria condensada, física moderna/quântica,
    núcleo/astro/campos — conforme demanda e maturidade do IR.
 
