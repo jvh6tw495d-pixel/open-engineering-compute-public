@@ -21,5 +21,4 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             "dc_dx_mol_per_m4": res.dc_dx_mol_per_m4,
         },
         "diagnostics": {},
-        "assumptions": [a.text for a in res.assumptions],
     }

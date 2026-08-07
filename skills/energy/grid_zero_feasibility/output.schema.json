@@ -3,32 +3,69 @@
   "title": "energy.grid_zero_feasibility output",
   "type": "object",
   "additionalProperties": false,
-  "required": ["feasible", "deficit_per_period", "balance_residual", "flags"],
+  "required": [
+    "feasible",
+    "deficit_per_period",
+    "balance_residual",
+    "flags"
+  ],
   "properties": {
-    "feasible": { "type": "boolean" },
+    "feasible": {
+      "type": "boolean"
+    },
     "deficit_per_period": {
       "type": "array",
-      "items": { "type": "number", "minimum": 0 },
-      "description": "Local unmet load if grid were removed (Wh after power×dt)."
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "x-oec-dimensionless": true
+      },
+      "description": "Local unmet load if grid were removed (Wh after power\u00d7dt).",
+      "x-oec-dimensionless": true
     },
     "balance_residual": {
       "type": "array",
-      "items": { "type": "number" },
-      "description": "Hybrid residuals including the provided grid (Wh)."
+      "items": {
+        "type": "number",
+        "x-oec-dimensionless": true
+      },
+      "description": "Hybrid residuals including the provided grid (Wh).",
+      "x-oec-dimensionless": true
     },
     "flags": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "balance_ok": { "type": "boolean" },
-        "has_deficit": { "type": "boolean" },
-        "has_grid_import": { "type": "boolean" },
-        "has_grid_export": { "type": "boolean" },
-        "grid_zero": { "type": "boolean" }
+        "balance_ok": {
+          "type": "boolean"
+        },
+        "has_deficit": {
+          "type": "boolean"
+        },
+        "has_grid_import": {
+          "type": "boolean"
+        },
+        "has_grid_export": {
+          "type": "boolean"
+        },
+        "grid_zero": {
+          "type": "boolean"
+        }
       }
     },
-    "n": { "type": "integer", "minimum": 1, "x-oec-dimensionless": true },
-    "unit": { "type": "string", "const": "Wh" },
-    "tolerance": { "type": "number", "minimum": 0 }
+    "n": {
+      "type": "integer",
+      "minimum": 1,
+      "x-oec-dimensionless": true
+    },
+    "unit": {
+      "type": "string",
+      "const": "Wh"
+    },
+    "tolerance": {
+      "type": "number",
+      "minimum": 0,
+      "x-oec-dimensionless": true
+    }
   }
 }

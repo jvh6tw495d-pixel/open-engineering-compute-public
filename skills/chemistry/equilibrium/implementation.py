@@ -32,5 +32,4 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             "at_equilibrium": eq.at_equilibrium,
         },
         "diagnostics": {},
-        "assumptions": [x.text for x in eq.assumptions],
     }

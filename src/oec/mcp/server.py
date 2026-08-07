@@ -87,7 +87,19 @@ _DOMAIN_GROUPS: dict[str, tuple[str, ...]] = {
     _AGENT_OPTIMIZATION_TOOL_NAME: ("optimization",),
     _AGENT_APPLIED_MATH_TOOL_NAME: ("mathematics", "linear", "statistics", "numerical"),
     _AGENT_TIME_SERIES_TOOL_NAME: ("timeseries",),
-    _AGENT_ENERGY_TOOL_NAME: ("energy", "battery", "electrical"),
+    # Chemistry / multiphysics / foundation physics skills are surfaced via the
+    # Energy specialist until dedicated specialists exist (3.3.1 recovery).
+    _AGENT_ENERGY_TOOL_NAME: (
+        "energy",
+        "battery",
+        "electrical",
+        "chemistry",
+        "multiphysics",
+        "thermal",
+        "mechanics",
+        "fluids",
+        "materials",
+    ),
     _AGENT_CONTROL_DYNAMICS_TOOL_NAME: ("control", "dynamics"),
     _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: ("finance", "uncertainty"),
 }
@@ -388,7 +400,28 @@ def _infer_domain_from_request(request: str) -> str | None:
         return "mathematics"
     if any(
         _contains_token(text, token)
-        for token in ("battery", "energia", "energy", "soc", "three phase", "três fases")
+        for token in (
+            "battery",
+            "energia",
+            "energy",
+            "soc",
+            "three phase",
+            "três fases",
+            "chemistry",
+            "química",
+            "nernst",
+            "arrhenius",
+            "stoichiometry",
+            "multiphysics",
+            "multifísica",
+            "coupling",
+            "acoplamento",
+            "thermal",
+            "térmico",
+            "bernoulli",
+            "thd",
+            "harmonic",
+        )
     ):
         return "energy"
     if any(

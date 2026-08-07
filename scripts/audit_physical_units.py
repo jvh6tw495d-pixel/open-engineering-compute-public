@@ -119,7 +119,15 @@ def audit_schema(skill: str, name: str, schema: dict[str, Any]) -> list[Finding]
         if quantity and _is_numeric(field_schema):
             findings.append(Finding(skill, name, field, "bare numeric field is unclassified"))
             continue
+        # Bare numeric / numeric arrays may carry an explicit x-oec-unit (e.g.
+        # energy series in Wh) without using the {value, unit} quantity object.
         if not quantity:
+            if isinstance(unit, str) and unit.strip():
+                try:
+                    QuantityValue(value=0.0, unit=unit)
+                except ValidationError:
+                    findings.append(Finding(skill, name, field, f"invalid x-oec-unit {unit!r}"))
+                continue
             findings.append(Finding(skill, name, field, "bare numeric field is unclassified"))
             continue
         if (not isinstance(unit, str) or not unit.strip()) and not registry_exception:

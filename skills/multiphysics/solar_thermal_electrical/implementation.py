@@ -37,5 +37,9 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             "residual": state.residual,
             "energy_closure_w": state.energy_closure_w,
         },
-        "diagnostics": {},
+        "diagnostics": {
+            "converged": True,
+            "iterations": state.iterations,
+            "residual": state.residual,
+        },
     }

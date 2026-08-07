@@ -3,7 +3,14 @@
   "title": "energy.hybrid_balance input",
   "type": "object",
   "additionalProperties": false,
-  "required": ["load", "pv", "grid_import", "storage_charge", "storage_discharge", "dt_hours"],
+  "required": [
+    "load",
+    "pv",
+    "grid_import",
+    "storage_charge",
+    "storage_discharge",
+    "dt_hours"
+  ],
   "properties": {
     "load": {
       "type": "array",
@@ -11,10 +18,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W",
@@ -26,10 +41,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W"
@@ -40,10 +63,17 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number" },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W",
@@ -55,10 +85,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W"
@@ -69,10 +107,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W"
@@ -80,23 +126,33 @@
     "dt_hours": {
       "type": "object",
       "properties": {
-        "value": { "type": "number", "minimum": 0 },
-        "unit": { "type": "string" }
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string"
+        }
       },
-      "required": ["value", "unit"],
+      "required": [
+        "value",
+        "unit"
+      ],
       "additionalProperties": false,
       "x-oec-unit": "h",
-      "description": "Scalar step duration applied to every period (energy = power × dt)."
+      "description": "Scalar step duration applied to every period (energy = power \u00d7 dt)."
     },
     "atol": {
       "type": "number",
       "exclusiveMinimum": 0,
-      "description": "Absolute residual tolerance override (Wh)."
+      "description": "Absolute residual tolerance override (Wh).",
+      "x-oec-dimensionless": true
     },
     "rtol": {
       "type": "number",
       "exclusiveMinimum": 0,
-      "description": "Relative residual tolerance override."
+      "description": "Relative residual tolerance override.",
+      "x-oec-dimensionless": true
     }
   }
 }

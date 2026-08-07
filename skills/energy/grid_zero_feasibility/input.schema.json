@@ -18,10 +18,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W"
@@ -32,10 +40,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W"
@@ -46,10 +62,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W"
@@ -60,10 +84,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number", "minimum": 0 },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W"
@@ -74,10 +106,17 @@
       "items": {
         "type": "object",
         "properties": {
-          "value": { "type": "number" },
-          "unit": { "type": "string" }
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
         },
-        "required": ["value", "unit"],
+        "required": [
+          "value",
+          "unit"
+        ],
         "additionalProperties": false
       },
       "x-oec-unit": "W",
@@ -86,20 +125,30 @@
     "dt_hours": {
       "type": "object",
       "properties": {
-        "value": { "type": "number", "minimum": 0 },
-        "unit": { "type": "string" }
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string"
+        }
       },
-      "required": ["value", "unit"],
+      "required": [
+        "value",
+        "unit"
+      ],
       "additionalProperties": false,
       "x-oec-unit": "h"
     },
     "atol": {
       "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "x-oec-dimensionless": true
     },
     "rtol": {
       "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "x-oec-dimensionless": true
     }
   }
 }

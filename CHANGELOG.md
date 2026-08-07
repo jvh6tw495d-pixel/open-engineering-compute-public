@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-08-06
+
+**Release recovery** — catalog integrity + MCP domain routing + Engine proofs.
+
+### Fixed
+
+- Skill registration: YAML tags `2.7`/`2.8` quoted as strings (8 skills were failing to load)
+- Contract audit: `validation.py` stubs for 19 thin skills missing the file
+- Physical units audit: annotate bare numerics; accept bare series with `x-oec-unit`
+- Skill entrypoint contract: remove illegal `assumptions` key; multiphysics reports `diagnostics.converged`
+- MCP free-text: chemistry/multiphysics/foundation physics aliases → energy specialist surface
+
+### Added
+
+- `tests/integration/test_engine_new_domains_3_3_1.py` (Engine.run for 9 new-domain skills)
+- Recovery plan + closeout docs
+
+### Notes
+
+- Target public tag when you publish: **`v3.3.1`** (not `v3.0.0`)
+- 3.3.0 remains internal milestone history
+
 ## [3.3.0] - 2026-08-06
 
 **Feature — Multiphysics skills + THD + sequential chemistry network.**

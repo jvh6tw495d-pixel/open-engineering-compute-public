@@ -23,5 +23,4 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             "reaction_quotient": res.reaction_quotient,
         },
         "diagnostics": {},
-        "assumptions": [a.text for a in res.assumptions],
     }

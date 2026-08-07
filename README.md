@@ -1,10 +1,9 @@
 # Open Engineering Compute (OEC)
 
-> **Status:** **v2.5.1 refinement** — AR/autocorrelation time-series
-> package, catalog/routing reconciliation (private; V3 roadmap).
-> First **public GitHub** release is planned for **v3.0** — not this history
-> (see [Public Alpha procedure](docs/release/public-alpha.md) and
-> [V3 implementation plan](docs/implementation/OEC_V3_IMPLEMENTATION_PLAN.md)).
+> **Status:** **`oec==3.3.1` release candidate (private incubation).**
+> Skill catalog: **87** skills including chemistry, multiphysics coupling, and THD.
+> Recovery plan: [3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md).
+> **Do not** treat this tree as public `v3.0.0` — publish when ready as **`v3.3.1`**.
 
 Open Engineering Compute is an open framework for executable, versioned and
 auditable engineering skills. It lets different language models, agents,
