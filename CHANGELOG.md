@@ -9,15 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [3.1.1] - 2026-08-06
 
-**Option A realignment + 2.9 RC residual.**
+**Option A realignment + 2.9 RC residual + publishable 3.1 cut.**
 
-Restores the original V3 strategy (v3.0 = public GitHub only after 2.8–2.9).
-Withdraws the premature Option C “official 3.0” local claim.
+Restores the original V3 strategy (public launch is a human step). Withdraws the
+premature Option C “official 3.0” local claim. **3.1.1 is the recommended
+package/tag to publish.**
 
 ### Added
 
 - `docs/implementation/OPTION-A-REALIGNMENT.md`, `v2.9-RC-CLOSEOUT.md`,
-  `v3.0-PUBLIC-CHECKLIST.md`; `GOVERNANCE.md`; `docs/contracts/migrations.md`
+  `v3.0-PUBLIC-CHECKLIST.md`, `v3.1-CLOSEOUT.md`; `GOVERNANCE.md`;
+  `docs/contracts/migrations.md`; `docs/release/PUBLISH-3.1.md`
 - Domain docs `docs/api/chemistry.md`, `docs/api/registry.md`
 - Chemistry skills: `chemistry.nernst`, `chemistry.fick_flux`,
   `chemistry.reaction_extent` (thin + golden)
@@ -27,6 +29,11 @@ Withdraws the premature Option C “official 3.0” local claim.
 
 - `prepare_public_alpha` INCLUDE adds `GOVERNANCE.md`
 - `v3.0-CLOSEOUT.md` supersession under Option A
+
+### Publish
+
+- Local public sibling: `open-engineering-compute-public-3.1.1` (no remote)
+- Human: remote + `git tag v3.1.1` — see `docs/release/PUBLISH-3.1.md`
 
 ## [3.1.0] - 2026-08-06
 
