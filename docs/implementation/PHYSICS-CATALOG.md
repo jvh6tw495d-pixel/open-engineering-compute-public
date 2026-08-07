@@ -205,7 +205,7 @@ Valores típicos por célula:
    plataforma 2.6.0 + `kernel.energy` + Energy Specialist; **não** migra skills
    legadas até parity em release posterior; ownership de conservação **herdado**
    (ADR 0027 Accepted). See [v2.6.1-CLOSEOUT.md](v2.6.1-CLOSEOUT.md).
-3. **v2.7 — Multiphysics** (V3 §11): coupling graph, co-sim v0, acoplamentos
+3. **v2.7 — Multiphysics** (V3 §11): **DELIVERED in `oec==2.7.0`** (`src/oec/physics/coupling/`, ADR 0028, weak GS co-sim, I²R + solar/thermal/electrical). Historical plan text: coupling graph, co-sim v0, acoplamentos
    eléctrico+térmico, solar+térmico+eléctrico.
    **Gate adicional — coupling readiness contract** (obrigatório no plano v2.7):
    - ownership temporal do estado acoplado (quem avança o tempo / passo)

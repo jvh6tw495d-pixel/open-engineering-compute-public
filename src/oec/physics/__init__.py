@@ -1,6 +1,13 @@
 """Public API for the OEC Physics Foundation."""
 
 from oec.physics.conservation import aggregate_balance, evaluate_residual, evaluate_vector_residual
+
+# Coupling (2.7) — re-exported for discovery; prefer oec.physics.coupling
+from oec.physics.coupling import (  # noqa: E402
+    CouplingGraph,
+    run_solar_thermal_electrical_coupling,
+    run_wire_i2r_coupling,
+)
 from oec.physics.electrical import (
     DcPowerFlowResult,
     ElectricalNetworkError,
@@ -44,6 +51,9 @@ from oec.physics.thermal import (
 from oec.physics.types import PhysicsDomain, Residual, ValidityFrame
 
 __all__ = [
+    "CouplingGraph",
+    "run_solar_thermal_electrical_coupling",
+    "run_wire_i2r_coupling",
     "PV_ASSUMPTIONS",
     "BoundaryCondition",
     "ConservationError",

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.7.0] — 2026-08-06
+
+**Feature release — Multiphysics coupling (weak co-sim v0).** Platform extension
+under `oec.physics.coupling` per ADR 0028 and `v2.7-EXECUTION-PLAN.md`.
+
+### Added
+
+- `src/oec/physics/coupling/` — graph, schedule, convergence, checkpoint, co-sim
+  (Gauss–Seidel staggered), electrical↔thermal (I²R) and solar+thermal+electrical
+  adapters with golden tests.
+- ADR `0028-coupling-architecture.md`
+- `tests/unit/physics/test_coupling.py` (graph, engine, wire golden, PV energy
+  closure)
+
+### Notes
+
+- Strong/implicit coupling, chemistry, structural DOF: **out of scope** (2.8+).
+- Schema AA remains 1.1; no MCP tool expansion in this release.
+
 ## [2.6.2] — 2026-08-05
 
 **Feature release (patch number, feature scope).** Legacy energy/battery skills

@@ -1,3 +1,3 @@
 """Open Engineering Compute — executable, versioned and auditable engineering skills."""
 
-__version__ = "2.6.2"
+__version__ = "2.7.0"
