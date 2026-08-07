@@ -1,0 +1,13 @@
+{
+  "description": "Eigenvalues of diag([1, 2, 3]) are 1, 2, 3 exactly; derivable independently from the definition of a diagonal matrix (the closed-form eigendecomposition).",
+  "input": {
+    "A": [[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]]
+  },
+  "expected_output": {
+    "eigenvalues_real": [1.0, 2.0, 3.0],
+    "eigenvalues_imag": [0.0, 0.0, 0.0],
+    "n": 3,
+    "backend": "numpy",
+    "converged": null
+  }
+}

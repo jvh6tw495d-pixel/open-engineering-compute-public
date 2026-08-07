@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "n_points_requested": {
+      "type": "integer"
+    },
+    "n_solved_optimal": {
+      "type": "integer"
+    },
+    "n_nondominated": {
+      "type": "integer"
+    },
+    "points": {
+      "type": "array"
+    },
+    "nondominated": {
+      "type": "array"
+    },
+    "sense": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "backend": {
+      "type": "string"
+    },
+    "converged": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    }
+  },
+  "required": [
+    "n_points_requested",
+    "n_solved_optimal",
+    "n_nondominated",
+    "points",
+    "nondominated",
+    "method",
+    "backend"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.three_phase_power input",
+  "type": "object",
+  "properties": {
+    "voltage_line_to_line": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "V",
+      "description": "Line-to-line (phase-to-phase) RMS voltage of the balanced three-phase system"
+    },
+    "current_line": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "A",
+      "description": "Line RMS current of the balanced three-phase system"
+    },
+    "power_factor": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "cos(phi), magnitude only -- direction given separately by power_factor_type"
+    },
+    "power_factor_type": {
+      "type": "string",
+      "enum": ["lagging", "leading"],
+      "description": "lagging (inductive load, Q > 0) or leading (capacitive load, Q < 0); defaults to lagging"
+    }
+  },
+  "required": ["voltage_line_to_line", "current_line", "power_factor"],
+  "additionalProperties": false
+}

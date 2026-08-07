@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "q_solar_w",
+    "temperature_c",
+    "p_gen_w",
+    "q_diss_w",
+    "efficiency",
+    "energy_closure_w"
+  ],
+  "properties": {
+    "irradiance_w_m2": { "type": "number" },
+    "area_m2": { "type": "number" },
+    "q_solar_w": { "type": "number" },
+    "temperature_c": { "type": "number" },
+    "p_gen_w": { "type": "number" },
+    "q_diss_w": { "type": "number" },
+    "efficiency": { "type": "number" },
+    "iterations": { "type": "integer" },
+    "residual": { "type": "number" },
+    "energy_closure_w": { "type": "number" }
+  }
+}

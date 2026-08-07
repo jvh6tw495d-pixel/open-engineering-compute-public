@@ -1,0 +1,39 @@
+id: optimization.infeasibility_explain
+version: 0.2.0
+status: experimental
+domain: optimization
+title: Infeasibility Explanation (drop-one heuristic)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: drop_one_infeasibility_heuristic
+  version: 0.2.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 60
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Chinneck, J. W. (2008). Feasibility and Infeasibility in Optimization. Springer — discussion of IIS methods; this skill is a simpler drop-one heuristic, not a certified IIS."
+
+tags:
+  - experimental
+  - optimization
+  - feasibility

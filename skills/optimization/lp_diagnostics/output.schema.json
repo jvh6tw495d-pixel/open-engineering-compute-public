@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "optimization.lp_diagnostics output",
+  "type": "object",
+  "properties": {
+    "solver_status": { "type": "string" },
+    "objective_value": { "type": ["number", "null"] },
+    "primal": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "dual": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "reduced_costs": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "slacks": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "feasibility_issues": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "backend": { "type": "string", "const": "highs" }
+  },
+  "required": ["solver_status", "objective_value", "primal", "dual", "reduced_costs", "slacks", "feasibility_issues", "backend"],
+  "additionalProperties": false
+}

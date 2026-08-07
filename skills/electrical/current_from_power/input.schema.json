@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.current_from_power input",
+  "type": "object",
+  "properties": {
+    "power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W",
+      "description": "Active power (W) or apparent power (VA) -- which one is declared by power_type. Dimensionally identical in the underlying units engine; the label is what carries the engineering meaning."
+    },
+    "power_type": {
+      "type": "string",
+      "enum": ["active", "apparent"]
+    },
+    "voltage": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "V",
+      "description": "Single-phase: the system voltage. Three-phase: line-to-line voltage."
+    },
+    "phase_count": {
+      "type": "integer",
+      "enum": [1, 3]
+    },
+    "power_factor": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Required when power_type is 'active'; not accepted when power_type is 'apparent' (see validation.py)."
+    },
+    "efficiency": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "description": "Divides the given power to obtain the actual electrical power drawn from the supply (e.g. a motor's rated mechanical output vs. its electrical input). Defaults to 1.0 (no loss)."
+    }
+  },
+  "required": ["power", "power_type", "voltage", "phase_count"],
+  "additionalProperties": false
+}

@@ -1,0 +1,11 @@
+{
+  "description": "Maximum Drawdown",
+  "input": {
+    "prices": [
+      100.0,
+      120.0,
+      90.0,
+      110.0
+    ]
+  }
+}

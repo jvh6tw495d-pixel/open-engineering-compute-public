@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.ar_yule_walker input",
+  "type": "object",
+  "properties": {
+    "series": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "number" }
+    },
+    "order": { "type": "integer", "minimum": 1 },
+    "demean": { "type": "boolean" }
+  },
+  "required": ["series", "order"],
+  "additionalProperties": false
+}

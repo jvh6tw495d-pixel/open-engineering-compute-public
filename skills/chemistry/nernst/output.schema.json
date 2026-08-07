@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["e_v", "e0_v", "n_electrons", "temperature_k", "reaction_quotient"],
+  "properties": {
+    "e_v": { "type": "number" },
+    "e0_v": { "type": "number" },
+    "n_electrons": { "type": "integer", "minimum": 1 },
+    "temperature_k": { "type": "number", "exclusiveMinimum": 0 },
+    "reaction_quotient": { "type": "number", "exclusiveMinimum": 0 }
+  }
+}

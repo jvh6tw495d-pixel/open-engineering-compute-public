@@ -1,0 +1,10 @@
+{
+  "description": "V1=100, V3=3, V5=4 → THD = sqrt(9+16)/100 = 0.05",
+  "input": {
+    "fundamental": { "value": 100.0, "unit": "V" },
+    "harmonics": [
+      { "value": 3.0, "unit": "V" },
+      { "value": 4.0, "unit": "V" }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Equal moles, Kc=1 → at equilibrium",
+  "input": {
+    "a_mol": 1.0,
+    "b_mol": 1.0,
+    "kc": 1.0,
+    "volume_m3": 1.0
+  }
+}

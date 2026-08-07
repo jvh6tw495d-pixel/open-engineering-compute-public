@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.three_phase_power output",
+  "type": "object",
+  "properties": {
+    "active_power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "W" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "reactive_power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "var" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "Signed: positive for a lagging (inductive) load, negative for leading (capacitive)"
+    },
+    "apparent_power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "VA" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "power_factor": { "type": "number", "minimum": 0, "maximum": 1 },
+    "power_factor_type": { "type": "string", "enum": ["lagging", "leading"] }
+  },
+  "required": [
+    "active_power",
+    "reactive_power",
+    "apparent_power",
+    "power_factor",
+    "power_factor_type"
+  ],
+  "additionalProperties": false
+}

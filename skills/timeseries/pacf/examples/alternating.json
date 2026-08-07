@@ -1,0 +1,6 @@
+{
+  "series": [1.0, -1.0, 1.0, -1.0],
+  "nlags": 3,
+  "method": "levinson-durbin",
+  "demean": true
+}

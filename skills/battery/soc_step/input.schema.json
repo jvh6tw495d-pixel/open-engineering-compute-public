@@ -1,0 +1,55 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["soc", "power", "dt_hours", "capacity"],
+  "properties": {
+    "soc": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    },
+    "power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W"
+    },
+    "dt_hours": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "h"
+    },
+    "capacity": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "efficiency_charge": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    },
+    "efficiency_discharge": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    }
+  }
+}

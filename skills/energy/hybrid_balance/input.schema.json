@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "energy.hybrid_balance input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "load",
+    "pv",
+    "grid_import",
+    "storage_charge",
+    "storage_discharge",
+    "dt_hours"
+  ],
+  "properties": {
+    "load": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W",
+      "description": "Load power series (converted to energy via dt_hours)."
+    },
+    "pv": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    },
+    "grid_import": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W",
+      "description": "Grid power; positive = import, negative = export."
+    },
+    "storage_charge": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    },
+    "storage_discharge": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    },
+    "dt_hours": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "x-oec-unit": "h",
+      "description": "Scalar step duration applied to every period (energy = power \u00d7 dt)."
+    },
+    "atol": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Absolute residual tolerance override (Wh).",
+      "x-oec-dimensionless": true
+    },
+    "rtol": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Relative residual tolerance override.",
+      "x-oec-dimensionless": true
+    }
+  }
+}

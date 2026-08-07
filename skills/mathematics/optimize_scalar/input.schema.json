@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.optimize_scalar input",
+  "type": "object",
+  "properties": {
+    "expression": {
+      "type": "string",
+      "minLength": 1,
+      "description": "f(x) as a restricted-grammar expression in x, to be minimized"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["bounded", "brent", "golden"]
+    },
+    "bounds": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[lo, hi]; required for method=bounded, rejected for brent/golden"
+    },
+    "tolerance": { "type": "number", "exclusiveMinimum": 0 },
+    "max_iterations": { "type": "integer", "exclusiveMinimum": 0 }
+  },
+  "required": ["expression"],
+  "additionalProperties": false
+}

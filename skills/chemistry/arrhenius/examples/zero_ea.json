@@ -1,0 +1,8 @@
+{
+  "description": "Ea=0 → k = A",
+  "input": {
+    "pre_exponential": 42.0,
+    "activation_energy_j_per_mol": 0.0,
+    "temperature_k": 300.0
+  }
+}

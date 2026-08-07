@@ -1,0 +1,26 @@
+{
+  "$schema_comment": "Example Odysseus / MCP-host config for a local OEC checkout. Copy and adjust paths; do not commit secrets.",
+  "mcpServers": {
+    "oec": {
+      "command": "uv",
+      "args": [
+        "run",
+        "oec",
+        "server",
+        "mcp",
+        "--skills-root",
+        "skills"
+      ],
+      "cwd": "C:/Users/joaop/OneDrive/Anexos de email/Documentos/OEC",
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+  "notes": [
+    "Replace cwd with your absolute path to the OEC repository root.",
+    "Requires: uv sync --extra mcp",
+    "Tools exposed: list_skills + one tool per registered skill id.",
+    "Each skill tool's inputSchema is that skill's real input.schema.json."
+  ]
+}

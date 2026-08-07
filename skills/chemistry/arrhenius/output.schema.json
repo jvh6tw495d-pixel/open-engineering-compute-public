@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["k", "temperature_k", "pre_exponential", "activation_energy_j_per_mol"],
+  "properties": {
+    "k": { "type": "number", "exclusiveMinimum": 0 },
+    "temperature_k": { "type": "number", "exclusiveMinimum": 0 },
+    "pre_exponential": { "type": "number", "exclusiveMinimum": 0 },
+    "activation_energy_j_per_mol": { "type": "number", "minimum": 0 }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.dc_power_flow output",
+  "type": "object",
+  "$defs": {
+    "conservationCheck": {
+      "type": "object",
+      "properties": {
+        "residual": { "type": "number" },
+        "balanced": { "type": "boolean" },
+        "atol": { "type": "number", "minimum": 0 },
+        "rtol": { "type": "number", "minimum": 0 },
+        "scale": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string", "minLength": 1 }
+      },
+      "required": ["residual", "balanced", "atol", "rtol", "scale", "unit"],
+      "additionalProperties": false
+    },
+    "assumption": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "source": { "type": ["string", "null"] }
+      },
+      "required": ["text", "source"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "slack_bus": { "type": "string" },
+    "angles": {
+      "type": "object",
+      "additionalProperties": { "type": "number" },
+      "description": "theta_i in rad, relative to the slack bus (theta_slack = 0)."
+    },
+    "flows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from_bus": { "type": "string" },
+          "to_bus": { "type": "string" },
+          "power": { "type": "number" }
+        },
+        "required": ["from_bus", "to_bus", "power"],
+        "additionalProperties": false
+      }
+    },
+    "node_balance": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/conservationCheck" }
+    },
+    "balance": { "$ref": "#/$defs/conservationCheck" },
+    "assumptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assumption" }
+    }
+  },
+  "required": ["slack_bus", "angles", "flows", "node_balance", "balance", "assumptions"],
+  "additionalProperties": false
+}

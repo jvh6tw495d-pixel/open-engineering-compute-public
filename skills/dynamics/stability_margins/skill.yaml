@@ -1,0 +1,39 @@
+id: dynamics.stability_margins
+version: 0.2.0
+status: experimental
+domain: dynamics
+title: LTI Stability Margins
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: eigenvalue_stability
+  version: 0.2.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "See references.md"
+
+tags:
+  - v2.3
+  - wave-b
+  - dynamics

@@ -1,0 +1,12 @@
+{
+  "description": "Cubic spline of y=x**3 at five knots (not-a-knot recovers cubics exactly); independent closed-form reference",
+  "input": {
+    "x": [0.0, 1.0, 2.0, 3.0, 4.0],
+    "y": [0.0, 1.0, 8.0, 27.0, 64.0],
+    "query_points": [0.5, 1.5, 2.5, 3.5],
+    "method": "cubic_spline"
+  },
+  "expected_output": {
+    "values": [0.125, 3.375, 15.625, 42.875]
+  }
+}

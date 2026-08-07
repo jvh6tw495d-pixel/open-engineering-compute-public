@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "decision_vars": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "lower": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "upper": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "loss_scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "number"
+        }
+      }
+    },
+    "alpha": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "structural_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "coeffs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "sense": {
+            "type": "string",
+            "enum": [
+              "<=",
+              ">=",
+              "="
+            ]
+          },
+          "rhs": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "coeffs",
+          "sense",
+          "rhs"
+        ]
+      }
+    }
+  },
+  "required": [
+    "decision_vars",
+    "loss_scenarios",
+    "alpha"
+  ],
+  "additionalProperties": false
+}

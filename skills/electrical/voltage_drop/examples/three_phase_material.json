@@ -1,0 +1,23 @@
+{
+  "description": "Three-phase balanced feeder: 50 A, 380 V LL, PF 0.9 lagging, 100 m one-way, copper 10 mm^2 (rho=0.017241 -> R=0.0017241 ohm/m), X=0. dV = sqrt(3)*I*L*R*PF.",
+  "input": {
+    "load_type": "current",
+    "phase_count": 3,
+    "voltage_reference": { "value": 380, "unit": "V" },
+    "power_factor": 0.9,
+    "power_factor_type": "lagging",
+    "length": { "value": 100, "unit": "m" },
+    "current": { "value": 50, "unit": "A" },
+    "material": "copper",
+    "cross_section": { "value": 10, "unit": "mm^2" }
+  },
+  "expected_output": {
+    "voltage_drop": { "value": 13.438029587982754, "unit": "V" },
+    "voltage_drop_percent": 3.536323575784935,
+    "current_used": { "value": 50.0, "unit": "A" },
+    "resistance_per_length_used": { "value": 0.0017241, "unit": "ohm/m" },
+    "reactance_per_length_used": { "value": 0.0, "unit": "ohm/m" },
+    "phase_count": 3,
+    "power_factor_type": "lagging"
+  }
+}

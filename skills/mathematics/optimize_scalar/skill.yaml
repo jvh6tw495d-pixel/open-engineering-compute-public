@@ -1,0 +1,40 @@
+id: mathematics.optimize_scalar
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Optimize Scalar
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: scalar_minimization
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Brent, R. P. (1973). Algorithms for Minimization Without Derivatives. Prentice-Hall, Chapter 5."
+  - "Press, W. H. et al. (2007). Numerical Recipes, 3rd ed., Section 10.2 (golden section search) and 10.3 (Brent's method)."
+  - "SciPy documentation: scipy.optimize.minimize_scalar"
+
+tags:
+  - mvp
+  - optimization

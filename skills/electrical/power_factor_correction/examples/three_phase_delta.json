@@ -1,0 +1,20 @@
+{
+  "description": "100 kW load, PF 0.8 -> 0.95, 380 V LL, 50 Hz, three-phase delta. Q_c = P*(tan acosos) ; C = Q_c/(3*w*V^2).",
+  "input": {
+    "active_power": { "value": 100000, "unit": "W" },
+    "existing_power_factor": 0.8,
+    "desired_power_factor": 0.95,
+    "voltage": { "value": 380, "unit": "V" },
+    "frequency": { "value": 50, "unit": "Hz" },
+    "phase_count": 3,
+    "connection": "delta"
+  },
+  "expected_output": {
+    "existing_reactive_power": { "value": 74999.99999999997, "unit": "var" },
+    "desired_reactive_power": { "value": 32868.41051788632, "unit": "var" },
+    "capacitor_reactive_power": { "value": 42131.58948211365, "unit": "var" },
+    "capacitance_per_unit": { "value": 309.57759586319924, "unit": "uF" },
+    "connection": "delta",
+    "phase_count": 3
+  }
+}

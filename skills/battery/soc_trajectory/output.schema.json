@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "battery.soc_trajectory output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "soc_path",
+    "soc",
+    "delta_soc",
+    "energy_delta",
+    "unit",
+    "clipped",
+    "any_clipped",
+    "soc_final"
+  ],
+  "properties": {
+    "soc_path": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "x-oec-dimensionless": true
+      },
+      "description": "Length N+1 (initial + after each step).",
+      "x-oec-dimensionless": true
+    },
+    "soc": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "x-oec-dimensionless": true
+      },
+      "description": "Length N (SOC after each step).",
+      "x-oec-dimensionless": true
+    },
+    "delta_soc": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "x-oec-dimensionless": true
+      },
+      "x-oec-dimensionless": true
+    },
+    "energy_delta": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "x-oec-unit": "Wh"
+      },
+      "description": "Per-step energy delta into the pack in Wh (power \u00d7 dt \u00d7 \u03b7).",
+      "x-oec-unit": "Wh"
+    },
+    "unit": {
+      "type": "string",
+      "const": "Wh"
+    },
+    "clipped": {
+      "type": "array",
+      "items": {
+        "type": "boolean"
+      }
+    },
+    "any_clipped": {
+      "type": "boolean"
+    },
+    "soc_final": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    }
+  }
+}

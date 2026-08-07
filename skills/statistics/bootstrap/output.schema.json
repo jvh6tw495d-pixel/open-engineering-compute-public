@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "statistics.bootstrap output",
+  "type": "object",
+  "properties": {
+    "statistic": { "type": "string", "enum": ["mean", "median", "variance"] },
+    "point_estimate": { "type": "number" },
+    "n": { "type": "integer", "minimum": 1 },
+    "n_resamples": { "type": "integer", "minimum": 1 },
+    "confidence_level": { "type": "number" },
+    "lower": { "type": "number" },
+    "upper": { "type": "number" },
+    "backend": { "type": "string" }
+  },
+  "required": ["statistic", "point_estimate", "n", "n_resamples", "confidence_level", "lower", "upper", "backend"],
+  "additionalProperties": false
+}

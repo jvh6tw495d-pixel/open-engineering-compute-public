@@ -1,0 +1,40 @@
+id: linear.residual_norms
+version: 0.1.0
+status: experimental
+domain: linear
+title: Residual Norms (L1, L2, Linf)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: numpy_vector_norms
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 10
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "NumPy linalg.norm — https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html"
+
+tags:
+  - mvp
+  - linear
+  - linalg
+  - residual

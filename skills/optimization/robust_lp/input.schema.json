@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "ops": {
+      "type": "object"
+    },
+    "rhs_uncertainty": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
+      }
+    }
+  },
+  "required": [
+    "ops",
+    "rhs_uncertainty"
+  ],
+  "additionalProperties": false
+}

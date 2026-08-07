@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["power_values"],
+  "properties": {
+    "power_values": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number" },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W"
+    }
+  }
+}

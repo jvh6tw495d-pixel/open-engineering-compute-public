@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "returns"
+  ],
+  "properties": {
+    "returns": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    },
+    "confidence": {
+      "type": "number",
+      "exclusiveMinimum": 0.5,
+      "exclusiveMaximum": 1.0
+    }
+  }
+}

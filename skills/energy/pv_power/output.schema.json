@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "energy.pv_power output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["power", "temperature_factor", "efficiency_effective"],
+  "properties": {
+    "power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "W" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W"
+    },
+    "temperature_factor": {
+      "type": "number",
+      "x-oec-dimensionless": true
+    },
+    "efficiency_effective": {
+      "type": "number",
+      "x-oec-dimensionless": true
+    }
+  }
+}

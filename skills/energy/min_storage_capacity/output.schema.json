@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "energy.min_storage_capacity output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["optimal_capacity", "trajectory", "solver_status", "backend"],
+  "properties": {
+    "optimal_capacity": {
+      "type": "object",
+      "properties": {
+        "value": { "type": ["number", "null"] },
+        "unit": { "type": "string", "const": "Wh" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "trajectory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["charge", "discharge", "grid_import", "stored_energy", "soc"],
+      "properties": {
+        "charge": { "type": "array", "items": { "type": "number" } },
+        "discharge": { "type": "array", "items": { "type": "number" } },
+        "grid_import": { "type": "array", "items": { "type": "number" } },
+        "stored_energy": { "type": "array", "items": { "type": "number" } },
+        "soc": { "type": "array", "items": { "type": "number" } },
+        "curtailment": { "type": "array", "items": { "type": "number" } }
+      }
+    },
+    "dual_values": {
+      "type": "object",
+      "additionalProperties": { "type": "number" },
+      "description": "Constraint duals from optimization.lp when available."
+    },
+    "solver_status": { "type": "string" },
+    "backend": { "type": "string" },
+    "feasibility_issues": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "horizon_hours": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "h" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "h"
+    },
+    "n": { "type": "integer", "minimum": 1, "x-oec-dimensionless": true }
+  }
+}

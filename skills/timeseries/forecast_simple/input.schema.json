@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.forecast_simple input",
+  "type": "object",
+  "properties": {
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number" }
+    },
+    "steps_ahead": { "type": "integer", "exclusiveMinimum": 0 },
+    "method": {
+      "type": "string",
+      "enum": ["naive", "mean", "seasonal_naive"]
+    },
+    "period": { "type": ["null", "integer"], "exclusiveMinimum": 0 }
+  },
+  "required": ["series", "steps_ahead", "method"],
+  "additionalProperties": false
+}

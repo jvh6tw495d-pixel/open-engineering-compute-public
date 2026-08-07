@@ -1,0 +1,40 @@
+id: electrical.transformer_loading
+version: 0.1.0
+status: experimental
+domain: electrical
+title: Transformer Loading
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: apparent_power_loading
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: true
+  physical: true
+  numerical: true
+
+references:
+  - "IEEE Std C57.91-2011 — Guide for Loading Mineral-Oil-Immersed Transformers (loading ratio definition)."
+  - "Chapman, S. J. (2011). Electric Machinery Fundamentals, 5th ed., McGraw-Hill, Chapter 2 (transformer ratings)."
+
+tags:
+  - mvp
+  - transformer
+  - loading

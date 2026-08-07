@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "statistics.intervals output",
+  "type": "object",
+  "properties": {
+    "mean": { "type": "number" },
+    "sample_standard_deviation": { "type": ["number", "null"], "minimum": 0 },
+    "population_standard_deviation": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "dispersion_used": {
+      "type": "string",
+      "enum": ["sample_standard_deviation", "population_standard_deviation"]
+    },
+    "n": { "type": "integer", "minimum": 1 },
+    "confidence_level": { "type": "number" },
+    "distribution": { "type": "string", "enum": ["student_t", "gaussian"] },
+    "df": { "type": ["null", "number"] },
+    "lower": { "type": "number" },
+    "upper": { "type": "number" },
+    "half_width": { "type": "number", "minimum": 0 },
+    "backend": { "type": "string" }
+  },
+  "required": [
+    "mean",
+    "sample_standard_deviation",
+    "population_standard_deviation",
+    "dispersion_used",
+    "n",
+    "confidence_level",
+    "distribution",
+    "df",
+    "lower",
+    "upper",
+    "half_width",
+    "backend"
+  ],
+  "additionalProperties": false
+}

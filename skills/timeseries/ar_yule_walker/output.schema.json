@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.ar_yule_walker output",
+  "type": "object",
+  "properties": {
+    "ar_coefficients": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "order_requested": { "type": "integer", "minimum": 1 },
+    "order_reached": { "type": "integer", "minimum": 0 },
+    "is_positive_definite": { "type": "boolean" },
+    "innovation_variance": { "type": "number", "minimum": 0 },
+    "sample_variance": { "type": "number", "minimum": 0 },
+    "acf_used": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "n": { "type": "integer", "minimum": 2 },
+    "demean": { "type": "boolean" },
+    "method": { "type": "string" },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": [
+    "ar_coefficients",
+    "order_requested",
+    "order_reached",
+    "is_positive_definite",
+    "innovation_variance",
+    "sample_variance",
+    "acf_used",
+    "n",
+    "demean",
+    "method",
+    "backend",
+    "converged"
+  ],
+  "additionalProperties": false
+}

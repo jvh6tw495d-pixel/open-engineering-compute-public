@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "fluids.bernoulli input",
+  "type": "object",
+  "$defs": {
+    "quantity": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "pressure_upstream": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "Pa"
+    },
+    "pressure_downstream": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "Pa"
+    },
+    "velocity_upstream": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m / s"
+    },
+    "velocity_downstream": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m / s"
+    },
+    "elevation_upstream": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m"
+    },
+    "elevation_downstream": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m"
+    },
+    "density": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "kg / m ** 3"
+    },
+    "friction_factor": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Darcy friction factor f, dimensionless. Supplied as input; not derived from Reynolds number or pipe roughness.",
+      "x-oec-dimensionless": true
+    },
+    "length": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m"
+    },
+    "diameter": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m"
+    },
+    "gravity": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m / s ** 2",
+      "description": "Defaults to standard gravity (9.80665 m/s^2)."
+    }
+  },
+  "required": [
+    "pressure_upstream",
+    "pressure_downstream",
+    "velocity_upstream",
+    "velocity_downstream",
+    "elevation_upstream",
+    "elevation_downstream",
+    "density",
+    "friction_factor",
+    "length",
+    "diameter"
+  ],
+  "additionalProperties": false
+}

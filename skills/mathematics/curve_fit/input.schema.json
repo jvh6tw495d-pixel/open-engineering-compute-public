@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.curve_fit input",
+  "type": "object",
+  "properties": {
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "y = model(x; parameter_names...); the independent variable is always named 'x'"
+    },
+    "parameter_names": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "names of the parameters to fit, in order; referenced by 'model', not including 'x'"
+    },
+    "x": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1,
+      "description": "independent-variable data"
+    },
+    "y": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1,
+      "description": "dependent-variable data, same length as 'x'"
+    },
+    "initial_guess": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1,
+      "description": "starting point for the fit; same length and order as 'parameter_names'"
+    },
+    "bounds": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": ["number", "null"] },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "description": "[lo, hi] per parameter, same length/order as 'parameter_names'; null means unbounded on that side"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["lm", "trf", "dogbox"]
+    },
+    "max_iterations": { "type": "integer", "exclusiveMinimum": 0 }
+  },
+  "required": ["model", "parameter_names", "x", "y", "initial_guess"],
+  "additionalProperties": false
+}

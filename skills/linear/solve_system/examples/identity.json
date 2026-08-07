@@ -1,0 +1,19 @@
+{
+  "description": "Solve Linear System Ax=b",
+  "input": {
+    "A": [
+      [
+        2.0,
+        0.0
+      ],
+      [
+        0.0,
+        2.0
+      ]
+    ],
+    "b": [
+      2.0,
+      4.0
+    ]
+  }
+}

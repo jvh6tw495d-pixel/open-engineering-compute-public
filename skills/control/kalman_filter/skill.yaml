@@ -1,0 +1,40 @@
+id: control.kalman_filter
+version: 0.2.0
+status: experimental
+domain: control
+title: Discrete Linear Kalman Filter
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: discrete_linear_kalman_joseph
+  version: 0.2.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Kalman, R. E. (1960). A New Approach to Linear Filtering and Prediction Problems. ASME J. Basic Eng."
+  - "Grewal & Andrews — Kalman Filtering (Joseph form covariance update)."
+
+tags:
+  - v2.3
+  - wave-b
+  - control

@@ -1,0 +1,41 @@
+id: electrical.voltage_drop
+version: 0.1.0
+status: experimental
+domain: electrical
+title: Voltage Drop
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: conductor_voltage_drop
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: true
+  physical: true
+  numerical: true
+
+references:
+  - "ABNT NBR 5410:2004, Instalacoes eletricas de baixa tensao, section 6.2.7 (queda de tensao)."
+  - "Fitzgerald, A. E., Kingsley, C., Umans, S. D. (2013). Electric Machinery, 7th ed., McGraw-Hill, Chapter 2 (line impedance, R and X per unit length)."
+  - "IEC 60228:2004, Conductors of insulated cables -- resistivity reference values for copper and aluminium."
+
+tags:
+  - mvp
+  - voltage-drop
+  - conductor

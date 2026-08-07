@@ -1,0 +1,8 @@
+{
+  "description": "Build Regular Time Grid",
+  "input": {
+    "start": "2024-01-01T00:00:00",
+    "end": "2024-01-01T03:00:00",
+    "freq": "1h"
+  }
+}

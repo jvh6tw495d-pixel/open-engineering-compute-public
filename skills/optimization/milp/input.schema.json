@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "optimization.milp input",
+  "type": "object",
+  "properties": {
+    "ops": {
+      "type": "object",
+      "description": "OPS v0.1 document with problem_class=milp"
+    }
+  },
+  "required": ["ops"],
+  "additionalProperties": false
+}

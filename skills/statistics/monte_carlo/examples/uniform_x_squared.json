@@ -1,0 +1,10 @@
+{
+  "description": "Monte Carlo Mean Estimator",
+  "input": {
+    "expression": "x**2",
+    "n_samples": 5000,
+    "low": 0.0,
+    "high": 1.0,
+    "seed": 42
+  }
+}

@@ -1,0 +1,3 @@
+# References
+
+- pandas.Series.resample

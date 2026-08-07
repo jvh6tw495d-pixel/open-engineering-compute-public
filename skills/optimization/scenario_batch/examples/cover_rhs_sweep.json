@@ -1,0 +1,47 @@
+{
+  "description": "OPS Scenario Batch Sweep",
+  "input": {
+    "ops": {
+      "ops_version": "0.1.0",
+      "problem_class": "lp",
+      "sense": "min",
+      "variables": [
+        {
+          "name": "x",
+          "kind": "continuous",
+          "lower": 0,
+          "upper": 1
+        },
+        {
+          "name": "y",
+          "kind": "continuous",
+          "lower": 0,
+          "upper": 1
+        }
+      ],
+      "constraints": [
+        {
+          "name": "cover",
+          "coeffs": {
+            "x": 1,
+            "y": 1
+          },
+          "sense": ">=",
+          "rhs": 1
+        }
+      ],
+      "objective": {
+        "coeffs": {
+          "x": 1,
+          "y": 1
+        }
+      }
+    },
+    "path": "constraint:cover.rhs",
+    "values": [
+      0.5,
+      1.0,
+      1.5
+    ]
+  }
+}

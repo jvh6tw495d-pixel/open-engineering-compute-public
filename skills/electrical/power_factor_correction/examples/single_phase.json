@@ -1,0 +1,20 @@
+{
+  "description": "10 kW single-phase, PF 0.7 -> 0.95, 230 V, 60 Hz. C = Q_c/(w*V^2).",
+  "input": {
+    "active_power": { "value": 10000, "unit": "W" },
+    "existing_power_factor": 0.7,
+    "desired_power_factor": 0.95,
+    "voltage": { "value": 230, "unit": "V" },
+    "frequency": { "value": 60, "unit": "Hz" },
+    "phase_count": 1,
+    "connection": "single_phase"
+  },
+  "expected_output": {
+    "existing_reactive_power": { "value": 10202.040612204073, "unit": "var" },
+    "desired_reactive_power": { "value": 3286.8410517886323, "unit": "var" },
+    "capacitor_reactive_power": { "value": 6915.199560415441, "unit": "var" },
+    "capacitance_per_unit": { "value": 346.75116336074956, "unit": "uF" },
+    "connection": "single_phase",
+    "phase_count": 1
+  }
+}

@@ -1,0 +1,40 @@
+id: energy.pv_power
+version: 0.1.0
+status: experimental
+domain: energy
+title: Photovoltaic Instantaneous Power
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: pv_irradiance_area_efficiency
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 10
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6.1-EXECUTION-PLAN.md Wave 2 — generic PV: P = G × A × η × f_temp."
+  - "STC reference temperature default 25 °C for linear temperature correction."
+
+tags:
+  - mvp
+  - energy
+  - pv

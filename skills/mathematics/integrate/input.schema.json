@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.integrate input",
+  "type": "object",
+  "properties": {
+    "expression": {
+      "type": "string",
+      "minLength": 1,
+      "description": "f(x) as a restricted-grammar expression (function mode)"
+    },
+    "bounds": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[a, b] integration limits (function mode)"
+    },
+    "x": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "description": "Strictly increasing sample abscissae (tabulated mode)"
+    },
+    "y": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "description": "Sample ordinates, same length as x (tabulated mode)"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["simpson", "trapezoid"],
+      "description": "Optional tabulated-mode rule; ignored defaults apply (see skill.md)"
+    },
+    "epsabs": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Absolute tolerance for adaptive quadrature (function mode)"
+    },
+    "epsrel": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Relative tolerance for adaptive quadrature (function mode)"
+    }
+  },
+  "additionalProperties": false
+}

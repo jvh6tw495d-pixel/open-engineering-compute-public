@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["extent_step_mol", "rate_mol_per_m3_s", "amounts_mol", "dt_s"],
+  "properties": {
+    "extent_step_mol": { "type": "number", "minimum": 0 },
+    "rate_mol_per_m3_s": { "type": "number", "minimum": 0 },
+    "amounts_mol": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    },
+    "dt_s": { "type": "number", "minimum": 0 }
+  }
+}

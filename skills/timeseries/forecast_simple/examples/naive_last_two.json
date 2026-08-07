@@ -1,0 +1,17 @@
+{
+  "description": "Naive forecast of [1,2,3,4] over steps_ahead 2 by definition is [4,4] (last value persists). Derivable from the method definition, no fit required.",
+  "input": {
+    "series": [1.0, 2.0, 3.0, 4.0],
+    "steps_ahead": 2,
+    "method": "naive"
+  },
+  "expected_output": {
+    "method": "naive",
+    "steps_ahead": 2,
+    "n_series": 4,
+    "period": null,
+    "forecast": [4.0, 4.0],
+    "backend": "numpy",
+    "converged": null
+  }
+}

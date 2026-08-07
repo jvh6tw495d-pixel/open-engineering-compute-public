@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.transformer_loading input",
+  "type": "object",
+  "properties": {
+    "rated_apparent_power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W",
+      "description": "Nameplate apparent power rating S_rated. VA/kVA/MVA accepted (dimensionally identical to W in the units engine)."
+    },
+    "load_type": {
+      "type": "string",
+      "enum": ["apparent_power", "current"],
+      "description": "How the operating load is specified."
+    },
+    "load_apparent_power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W",
+      "description": "Required iff load_type='apparent_power'."
+    },
+    "load_current": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "A",
+      "description": "Required iff load_type='current'."
+    },
+    "rated_current": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "A",
+      "description": "Required iff load_type='current' (nameplate rated current on the same winding as load_current)."
+    },
+    "overload_threshold_percent": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Loading percent at/above which overload_warning becomes true. Defaults to 100."
+    }
+  },
+  "required": ["rated_apparent_power", "load_type"],
+  "additionalProperties": false
+}

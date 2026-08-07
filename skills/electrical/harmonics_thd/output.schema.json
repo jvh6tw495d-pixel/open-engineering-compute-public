@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "thd",
+    "thd_percent"
+  ],
+  "properties": {
+    "thd": {
+      "type": "number",
+      "minimum": 0,
+      "x-oec-dimensionless": true
+    },
+    "thd_percent": {
+      "type": "number",
+      "minimum": 0,
+      "x-oec-dimensionless": true
+    }
+  }
+}

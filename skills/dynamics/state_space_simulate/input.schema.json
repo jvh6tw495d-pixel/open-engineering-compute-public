@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "A": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "B": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "C": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "D": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "u": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "x0": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "dt": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "time_base": {
+      "type": "string",
+      "enum": [
+        "discrete",
+        "continuous"
+      ]
+    }
+  },
+  "required": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "u",
+    "x0",
+    "dt"
+  ],
+  "additionalProperties": false
+}

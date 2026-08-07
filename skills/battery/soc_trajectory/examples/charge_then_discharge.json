@@ -1,0 +1,14 @@
+{
+  "description": "Charge +10 W for 1 h then discharge −20 W for 1 h on 100 Wh pack, η=1, soc0=0.5.",
+  "input": {
+    "initial_soc": 0.5,
+    "powers": [
+      { "value": 10.0, "unit": "W" },
+      { "value": -20.0, "unit": "W" }
+    ],
+    "dt_hours": { "value": 1.0, "unit": "h" },
+    "capacity": { "value": 100.0, "unit": "Wh" },
+    "eta_charge": 1.0,
+    "eta_discharge": 1.0
+  }
+}

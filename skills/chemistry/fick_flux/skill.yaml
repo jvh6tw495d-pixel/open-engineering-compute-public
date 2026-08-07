@@ -1,0 +1,39 @@
+id: chemistry.fick_flux
+version: 0.1.0
+status: experimental
+domain: chemistry
+title: 1D Fick Diffusion Flux
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: fick_first_law_1d
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "Fick's first law J = -D dc/dx (1-D finite difference)"
+
+tags:
+  - chemistry
+  - transport
+  - "2.8"

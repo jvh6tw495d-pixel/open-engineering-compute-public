@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "battery.soc_trajectory input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["initial_soc", "powers", "dt_hours", "capacity", "eta_charge", "eta_discharge"],
+  "properties": {
+    "initial_soc": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    },
+    "powers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number" },
+          "unit": { "type": "string" }
+        },
+        "required": ["value", "unit"],
+        "additionalProperties": false
+      },
+      "x-oec-unit": "W",
+      "description": "Storage power series; positive = charge, negative = discharge."
+    },
+    "dt_hours": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "h",
+      "description": "Scalar step duration applied to every power sample."
+    },
+    "capacity": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    },
+    "eta_charge": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    },
+    "eta_discharge": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    }
+  }
+}

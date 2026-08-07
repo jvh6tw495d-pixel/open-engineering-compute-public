@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.per_unit_conversion output",
+  "type": "object",
+  "properties": {
+    "value_pu": {
+      "type": "number",
+      "description": "Per-unit result (to_per_unit or change_base)."
+    },
+    "value_actual": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "Actual result for from_per_unit (unit depends on quantity_kind)."
+    },
+    "impedance_base": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "ohm" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "current_base": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "A" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "new_impedance_base": {
+      "type": ["object", "null"],
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "ohm" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "The NEW base's Z_base -- only for operation='change_base', null otherwise."
+    },
+    "new_current_base": {
+      "type": ["object", "null"],
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "A" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "description": "The NEW base's I_base -- only for operation='change_base', null otherwise."
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["to_per_unit", "from_per_unit", "change_base"]
+    },
+    "quantity_kind": {
+      "type": ["string", "null"],
+      "enum": ["impedance", "voltage", "current", "power", null]
+    },
+    "phase_count": { "type": "integer", "enum": [1, 3] }
+  },
+  "required": [
+    "impedance_base",
+    "current_base",
+    "new_impedance_base",
+    "new_current_base",
+    "operation",
+    "quantity_kind",
+    "phase_count"
+  ],
+  "additionalProperties": false
+}

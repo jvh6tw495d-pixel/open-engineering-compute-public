@@ -1,0 +1,16 @@
+{
+  "description": "Balanced three-phase load: 380 V line-to-line, 10 A line current, 0.8 lagging power factor -- a 3-4-5 triangle (sin(acos(0.8)) = 0.6 exactly), chosen so the expected values are exactly derivable by hand.",
+  "input": {
+    "voltage_line_to_line": { "value": 380, "unit": "V" },
+    "current_line": { "value": 10, "unit": "A" },
+    "power_factor": 0.8,
+    "power_factor_type": "lagging"
+  },
+  "expected_output": {
+    "active_power": { "value": 5265.434455009387, "unit": "W" },
+    "reactive_power": { "value": 3949.0758412570398, "unit": "var" },
+    "apparent_power": { "value": 6581.793068761733, "unit": "VA" },
+    "power_factor": 0.8,
+    "power_factor_type": "lagging"
+  }
+}

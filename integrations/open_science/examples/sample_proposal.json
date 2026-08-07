@@ -1,0 +1,29 @@
+{
+  "proposal_id": "mcp-2026-001",
+  "schema_version": "1.0.0",
+  "status": "draft",
+  "target_skill_id": "mathematics.solve_root",
+  "target_skill_version": "0.1.0",
+  "title": "Clarify default root-finding method when a bracket is given",
+  "summary": "Document explicitly that a supplied bracket selects brentq by default, matching implementation behavior.",
+  "rationale": "Independent review noted that skill.md could state the bracket→brentq rule more prominently next to the method registry, reducing silent method drift risk for agent callers.",
+  "proposed_changes": {
+    "kind": "methodology",
+    "description": "Expand the Official methodology section of skill.md; no numerical change expected.",
+    "affects_public_contract": false
+  },
+  "evidence": [
+    {
+      "type": "review_note",
+      "citation": "Internal methodology review, Sprint 04 closeout notes on method selection (plan section 4.4)."
+    },
+    {
+      "type": "reference",
+      "citation": "Brent, R. P. (1973). Algorithms for Minimization without Derivatives."
+    }
+  ],
+  "benchmark_plan": "Re-run existing golden cases; expect bit-identical results.",
+  "author": "open-science-example",
+  "created_at": "2026-07-25T00:00:00+00:00",
+  "updated_at": "2026-07-25T00:00:00+00:00"
+}

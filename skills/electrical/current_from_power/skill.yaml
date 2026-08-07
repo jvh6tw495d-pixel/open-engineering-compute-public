@@ -1,0 +1,41 @@
+id: electrical.current_from_power
+version: 0.1.0
+status: experimental
+domain: electrical
+title: Current From Power
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: current_from_power
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: true
+  physical: true
+  numerical: true
+
+references:
+  - "Chapman, S. J. (2011). Electric Machinery Fundamentals, 5th ed., McGraw-Hill, Chapter 1-2."
+  - "Fitzgerald, A. E., Kingsley, C., Umans, S. D. (2013). Electric Machinery, 7th ed., McGraw-Hill, Chapter 2."
+  - "IEEE Std 100-2000, The Authoritative Dictionary of IEEE Standards Terms."
+
+tags:
+  - mvp
+  - current
+  - power

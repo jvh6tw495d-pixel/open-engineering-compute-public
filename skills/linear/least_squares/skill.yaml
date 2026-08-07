@@ -1,0 +1,40 @@
+id: linear.least_squares
+version: 0.1.0
+status: experimental
+domain: linear
+title: Least Squares Solver
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: numpy_lstsq
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "NumPy linalg.lstsq — https://numpy.org/doc/stable/reference/generated/numpy.linalg.lstsq.html"
+
+tags:
+  - mvp
+  - linear
+  - linalg
+  - least_squares

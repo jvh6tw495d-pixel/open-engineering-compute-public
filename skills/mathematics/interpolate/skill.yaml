@@ -1,0 +1,40 @@
+id: mathematics.interpolate
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Interpolate
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: scalar_interpolation
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Burden, R. L., Faires, J. D. (2011). Numerical Analysis, 9th ed., Chapter 3."
+  - "Fritsch, F. N., Carlson, R. E. (1980). Monotone Piecewise Cubic Interpolation. SIAM J. Numer. Anal. 17(2)."
+  - "SciPy documentation: numpy.interp, scipy.interpolate.CubicSpline, PchipInterpolator"
+
+tags:
+  - mvp
+  - interpolation

@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["soc", "delta_soc", "clipped", "energy_delta"],
+  "properties": {
+    "soc": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-oec-dimensionless": true
+    },
+    "delta_soc": { "type": "number", "x-oec-dimensionless": true },
+    "clipped": { "type": "boolean" },
+    "energy_delta": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "const": "Wh" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Wh"
+    }
+  }
+}

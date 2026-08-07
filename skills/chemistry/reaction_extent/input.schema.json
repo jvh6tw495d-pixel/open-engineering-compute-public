@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["h2_mol", "o2_mol", "h2o_mol", "extent_mol"],
+  "properties": {
+    "h2_mol": { "type": "number", "minimum": 0 },
+    "o2_mol": { "type": "number", "minimum": 0 },
+    "h2o_mol": { "type": "number", "minimum": 0 },
+    "extent_mol": { "type": "number" }
+  }
+}

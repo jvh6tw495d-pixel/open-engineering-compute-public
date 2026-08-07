@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "solver_status": {
+      "type": "string"
+    },
+    "cvar": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "var_level": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "primal": {
+      "type": "object"
+    },
+    "decision": {
+      "type": "object"
+    },
+    "tail_excesses": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "alpha": {
+      "type": "number"
+    },
+    "n_scenarios": {
+      "type": "integer"
+    },
+    "feasibility_issues": {
+      "type": "array"
+    },
+    "backend": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "converged": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "solver_status",
+    "cvar",
+    "var_level",
+    "decision",
+    "alpha",
+    "n_scenarios",
+    "backend",
+    "method",
+    "converged"
+  ],
+  "additionalProperties": false
+}

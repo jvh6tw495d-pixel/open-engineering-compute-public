@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.solve_root input",
+  "type": "object",
+  "properties": {
+    "expression": {
+      "type": "string",
+      "minLength": 1,
+      "description": "f(x) as a restricted-grammar expression in x"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["brentq", "bisect", "secant", "newton"]
+    },
+    "bracket": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[a, b] with f(a) and f(b) of opposite sign"
+    },
+    "initial_guess": { "type": "number" },
+    "derivative": {
+      "type": "string",
+      "minLength": 1,
+      "description": "f'(x), required if and only if method is newton"
+    },
+    "tolerance": { "type": "number", "exclusiveMinimum": 0 },
+    "max_iterations": { "type": "integer", "exclusiveMinimum": 0 }
+  },
+  "required": ["expression"],
+  "additionalProperties": false
+}

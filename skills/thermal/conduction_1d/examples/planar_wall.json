@@ -1,0 +1,10 @@
+{
+  "description": "0.02 m planar wall, k=1.5 W/(m*K), A=0.5 m^2, 80 degC on the hot face and 20 degC on the cold face; heat_out omitted (trivially balanced).",
+  "input": {
+    "conductivity": { "value": 1.5, "unit": "W / (m * K)" },
+    "area": { "value": 0.5, "unit": "m ** 2" },
+    "length": { "value": 0.02, "unit": "m" },
+    "hot_temperature": { "value": 80.0, "unit": "degC" },
+    "cold_temperature": { "value": 20.0, "unit": "degC" }
+  }
+}

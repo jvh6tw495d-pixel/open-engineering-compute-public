@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamps",
+    "power"
+  ],
+  "properties": {
+    "timestamps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2
+    },
+    "power": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2
+    },
+    "power_unit": {
+      "type": "string"
+    },
+    "energy_unit": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    }
+  }
+}

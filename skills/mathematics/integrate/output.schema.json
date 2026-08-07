@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.integrate output",
+  "type": "object",
+  "properties": {
+    "value": {
+      "type": "number",
+      "description": "Estimated definite integral"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["function", "tabulated"],
+      "description": "Which input mode was used"
+    }
+  },
+  "required": ["value", "mode"],
+  "additionalProperties": false
+}

@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "variables",
+    "equations",
+    "x0"
+  ],
+  "properties": {
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "equations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "x0": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 1
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "hybr",
+        "lm",
+        "broyden1"
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+id: optimization.lp
+version: 0.1.0
+status: experimental
+domain: optimization
+title: Linear Program (HiGHS)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: highs_lp
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "HiGHS — https://highs.dev/ (linear and mixed-integer programming solver)."
+  - "Dantzig, G. B. Linear programming foundations; OEC does not reimplement the algorithm."
+
+tags:
+  - mvp
+  - lp
+  - highs
+  - ops

@@ -1,0 +1,41 @@
+id: electrical.dc_power_flow
+version: 0.1.0
+status: experimental
+domain: electrical
+title: DC Power Flow (Meshed)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: dc_linear_meshed_power_flow
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 5
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6-EXECUTION-PLAN.md, section D4 (canonical meshed DC linear power flow)."
+  - "Wood, A. J., Wollenberg, B. F., Sheble, G. B. (2013). Power Generation, Operation, and Control, 3rd ed., Wiley, Chapter 4 (DC power-flow approximation)."
+
+tags:
+  - mvp
+  - physics
+  - power-flow
+  - conservation

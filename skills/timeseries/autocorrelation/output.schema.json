@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeseries.autocorrelation output",
+  "type": "object",
+  "properties": {
+    "acf": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "n": { "type": "integer", "minimum": 2 },
+    "nlags": { "type": "integer", "minimum": 1 },
+    "method": { "type": "string", "enum": ["biased", "unbiased"] },
+    "demean": { "type": "boolean" },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] }
+  },
+  "required": ["acf", "n", "nlags", "method", "demean", "backend", "converged"],
+  "additionalProperties": false
+}

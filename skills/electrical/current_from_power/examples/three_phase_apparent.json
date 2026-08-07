@@ -1,0 +1,15 @@
+{
+  "description": "Three-phase load: 10000 VA apparent power at 400 V line-to-line -- apparent power alone fixes the current, no power_factor needed. I = S/(sqrt(3)*V_LL).",
+  "input": {
+    "power": { "value": 10000, "unit": "VA" },
+    "power_type": "apparent",
+    "voltage": { "value": 400, "unit": "V" },
+    "phase_count": 3
+  },
+  "expected_output": {
+    "current": { "value": 14.433756729740644, "unit": "A" },
+    "electrical_power": { "value": 10000.0, "unit": "W" },
+    "phase_count": 3,
+    "power_type": "apparent"
+  }
+}

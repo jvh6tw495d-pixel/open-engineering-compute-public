@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "materials.linear_constitutive input",
+  "type": "object",
+  "$defs": {
+    "quantity": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "material_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Sourced material table id (e.g. steel_astm_a36). When set, elastic modulus is looked up; elastic_modulus must be omitted."
+    },
+    "elastic_modulus": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "Pa",
+      "description": "Young's modulus E. Required when material_id is omitted."
+    },
+    "strain": {
+      "type": "number",
+      "description": "Engineering strain epsilon (dimensionless). Provide this OR original_length + deformation.",
+      "x-oec-dimensionless": true
+    },
+    "original_length": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m",
+      "description": "Gauge length L0. Used with deformation when strain is omitted."
+    },
+    "deformation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/quantity"
+        }
+      ],
+      "x-oec-unit": "m",
+      "description": "Axial elongation Delta L. Used with original_length when strain is omitted."
+    }
+  },
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "required": [
+            "material_id"
+          ],
+          "not": {
+            "required": [
+              "elastic_modulus"
+            ]
+          }
+        },
+        {
+          "required": [
+            "elastic_modulus"
+          ],
+          "not": {
+            "required": [
+              "material_id"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "oneOf": [
+        {
+          "required": [
+            "strain"
+          ],
+          "not": {
+            "required": [
+              "original_length",
+              "deformation"
+            ]
+          }
+        },
+        {
+          "required": [
+            "original_length",
+            "deformation"
+          ],
+          "not": {
+            "required": [
+              "strain"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["a_mol", "b_mol", "kc", "volume_m3"],
+  "properties": {
+    "a_mol": { "type": "number", "minimum": 0 },
+    "b_mol": { "type": "number", "minimum": 0 },
+    "kc": { "type": "number", "exclusiveMinimum": 0 },
+    "volume_m3": { "type": "number", "exclusiveMinimum": 0 }
+  }
+}

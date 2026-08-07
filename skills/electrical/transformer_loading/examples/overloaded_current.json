@@ -1,0 +1,16 @@
+{
+  "description": "500 kVA rated, load current 120 A vs rated 100 A -> S_load = 500kVA * 1.2 = 600 kVA, 120% loading, overload warning true.",
+  "input": {
+    "rated_apparent_power": { "value": 500, "unit": "kVA" },
+    "load_type": "current",
+    "load_current": { "value": 120, "unit": "A" },
+    "rated_current": { "value": 100, "unit": "A" }
+  },
+  "expected_output": {
+    "load_apparent_power": { "value": 600000.0, "unit": "VA" },
+    "loading_percent": 120.0,
+    "headroom": { "value": -100000.0, "unit": "VA" },
+    "overload_warning": true,
+    "overload_threshold_percent": 100.0
+  }
+}

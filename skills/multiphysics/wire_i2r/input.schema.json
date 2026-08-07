@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["current_a", "r0_ohm"],
+  "properties": {
+    "current_a": { "type": "number" },
+    "r0_ohm": { "type": "number", "minimum": 0 },
+    "t_amb_k": { "type": "number", "exclusiveMinimum": 0 },
+    "ua_w_per_k": { "type": "number", "exclusiveMinimum": 0 },
+    "t0_k": { "type": "number", "exclusiveMinimum": 0 },
+    "alpha_per_k": { "type": "number" },
+    "t_init_k": { "type": "number", "exclusiveMinimum": 0 }
+  }
+}

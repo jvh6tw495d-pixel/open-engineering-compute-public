@@ -1,0 +1,8 @@
+{
+  "description": "STC-style: G=1000 W/m², A=10 m², η=0.2 → P=2000 W (hand).",
+  "input": {
+    "irradiance": { "value": 1000.0, "unit": "W / m ** 2" },
+    "area": { "value": 10.0, "unit": "m ** 2" },
+    "efficiency": 0.2
+  }
+}

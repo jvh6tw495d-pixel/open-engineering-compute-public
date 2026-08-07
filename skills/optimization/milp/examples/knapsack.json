@@ -1,0 +1,23 @@
+{
+  "description": "max 3a+2b s.t. 2a+b<=2, a,b binary → a=1,b=0,obj=3",
+  "input": {
+    "ops": {
+      "ops_version": "0.1.0",
+      "problem_class": "milp",
+      "sense": "max",
+      "variables": [
+        { "name": "a", "kind": "binary" },
+        { "name": "b", "kind": "binary" }
+      ],
+      "constraints": [
+        {
+          "name": "weight",
+          "coeffs": { "a": 2, "b": 1 },
+          "sense": "<=",
+          "rhs": 2
+        }
+      ],
+      "objective": { "coeffs": { "a": 3, "b": 2 } }
+    }
+  }
+}

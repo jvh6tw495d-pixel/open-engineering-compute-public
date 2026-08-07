@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.dc_power_flow input",
+  "type": "object",
+  "properties": {
+    "lines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "from_bus": { "type": "string", "minLength": 1 },
+          "to_bus": { "type": "string", "minLength": 1 },
+          "susceptance": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "B_ij = 1 / X_ij, per-unit (pu)."
+          }
+        },
+        "required": ["from_bus", "to_bus", "susceptance"],
+        "additionalProperties": false
+      },
+      "description": "Meshed network branches. The graph formed by all lines must be connected."
+    },
+    "injections": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "number" },
+      "description": "bus id -> active-power injection, per-unit (pu, dimensionless); positive = generation entering the bus. Required for every bus appearing in 'lines', including the slack bus."
+    },
+    "slack_bus": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference bus (theta = 0). Must appear in 'lines'."
+    },
+    "atol": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Absolute KCL residual tolerance override (pu). Defaults to 1e-9."
+    },
+    "rtol": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Relative KCL residual tolerance override. Defaults to 1e-9."
+    }
+  },
+  "required": ["lines", "injections", "slack_bus"],
+  "additionalProperties": false
+}

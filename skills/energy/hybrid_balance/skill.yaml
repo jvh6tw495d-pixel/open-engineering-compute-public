@@ -1,0 +1,41 @@
+id: energy.hybrid_balance
+version: 0.1.0
+status: experimental
+domain: energy
+title: Hybrid Multiperiod Energy Balance
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: hybrid_period_balance
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: false
+  physical: false
+  numerical: true
+
+references:
+  - "OEC v2.6.1-EXECUTION-PLAN.md Wave 2 — hybrid residual via oec.physics.hybrid."
+  - "LOAD = PV + grid_import + discharge − charge (export as negative grid_import)."
+
+tags:
+  - mvp
+  - energy
+  - hybrid
+  - conservation

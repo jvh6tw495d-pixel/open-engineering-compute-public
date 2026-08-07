@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.voltage_drop input",
+  "type": "object",
+  "properties": {
+    "load_type": { "type": "string", "enum": ["current", "power"] },
+    "phase_count": { "type": "integer", "enum": [1, 3] },
+    "voltage_reference": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "V",
+      "description": "Nominal system voltage. Single-phase: line voltage. Three-phase: line-to-line voltage. Also the denominator of voltage_drop_percent, and used as V when load_type='power'."
+    },
+    "power_factor": { "type": "number", "minimum": 0, "maximum": 1 },
+    "power_factor_type": { "type": "string", "enum": ["lagging", "leading"] },
+    "length": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "m",
+      "description": "ONE-WAY conductor route length (not round-trip). The single-phase formula applies the out-and-back factor of 2 internally; do not double this value yourself."
+    },
+    "current": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "A",
+      "description": "Required iff load_type='current'."
+    },
+    "power": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W",
+      "description": "Active power. Required iff load_type='power'; current is derived via voltage_reference and power_factor."
+    },
+    "resistance_per_length": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "ohm/m",
+      "description": "Alternative to material+cross_section: the conductor's own resistance per unit length."
+    },
+    "reactance_per_length": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "ohm/m",
+      "description": "Optional; defaults to 0 (common practice for smaller cross-sections where reactance is negligible)."
+    },
+    "material": {
+      "type": "string",
+      "enum": ["copper", "aluminum"],
+      "description": "Alternative to resistance_per_length: derive resistance from material resistivity and cross_section. Must be given together with cross_section."
+    },
+    "cross_section": {
+      "type": "object",
+      "properties": { "value": { "type": "number" }, "unit": { "type": "string" } },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "mm^2",
+      "description": "Conductor cross-sectional area. Must be given together with material."
+    }
+  },
+  "required": ["load_type", "phase_count", "voltage_reference", "power_factor", "length"],
+  "additionalProperties": false
+}

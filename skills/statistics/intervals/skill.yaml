@@ -1,0 +1,41 @@
+id: statistics.intervals
+version: 0.2.0
+status: experimental
+domain: statistics
+title: Confidence Interval for the Mean
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: student_t_gaussian_ci
+  version: 0.2.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 10
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "SciPy stats.t / stats.norm — https://docs.scipy.org/doc/scipy/reference/stats.html"
+  - "Montgomery, D. C., Runger, G. C. (2018). Applied Statistics and Probability for Engineers, 7th ed., Wiley, Chapter 8."
+
+tags:
+  - mvp
+  - statistics
+  - intervals
+  - confidence

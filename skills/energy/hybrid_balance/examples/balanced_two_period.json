@@ -1,0 +1,26 @@
+{
+  "description": "Two-period hybrid balance: period 0 import, period 1 charge+export; residual 0 (hand).",
+  "input": {
+    "load": [
+      { "value": 3.0, "unit": "W" },
+      { "value": 2.0, "unit": "W" }
+    ],
+    "pv": [
+      { "value": 0.0, "unit": "W" },
+      { "value": 3.0, "unit": "W" }
+    ],
+    "grid_import": [
+      { "value": 3.0, "unit": "W" },
+      { "value": -0.5, "unit": "W" }
+    ],
+    "storage_charge": [
+      { "value": 0.0, "unit": "W" },
+      { "value": 0.5, "unit": "W" }
+    ],
+    "storage_discharge": [
+      { "value": 0.0, "unit": "W" },
+      { "value": 0.0, "unit": "W" }
+    ],
+    "dt_hours": { "value": 1.0, "unit": "h" }
+  }
+}

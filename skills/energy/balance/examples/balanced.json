@@ -1,0 +1,13 @@
+{
+  "description": "Energy Balance Check",
+  "input": {
+    "energy_in": [
+      { "value": 10.0, "unit": "Wh" },
+      { "value": 5.0, "unit": "Wh" }
+    ],
+    "energy_out": [
+      { "value": 12.0, "unit": "Wh" }
+    ],
+    "storage_delta": { "value": 3.0, "unit": "Wh" }
+  }
+}

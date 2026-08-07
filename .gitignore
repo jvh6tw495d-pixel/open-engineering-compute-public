@@ -1,0 +1,38 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+.envrc
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+.vscode/
+.idea/
+*.swp
+
+graphify-out/
+raw/
+
+.DS_Store
+Thumbs.db
+
+# ADR 0008: the master planning handbook is an external, private-adjacent
+# reference document. It must never enter this repo, tracked or not.
+OEC_MASTER_HANDBOOK.md
+OEC_PLANO_MESTRE_CLAUDE_CODE_GRAPHIFY_SPRINTS_v2.md
+
+# Benchmark/stress leftovers (should never be versioned)
+.stress-tmp/
+_*HERMES_SUPERTEST*.*
+*.mcp_server_stderr.log

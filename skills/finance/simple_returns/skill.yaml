@@ -1,0 +1,38 @@
+id: finance.simple_returns
+version: 0.1.0
+status: experimental
+domain: finance
+title: Simple Returns from Prices
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: numpy_simple_returns
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Textbook simple return r=p_t/p_{t-1}-1"
+
+tags:
+  - mvp
+  - finance

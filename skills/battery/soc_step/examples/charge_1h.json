@@ -1,0 +1,9 @@
+{
+  "description": "Battery SOC Step (Coulomb Counting)",
+  "input": {
+    "soc": 0.5,
+    "power": { "value": 10.0, "unit": "W" },
+    "dt_hours": { "value": 1.0, "unit": "h" },
+    "capacity": { "value": 100.0, "unit": "Wh" }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "electrical.power_factor_correction input",
+  "type": "object",
+  "properties": {
+    "active_power": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "W",
+      "description": "Load active power (constant when the power factor is corrected)."
+    },
+    "existing_power_factor": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "description": "Displacement power factor before correction (strictly > 0 so tan(acos(PF)) is finite)."
+    },
+    "desired_power_factor": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "description": "Target displacement power factor after correction (must be >= existing)."
+    },
+    "voltage": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "V",
+      "description": "Single-phase: system voltage. Three-phase: line-to-line voltage."
+    },
+    "frequency": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false,
+      "x-oec-unit": "Hz"
+    },
+    "phase_count": {
+      "type": "integer",
+      "enum": [1, 3]
+    },
+    "connection": {
+      "type": "string",
+      "enum": ["single_phase", "delta", "star"],
+      "description": "Capacitor bank connection. single_phase requires phase_count=1; delta/star require phase_count=3."
+    }
+  },
+  "required": [
+    "active_power",
+    "existing_power_factor",
+    "desired_power_factor",
+    "voltage",
+    "frequency",
+    "phase_count",
+    "connection"
+  ],
+  "additionalProperties": false
+}

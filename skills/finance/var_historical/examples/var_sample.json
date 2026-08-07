@@ -1,0 +1,16 @@
+{
+  "description": "Historical Value-at-Risk",
+  "input": {
+    "returns": [
+      -0.02,
+      -0.01,
+      0.0,
+      0.01,
+      0.02,
+      -0.05,
+      0.03,
+      -0.015
+    ],
+    "confidence": 0.95
+  }
+}

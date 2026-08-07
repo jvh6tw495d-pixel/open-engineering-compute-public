@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "solver_status": {
+      "type": "string"
+    },
+    "objective_value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "primal": {
+      "type": "object"
+    },
+    "dual": {
+      "type": "object"
+    },
+    "rhs_adjusted": {
+      "type": "object"
+    },
+    "feasibility_issues": {
+      "type": "array"
+    },
+    "backend": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "converged": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "solver_status",
+    "objective_value",
+    "primal",
+    "rhs_adjusted",
+    "backend",
+    "method",
+    "converged"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "u": { "type": "array", "items": { "type": "number" } },
+    "error": { "type": "array", "items": { "type": "number" } },
+    "integral_term": { "type": "array", "items": { "type": "number" } },
+    "n": { "type": "integer" },
+    "kp": { "type": "number" },
+    "ki": { "type": "number" },
+    "kd": { "type": "number" },
+    "dt": { "type": "number" },
+    "saturated_steps": { "type": "integer" },
+    "anti_windup": { "type": "string", "enum": ["none", "clamp"] },
+    "backend": { "type": "string" },
+    "converged": { "type": ["null", "boolean"] },
+    "method": { "type": "string" }
+  },
+  "required": [
+    "u",
+    "error",
+    "integral_term",
+    "n",
+    "saturated_steps",
+    "anti_windup",
+    "backend",
+    "converged",
+    "method"
+  ],
+  "additionalProperties": false
+}

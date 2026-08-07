@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "materials.linear_constitutive output",
+  "type": "object",
+  "properties": {
+    "elastic_modulus": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "const": "Pa"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "strain": {
+      "type": "number",
+      "description": "Engineering strain epsilon (dimensionless).",
+      "x-oec-dimensionless": true
+    },
+    "stress": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "const": "Pa"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "description": "Uniaxial stress sigma = E * epsilon."
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "material_id": {
+          "type": "string"
+        },
+        "property_id": {
+          "type": "string"
+        },
+        "property_name": {
+          "type": "string"
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "material_id",
+        "property_id",
+        "property_name",
+        "references"
+      ],
+      "additionalProperties": false,
+      "description": "Present only when material_id was used for lookup."
+    }
+  },
+  "required": [
+    "elastic_modulus",
+    "strain",
+    "stress"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,28 @@
+{
+  "description": "Minimize x+y s.t. x+y>=1, 0<=x,y<=1 — optimal objective 1.0 with feasibility slack 0 on the 'cover' constraint (the constraint is tight at the optimum).",
+  "input": {
+    "ops": {
+      "ops_version": "0.1.0",
+      "problem_class": "lp",
+      "sense": "min",
+      "variables": [
+        { "name": "x", "kind": "continuous", "lower": 0, "upper": 1 },
+        { "name": "y", "kind": "continuous", "lower": 0, "upper": 1 }
+      ],
+      "constraints": [
+        {
+          "name": "cover",
+          "coeffs": { "x": 1, "y": 1 },
+          "sense": ">=",
+          "rhs": 1
+        }
+      ],
+      "objective": { "coeffs": { "x": 1, "y": 1 } }
+    }
+  },
+  "expected_output": {
+    "solver_status": "optimal",
+    "objective_value": 1.0,
+    "backend": "highs"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ops"
+  ],
+  "properties": {
+    "ops": {
+      "type": "object"
+    }
+  }
+}

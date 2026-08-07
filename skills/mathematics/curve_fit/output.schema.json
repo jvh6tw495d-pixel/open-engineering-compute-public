@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.curve_fit output",
+  "type": "object",
+  "properties": {
+    "params": { "type": "array", "items": { "type": "number" } },
+    "method": { "type": "string", "enum": ["lm", "trf", "dogbox"] },
+    "function_evaluations": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["params", "method", "function_evaluations"],
+  "additionalProperties": false
+}

@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "A",
+    "b"
+  ],
+  "properties": {
+    "A": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "b": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  }
+}

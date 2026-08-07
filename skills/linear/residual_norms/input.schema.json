@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "linear.residual_norms input",
+  "type": "object",
+  "properties": {
+    "r": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number" }
+    }
+  },
+  "required": ["r"],
+  "additionalProperties": false
+}

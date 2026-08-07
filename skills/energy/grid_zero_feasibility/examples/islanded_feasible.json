@@ -1,0 +1,26 @@
+{
+  "description": "Islanded feasible: PV + discharge cover load; zero grid import; residual 0.",
+  "input": {
+    "load": [
+      { "value": 2.0, "unit": "W" },
+      { "value": 1.0, "unit": "W" }
+    ],
+    "pv": [
+      { "value": 0.5, "unit": "W" },
+      { "value": 1.5, "unit": "W" }
+    ],
+    "storage_charge": [
+      { "value": 0.0, "unit": "W" },
+      { "value": 0.5, "unit": "W" }
+    ],
+    "storage_discharge": [
+      { "value": 1.5, "unit": "W" },
+      { "value": 0.0, "unit": "W" }
+    ],
+    "grid_import": [
+      { "value": 0.0, "unit": "W" },
+      { "value": 0.0, "unit": "W" }
+    ],
+    "dt_hours": { "value": 1.0, "unit": "h" }
+  }
+}
