@@ -964,7 +964,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_agent_tools_importable_outside_repo_root_cwd(tmp_path: Path) -> None:
-    """Reproduces the real Hermes/MCP failure mode: a host process that
+    """Reproduces the real host agent/MCP failure mode: a host process that
     launches the installed ``oec`` package from a cwd other than the repo
     root, with no ``PYTHONPATH`` pointing back at it.
 

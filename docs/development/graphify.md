@@ -239,7 +239,7 @@ rebuild.
 
 Rebuilt on **2026-07-30** (tool now `graphifyy` v0.9.31, previously v0.9.28
 — command surface unchanged) after a same-day session fixed a real,
-Hermes-reproduced runtime failure in the MCP agent-first layer and a
+host-reproduced runtime failure in the MCP agent-first layer and a
 follow-on functional gap it surfaced. **8999 nodes, 13434 edges, 671
 communities.** Baseline commit is still `f1c09c31` (the v2.5.1 release) —
 everything below is **uncommitted** in the working tree at rebuild time,
@@ -249,11 +249,11 @@ correction rebuild" entry above.
 What changed, in the order it was found and fixed:
 
 1. **`agent.*` MCP tools failed with `ModuleNotFoundError: No module named
-   'agents'`** when the server was launched by the real Hermes runtime from
+   'agents'`** when the server was launched by a real MCP host runtime from
    a cwd other than the repo root (`agents/` is a PEP 420 namespace package
    outside `src/oec`, only importable when the repo root happens to be on
    `sys.path` — true under `pytest`, not guaranteed by any real launcher).
-   Reproduced directly against Hermes's actual `uv.exe --directory … run
+   Reproduced directly against a host's actual `uv.exe --directory … run
    --extra mcp --extra optimization oec server mcp` launch command before
    fixing. Fixed via `oec.mcp.server._ensure_agents_importable()`, which
    resolves the repo root from its own `__file__` at import time instead of

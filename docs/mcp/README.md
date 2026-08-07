@@ -35,7 +35,7 @@ Entrypoint: `oec.mcp.server.run_stdio_server` (also re-exported as
 
 Agent-first mode (`agent.*` tools, `list_agents`) is confirmed working when
 the server is launched by an external host from an arbitrary working
-directory — e.g. Hermes launching `uv run oec server mcp` with its own cwd —
+directory — e.g. host agent launching `uv run oec server mcp` with its own cwd —
 not just under `pytest` run from the repo root. `oec.mcp.server` resolves the
 repo root from its own file location and makes the `agents/` companion
 package importable before any specialist is dispatched, so hosts do not need
@@ -237,9 +237,9 @@ ever preferring the host's number over its own. Hosts should treat this the
 same way they'd treat any other warning — surface it, don't silently trust
 the claim, and keep reading `authoritative_answer` as the numeric truth.
 
-## Hermes / Odysseus integration guide (short version)
+## host agent / host app integration guide (short version)
 
-For any host driving `agent.*` tools — Hermes, Odysseus, or a third party —
+For any host driving `agent.*` tools — host agent, host app, or a third party —
 the whole contract above reduces to two rules:
 
 1. **Read `authoritative_answer`.** After a successful agent-tool call, the

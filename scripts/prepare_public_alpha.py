@@ -14,6 +14,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -54,6 +55,8 @@ DOCS_EXCLUDE: tuple[str, ...] = (
     "docs/sprints",
     "docs/release",
     "docs/development/codebase-map.md",
+    # Incubation-only execution plans, stress reports, agent handoffs (ADR 0008)
+    "docs/implementation",
 )
 
 # Never copy into a public tree (matched by basename at every directory
@@ -70,6 +73,26 @@ EXCLUDE_NAMES: frozenset[str] = frozenset(
         "__pycache__",
         "*.pyc",
         ".pytest_cache",
+        # Incubation-only host harnesses (private paths / product brands)
+        "hermes_supertest.py",
+        "direct_model_supertest.py",
+        "hard_lp_supertest.py",
+        "ollama_agent_stress_test.py",
+        "wave3_energy_smoke.py",
+        "driver_stress_agents.py",
+        "llama_oec_experiment.py",
+        "multiagent_llm_benchmark.py",
+        "multiagent_with_without_oec.py",
+        "stress_v26_physics.py",
+        "_gen_stress_cases_p1p5.py",
+        "STRESS_AGENT_grok.json",
+        "STRESS_AGENT_luna.json",
+        "STRESS_AGENT_sol.json",
+        "STRESS_GRANITE4.json",
+        "STRESS_NEMOTRON_4B.json",
+        "STRESS_NEMOTRON_NIM.json",
+        "STRESS_PHI4.json",
+        "STRESS_QWEN35_4B.json",
     }
 )
 
@@ -193,7 +216,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.init_git:
         _run(["git", "init", "-b", "main"], cwd=dest)
         _run(["git", "add", "-A"], cwd=dest)
-        _run(
+        # One-shot author so machines without global git identity still work.
+        # Does not write to git config (ADR 0008 — no accidental user identity leak).
+        commit_env = os.environ.copy()
+        commit_env.setdefault("GIT_AUTHOR_NAME", "Open Engineering Compute")
+        commit_env.setdefault("GIT_AUTHOR_EMAIL", "noreply@open-engineering-compute.local")
+        commit_env.setdefault("GIT_COMMITTER_NAME", commit_env["GIT_AUTHOR_NAME"])
+        commit_env.setdefault("GIT_COMMITTER_EMAIL", commit_env["GIT_AUTHOR_EMAIL"])
+        print(
+            "+",
+            "git commit -m 'chore: initial public alpha import (clean history)'",
+        )
+        subprocess.run(
             [
                 "git",
                 "commit",
@@ -201,6 +235,8 @@ def main(argv: list[str] | None = None) -> int:
                 "chore: initial public alpha import (clean history)",
             ],
             cwd=dest,
+            check=True,
+            env=commit_env,
         )
         print("fresh git history created (no remotes)")
 

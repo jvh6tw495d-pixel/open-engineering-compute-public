@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.0] � 2026-08-06
+
+**Public platform claim (local).** First `3.0.0` cut of the skill-based engineering
+compute platform including Scientific Kernel through multiphysics weak co-sim (2.7).
+
+### Claim (explicit Option C from V3 plan)
+
+- **In scope:** installable `oec` library, skills, SDK/CLI/REST/MCP, physics P1�P5 +
+  energy, multiphysics coupling v0, agents (out of wheel).
+- **Deferred to 3.1+:** chemistry complete, Model Registry full V3, public remote push
+  (human step), strong coupling.
+- Public tree is prepared with **new git history** only (ADR 0008); incubation history
+  is never published.
+
+### Changed
+
+- `scripts/check_forbidden_names.py` � product brands case-sensitive (avoid false
+  positive on English "horizon").
+- `scripts/prepare_public_alpha.py` � exclude `docs/implementation` incubation reports.
+
+### Added
+
+- `docs/implementation/v3.0-CLOSEOUT.md`
 ## [2.7.0] — 2026-08-06
 
 **Feature release — Multiphysics coupling (weak co-sim v0).** Platform extension
@@ -222,7 +245,7 @@ correct OEC solve into an incorrect final JSON answer. Scope is
 - MCP `agent.*` tools (`agent.default`, `agent.optimization_specialist`,
   `agent.applied_mathematics`, `agent.time_series`, `agent.energy`) failed
   with `ModuleNotFoundError: No module named 'agents'` when the MCP server
-  was launched by an external host (e.g. Hermes running `uv run oec server
+  was launched by an external host (e.g. an MCP host running `uv run oec server
   mcp`) from a working directory other than the repo root — the `agents/`
   companion package lives outside `src/oec` and only resolves when the repo
   root happens to be on `sys.path`, which `pytest` provides incidentally but

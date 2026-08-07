@@ -165,12 +165,12 @@ def test_envelope_contract_issues() -> None:
 
 
 def test_three_verdicts_transport_failure_short_circuits() -> None:
-    verdicts = authority.three_verdicts(transport_error="hermes exit 1")
+    verdicts = authority.three_verdicts(transport_error="host_client exit 1")
     assert verdicts.transport == authority.TRANSPORT_FAILURE
     assert verdicts.oec_execution == authority.NOT_REACHED
     assert verdicts.host_corruption == authority.NOT_EVALUATED
     assert verdicts.primary == authority.TRANSPORT_FAILURE
-    assert "hermes exit 1" in verdicts.detail
+    assert "host_client exit 1" in verdicts.detail
 
 
 def test_three_verdicts_oec_execution_failure_when_no_authority() -> None:

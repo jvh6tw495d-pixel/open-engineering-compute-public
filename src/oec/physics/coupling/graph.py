@@ -18,6 +18,8 @@ class VariableDirection(str, Enum):
     BACKWARD = "backward"  # target writes; source reads
     BIDIRECTIONAL = "bidirectional"
 
+    # Note: kept as str, Enum for 3.11+ compat; ruff UP042 suggests StrEnum on 3.11+
+
 
 @dataclass(frozen=True)
 class InterfaceVariable:

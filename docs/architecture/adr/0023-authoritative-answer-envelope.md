@@ -11,7 +11,7 @@ response shapes: `needs_clarification`, `needs_more_information`,
 `SpecialistReport`, `SkillAgentReport`, `MathRequestReport` (dual
 `min_execution`/`max_execution`), `ReviewReport`, the `agent.default` router
 wrapper, a bare `ExecutionResult` for raw-skill tool calls, and a structured
-error body. A host (Hermes, Odysseus, or any local-LLM-driven client) had to
+error body. A host (host agent, Odysseus, or any local-LLM-driven client) had to
 scrape the path-specific nesting for each shape to find the final number.
 Real weak-model stress testing (`docs/implementation/
 OLLAMA_AGENT_STRESS_TEST_REPORT.md` and predecessors, D-CUR-22 through
@@ -99,8 +99,8 @@ merged.
 ### 3. Benchmark harnesses read the envelope, not host prose (Wave 3)
 
 `scripts/_oec_authority.py` (`read_authority`, `three_verdicts`) is the
-shared helper new/updated harnesses (`hermes_supertest.py`,
-`multiagent_with_without_oec.py`) use to classify each run as
+shared helper new/updated harnesses (`multiagent_with_without_oec.py`
+and host-integration supertests) use to classify each run as
 `transport_failure`, `oec_execution_failure`, or `host_corruption` — the
 last one specifically by comparing a run's parsed host prose against the
 authority probe's own answer via the same fail-closed comparison policy
@@ -151,7 +151,7 @@ candidate for a future ADR if a concrete host need appears there.
   is the acceptance evidence that a weak host reading `authoritative_answer`
   actually gets the right number where it previously didn't.
 - Residual, explicitly not closed by this ADR: whether a *specific* real
-  host (Hermes, Odysseus, or a third party) actually changes its own
+  host (host agent, Odysseus, or a third party) actually changes its own
   integration code to read `authoritative_answer` instead of continuing to
   parse narrative text is outside OEC's control — the contract is
   published (`docs/contracts/authoritative-answer.md`,

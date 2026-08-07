@@ -111,7 +111,7 @@ def test_autonomy_hours_pv_reduces_storage_draw() -> None:
 def test_autonomy_hours_surplus_pv_recharges_storage() -> None:
     """Step 0: PV surplus charges storage; later deficit uses recharged energy.
 
-    Horizon: load=[0, 10], pv=[10, 0], capacity=5, soc0=0, dt=1
+    Schedule: load=[0, 10], pv=[10, 0], capacity=5, soc0=0, dt=1
     - t0: net = -10 → charge 5 kWh (headroom), hours=1
     - t1: net = 10 → need 10, have 5 → +0.5 h → total 1.5 h
     """

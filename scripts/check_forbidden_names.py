@@ -19,26 +19,35 @@ import sys
 from pathlib import Path
 
 # Handbook §2.1 — keep in sync with docs/release/public-alpha.md
-FORBIDDEN: tuple[str, ...] = (
+#
+# Single-token product brands are matched **case-sensitively** so ordinary
+# English "horizon" (planning window) does not false-positive against product
+# "Horizon". Multi-word private phrases stay case-insensitive.
+FORBIDDEN_CASE_SENSITIVE: tuple[str, ...] = (
     "AELE",
-    "AELE OS",
     "AOS",
     "Apollo",
     "Horizon",
     "Orion",
     "Argos",
     "Hermes",
-    "AELE Score",
     "DELE",
+)
+FORBIDDEN_CASE_INSENSITIVE: tuple[str, ...] = (
+    "AELE OS",
+    "AELE Score",
 )
 
 # Word-boundary-ish match; multi-word terms matched as literal substrings.
 _PATTERNS = [
-    re.compile(rf"(?i)(?<![A-Za-z0-9_]){re.escape(term)}(?![A-Za-z0-9_])")
-    if " " not in term
-    else re.compile(re.escape(term), re.IGNORECASE)
-    for term in FORBIDDEN
+    *(
+        re.compile(rf"(?<![A-Za-z0-9_]){re.escape(term)}(?![A-Za-z0-9_])")
+        for term in FORBIDDEN_CASE_SENSITIVE
+    ),
+    *(re.compile(re.escape(term), re.IGNORECASE) for term in FORBIDDEN_CASE_INSENSITIVE),
 ]
+# Back-compat alias for importers/tests that expect FORBIDDEN
+FORBIDDEN: tuple[str, ...] = FORBIDDEN_CASE_SENSITIVE + FORBIDDEN_CASE_INSENSITIVE
 
 _SKIP_DIR_PARTS = {
     ".git",
