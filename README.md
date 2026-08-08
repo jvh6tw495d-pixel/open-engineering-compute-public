@@ -8,10 +8,9 @@
 
 # Open Engineering Compute (OEC)
 
-> **Status:** **`oec==3.3.1` release candidate (private incubation).**
+> **Status:** **`oec==3.3.1` public release.**
 > Skill catalog: **87** skills including chemistry, multiphysics coupling, and THD.
-> Recovery plan: [3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md).
-> **Do not** treat this tree as public `v3.0.0` — publish when ready as **`v3.3.1`**.
+> Release validation reports: [phase 0-3](docs/implementation/3.3.1-phase0-3-execution-report.md) and [phase 4-5](docs/implementation/3.3.1-phase4-5-execution-report.md).
 
 Open Engineering Compute is an open framework for executable, versioned and
 auditable engineering skills. It lets different language models, agents,
@@ -107,24 +106,21 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 
 ## Status / release
 
-**Current: `oec==3.3.1`**, release candidate, **87** skills across 18 domains
+**Current: `oec==3.3.1`**, public release, **87** skills across 18 domains
 (mathematics, electrical, timeseries, linear, numerical, statistics,
 optimization, energy, battery, finance, control, dynamics, uncertainty,
 thermal, mechanics, fluids, materials, chemistry, multiphysics — see
 [skill-inventory.md](docs/implementation/skill-inventory.md) for the
-authoritative per-domain count). Recovery/publish story:
-[3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md)
-+ [3.3.1-phase0-3-execution-report.md](docs/implementation/3.3.1-phase0-3-execution-report.md)
-(catalog integrity, `agent.default`/MCP domain alignment, quality gates —
-all independently re-verified, not just self-reported) +
-[3.3.1-phase4-5-execution-report.md](docs/implementation/3.3.1-phase4-5-execution-report.md)
-(docs reconciliation + public-tree validation). **`v3.0.0`/Option C is
-withdrawn as the public tag** — an earlier internal cut briefly used that
-label, but the branch kept moving (chemistry, multiphysics, THD) past it
-without a coherent release story; `3.3.1` is the first candidate that
-actually closes the gates. Known open residuals (no auth/rate-limiting on
-REST/MCP, no OS-level sandbox isolation, routing heuristics not yet a
-semantic classifier) are tracked in
+authoritative per-domain count).
+
+This release was re-verified in two stages:
+
+- [3.3.1-phase0-3-execution-report.md](docs/implementation/3.3.1-phase0-3-execution-report.md) — catalog integrity, routing alignment, quality gates, and runtime fixes.
+- [3.3.1-phase4-5-execution-report.md](docs/implementation/3.3.1-phase4-5-execution-report.md) — documentation reconciliation, public-tree validation, and publication readiness.
+
+Known residual technical debt (such as auth/rate-limiting for network surfaces,
+OS-level sandbox isolation, and routing heuristics that are still simpler than
+a full semantic classifier) is tracked in
 [technical-debt.md](docs/implementation/technical-debt.md).
 
 <details>
@@ -156,12 +152,8 @@ chemistry, added THD and the sequential chemistry network. Full detail in
 
 </details>
 
-This clone is the **incubation** repository (no remote). Public Alpha must use a
-**new directory and clean git history** — see:
-
-- [docs/release/public-alpha.md](docs/release/public-alpha.md)
-- `uv run python scripts/prepare_public_alpha.py --dry-run`
-- `uv run python scripts/check_forbidden_names.py`
+This repository is the public 3.3.1 release tree with clean history and
+publication validation reports included for traceability.
 
 Layout map: [docs/development/codebase-map.md](docs/development/codebase-map.md).
 
