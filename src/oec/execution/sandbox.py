@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 _MAX_ERROR_OUTPUT = 4000
+_PROCESS_STARTUP_GRACE_SECONDS = 3.0
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,13 @@ def run_in_sandbox(
     inputs: dict[str, Any],
     timeout_seconds: float,
 ) -> SandboxRunResult:
-    """Run a skill's entrypoint in a subprocess, enforcing ``timeout_seconds``."""
+    """Run a skill's entrypoint in a subprocess, enforcing ``timeout_seconds``.
+
+    ``timeout_seconds`` is the skill's execution budget, not the process
+    creation/import overhead. A small fixed grace keeps cold-start variance
+    from turning valid short-running skills into flaky timeouts on slower
+    Windows consoles while still enforcing a tight upper bound.
+    """
     payload = json.dumps(
         {
             "skill_path": str(skill_path),
@@ -54,7 +61,7 @@ def run_in_sandbox(
             input=payload,
             capture_output=True,
             text=True,
-            timeout=timeout_seconds,
+            timeout=timeout_seconds + _PROCESS_STARTUP_GRACE_SECONDS,
             check=False,
         )
     except subprocess.TimeoutExpired:

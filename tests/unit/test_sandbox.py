@@ -1,6 +1,9 @@
 from pathlib import Path
+from types import SimpleNamespace
 
-from oec.execution.sandbox import run_in_sandbox
+import subprocess
+
+from oec.execution.sandbox import _PROCESS_STARTUP_GRACE_SECONDS, run_in_sandbox
 
 
 def _write_module(tmp_path: Path, code: str) -> None:
@@ -73,3 +76,26 @@ def test_missing_module_is_captured_not_raised(tmp_path: Path) -> None:
     )
     assert result.failed
     assert "ImportError" in result.error_output or "FileNotFoundError" in result.error_output
+
+
+def test_timeout_includes_process_startup_grace(
+    monkeypatch, tmp_path: Path
+) -> None:
+    captured: dict[str, float] = {}
+
+    def fake_run(*args, **kwargs):
+        captured["timeout"] = kwargs["timeout"]
+        return SimpleNamespace(returncode=0, stdout='{"result": {}, "diagnostics": {}}')
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    result = run_in_sandbox(
+        skill_path=tmp_path,
+        module="implementation",
+        function="execute",
+        inputs={},
+        timeout_seconds=5.0,
+    )
+
+    assert not result.failed
+    assert captured["timeout"] == 5.0 + _PROCESS_STARTUP_GRACE_SECONDS

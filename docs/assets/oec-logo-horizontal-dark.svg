@@ -1,0 +1,18 @@
+<svg width="1600" height="420" viewBox="0 0 1600 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>OEC horizontal logo dark</title>
+  <desc>Open Engineering Compute horizontal lockup with compact mark, wordmark, and workflow tagline.</desc>
+  <rect width="1600" height="420" fill="#0B1020"/>
+  <g stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="154" cy="142" r="62" stroke="#FFFFFF"/>
+    <path d="M256 100H364" stroke="#2563EB"/>
+    <path d="M256 142H364" stroke="#2563EB"/>
+    <path d="M256 184H364" stroke="#2563EB"/>
+    <path d="M520 80H456C421.758 80 394 107.758 394 142C394 176.242 421.758 204 456 204H520" stroke="#FFFFFF"/>
+    <path d="M606 52V250" stroke="#2563EB" stroke-opacity="0.75"/>
+  </g>
+  <g fill="#FFFFFF" font-family="Sora, Inter, Arial, sans-serif">
+    <text x="676" y="132" font-size="92" font-weight="600" letter-spacing="0.06em">OEC</text>
+    <text x="676" y="210" font-size="34" font-weight="500" letter-spacing="0.23em">OPEN <tspan fill="#2563EB">ENGINEERING</tspan> COMPUTE</text>
+    <text x="676" y="286" font-size="26" font-weight="500" letter-spacing="0.22em">MODEL <tspan fill="#2563EB">•</tspan> COMPUTE <tspan fill="#2563EB">•</tspan> VERIFY <tspan fill="#2563EB">•</tspan> EXPLAIN</text>
+  </g>
+</svg>

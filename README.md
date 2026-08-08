@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/oec-logo-compact.svg" alt="OEC logo" width="220">
+</p>
+
 # Open Engineering Compute (OEC)
 
 > **Status:** **`oec==3.3.1` release candidate (private incubation).**

@@ -1,0 +1,11 @@
+<svg width="512" height="192" viewBox="0 0 512 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>OEC compact logo</title>
+  <desc>Open Engineering Compute compact mark using O, abstract E, and C.</desc>
+  <g stroke="#111111" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="88" cy="96" r="54"/>
+    <path d="M194 60H286"/>
+    <path d="M194 96H286"/>
+    <path d="M194 132H286"/>
+    <path d="M424 42H386C356.176 42 332 66.1766 332 96C332 125.823 356.176 150 386 150H424"/>
+  </g>
+</svg>
