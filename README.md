@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/oec-logo-compact.svg" alt="OEC logo" width="220">
+  <img src="docs/assets/oec-logo-app-dark.svg" alt="OEC logo" width="220">
 </p>
 
 # Open Engineering Compute (OEC)
