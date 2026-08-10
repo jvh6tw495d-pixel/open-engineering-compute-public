@@ -85,8 +85,14 @@ def _hypervolume_2d(points: np.ndarray, ref: np.ndarray) -> float | None:
 def optimize_multi(
     problem: MultiObjectiveProblemSpec,
     algorithm: MultiObjectiveAlgorithmSpec,
+    *,
+    runtime: Any | None = None,
 ) -> EvolutionaryParetoResult:
-    """Run multi-objective search; return non-dominated set."""
+    """Run multi-objective search; return non-dominated set.
+
+    Optional ``runtime.hv_reference`` fixes the hypervolume reference point
+    (Part B E-D4) instead of auto-scaling from the front.
+    """
     problem_cls, minimize = _require_pymoo()
 
     n_var = len(problem.variables)
@@ -94,6 +100,14 @@ def optimize_multi(
     xu = np.array([v.upper for v in problem.variables], dtype=float)
     built_in = problem.built_in
     n_obj = problem.n_objectives
+    seed = algorithm.seed
+    budget = algorithm.budget
+    hv_ref_list: list[float] | None = None
+    if runtime is not None:
+        seed = getattr(runtime, "seed", seed)
+        if getattr(runtime, "budget", None) is not None:
+            budget = runtime.budget
+        hv_ref_list = getattr(runtime, "hv_reference", None)
 
     class _BoxMOProblem(problem_cls):  # type: ignore[misc, valid-type]
         def __init__(self) -> None:
@@ -107,14 +121,14 @@ def optimize_multi(
 
     algo = _make_mo_algorithm(
         algorithm.algorithm,
-        algorithm.budget.population,
+        budget.population,
         algorithm.n_partitions,
     )
     res = minimize(
         _BoxMOProblem(),
         algo,
-        termination=("n_gen", algorithm.budget.generations),
-        seed=algorithm.seed,
+        termination=("n_gen", budget.generations),
+        seed=seed,
         verbose=False,
         save_history=False,
     )
@@ -125,11 +139,9 @@ def optimize_multi(
     x_mat = np.atleast_2d(np.asarray(res.X, dtype=float))
     f_mat = np.atleast_2d(np.asarray(res.F, dtype=float))
     if x_mat.shape[0] != f_mat.shape[0]:
-        # single solution edge case
         x_mat = x_mat.reshape(1, -1)
         f_mat = f_mat.reshape(1, -1)
 
-    # All returned by NSGA* final pop may include dominated; mark nondominated
     nd_mask = _nondominated_mask(f_mat)
     decision_vectors: list[dict[str, float]] = []
     objective_vectors: list[list[float]] = []
@@ -142,7 +154,10 @@ def optimize_multi(
         mask_list.append(bool(nd_mask[i]))
 
     nd_f = f_mat[nd_mask]
-    ref = np.max(f_mat, axis=0) + 0.1 * (np.ptp(f_mat, axis=0) + 1e-9)
+    if hv_ref_list is not None and len(hv_ref_list) >= n_obj:
+        ref = np.asarray(hv_ref_list[:n_obj], dtype=float)
+    else:
+        ref = np.max(f_mat, axis=0) + 0.1 * (np.ptp(f_mat, axis=0) + 1e-9)
     hv = _hypervolume_2d(nd_f, ref) if n_obj == 2 else None
 
     n_eval = int(res.algorithm.evaluator.n_eval) if hasattr(res.algorithm, "evaluator") else 0
@@ -151,7 +166,7 @@ def optimize_multi(
         backend="pymoo",
         backend_version=_pymoo_version(),
         algorithm=algorithm.algorithm.value,
-        seed=algorithm.seed,
+        seed=seed,
         deterministic_status="practical",
         n_objectives=n_obj,
         decision_vectors=decision_vectors,
@@ -159,10 +174,14 @@ def optimize_multi(
         nondominated_mask=mask_list,
         n_nondominated=int(np.sum(nd_mask)),
         n_evaluations=n_eval,
-        n_generations=algorithm.budget.generations,
+        n_generations=budget.generations,
         hypervolume=hv,
+        hv_reference=ref.tolist() if n_obj == 2 else None,
         problem_fingerprint=problem_fingerprint(problem.model_dump(mode="json")),
         message="ok",
+        runtime={
+            "hv_reference_mode": "fixed" if hv_ref_list is not None else "auto",
+        },
     )
 
 

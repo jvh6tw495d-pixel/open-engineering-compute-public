@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   capacity presets (`tiny|medium|dense|wide`) for all neural families; shared
   minibatch/full-batch train loops; MLP/sequence/transformer/GNN/AE migrated;
   npy `dataset_path` load; file checkpoints (`OEC_CACHE_DIR` + sha256).
-  Design: `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md`.
+- **Evolutionary Part B (E-D0–E-D4):** `EvolutionaryRuntimeSpec`, closed
+  expression IR objectives, inequality constraint IR, multi-seed matrix
+  (`run_seed_matrix`), fixed HV reference for multi-obj; `optimize_single` skill
+  extended. Design: `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md`.
 - Agent authority P0 helpers + strong neural/evo goldens; optional CI extras job.
 
 ## [3.4.0] - 2026-08-02

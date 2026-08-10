@@ -24,6 +24,11 @@ from oec.evolutionary.results import (
     EvolutionaryParetoResult,
     EvolutionaryResult,
 )
+from oec.evolutionary.runtime import (
+    EvolutionaryRuntimeSpec,
+    InequalityConstraintSpec,
+    MultiSeedReport,
+)
 
 __all__ = [
     "AlgorithmName",
@@ -36,8 +41,11 @@ __all__ = [
     "EvolutionaryParetoResult",
     "EvolutionaryProblemSpec",
     "EvolutionaryResult",
+    "EvolutionaryRuntimeSpec",
+    "InequalityConstraintSpec",
     "MultiObjectiveAlgorithmName",
     "MultiObjectiveAlgorithmSpec",
     "MultiObjectiveProblemSpec",
+    "MultiSeedReport",
     "VariableSpec",
 ]

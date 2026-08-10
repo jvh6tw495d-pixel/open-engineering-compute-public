@@ -1,6 +1,6 @@
 # OEC — Dense Neural Runtime + Evolutionary Maturity Map
 
-**Status:** Part A **implemented** (N-D0 + N-D1 MLP pilot + checkpoint file + capacity tables); Part B still design
+**Status:** Part A **done**; Part B **done** (E-D0–E-D4; E-D5 partial via expression IR)
 **Date:** 2026-08-10
 **Baseline:** `oec==3.4.0` (N0–N5, E1–E4, X1–X3 in tree as experimental v0)
 **Related:** ADR 0031, ADR 0032, `OEC_NEURAL_EVOLUTIONARY_WAVES.md`, P0 goldens / agent authority
@@ -9,13 +9,18 @@
 
 | Slice | Status | Location |
 |-------|--------|----------|
-| N-D0 contracts + capacity | **done** | `src/oec/neural/runtime.py`, `tests/unit/test_neural_runtime_contracts.py` |
-| N-D1 shared train + MLP | **done** | `src/oec/kernel/neural/runtime.py`, `training.py` |
-| N-D2 checkpoint file | **done** | `save_checkpoint` / `load_state_dict_from_checkpoint` |
-| N-D3 dataset npy path | **done** | `load_xy_from_inputs` / `load_dataset_arrays`; MLP + sequence skills |
-| N-D4 sequences + transformer | **done** | `fit_minibatches` + `skill_io.train_sequence/transformer_from_inputs` |
-| N-D5 GNN + AE | **done** | `fit_fullbatch` + AE/GNN train paths + skills |
-| Skills capacity | **done** | all train neural skills via `skill_io` or MLP capacity |
+| N-D0–N-D5 | **done** | shared neural runtime + all train skills |
+
+### Part B delivery map
+
+| Slice | Status | Location |
+|-------|--------|----------|
+| E-D0/E-D1 runtime | **done** | `src/oec/evolutionary/runtime.py` |
+| E-D2 expression IR | **done** | `kernel/evolutionary/expression.py` + `optimize.py` |
+| E-D3 inequality constraints | **done** | `constraints` on problem → pymoo `G` |
+| E-D4 multi-seed + HV ref | **done** | `seed_matrix.py`; multi-obj `hv_reference` |
+| E-D5 domain adapters | **partial** | engineering f via expression IR (skill-id fitness deferred) |
+| E-D6 skill promotion | **pending** | still experimental |
 
 ## Purpose
 
@@ -332,16 +337,17 @@ This breadth is **not** “only a basic GA tutorial.”
 
 | Area | Breadth | Depth | Notes |
 |------|---------|-------|-------|
-| Single-obj continuous box | 4 | 2 | Algorithms good; problems toy |
-| Multi-obj Pareto | 4 | 2 | NSGA*/MOEA/D present; HV ref weak historically (P0 improved tests) |
-| Symbolic GP | 3 | 2 | Closed IR is a strength; targets few |
-| Black-box portfolio | 3 | 2 | Nevergrad wrapped; engineering f limited |
-| Hybrid surrogate | 3 | 2 | X2 policy right; capacity still MLP-toy |
-| Constraint handling | 1 | 1 | Major depth gap |
-| Real domain skills (energy, control) | 1 | 1 | Not wired as evo objectives yet |
+| Single-obj continuous box | 4 | 4 | Built-in + expression IR + multi-seed |
+| Multi-obj Pareto | 4 | 3 | Fixed HV reference option + multi-seed matrix |
+| Symbolic GP | 3 | 2 | Unchanged (separate DEAP path) |
+| Black-box portfolio | 3 | 2 | Unchanged Nevergrad wrap |
+| Hybrid surrogate | 3 | 2 | Unchanged X2 |
+| Constraint handling | 3 | 3 | Inequality IR g(x)≤0 on SOO |
+| Real domain skills (energy, control) | 2 | 2 | Via expression IR (not skill-id fitness yet) |
 | Governance (seed, fingerprint, fail-closed) | 4 | 4 | Strong OEC core |
 
-**Overall evo 3.4:** breadth **~4/5**, depth **~2/5**.
+**Overall evo 3.4 (pre-Part-B):** breadth **~4/5**, depth **~2/5**.
+**After Part B (this delivery):** breadth **~4/5**, depth **~3.5/5** (expression+constraints+multi-seed+fixed HV; domain skill-fitness still thin).
 
 ### B.6 Evolutionary depth slices (mirror of neural dense)
 

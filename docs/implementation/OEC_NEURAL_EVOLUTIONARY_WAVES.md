@@ -82,6 +82,6 @@ uv sync --extra neural --extra evolutionary
 
 See **[OEC_DENSE_NEURAL_AND_EVO_MATURITY.md](./OEC_DENSE_NEURAL_AND_EVO_MATURITY.md)** for:
 
-- shared `TrainingRuntimeSpec` + capacity presets (`tiny`/`medium`/`dense`/`wide`) for **all** neural families (not only MLP);
-- evolutionary **breadth vs depth** maturity map (algorithms advanced, engineering depth still v0);
-- paired roadmap slices **N-D\*** / **E-D\*** under ADR 0031 governance.
+- **Part A done:** shared neural runtime + capacity presets for all families;
+- **Part B done:** expression IR objectives, inequality constraints, multi-seed matrix,
+  fixed HV reference (`EvolutionaryRuntimeSpec` / `run_seed_matrix`).

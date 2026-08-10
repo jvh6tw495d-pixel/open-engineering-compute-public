@@ -24,6 +24,10 @@ class EvolutionaryResult(BaseModel):
     problem_fingerprint: str
     feasibility_rate: float = 1.0
     message: str = ""
+    # Part B depth metadata
+    n_constraints: int = 0
+    objective_mode: Literal["built_in", "expression"] = "built_in"
+    runtime: dict[str, Any] | None = None
 
 
 class EvolutionaryParetoResult(BaseModel):
@@ -45,8 +49,10 @@ class EvolutionaryParetoResult(BaseModel):
     n_evaluations: int = 0
     n_generations: int = 0
     hypervolume: float | None = None
+    hv_reference: list[float] | None = None
     problem_fingerprint: str
     message: str = "ok"
+    runtime: dict[str, Any] | None = None
 
 
 class BenchmarkResult(BaseModel):

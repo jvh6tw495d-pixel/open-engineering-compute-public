@@ -20,7 +20,25 @@
     "built_in": {
       "type": "string",
       "enum": ["sphere", "rosenbrock", "rastrigin"],
-      "default": "sphere"
+      "default": "sphere",
+      "description": "Ignored when expression is set"
+    },
+    "expression": {
+      "type": "object",
+      "description": "Closed IR tree (GP ops); vars must match variable names. E-D2."
+    },
+    "constraints": {
+      "type": "array",
+      "description": "Inequality constraints g(x)<=0 as closed IR trees. E-D3.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "tree": { "type": "object" }
+        },
+        "required": ["name", "tree"],
+        "additionalProperties": false
+      }
     },
     "sense": { "type": "string", "enum": ["min", "max"], "default": "min" },
     "algorithm": {
@@ -30,7 +48,15 @@
     },
     "generations": { "type": "integer", "minimum": 1, "default": 40 },
     "population": { "type": "integer", "minimum": 4, "default": 30 },
-    "seed": { "type": "integer", "default": 42 }
+    "seed": { "type": "integer", "default": 42 },
+    "seeds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "Multi-seed matrix (E-D4); when len>1 returns MultiSeedReport"
+    },
+    "max_seconds": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "max_evaluations": { "type": ["integer", "null"], "minimum": 1 },
+    "history": { "type": "boolean", "default": true }
   },
   "required": ["variables"],
   "additionalProperties": false

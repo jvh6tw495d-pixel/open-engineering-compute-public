@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -64,14 +64,21 @@ class BudgetSpec(BaseModel):
 class EvolutionaryProblemSpec(BaseModel):
     """Single-objective box-constrained problem.
 
-    E1.0: ``built_in`` test functions only. Expression IR is a later slice.
+    Objective is either a ``built_in`` test function **or** a closed
+    expression IR tree (Part B E-D2). Optional inequality constraints
+    g(x) ≤ 0 via the same IR (E-D3).
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     variables: list[VariableSpec]
     sense: Literal["min", "max"] = "min"
-    built_in: BuiltInProblemName = BuiltInProblemName.SPHERE
+    # Default sphere when neither expression nor explicit built_in is the common path
+    built_in: BuiltInProblemName | None = BuiltInProblemName.SPHERE
+    # Closed operator IR (same allow-list as GP); vars must match VariableSpec names
+    expression: dict[str, Any] | None = None
+    # Inequality constraints: dicts with name+tree (g(x) <= 0) — validated at runtime
+    constraints: list[dict[str, Any]] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _vars(self) -> EvolutionaryProblemSpec:
@@ -80,6 +87,13 @@ class EvolutionaryProblemSpec(BaseModel):
         names = [v.name for v in self.variables]
         if len(names) != len(set(names)):
             raise ValueError("variable names must be unique")
+        if self.expression is None and self.built_in is None:
+            raise ValueError("either built_in or expression is required")
+        for i, c in enumerate(self.constraints):
+            if not isinstance(c, dict) or "tree" not in c:
+                raise ValueError(f"constraints[{i}] must be an object with a tree field")
+            if "name" not in c:
+                raise ValueError(f"constraints[{i}] must include name")
         return self
 
 
