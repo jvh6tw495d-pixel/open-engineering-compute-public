@@ -30,6 +30,8 @@ _RUNTIME_BACKEND_PACKAGES: tuple[str, ...] = (
     "pint",
     "pandas",
     "highspy",  # optional extra oec[optimization]; listed when installed
+    "torch",  # optional extra oec[neural]; listed when installed (ADR 0031)
+    "pymoo",  # optional extra oec[evolutionary]; listed when installed (ADR 0031)
 )
 
 

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.evaluate output",
+  "type": "object",
+  "properties": {
+    "metrics": { "type": "object" },
+    "backend": { "type": "string" },
+    "n": { "type": "integer" }
+  },
+  "required": ["metrics", "backend", "n"],
+  "additionalProperties": true
+}

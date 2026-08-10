@@ -34,6 +34,17 @@ _METHOD_BACKEND_REQUIREMENTS: dict[str, str] = {
     "highs_lp_diagnostics": "lp",
     "highs_weighted_sum": "lp",
     "highs_scenario_batch": "lp",
+    # ADR 0031 — neural (oec[neural] / torch)
+    "torch_mlp_regressor_train": "neural_train",
+    "torch_mlp_classifier_train": "neural_train",
+    "torch_mlp_predict": "neural_eval",
+    "torch_mlp_evaluate": "neural_eval",
+    # ADR 0031 — evolutionary (oec[evolutionary] / pymoo)
+    "pymoo_optimize_single": "evolutionary_single",
+    "pymoo_de": "evolutionary_single",
+    "pymoo_ga": "evolutionary_single",
+    "pymoo_cmaes": "evolutionary_single",
+    "pymoo_pso": "evolutionary_single",
 }
 
 

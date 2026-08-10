@@ -1,0 +1,39 @@
+id: neural.predict
+version: 0.1.0
+status: experimental
+domain: neural
+title: Neural MLP Predict
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: torch_mlp_predict
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 60
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "PyTorch — https://pytorch.org/docs/stable/index.html"
+  - "ADR 0031 Neural and Evolutionary Compute"
+
+tags:
+  - neural
+  - experimental

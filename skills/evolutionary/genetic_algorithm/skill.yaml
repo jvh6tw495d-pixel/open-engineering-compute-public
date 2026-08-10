@@ -1,0 +1,39 @@
+﻿id: evolutionary.genetic_algorithm
+version: 0.1.0
+status: experimental
+domain: evolutionary
+title: Genetic Algorithm (pymoo)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: pymoo_ga
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 120
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "pymoo — https://pymoo.org/"
+  - "ADR 0031 Neural and Evolutionary Compute"
+
+tags:
+  - evolutionary
+  - experimental

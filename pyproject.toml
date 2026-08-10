@@ -30,6 +30,13 @@ mcp = ["mcp>=1.0"]
 optimization = [
     "highspy>=1.15.1",
 ]
+# ADR 0031 — optional; never pull into core deps
+neural = [
+    "torch>=2.2",
+]
+evolutionary = [
+    "pymoo>=0.6",
+]
 
 [project.scripts]
 oec = "oec.cli.main:app"
@@ -74,7 +81,16 @@ files = ["src/oec"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["highspy", "highspy.*", "pandas", "pandas.*"]
+module = [
+  "highspy",
+  "highspy.*",
+  "pandas",
+  "pandas.*",
+  "torch",
+  "torch.*",
+  "pymoo",
+  "pymoo.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -86,9 +102,11 @@ testpaths = [
   "agents",
 ]
 pythonpath = ["."]
-addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml -m \"not slow\""
+addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml -m \"not slow and not neural and not evolutionary\""
 markers = [
   "slow: builds/installs a real wheel into a throwaway venv (deselected by default; run with `uv run pytest -m slow --no-cov`)",
+  "neural: requires oec[neural] / torch (deselected unless installed; run with `uv run pytest -m neural`)",
+  "evolutionary: requires oec[evolutionary] / pymoo (deselected unless installed; run with `uv run pytest -m evolutionary`)",
 ]
 
 [tool.coverage.run]

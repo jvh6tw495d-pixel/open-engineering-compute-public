@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.predict output",
+  "type": "object",
+  "properties": {
+    "predictions": {
+      "type": "array"
+    },
+    "backend": { "type": "string" }
+  },
+  "required": ["predictions", "backend"],
+  "additionalProperties": true
+}

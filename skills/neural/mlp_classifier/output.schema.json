@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.mlp.classifier output",
+  "type": "object",
+  "properties": {
+    "task": { "type": "string" },
+    "backend": { "type": "string" },
+    "seed": { "type": "integer" },
+    "train_metrics": { "type": "object" },
+    "checkpoint": { "type": "object" },
+    "dataset_fingerprint": { "type": "string" }
+  },
+  "required": ["task", "backend", "seed", "train_metrics", "checkpoint"],
+  "additionalProperties": true
+}

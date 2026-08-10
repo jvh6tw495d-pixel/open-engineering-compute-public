@@ -19,7 +19,13 @@ from collections.abc import Callable
 from pydantic import BaseModel, ConfigDict, Field
 
 from oec.backends import capabilities
-from oec.backends.adapters import highs_backend, numpy_backend, scipy_backend
+from oec.backends.adapters import (
+    highs_backend,
+    numpy_backend,
+    pymoo_backend,
+    scipy_backend,
+    torch_backend,
+)
 
 
 class BackendCapability(BaseModel):
@@ -39,6 +45,8 @@ _PROBES: dict[str, Callable[[], tuple[bool, str | None, str | None]]] = {
     numpy_backend.BACKEND_NAME: numpy_backend.probe,
     scipy_backend.BACKEND_NAME: scipy_backend.probe,
     highs_backend.BACKEND_NAME: highs_backend.probe,
+    torch_backend.BACKEND_NAME: torch_backend.probe,
+    pymoo_backend.BACKEND_NAME: pymoo_backend.probe,
 }
 
 

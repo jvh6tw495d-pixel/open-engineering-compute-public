@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.mlp.regressor output",
+  "type": "object",
+  "properties": {
+    "task": { "type": "string" },
+    "backend": { "type": "string" },
+    "backend_version": { "type": ["string", "null"] },
+    "device": { "type": "string" },
+    "seed": { "type": "integer" },
+    "deterministic_status": {
+      "type": "string",
+      "enum": ["strict", "practical", "best_effort"]
+    },
+    "epochs_ran": { "type": "integer" },
+    "train_metrics": { "type": "object" },
+    "val_metrics": { "type": ["object", "null"] },
+    "checkpoint": { "type": "object" },
+    "normalize": { "type": ["object", "null"] },
+    "n_train": { "type": "integer" },
+    "n_val": { "type": "integer" },
+    "dataset_fingerprint": { "type": "string" },
+    "model_fingerprint": { "type": "string" }
+  },
+  "required": [
+    "task",
+    "backend",
+    "seed",
+    "train_metrics",
+    "checkpoint",
+    "dataset_fingerprint"
+  ],
+  "additionalProperties": true
+}

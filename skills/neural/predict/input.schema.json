@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.predict input",
+  "type": "object",
+  "properties": {
+    "x": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "number" }
+      }
+    },
+    "checkpoint": { "type": "object" },
+    "normalize": { "type": ["object", "null"] },
+    "device": { "type": "string", "enum": ["cpu", "cuda", "auto"], "default": "cpu" }
+  },
+  "required": ["x", "checkpoint"],
+  "additionalProperties": false
+}

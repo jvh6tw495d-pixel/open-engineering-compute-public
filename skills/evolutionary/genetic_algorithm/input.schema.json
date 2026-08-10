@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "evolutionary.genetic_algorithm input",
+  "type": "object",
+  "properties": {
+    "variables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "lower": { "type": "number" },
+          "upper": { "type": "number" }
+        },
+        "required": ["name", "lower", "upper"],
+        "additionalProperties": false
+      }
+    },
+    "built_in": {
+      "type": "string",
+      "enum": ["sphere", "rosenbrock", "rastrigin"],
+      "default": "sphere"
+    },
+    "sense": { "type": "string", "enum": ["min", "max"], "default": "min" },
+    "generations": { "type": "integer", "minimum": 1, "default": 40 },
+    "population": { "type": "integer", "minimum": 4, "default": 30 },
+    "seed": { "type": "integer", "default": 42 }
+  },
+  "required": ["variables"],
+  "additionalProperties": false
+}

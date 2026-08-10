@@ -53,6 +53,8 @@ Optional extras:
 uv sync --extra api           # REST:  oec server api --skills-root skills
 uv sync --extra mcp           # MCP:   oec server mcp --skills-root skills
 uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
+uv sync --extra neural        # PyTorch: neural.mlp.* / neural.predict (ADR 0031)
+uv sync --extra evolutionary  # pymoo: evolutionary.* single-objective (ADR 0031)
 ```
 
 ## Interfaces
@@ -73,7 +75,7 @@ See [docs/concepts/scientific-kernel.md](docs/concepts/scientific-kernel.md) for
 |---|---|---|
 | Odysseus (MCP host) | `integrations/odysseus/` | config + tutorial; core has zero Odysseus deps |
 | Open Science | `integrations/open_science/` | Method Change Proposals; **never** auto-mutates `stable` skills |
-| **Agents (v1.5+)** | `agents/` | 5 specialists outside the wheel — formulate/review only; numbers from OEC ([packaging](agents/README.md)) |
+| **Agents (v1.5+)** | `agents/` | 7 specialists outside the wheel — formulate/review only; numbers from OEC ([packaging](agents/README.md)) |
 
 ```python
 from agents.optimization_specialist.specialist import OptimizationSpecialist
@@ -99,6 +101,36 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 
 ## Status / release
 
+**Current: `oec==3.3.1`**, release candidate, **87** skills across 18 domains
+(mathematics, electrical, timeseries, linear, numerical, statistics,
+optimization, energy, battery, finance, control, dynamics, uncertainty,
+thermal, mechanics, fluids, materials, chemistry, multiphysics — see
+[skill-inventory.md](docs/implementation/skill-inventory.md) for the
+authoritative per-domain count).
+
+**In-tree expansion (ADR 0031, experimental):** optional **Neural** (`oec[neural]`,
+PyTorch MLP train/predict/evaluate) and **Evolutionary** (`oec[evolutionary]`,
+pymoo single-objective on built-in problems). See
+[OEC_NEURAL_EVOLUTIONARY_WAVES.md](docs/implementation/OEC_NEURAL_EVOLUTIONARY_WAVES.md).
+These skills are additive extras and are **not** counted in the 3.3.1 public
+skill total until a catalog/version bump release. Recovery/publish story:
+[3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md)
++ [3.3.1-phase0-3-execution-report.md](docs/implementation/3.3.1-phase0-3-execution-report.md)
+(catalog integrity, `agent.default`/MCP domain alignment, quality gates —
+all independently re-verified, not just self-reported) +
+[3.3.1-phase4-5-execution-report.md](docs/implementation/3.3.1-phase4-5-execution-report.md)
+(docs reconciliation + public-tree validation). **`v3.0.0`/Option C is
+withdrawn as the public tag** — an earlier internal cut briefly used that
+label, but the branch kept moving (chemistry, multiphysics, THD) past it
+without a coherent release story; `3.3.1` is the first candidate that
+actually closes the gates. Known open residuals (no auth/rate-limiting on
+REST/MCP, no OS-level sandbox isolation, routing heuristics not yet a
+semantic classifier) are tracked in
+[technical-debt.md](docs/implementation/technical-debt.md).
+
+<details>
+<summary>Earlier release history (v2.2.0 → v2.5.1)</summary>
+
 **v2.2.0** delivered Math IR foundation (`oec.modeling`, ADR 0020).
 **v2.3.0** closed the Applied Math expansion (Waves A+B+C): 21 new skills since
 2.2 (linear/stats/TS/opt, uncertainty, dynamics, control, Pareto/CVaR/robust LP),
@@ -116,12 +148,14 @@ domain wave): a `timeseries.*` AR/autocorrelation package
 `agent.default` routing for that domain's intent, catalog reconciliation,
 and a coverage push on the four weakest kernel modules
 (`quality`/`ops`/`timegrid`/`feasibility`, aggregate suite coverage
-90.67% → 92.0%). Catalog is now **67** skills
-([inventory](docs/implementation/skill-inventory.md)). Known open residuals
-(kernel coverage below the aggregate bar, no auth/rate-limiting on REST/MCP,
-no OS-level sandbox isolation) are tracked in
-[technical-debt.md](docs/implementation/technical-debt.md); next scope is
-not yet decided.
+90.67% → 92.0%). Catalog was **67** skills at that point. **v2.6–v2.7** added
+physics/multiphysics co-simulation; **v2.8–v2.9** added the chemistry
+foundation, Scientific IR and Model Registry; **v3.0.0** was an early
+"public-claimable" cut later withdrawn (see above); **v3.1–v3.3.0** completed
+chemistry, added THD and the sequential chemistry network. Full detail in
+`CHANGELOG.md` and the versioned closeout docs under `docs/implementation/`.
+
+</details>
 
 This clone is the **incubation** repository (no remote). Public Alpha must use a
 **new directory and clean git history** — see:

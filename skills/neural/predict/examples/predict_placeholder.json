@@ -1,0 +1,17 @@
+{
+  "x": [[0.0], [1.0]],
+  "checkpoint": {
+    "architecture": "mlp",
+    "model_spec": {
+      "architecture": "mlp",
+      "input_dim": 1,
+      "output_dim": 1,
+      "hidden_dims": [8],
+      "activation": "relu",
+      "dropout": 0.0
+    },
+    "state_dict": {},
+    "task": "regression"
+  },
+  "device": "cpu"
+}

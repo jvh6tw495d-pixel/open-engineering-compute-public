@@ -1,0 +1,18 @@
+{
+  "x": [[0.0], [1.0]],
+  "y": [1.0, 3.0],
+  "task": "regression",
+  "checkpoint": {
+    "architecture": "mlp",
+    "model_spec": {
+      "architecture": "mlp",
+      "input_dim": 1,
+      "output_dim": 1,
+      "hidden_dims": [8],
+      "activation": "relu",
+      "dropout": 0.0
+    },
+    "state_dict": {},
+    "task": "regression"
+  }
+}
