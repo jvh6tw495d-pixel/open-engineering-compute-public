@@ -18,9 +18,19 @@ from oec.neural.contracts import (
     TrainingSpec,
 )
 from oec.neural.results import NeuralEvaluationResult, NeuralTrainingResult
+from oec.neural.runtime import (
+    CheckpointRef,
+    DatasetRef,
+    TrainingRuntimeSpec,
+    estimate_mlp_param_count,
+    resolve_capacity,
+    resolve_mlp_hidden_dims,
+)
 
 __all__ = [
     "ActivationName",
+    "CheckpointRef",
+    "DatasetRef",
     "DatasetSpec",
     "DeviceSpec",
     "LossName",
@@ -30,5 +40,9 @@ __all__ = [
     "NeuralTrainingResult",
     "OptimizerName",
     "OptimizerSpec",
+    "TrainingRuntimeSpec",
     "TrainingSpec",
+    "estimate_mlp_param_count",
+    "resolve_capacity",
+    "resolve_mlp_hidden_dims",
 ]

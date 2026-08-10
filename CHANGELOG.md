@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Dense neural Part A (N-D0/N-D1):** shared `TrainingRuntimeSpec`, capacity presets
+  (`tiny|medium|dense|wide`) for all neural families, MLP train path with scheduler /
+  grad clip / AMP hooks, param caps, file checkpoints (`OEC_CACHE_DIR` + sha256).
+  Design: `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md`.
+- Agent authority P0 helpers + strong neural/evo goldens; optional CI extras job.
+
 ## [3.4.0] - 2026-08-02
 
 **Neural Compute + Evolutionary Compute** (optional extras) — full wave stack N0–N5,

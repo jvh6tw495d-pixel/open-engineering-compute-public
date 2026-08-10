@@ -1,4 +1,8 @@
-"""Supervised MLP train / eval / predict (merit: PyTorch)."""
+"""Supervised MLP train / eval / predict (merit: PyTorch).
+
+Uses the shared dense runtime helpers (Part A) for optimizer, scheduler,
+grad clip, AMP, param caps, and checkpoint storage.
+"""
 
 from __future__ import annotations
 
@@ -9,32 +13,34 @@ import numpy as np
 from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.kernel.neural.metrics import classification_metrics, regression_metrics
 from oec.kernel.neural.mlp import build_mlp
-from oec.kernel.neural.seeding import (
-    configure_torch_seeds,
-    state_dict_from_jsonable,
-    state_dict_to_jsonable,
-    torch_version,
+from oec.kernel.neural.runtime import (
+    TrainTimer,
+    build_optimizer,
+    build_scheduler,
+    count_parameters,
+    enforce_max_params,
+    load_state_dict_from_checkpoint,
+    maybe_clip_grads,
+    prepare_device_and_seeds,
+    require_torch,
+    resolve_amp,
+    save_checkpoint,
 )
+from oec.kernel.neural.seeding import torch_version
 from oec.neural.contracts import (
     DatasetSpec,
     LossName,
     NeuralModelSpec,
     NeuralTask,
-    OptimizerName,
     TrainingSpec,
 )
 from oec.neural.hashing import dataset_fingerprint, model_spec_fingerprint
 from oec.neural.results import NeuralEvaluationResult, NeuralTrainingResult
-
-
-def _require_torch() -> Any:
-    try:
-        import torch
-    except ImportError as exc:
-        raise TorchNotAvailableError(
-            "PyTorch is not installed. Install with: uv sync --extra neural"
-        ) from exc
-    return torch
+from oec.neural.runtime import (
+    CapacityName,
+    TrainingRuntimeSpec,
+    estimate_mlp_param_count,
+)
 
 
 def _loss_fn(torch: Any, name: LossName, task: NeuralTask) -> Any:
@@ -52,16 +58,6 @@ def _loss_fn(torch: Any, name: LossName, task: NeuralTask) -> Any:
     if name == LossName.CROSS_ENTROPY:
         return torch.nn.CrossEntropyLoss()
     raise ValueError(f"loss {name} is not valid for classification")
-
-
-def _optimizer(torch: Any, name: OptimizerName, params: Any, lr: float, weight_decay: float) -> Any:
-    if name == OptimizerName.ADAM:
-        return torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
-    if name == OptimizerName.ADAMW:
-        return torch.optim.AdamW(params, lr=lr, weight_decay=weight_decay)
-    if name == OptimizerName.SGD:
-        return torch.optim.SGD(params, lr=lr, weight_decay=weight_decay)
-    raise ValueError(f"unknown optimizer {name}")
 
 
 def _split(
@@ -92,24 +88,49 @@ def _normalize_apply(x: np.ndarray, params: dict[str, list[float]]) -> np.ndarra
     return np.asarray(out, dtype=float)
 
 
+def runtime_from_training(training: TrainingSpec) -> TrainingRuntimeSpec:
+    """Bridge legacy TrainingSpec into TrainingRuntimeSpec (shared defaults)."""
+    return TrainingRuntimeSpec(
+        seed=training.seed,
+        device=training.device,
+        epochs=training.epochs,
+        batch_size=training.batch_size,
+        optimizer=training.optimizer,
+        early_stopping_patience=training.early_stopping_patience,
+    )
+
+
 def train_mlp(
     dataset: DatasetSpec,
     model_spec: NeuralModelSpec,
     training: TrainingSpec,
+    *,
+    runtime: TrainingRuntimeSpec | None = None,
+    capacity: CapacityName | None = None,
+    run_id: str | None = None,
 ) -> NeuralTrainingResult:
-    """Train an MLP; returns metrics + JSON-serializable checkpoint."""
-    torch = _require_torch()
+    """Train an MLP; returns metrics + checkpoint (inline JSON or file)."""
+    torch = require_torch()
+    rt = runtime or runtime_from_training(training)
 
     if model_spec.input_dim != len(dataset.x[0]):
         raise ValueError(
             f"model input_dim={model_spec.input_dim} != feature width={len(dataset.x[0])}"
         )
 
-    device, det_status = configure_torch_seeds(training.seed, training.device.device)
+    # Pre-check param cap without building (fast fail for dense misconfig)
+    est = estimate_mlp_param_count(
+        model_spec.input_dim, list(model_spec.hidden_dims), model_spec.output_dim
+    )
+    enforce_max_params(est, rt.max_params)
+
+    device, det_status = prepare_device_and_seeds(rt)
+    use_amp = resolve_amp(torch, rt, device)
+
     x = np.asarray(dataset.x, dtype=np.float64)
     y = np.asarray(dataset.y, dtype=np.float64)
 
-    x_train, y_train, x_val, y_val = _split(x, y, dataset.val_fraction, training.seed)
+    x_train, y_train, x_val, y_val = _split(x, y, dataset.val_fraction, rt.seed)
     norm_params: dict[str, list[float]] | None = None
     if training.normalize_x:
         x_train, norm_params = _normalize_fit(x_train)
@@ -117,14 +138,25 @@ def train_mlp(
             x_val = _normalize_apply(x_val, norm_params)
 
     model = build_mlp(model_spec).to(device)
+    n_params = count_parameters(model)
+    enforce_max_params(n_params, rt.max_params)
+
     criterion = _loss_fn(torch, training.loss, training.task)
-    optim = _optimizer(
+    optim = build_optimizer(
         torch,
-        training.optimizer.name,
+        rt.optimizer.name,
         model.parameters(),
-        training.optimizer.lr,
-        training.optimizer.weight_decay,
+        rt.optimizer.lr,
+        rt.optimizer.weight_decay,
     )
+    scheduler = build_scheduler(torch, optim, rt)
+    scaler = None
+    if use_amp:
+        # torch.amp.GradScaler preferred; fall back for older torch
+        try:
+            scaler = torch.amp.GradScaler("cuda", enabled=True)
+        except (AttributeError, TypeError):
+            scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     x_t = torch.tensor(x_train, dtype=torch.float32, device=device)
     if training.task == NeuralTask.REGRESSION:
@@ -140,27 +172,48 @@ def train_mlp(
     history: list[dict[str, float]] = []
     best_state = None
     best_val = float("inf")
-    patience_left = training.early_stopping_patience
+    patience_left = rt.early_stopping_patience
     epochs_ran = 0
+    timer = TrainTimer(rt.max_seconds)
 
-    for epoch in range(training.epochs):
+    for epoch in range(rt.epochs):
+        if timer.expired():
+            break
         model.train()
         perm = torch.randperm(n, device=device)
         total_loss = 0.0
         batches = 0
-        for start in range(0, n, training.batch_size):
-            idx = perm[start : start + training.batch_size]
+        for start in range(0, n, rt.batch_size):
+            idx = perm[start : start + rt.batch_size]
             xb, yb = x_t[idx], y_t[idx]
             optim.zero_grad(set_to_none=True)
-            out = model(xb)
-            if training.task == NeuralTask.MULTICLASS_CLASSIFICATION:
-                loss = criterion(out, yb)
+            if use_amp:
+                assert scaler is not None
+                with torch.autocast(device_type="cuda", dtype=torch.float16):
+                    out = model(xb)
+                    if training.task == NeuralTask.MULTICLASS_CLASSIFICATION:
+                        loss = criterion(out, yb)
+                    else:
+                        loss = criterion(out, yb if out.shape == yb.shape else yb.view_as(out))
+                scaler.scale(loss).backward()
+                if rt.grad_clip is not None:
+                    scaler.unscale_(optim)
+                    maybe_clip_grads(torch, model, rt.grad_clip)
+                scaler.step(optim)
+                scaler.update()
             else:
-                loss = criterion(out, yb if out.shape == yb.shape else yb.view_as(out))
-            loss.backward()
-            optim.step()
+                out = model(xb)
+                if training.task == NeuralTask.MULTICLASS_CLASSIFICATION:
+                    loss = criterion(out, yb)
+                else:
+                    loss = criterion(out, yb if out.shape == yb.shape else yb.view_as(out))
+                loss.backward()
+                maybe_clip_grads(torch, model, rt.grad_clip)
+                optim.step()
             total_loss += float(loss.item())
             batches += 1
+        if scheduler is not None:
+            scheduler.step()
         epochs_ran = epoch + 1
         train_loss = total_loss / max(batches, 1)
         entry: dict[str, float] = {"epoch": float(epochs_ran), "train_loss": train_loss}
@@ -183,8 +236,8 @@ def train_mlp(
             if val_loss < best_val - 1e-12:
                 best_val = val_loss
                 best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
-                patience_left = training.early_stopping_patience
-            elif training.early_stopping_patience is not None:
+                patience_left = rt.early_stopping_patience
+            elif rt.early_stopping_patience is not None:
                 patience_left = (patience_left or 0) - 1
                 if patience_left <= 0:
                     history.append(entry)
@@ -206,29 +259,52 @@ def train_mlp(
             pred_val = model(xv).detach().cpu().numpy()
         val_metrics = _metrics_for_task(training.task, y_val, pred_val, model_spec.output_dim)
 
+    meta = {
+        "architecture": "mlp",
+        "model_spec": model_spec.model_dump(mode="json"),
+        "task": training.task.value,
+        "n_params": n_params,
+        "capacity": capacity,
+    }
+    ckpt_payload, ckpt_ref = save_checkpoint(
+        storage=rt.checkpoint_storage,
+        state_dict=model.state_dict(),
+        meta=meta,
+        run_id=run_id,
+    )
+
+    runtime_meta = {
+        "lr_scheduler": rt.lr_scheduler,
+        "grad_clip": rt.grad_clip,
+        "amp": use_amp,
+        "max_params": rt.max_params,
+        "max_seconds": rt.max_seconds,
+        "checkpoint_storage": rt.checkpoint_storage,
+        "estimated_params": est,
+    }
+
     return NeuralTrainingResult(
         task=training.task.value,
         backend="torch",
         backend_version=torch_version(),
         device=device,
-        seed=training.seed,
+        seed=rt.seed,
         deterministic_status=det_status,
         epochs_ran=epochs_ran,
         train_metrics=train_metrics,
         val_metrics=val_metrics,
         history=history,
-        checkpoint={
-            "architecture": "mlp",
-            "model_spec": model_spec.model_dump(mode="json"),
-            "state_dict": state_dict_to_jsonable(model.state_dict()),
-            "task": training.task.value,
-        },
+        checkpoint=ckpt_payload,
         normalize=norm_params,
         model_spec=model_spec.model_dump(mode="json"),
         n_train=int(x_train.shape[0]),
         n_val=int(x_val.shape[0]),
         dataset_fingerprint=dataset_fingerprint(dataset.x, dataset.y),
         model_fingerprint=model_spec_fingerprint(model_spec.model_dump(mode="json")),
+        n_params=n_params,
+        capacity=capacity,
+        runtime=runtime_meta,
+        checkpoint_ref=ckpt_ref.model_dump(mode="json"),
     )
 
 
@@ -241,7 +317,6 @@ def _metrics_for_task(
         logits = pred.reshape(-1)
         labels = (1 / (1 + np.exp(-logits)) >= 0.5).astype(int)
         return classification_metrics(y_true.astype(int), labels, n_classes=2)
-    # multiclass — pred shape [n, C]
     labels = np.argmax(pred, axis=1)
     return classification_metrics(y_true.astype(int), labels, n_classes=output_dim)
 
@@ -252,11 +327,13 @@ def predict_mlp(
     normalize: dict[str, list[float]] | None = None,
     device: str = "cpu",
 ) -> list[float] | list[list[float]]:
-    torch = _require_torch()
+    torch = require_torch()
+    from oec.kernel.neural.seeding import configure_torch_seeds
+
     resolved, _ = configure_torch_seeds(0, device)
     spec = NeuralModelSpec.model_validate(checkpoint["model_spec"])
     model = build_mlp(spec).to(resolved)
-    model.load_state_dict(state_dict_from_jsonable(checkpoint["state_dict"]))
+    model.load_state_dict(load_state_dict_from_checkpoint(checkpoint))
     model.eval()
     arr = np.asarray(x, dtype=np.float64)
     if normalize is not None:
@@ -292,3 +369,13 @@ def evaluate_mlp(
         dataset_fingerprint=dataset_fingerprint(x, y),
         predictions=preds if isinstance(preds, list) else list(preds),
     )
+
+
+# Re-export for callers that imported TorchNotAvailableError via training historically
+__all__ = [
+    "TorchNotAvailableError",
+    "evaluate_mlp",
+    "predict_mlp",
+    "runtime_from_training",
+    "train_mlp",
+]

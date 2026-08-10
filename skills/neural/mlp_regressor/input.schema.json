@@ -20,16 +20,43 @@
     "hidden_dims": {
       "type": "array",
       "items": { "type": "integer", "minimum": 1 },
-      "default": [32, 16]
+      "description": "Raw widths; if omitted, expanded from capacity (default tiny)"
+    },
+    "capacity": {
+      "type": "string",
+      "enum": ["tiny", "medium", "dense", "wide"],
+      "description": "Preset architecture size; overridden by hidden_dims when both set"
     },
     "activation": {
       "type": "string",
       "enum": ["relu", "gelu", "tanh", "sigmoid", "identity"],
       "default": "relu"
     },
+    "dropout": { "type": "number", "minimum": 0, "exclusiveMaximum": 1, "default": 0 },
     "epochs": { "type": "integer", "minimum": 1, "maximum": 10000, "default": 80 },
     "batch_size": { "type": "integer", "minimum": 1, "default": 16 },
     "lr": { "type": "number", "exclusiveMinimum": 0, "default": 0.01 },
+    "lr_scheduler": {
+      "type": "string",
+      "enum": ["none", "cosine", "step"],
+      "default": "none"
+    },
+    "step_size": { "type": "integer", "minimum": 1, "default": 50 },
+    "grad_clip": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "amp": { "type": "boolean", "default": false },
+    "max_params": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 50000000,
+      "default": 5000000
+    },
+    "max_seconds": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "checkpoint_storage": {
+      "type": "string",
+      "enum": ["json_inline", "file"],
+      "description": "dense/wide default to file when omitted"
+    },
+    "early_stopping_patience": { "type": ["integer", "null"], "minimum": 1, "default": 10 },
     "val_fraction": { "type": "number", "minimum": 0, "maximum": 0.9, "default": 0.2 },
     "seed": { "type": "integer", "default": 42 },
     "device": { "type": "string", "enum": ["cpu", "cuda", "auto"], "default": "cpu" },

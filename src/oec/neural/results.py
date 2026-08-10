@@ -21,6 +21,7 @@ class NeuralTrainingResult(BaseModel):
     val_metrics: dict[str, float] | None = None
     history: list[dict[str, float]] = Field(default_factory=list)
     # Compact checkpoint: state_dict as nested lists/floats for JSON skills
+    # (or file path + sha256 when checkpoint_storage=file)
     checkpoint: dict[str, Any]
     normalize: dict[str, Any] | None = None
     model_spec: dict[str, Any]
@@ -28,6 +29,11 @@ class NeuralTrainingResult(BaseModel):
     n_val: int
     dataset_fingerprint: str
     model_fingerprint: str
+    # Part A dense runtime metadata (optional for backward compatibility)
+    n_params: int | None = None
+    capacity: str | None = None
+    runtime: dict[str, Any] | None = None
+    checkpoint_ref: dict[str, Any] | None = None
 
 
 class NeuralEvaluationResult(BaseModel):

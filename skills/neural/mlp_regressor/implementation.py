@@ -17,12 +17,23 @@ from oec.neural.contracts import (
     OptimizerSpec,
     TrainingSpec,
 )
+from oec.neural.runtime import CapacityName, TrainingRuntimeSpec, resolve_mlp_hidden_dims
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
     x = inputs["x"]
     y = inputs["y"]
-    hidden = inputs.get("hidden_dims") or [32, 16]
+    capacity: CapacityName | None = inputs.get("capacity")  # type: ignore[assignment]
+    raw_hidden = inputs.get("hidden_dims")
+    # Precedence (Part A.5): raw hidden_dims wins; else capacity; else tiny
+    if raw_hidden is not None:
+        hidden, capacity_used = list(raw_hidden), None
+    else:
+        hidden, capacity_used = resolve_mlp_hidden_dims(
+            capacity=capacity or "tiny",
+            hidden_dims=None,
+        )
+
     dataset = DatasetSpec(
         x=x,
         y=y,
@@ -34,7 +45,9 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         output_dim=1,
         hidden_dims=list(hidden),
         activation=ActivationName(inputs.get("activation", "relu")),
+        dropout=float(inputs.get("dropout", 0.0)),
     )
+    patience = inputs.get("early_stopping_patience", 10)
     training = TrainingSpec(
         task=NeuralTask.REGRESSION,
         epochs=int(inputs.get("epochs", 80)),
@@ -47,10 +60,39 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         seed=int(inputs.get("seed", 42)),
         device=DeviceSpec(device=inputs.get("device", "cpu")),
         normalize_x=bool(inputs.get("normalize_x", True)),
-        early_stopping_patience=10,
+        early_stopping_patience=None if patience is None else int(patience),
+    )
+    # Prefer file checkpoint for dense/wide unless overridden
+    if "checkpoint_storage" in inputs:
+        storage = str(inputs["checkpoint_storage"])
+    elif capacity_used in ("dense", "wide"):
+        storage = "file"
+    else:
+        storage = "json_inline"
+
+    runtime = TrainingRuntimeSpec(
+        seed=training.seed,
+        device=training.device,
+        epochs=training.epochs,
+        batch_size=training.batch_size,
+        optimizer=training.optimizer,
+        lr_scheduler=str(inputs.get("lr_scheduler", "none")),  # type: ignore[arg-type]
+        step_size=int(inputs.get("step_size", 50)),
+        grad_clip=inputs.get("grad_clip"),
+        amp=bool(inputs.get("amp", False)),
+        early_stopping_patience=training.early_stopping_patience,
+        max_params=int(inputs.get("max_params", 5_000_000)),
+        max_seconds=inputs.get("max_seconds"),
+        checkpoint_storage=storage,  # type: ignore[arg-type]
     )
     try:
-        result = train_mlp(dataset, model, training)
+        result = train_mlp(
+            dataset,
+            model,
+            training,
+            runtime=runtime,
+            capacity=capacity_used,
+        )
     except TorchNotAvailableError as exc:
         return {
             "result": {"error": exc.to_dict()},
@@ -60,9 +102,17 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
                 "backend": "torch",
             },
         }
+    except ValueError as exc:
+        return {
+            "result": {"error": {"type": "ValueError", "message": str(exc)}},
+            "diagnostics": {
+                "converged": False,
+                "message": str(exc),
+                "backend": "torch",
+            },
+        }
 
     payload = result.model_dump(mode="json")
-    # Drop bulky epoch history from default result size; keep last 5
     hist = payload.get("history") or []
     payload["history"] = hist[-5:]
     train_r2 = float(result.train_metrics.get("r_squared", 0.0))
@@ -74,5 +124,7 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             "backend": "torch",
             "seed": result.seed,
             "train_r_squared": train_r2,
+            "n_params": result.n_params,
+            "capacity": result.capacity,
         },
     }

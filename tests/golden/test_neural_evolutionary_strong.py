@@ -274,3 +274,49 @@ def test_mlp_linear_overfit_r2() -> None:
     assert r2 > 0.95, f"expected R²>0.95, got {r2}"
     assert "checkpoint" in result.model_dump()
     assert result.epochs_ran >= 1
+    assert result.n_params is not None and result.n_params > 0
+
+
+@pytest.mark.neural
+def test_mlp_dense_capacity_preset() -> None:
+    """capacity=dense expands widths, reports n_params, still overfits linear toy."""
+    pytest.importorskip("torch")
+    from oec.kernel.neural.training import train_mlp
+    from oec.neural.contracts import (
+        DatasetSpec,
+        DeviceSpec,
+        NeuralModelSpec,
+        OptimizerName,
+        OptimizerSpec,
+        TrainingSpec,
+    )
+    from oec.neural.runtime import TrainingRuntimeSpec, resolve_capacity
+
+    knobs = resolve_capacity("mlp", "dense")
+    hidden = list(knobs["hidden_dims"])
+    assert hidden == [512, 512, 256, 128]
+    x = [[float(i)] for i in range(20)]
+    y = [2.0 * i + 1.0 for i in range(20)]
+    dataset = DatasetSpec(x=x, y=y, val_fraction=0.0)
+    model = NeuralModelSpec(input_dim=1, hidden_dims=hidden, output_dim=1)
+    training = TrainingSpec(
+        epochs=60,
+        seed=0,
+        normalize_x=True,
+        early_stopping_patience=None,
+        optimizer=OptimizerSpec(name=OptimizerName.ADAM, lr=0.02),
+    )
+    runtime = TrainingRuntimeSpec(
+        seed=0,
+        device=DeviceSpec(device="cpu"),
+        epochs=60,
+        batch_size=16,
+        optimizer=training.optimizer,
+        lr_scheduler="cosine",
+        early_stopping_patience=None,
+        checkpoint_storage="json_inline",
+    )
+    result = train_mlp(dataset, model, training, runtime=runtime, capacity="dense")
+    assert result.capacity == "dense"
+    assert result.n_params is not None and result.n_params > 100_000
+    assert result.train_metrics["r_squared"] > 0.9

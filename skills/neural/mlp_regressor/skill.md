@@ -16,14 +16,20 @@ OEC provides the skill contract, seeds, fingerprints, and governance
 
 - `x`: feature matrix
 - `y`: continuous targets
-- hyperparameters: `hidden_dims`, `epochs`, `lr`, `seed`, …
+- `capacity`: optional preset `tiny` | `medium` | `dense` | `wide`
+  (expanded to `hidden_dims`; raw `hidden_dims` wins if both set)
+- runtime: `epochs`, `lr`, `lr_scheduler`, `grad_clip`, `amp`, `max_params`,
+  `checkpoint_storage` (`json_inline` | `file`), `seed`, `device`, …
 
 ## Outputs
 
-Training metrics, normalization params, and a JSON-serializable checkpoint
-for `neural.predict` / `neural.evaluate`.
+Training metrics, `n_params`, optional `capacity`, normalization params, and a
+checkpoint (`json_inline` state_dict or file path + sha256 under
+`OEC_CACHE_DIR`) for `neural.predict` / `neural.evaluate`.
 
 ## Notes
 
 - Stochastic: set `seed` for reproducibility (`deterministic_status` reported).
-- Not a physics conservation claim.
+- Dense/wide default to file checkpoints unless `checkpoint_storage` is set.
+- Not a physics conservation claim. See
+  `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md` Part A.

@@ -77,3 +77,11 @@ uv sync --extra neural --extra evolutionary
 - Optional backends: missing extra → verification ERROR
 - Stochastic skills require `seed`
 - Neural/evo results are **not** physics conservation claims
+
+## Follow-on design (dense neural + evo depth)
+
+See **[OEC_DENSE_NEURAL_AND_EVO_MATURITY.md](./OEC_DENSE_NEURAL_AND_EVO_MATURITY.md)** for:
+
+- shared `TrainingRuntimeSpec` + capacity presets (`tiny`/`medium`/`dense`/`wide`) for **all** neural families (not only MLP);
+- evolutionary **breadth vs depth** maturity map (algorithms advanced, engineering depth still v0);
+- paired roadmap slices **N-D\*** / **E-D\*** under ADR 0031 governance.
