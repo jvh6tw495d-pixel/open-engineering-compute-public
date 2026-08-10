@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (`run_seed_matrix`), fixed HV reference for multi-obj; `optimize_single` skill
   extended. Design: `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md`.
 - **ADR 0033 + plan:** three-mode neural training (gradient / neuroevolution /
-  hybrid evo→gradient), waves W1–W6, strategy benchmark, Horizon VOC recipe.
+  hybrid evo→gradient), waves W1–W6, strategy benchmark.
 - **Evolutionary neural training skills (W1–W6):**
   `neural.training.{supervised,gradient,hybrid,neuroevolution}`,
   `neural.search.{hyperparameters,architecture,features,loss_weights,policy}`,

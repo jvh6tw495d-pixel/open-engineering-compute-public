@@ -87,8 +87,8 @@ All search dimensions are **declarative catalogs**, not free Python:
   activations (enum)
 - **Features:** subset \(S^*\subseteq\{x_1,\ldots,x_n\}\) via index masks /
   allow-lists
-- **Loss composition:** e.g. \(\mathcal L=\lambda_{reg}L_{Huber}+\lambda_{rank}L_{rank}+\lambda_{stop}L_{stop}\)
-  with λ in the search space (Horizon / VOC path)
+- **Loss composition:** e.g. \(\mathcal L=\lambda_{a}L_{a}+\lambda_{b}L_{b}+\lambda_{c}L_{c}\)
+  with λ coefficients in the closed search space
 
 ### Multi-objective neural training
 
@@ -188,17 +188,6 @@ contracts, budgets, validation, and provenance.
 
 **Official integration:** \(\text{OEC Neural} \leftrightarrow \text{OEC Evolutionary}\).
 
-### Horizon / VOC relation
-
-Initial path: supervised \((B,a)\rightarrow\widehat{VOC}\) with AdamW.
-
-Later: evolutionary search over `hidden_dims`, activation, dropout, lr,
-weight_decay, loss weights (rank/STOP), with hybrid loop and optional
-multi-objective \(\min\) regret, compute, model size (or maximize regret
-reduction per compute).
-
-Dataset → evo configs → PyTorch train → validation fitness → next generation.
-
 ## Consequences
 
 - Extend optimizer enum and training contracts without breaking ADR 0031.
@@ -212,7 +201,7 @@ Dataset → evo configs → PyTorch train → validation fitness → next genera
 - Free Python fitness / architecture injection
 - Claiming global optimality of any search
 - Evolving full large-model weight tensors as first-class path
-- Horizon product code inside the OEC core wheel (integration later via skills)
+- Downstream product-specific datasets or branding inside the OEC core wheel
 
 ## Related
 

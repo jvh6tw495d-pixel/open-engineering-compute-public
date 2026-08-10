@@ -39,7 +39,6 @@ F(\phi_i)=\mathrm{Eval}(\mathcal N_{\phi_i},\theta_i^*),\quad
 | Multi-obj accuracy vs size | Evo multi-obj for **problems**, not neural | Wire F = (val_loss, n_params, …) |
 | Strategy benchmark | Agent metrics only | `neural.benchmark.training_strategy` |
 | Budgets max_eval / wall time | Part B `EvolutionaryRuntimeSpec` | Bind into hybrid + neuroevolution skills |
-| Horizon VOC path | Out of OEC core | Integration recipe only (this doc §9) |
 
 ## 3. Modes in detail
 
@@ -87,11 +86,11 @@ Evo engine → φ_i → PyTorch train → validation fitness → evo → …
 Binary / combinatorial subset \(S^*\subseteq\{x_1,\ldots,x_n\}\) with max
 cardinality cap.
 
-### Loss composition (e.g. Horizon)
+### Loss composition
 \[
-\mathcal L=\lambda_{reg}L_{Huber}+\lambda_{rank}L_{rank}+\lambda_{stop}L_{stop}
+\mathcal L=\lambda_{a}L_{a}+\lambda_{b}L_{b}+\lambda_{c}L_{c}
 \]
-λ's join the evolutionary search space (bounded intervals + simplex option).
+λ coefficients join the evolutionary search space (bounded intervals / closed catalog).
 
 ## 5. Backend matrix
 
@@ -145,21 +144,11 @@ inner_training:          # hybrid / gradient eval of a candidate
 
 Missing budget → **INVALID** (fail closed), not silent infinite search.
 
-## 9. Horizon / VOC integration recipe
+## 9. Downstream products
 
-**Phase H1:** supervised \((B,a)\rightarrow\widehat{VOC}\), AdamW, Part A capacity.
-**Phase H2:** hybrid search over:
-
-- `hidden_dims`, `activation`, `dropout`
-- `learning_rate`, `weight_decay`
-- loss weights: ranking, STOP, regression
-
-**Objectives (examples):**
-
-- \(\min\) Regret, \(\min\) Compute, \(\min\) ModelSize
-- or \(\max\) RegretReduction / ComputeCost
-
-Horizon stays **outside** the oec wheel; consumes OEC skills via SDK/MCP.
+OEC remains **product-agnostic**. Downstream applications consume OEC skills
+via SDK/MCP/REST; no proprietary product names, datasets, or branding belong
+in this repository.
 
 ## 10. Target skills
 
@@ -230,7 +219,6 @@ multi-seed mean±std. No arm declared superior a priori.
 - [x] Pareto front (rmse, n_params) among hybrid trials
 - [x] `neural.search.architecture` / `features` / `loss_weights`
 - [x] `neural.benchmark.training_strategy` (gradient vs hybrid vs neuro)
-- [ ] Horizon VOC integration fixtures (product-side)
 
 ### Wave 6 — Feature / loss / policy evolution
 
@@ -253,10 +241,10 @@ multi-seed mean±std. No arm declared superior a priori.
 
 - Free-form architecture code from agents
 - Declaring hybrid always better than gradient
-- Shipping Horizon datasets inside oec core
+- Proprietary product names, datasets, or branding in the OEC tree
 - Neuroevolution of LLM-scale models
 
 ## 15. Status
 
 **W1–W6 core delivered in-tree** (kernel + 10 skills + tests). Optional polish:
-Horizon VOC fixtures, DEAP structural genotype, native pymoo multi-obj for neural.
+DEAP structural genotype, native pymoo multi-obj for neural configs.

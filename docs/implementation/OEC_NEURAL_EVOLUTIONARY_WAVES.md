@@ -96,7 +96,6 @@ Gradient-Based  +  Neuroevolution  +  Hybrid (evo config → PyTorch train)
 
 Waves W1–W6 **implemented** (gradient → HPO → hybrid → neuroevolution →
 multi-obj/Pareto search facets → feature/loss/policy evolution + strategy benchmark).
-Horizon/VOC uses hybrid search later; starts with supervised AdamW.
 
 ## Existing hybrid seed (maps to W2/W3)
 
