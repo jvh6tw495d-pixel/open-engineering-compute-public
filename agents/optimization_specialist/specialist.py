@@ -192,7 +192,12 @@ class OptimizationSpecialist:
             "Narrative uses only OEC ExecutionResult fields; "
             "numerical merit of the solve is HiGHS when backend=highs."
         )
-        return "\n".join(lines)
+        text = "\n".join(lines)
+        # Full authority gate (run_id + grounded numbers); same policy as narrate_execution
+        from agents.common import assert_narrative_authority
+
+        assert_narrative_authority(text, er)
+        return text
 
     def demo_ops_from_label(self, label: str) -> dict[str, Any]:
         """Return a fixed OPS for golden natural-language *labels* (no LLM).
@@ -267,7 +272,7 @@ class OptimizationSpecialist:
         """
         if not skill_id.startswith("optimization."):
             raise ValueError(
-                f"optimization_specialist only accepts optimization.* skills, " f"got {skill_id!r}"
+                f"optimization_specialist only accepts optimization.* skills, got {skill_id!r}"
             )
         result = self.engine.run(skill_id, inputs)
         report = SkillAgentReport(

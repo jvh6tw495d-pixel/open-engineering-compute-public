@@ -1,14 +1,15 @@
 """Strong goldens for OEC 3.4 neural + evolutionary compute (P0 quality bar).
 
 These go beyond skill smoke tests: multi-seed reproducibility, hypervolume
-presence, MLP overfit, closed GP IR, and method selection policy structure.
+quality, MLP overfit, closed GP IR, and method selection structure.
 
 Markers:
-  - ``evolutionary`` for pymoo/deap paths
-  - ``neural`` for torch paths
-  - method_select + pure GP IR run without extras (default gate)
+  - ``evolutionary`` for pymoo/deap paths (deselected by default addopts)
+  - ``neural`` for torch paths (deselected by default addopts)
+  - Unmarked tests (GP IR closed ops + method_select structure) run on the
+    default PR gate
 
-Deselected from default pytest via pyproject addopts; run with::
+Run extras-only suite::
 
     uv run pytest tests/golden/test_neural_evolutionary_strong.py \\
         -m "neural or evolutionary" -o addopts=
@@ -50,15 +51,23 @@ def test_gp_ir_poly2_identity_and_closed_ops() -> None:
         got = eval_tree(tree, {"x0": x})
         assert abs(got - expected) < 1e-12
 
-    assert "add" in ALLOWED_OP_NAMES
+    # Core arithmetic + at least one unary from the closed set
+    assert {"add", "mul", "sub", "div"}.issubset(ALLOWED_OP_NAMES)
+    assert "sin" in ALLOWED_OP_NAMES
     with pytest.raises(ValueError, match="not in allow-list"):
         eval_tree({"op": "eval", "args": [{"const": 1.0}]}, {})
     with pytest.raises(ValueError, match="not in allow-list"):
         eval_tree({"op": "__import__", "args": [{"const": 1.0}]}, {})
+    with pytest.raises(ValueError, match="not in allow-list"):
+        eval_tree({"op": "exec", "args": [{"const": 1.0}]}, {})
 
 
-def test_method_select_catalog_and_policy() -> None:
-    """X3 returns structured selection + agent-must-execute policy for all classes."""
+def test_method_select_catalog_structure() -> None:
+    """X3 returns structured selection for all problem classes (catalog only).
+
+    Authority (run_id / invented numbers) is enforced in agents, not by
+    substring-matching the static policy blurb.
+    """
     classes = (
         "soo_box",
         "multiobjective",
@@ -73,14 +82,16 @@ def test_method_select_catalog_and_policy() -> None:
     for pc in classes:
         out = select_method(problem_class=pc, run_probe_benchmark=False)
         assert out["problem_class"] == pc
-        assert "available_candidates" in out
-        assert "unavailable_candidates" in out
+        assert isinstance(out["available_candidates"], list)
+        assert isinstance(out["unavailable_candidates"], list)
         assert "selected" in out
-        assert "policy" in out
-        assert "ExecutionResult" in out["policy"]
-        assert "skill_id" in out["policy"] or "skill" in out["policy"].lower()
+        assert "policy" in out and isinstance(out["policy"], str) and out["policy"]
         assert out["message"] in ("ok", "no_available_method")
         assert len(out["problem_fingerprint"]) == 64
+        # Selected entry (when present) must name a skill
+        if out["selected"] is not None:
+            assert "skill_id" in out["selected"]
+            assert out["selected"]["skill_id"]
 
 
 # ---------------------------------------------------------------------------
@@ -90,7 +101,7 @@ def test_method_select_catalog_and_policy() -> None:
 
 @pytest.mark.evolutionary
 def test_sphere_multi_seed_reproducible_and_near_origin() -> None:
-    """Same seed → identical best_objective; different seed still near origin."""
+    """Same seed → identical solution; different seed still near origin and differs."""
     pytest.importorskip("pymoo")
     from oec.evolutionary.contracts import (
         AlgorithmName,
@@ -142,13 +153,14 @@ def test_sphere_multi_seed_reproducible_and_near_origin() -> None:
     assert r0a.best_x == r0b.best_x
     assert r0a.best_objective < 0.05
     assert r1.best_objective < 0.05
-    # Seeds should not be forced identical across different seeds (weak check)
     assert r0a.seed == 0 and r1.seed == 1
+    # Cross-seed diversity: solutions (or objectives) must not be bit-identical
+    assert r0a.best_x != r1.best_x or r0a.best_objective != r1.best_objective
 
 
 @pytest.mark.evolutionary
-def test_zdt1_nsga2_has_positive_hypervolume() -> None:
-    """NSGA-II on ZDT1 returns a non-empty non-dominated set with HV > 0."""
+def test_zdt1_nsga2_front_quality() -> None:
+    """NSGA-II on ZDT1: non-empty front, HV floor, near-axis f1, objective spread."""
     pytest.importorskip("pymoo")
     from oec.evolutionary.contracts import (
         BudgetSpec,
@@ -171,17 +183,31 @@ def test_zdt1_nsga2_has_positive_hypervolume() -> None:
         seed=7,
     )
     res = optimize_multi(problem, algo)
+    # Same-seed reproducibility of HV / nondominated count
+    res2 = optimize_multi(problem, algo)
+
     assert res.backend == "pymoo"
-    assert res.n_nondominated >= 5
+    assert res.n_nondominated >= 10
     assert res.hypervolume is not None
-    assert res.hypervolume > 0.0
+    # Empirical floor under seed=7 / 40×40 (observed ~0.11); not tautological HV>0
+    assert res.hypervolume >= 0.05, f"HV too small: {res.hypervolume}"
+    assert res.hypervolume == res2.hypervolume
+    assert res.n_nondominated == res2.n_nondominated
+
+    nd = [f for f, mask in zip(res.objective_vectors, res.nondominated_mask, strict=True) if mask]
+    assert nd
+    f1s = [p[0] for p in nd]
+    assert min(f1s) < 0.05, f"front should approach f1≈0, min_f1={min(f1s)}"
+    assert max(f1s) - min(f1s) > 0.3, "front should cover meaningful f1 range"
     assert all(len(f) == 2 for f in res.objective_vectors)
 
 
 @pytest.mark.evolutionary
 def test_gp_poly2_tree_ir_is_evaluable() -> None:
-    """DEAP GP returns best_tree_ir that eval_tree can score on the target."""
+    """DEAP GP returns evaluable IR with training MSE < 1 and holdout fidelity."""
     pytest.importorskip("deap")
+    import numpy as np
+
     from oec.kernel.evolutionary.gp import run_genetic_programming
 
     out = run_genetic_programming(
@@ -201,7 +227,16 @@ def test_gp_poly2_tree_ir_is_evaluable() -> None:
         val = eval_tree(tree, {"x0": float(x)})
         assert isinstance(val, float)
         assert val == val  # not NaN
-    assert out["best_mse"] < 50.0
+    # Training MSE floor (seed=0 observed ~0.36)
+    assert out["best_mse"] < 1.0, f"best_mse too high: {out['best_mse']}"
+    # Hold-out score against known poly2 target
+    rng = np.random.default_rng(99)
+    xs = rng.uniform(-2.0, 2.0, size=30)
+    se = [
+        (float(x) ** 2 + 0.5 * float(x) + 0.1 - eval_tree(tree, {"x0": float(x)})) ** 2 for x in xs
+    ]
+    holdout_mse = float(np.mean(se))
+    assert holdout_mse < 5.0, f"holdout_mse too high: {holdout_mse}"
 
 
 # ---------------------------------------------------------------------------

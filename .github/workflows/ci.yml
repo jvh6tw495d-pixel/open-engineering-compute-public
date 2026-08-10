@@ -57,9 +57,12 @@ jobs:
     # Optional-extras quality bar (OEC 3.4). Not on every PR: torch +
     # pymoo install and full neural/evo goldens are heavier than the
     # core gate. Nightly + manual dispatch only.
+    # Runs the full @neural/@evolutionary skill matrix (not only
+    # tests/golden/test_neural_evolutionary_strong.py). Strong goldens
+    # are a subset of that marker set.
     # Markers: pyproject [tool.pytest.ini_options] neural / evolutionary.
-    # Strong goldens: tests/golden/test_neural_evolutionary_strong.py
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
@@ -74,8 +77,10 @@ jobs:
 
       - name: Sync with neural + evolutionary extras
         run: uv sync --extra neural --extra evolutionary --all-groups
+        timeout-minutes: 30
 
       - name: Neural and evolutionary marked tests
+        timeout-minutes: 60
         run: >
           uv run pytest -m "neural or evolutionary"
           --import-mode=importlib

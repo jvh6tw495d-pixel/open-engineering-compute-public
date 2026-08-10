@@ -79,8 +79,13 @@ def _numbers_in_text(text: str) -> set[str]:
 
 
 def _numbers_from_execution(er: ExecutionResult) -> set[str]:
+    """Numeric tokens grounded in scientific payload (result + diagnostics only).
+
+    Provenance hashes and skill/method version strings are *not* added to the
+    allow set. Those structural tokens are stripped from the narrative before
+    scanning so that ``v1.0.0`` does not launder invented small integers.
+    """
     allowed: set[str] = set()
-    res = er.result or {}
 
     def walk(obj: Any) -> None:
         if isinstance(obj, bool):
@@ -96,40 +101,70 @@ def _numbers_from_execution(er: ExecutionResult) -> set[str]:
             for v in obj:
                 walk(v)
 
-    walk(res)
+    walk(er.result or {})
     walk(er.diagnostics or {})
-    walk(er.provenance or {})
-    # Structural ids/versions may appear in narrative by design
-    # (e.g. "v1.0.0" yields tokens 1 / 0 / 1.0 — allow all parsed pieces)
-    allowed.add(er.skill.version)
-    allowed.add(er.method.version)
-    allowed.update(_numbers_in_text(er.skill.version))
-    allowed.update(_numbers_in_text(er.method.version))
-    allowed.update(_numbers_in_text(er.skill.id))
-    allowed.update(_numbers_in_text(er.method.id))
-    allowed.update(_numbers_in_text(er.status.value))
     return allowed
+
+
+def _strip_structural_tokens(narrative: str, er: ExecutionResult) -> str:
+    """Remove non-scientific identifiers before invented-number scanning.
+
+    Backend version strings (e.g. ``numpy@2.5.1`` / ``2.5.1``), skill/method
+    versions, hashes, and run_id are structural provenance — not scientific
+    claims — so they must not participate in invented-number detection.
+    """
+    cleaned = narrative
+    cleaned = cleaned.replace(er.run_id, " ")
+    for token in (
+        er.skill.id,
+        er.skill.version,
+        er.method.id,
+        er.method.version,
+        er.status.value,
+    ):
+        if token:
+            cleaned = cleaned.replace(str(token), " ")
+    if er.provenance:
+        for key in (
+            "input_hash",
+            "output_hash",
+            "skill_hash",
+            "oec_version",
+            "git_commit",
+            "trace_id",
+        ):
+            val = er.provenance.get(key)
+            if val:
+                cleaned = cleaned.replace(str(val), " ")
+        backends = er.provenance.get("backends") or []
+        if isinstance(backends, list):
+            for b in backends:
+                if not isinstance(b, dict):
+                    continue
+                name = b.get("name")
+                ver = b.get("version")
+                if name and ver:
+                    cleaned = cleaned.replace(f"{name}@{ver}", " ")
+                if ver is not None:
+                    cleaned = cleaned.replace(str(ver), " ")
+                if name:
+                    cleaned = cleaned.replace(str(name), " ")
+    return cleaned
 
 
 def narrative_invented_numbers(narrative: str, er: ExecutionResult) -> list[str]:
     """Return numeric tokens in narrative that are not grounded in ExecutionResult.
 
-    Allows run_id / hashes / skill id strings by ignoring pure hex UUID segments.
+    Structural identifiers (run_id, skill/method id+version, status, hashes) are
+    stripped from the narrative before scanning, so version strings cannot
+    widen the numeric allowlist.
     """
     allowed = _numbers_from_execution(er)
     invented: list[str] = []
-    # Strip known non-scientific identifiers from narrative before scanning
-    cleaned = narrative
-    cleaned = cleaned.replace(er.run_id, " ")
-    if er.provenance:
-        ih = str(er.provenance.get("input_hash") or "")
-        if ih:
-            cleaned = cleaned.replace(ih, " ")
+    cleaned = _strip_structural_tokens(narrative, er)
     for tok in _numbers_in_text(cleaned):
         if tok in allowed:
             continue
-        # Ignore integers that only appear as status codes / zero counts if absent
-        # from result: treat as invented
         invented.append(tok)
     return invented
 

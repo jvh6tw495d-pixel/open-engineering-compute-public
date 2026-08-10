@@ -80,7 +80,8 @@ from agents.energy.specialist import EnergySpecialist
 2. **No invented numbers** — narrative cites only `ExecutionResult` fields.
 3. **No number without `run_id`** — every narrative attached to an execution must
    include `execution.run_id`. Helpers: `agents.common.narrative_cites_run_id`,
-   `narrative_authority_violations`, `assert_narrative_authority`. Gate script:
-   `scripts/check_agent_no_number_without_run_id.py`.
+   `narrative_authority_violations`, `assert_narrative_authority`. `narrate_execution`
+   enforces the full policy (fail-closed if the invented-number checker is missing).
+   Gate script (multi-domain demos): `scripts/check_agent_no_number_without_run_id.py`.
 4. **SciPy/HiGHS/pandas/torch/pymoo own numerical merit** — agents contribute workflow, not algorithms.
 5. Private decision engines stay out of this tree (what/why/decision).

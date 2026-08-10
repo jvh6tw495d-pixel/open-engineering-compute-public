@@ -64,3 +64,31 @@ def test_invented_number_is_violation() -> None:
     forged = f"run_id: {er.run_id}\nobjective=999.123 (claimed)"
     viol = narrative_authority_violations(forged, er)
     assert any("invented" in v for v in viol)
+
+
+def test_small_invented_int_not_laundered_by_version() -> None:
+    """Version v1.0.0 must not allow invented token '7' via allowlist expansion."""
+    er = _er(result={"x": 1.0, "fun": 0.0})
+    forged = f"run_id: {er.run_id}\nI claim the optimum is 7 units."
+    viol = narrative_authority_violations(forged, er)
+    assert any("invented" in v for v in viol)
+    assert any("7" in v for v in viol)
+
+
+def test_import_error_fail_closed() -> None:
+    """Missing benchmarks module must not silently skip invented-number checks."""
+    import sys
+
+    er = _er()
+    narrative = f"run_id: {er.run_id}\nresult: {{'x': 1.5}}"
+    saved = sys.modules.get("benchmarks.agent_metrics")
+    # Per importlib: None in sys.modules → ImportError/ModuleNotFoundError
+    sys.modules["benchmarks.agent_metrics"] = None  # type: ignore[assignment]
+    try:
+        viol = narrative_authority_violations(narrative, er)
+    finally:
+        if saved is not None:
+            sys.modules["benchmarks.agent_metrics"] = saved
+        else:
+            sys.modules.pop("benchmarks.agent_metrics", None)
+    assert any("benchmarks.agent_metrics unavailable" in v for v in viol)

@@ -51,6 +51,9 @@ def narrative_authority_violations(narrative: str, execution: ExecutionResult) -
     Rules:
     1. Narrative must include ``execution.run_id`` (no number without provenance).
     2. Numeric tokens must be grounded in ExecutionResult (invented-number rate 0).
+
+    Fail-closed: if the invented-number checker cannot be imported, treat that as
+    a violation rather than silently skipping half the policy.
     """
     violations: list[str] = []
     if not narrative_cites_run_id(narrative, execution.run_id):
@@ -61,7 +64,12 @@ def narrative_authority_violations(narrative: str, execution: ExecutionResult) -
     # Lazy import: benchmarks is repo-root companion, not part of the oec wheel
     try:
         from benchmarks.agent_metrics import narrative_invented_numbers
-    except ImportError:
+    except ImportError as exc:
+        violations.append(
+            "benchmarks.agent_metrics unavailable; cannot verify invented numbers "
+            f"({exc}). Run from the repository root with PYTHONPATH including the "
+            "repo root, or install the dev companion layout."
+        )
         return violations
     invented = narrative_invented_numbers(narrative, execution)
     if invented:
@@ -97,8 +105,8 @@ def narrate_execution(agent: str, execution: ExecutionResult) -> str:
         lines.append("No successful scientific outcome claimed.")
     lines.append("Narrative uses only ExecutionResult fields; backends own numerical merit.")
     text = "\n".join(lines)
-    # Self-check: harness must never emit a narrative without run_id
-    assert narrative_cites_run_id(text, execution.run_id), "narrate_execution omitted run_id"
+    # Full authority gate at harness boundary (run_id + grounded numbers)
+    assert_narrative_authority(text, execution)
     return text
 
 
