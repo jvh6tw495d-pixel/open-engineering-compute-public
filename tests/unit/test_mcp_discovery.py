@@ -101,6 +101,27 @@ def test_domain_intents_use_router_compatible_combined_names() -> None:
     assert needs_domain_clarification(intents) is False
 
 
+def test_domain_intents_rank_neural_and_evolutionary() -> None:
+    """ADR 0031/0033 free-text vocabulary → neural specialist domain."""
+    for request in (
+        "train an MLP regressor with pytorch",
+        "run NSGA2 multi-objective evolutionary search",
+        "busca de arquitetura neural com neuroevolution",
+    ):
+        intents = rank_domain_intents(request)
+        assert intents, request
+        assert intents[0].domain == "neural", request
+        assert needs_domain_clarification(intents) is False
+
+
+def test_rank_candidate_skills_neural_domain(engine: Engine) -> None:
+    candidates = rank_candidate_skills(
+        engine, "train mlp regressor", domains=("neural", "evolutionary"), limit=10
+    )
+    assert candidates
+    assert all(c.skill_id.startswith(("neural.", "evolutionary.")) for c in candidates)
+
+
 def test_domain_intents_rank_dc_power_flow_under_energy() -> None:
     """Wave 4 discovery aliases: power-flow vocabulary → energy specialist domain."""
     intents = rank_domain_intents("solve a dc power flow on a meshed network")

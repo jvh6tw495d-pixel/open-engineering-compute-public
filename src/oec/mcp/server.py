@@ -78,6 +78,7 @@ _AGENT_TIME_SERIES_TOOL_NAME = "agent.time_series"
 _AGENT_ENERGY_TOOL_NAME = "agent.energy"
 _AGENT_CONTROL_DYNAMICS_TOOL_NAME = "agent.control_dynamics"
 _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME = "agent.finance_uncertainty"
+_AGENT_NEURAL_TOOL_NAME = "agent.neural"
 
 # Skill-manifest ``domain`` values each specialist's dispatch spans, for the
 # discovery fallback's candidate ranking (agents/*/specialist.py's own
@@ -102,6 +103,8 @@ _DOMAIN_GROUPS: dict[str, tuple[str, ...]] = {
     ),
     _AGENT_CONTROL_DYNAMICS_TOOL_NAME: ("control", "dynamics"),
     _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: ("finance", "uncertainty"),
+    # ADR 0031 / 0033 — dense neural families + evolutionary + hybrid training.
+    _AGENT_NEURAL_TOOL_NAME: ("neural", "evolutionary"),
 }
 
 # Wave 2 (v2.5.3): a host may voluntarily attach its own belief about the
@@ -126,6 +129,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
                     "energy",
                     "control_dynamics",
                     "finance_uncertainty",
+                    "neural",
                 ],
             },
             "ops": {"type": "object"},
@@ -213,6 +217,16 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         },
         "additionalProperties": False,
     },
+    _AGENT_NEURAL_TOOL_NAME: {
+        "type": "object",
+        "properties": {
+            "demo_label": {"type": "string"},
+            "skill_id": {"type": "string"},
+            "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
+        },
+        "additionalProperties": False,
+    },
 }
 
 _AGENT_TOOL_DESCRIPTIONS: dict[str, str] = {
@@ -242,6 +256,11 @@ _AGENT_TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: (
         "Finance & Uncertainty Specialist: finance.* and uncertainty.* skills."
+    ),
+    _AGENT_NEURAL_TOOL_NAME: (
+        "Neural & Evolutionary Specialist: neural.* training/families/search and "
+        "evolutionary.* single/multi-objective skills (ADR 0031 / ADR 0033). "
+        "Requires oec[neural] / oec[evolutionary] extras for most demos."
     ),
 }
 
@@ -332,6 +351,14 @@ def _agent_catalog() -> list[dict[str, Any]]:
             "domain": "finance_uncertainty",
             "default": True,
             "description": _AGENT_TOOL_DESCRIPTIONS[_AGENT_FINANCE_UNCERTAINTY_TOOL_NAME],
+        },
+        {
+            "id": _AGENT_NEURAL_TOOL_NAME,
+            "title": "Neural & Evolutionary Specialist",
+            "kind": "agent",
+            "domain": "neural",
+            "default": True,
+            "description": _AGENT_TOOL_DESCRIPTIONS[_AGENT_NEURAL_TOOL_NAME],
         },
     ]
 
@@ -472,6 +499,30 @@ def _infer_domain_from_request(request: str) -> str | None:
         for token in ("finance", "finanças", "var", "uncertainty", "incerteza", "morris")
     ):
         return "finance_uncertainty"
+    if any(
+        _contains_token(text, token)
+        for token in (
+            "neural",
+            "neuronal",
+            "mlp",
+            "pytorch",
+            "torch",
+            "lstm",
+            "cnn",
+            "transformer",
+            "neuroevolution",
+            "evolutionary",
+            "evolutivo",
+            "genetic algorithm",
+            "algoritmo genético",
+            "nsga",
+            "cma-es",
+            "cmaes",
+            "particle swarm",
+            "enxame de partículas",
+        )
+    ):
+        return "neural"
     return None
 
 
@@ -526,6 +577,7 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
         "energy": _AGENT_ENERGY_TOOL_NAME,
         "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
         "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
+        "neural": _AGENT_NEURAL_TOOL_NAME,
     }
     if preferred in preferred_targets:
         return RouteDecision(
@@ -547,6 +599,8 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             target = _AGENT_CONTROL_DYNAMICS_TOOL_NAME
         elif skill_id.startswith(("finance.", "uncertainty.")):
             target = _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
+        elif skill_id.startswith(("neural.", "evolutionary.")):
+            target = _AGENT_NEURAL_TOOL_NAME
         else:
             target = _AGENT_APPLIED_MATH_TOOL_NAME
         return RouteDecision(
@@ -622,6 +676,20 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             reason=f"demo_label={demo_label}",
             signal="demo_label",
         )
+    if demo_label in {
+        "mlp_regressor",
+        "mlp_classifier",
+        "optimize_single",
+        "nsga2",
+        "training_supervised",
+        "de",
+    }:
+        return RouteDecision(
+            target=_AGENT_NEURAL_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
 
     request = arguments.get("request")
     if isinstance(request, str):
@@ -633,6 +701,7 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             "mathematics": _AGENT_APPLIED_MATH_TOOL_NAME,
             "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
             "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
+            "neural": _AGENT_NEURAL_TOOL_NAME,
         }
         intents = rank_domain_intents(request)
         if intents and not needs_domain_clarification(intents):
@@ -769,6 +838,10 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
         from agents.finance_uncertainty.specialist import FinanceUncertaintySpecialist
 
         specialist = FinanceUncertaintySpecialist(skills_root=skills_root)
+    elif name == _AGENT_NEURAL_TOOL_NAME:
+        from agents.neural.specialist import NeuralEvolutionarySpecialist
+
+        specialist = NeuralEvolutionarySpecialist(skills_root=skills_root)
     else:
         raise ValueError(f"Unknown agent tool: {name!r}")
 

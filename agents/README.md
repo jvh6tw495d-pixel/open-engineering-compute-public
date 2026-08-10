@@ -20,6 +20,7 @@ LLM / user
 | Energy | `energy/` | Public energy / battery / electrical skills only |
 | Control & Dynamics | `control_dynamics/` | `control.*` / `dynamics.*` skills via `SkillSpecialist` |
 | Finance & Uncertainty | `finance_uncertainty/` | `finance.*` / `uncertainty.*` skills via `SkillSpecialist` |
+| Neural & Evolutionary | `neural/` | `neural.*` + `evolutionary.*` (ADR 0031 / 0033) via `SkillSpecialist` |
 
 Shared harness: `agents/common.py` (`SkillSpecialist`, `narrate_execution`).
 

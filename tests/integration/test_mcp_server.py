@@ -75,7 +75,8 @@ def test_list_tools_includes_agents_skills_and_discovery(engine: Engine) -> None
     assert "Prefer `agent.default`" in by_name["mathematics.solve_root"].description
 
     # Agent-first catalog: fixed agent tools + discovery + raw skills.
-    assert len(tools) == len(skill_ids) + 10
+    # 9 specialists (incl. agent.neural) + list_agents + list_skills = 11.
+    assert len(tools) == len(skill_ids) + 11
 
 
 def test_call_tool_solve_root_returns_validated_result(engine: Engine) -> None:
@@ -384,6 +385,42 @@ def test_call_tool_energy_agent_runs_demo(engine: Engine) -> None:
     assert payload["execution"]["status"] == "VERIFIED"
 
 
+def test_call_tool_neural_agent_runs_evolutionary_demo(engine: Engine) -> None:
+    result = call_tool(engine, "agent.neural", {"demo_label": "optimize_single"})
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["agent"] == "neural_evolutionary_specialist"
+    assert payload["skill_id"] == "evolutionary.optimize_single"
+    assert payload["execution"]["status"] in {"VALIDATED", "VERIFIED"}
+    assert "run_id" in payload["narrative"]
+
+
+def test_call_tool_neural_agent_lists_neural_candidates(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "agent.neural",
+        {"request": "train a multi-layer perceptron for regression"},
+    )
+    assert result.isError is False
+    payload = _parse_content(result)
+    assert payload["status"] == "needs_more_information"
+    assert payload["candidates"]
+    for candidate in payload["candidates"]:
+        assert candidate["skill_id"].startswith(("neural.", "evolutionary."))
+        assert candidate["input_schema"]
+
+
+def test_list_tools_exposes_neural_agent_and_raw_skills(engine: Engine) -> None:
+    tools = build_tools(engine)
+    by_name = {tool.name: tool for tool in tools}
+    assert "agent.neural" in by_name
+    assert "neural.mlp.regressor" in by_name
+    assert "neural.training.hybrid" in by_name
+    assert "evolutionary.optimize_single" in by_name
+    props = by_name["agent.neural"].inputSchema["properties"]
+    assert "skill_id" in props and "inputs" in props and "demo_label" in props
+
+
 def test_call_tool_domain_agent_requires_demo_or_skill(engine: Engine) -> None:
     result = call_tool(engine, "agent.time_series", {})
     assert result.isError is True
@@ -411,6 +448,7 @@ def test_call_tool_energy_agent_request_falls_back_to_candidates(engine: Engine)
         ("mathematics", "agent.applied_mathematics"),
         ("timeseries", "agent.time_series"),
         ("energy", "agent.energy"),
+        ("neural", "agent.neural"),
     ],
 )
 def test_call_tool_default_router_respects_preferred_domain(
@@ -421,6 +459,7 @@ def test_call_tool_default_router_respects_preferred_domain(
         "agent.applied_mathematics": "sqrt2",
         "agent.time_series": "resample",
         "agent.energy": "balance",
+        "agent.neural": "optimize_single",
     }
     result = call_tool(
         engine,
@@ -587,6 +626,9 @@ def test_infer_domain_from_request_does_not_misroute_on_substring() -> None:
         ("energy.balance", "agent.energy"),
         ("battery.soc_step", "agent.energy"),
         ("electrical.three_phase_balance", "agent.energy"),
+        ("neural.mlp.regressor", "agent.neural"),
+        ("evolutionary.optimize_single", "agent.neural"),
+        ("neural.training.hybrid", "agent.neural"),
     ],
 )
 def test_call_tool_default_router_infers_agent_from_skill_prefix(
@@ -602,6 +644,9 @@ def test_call_tool_default_router_infers_agent_from_skill_prefix(
         ("solve_root", "agent.applied_mathematics"),
         ("fill_missing", "agent.time_series"),
         ("soc_step", "agent.energy"),
+        ("mlp_regressor", "agent.neural"),
+        ("optimize_single", "agent.neural"),
+        ("nsga2", "agent.neural"),
     ],
 )
 def test_call_tool_default_router_infers_agent_from_demo_label(
@@ -935,6 +980,8 @@ def test_exports_from_package() -> None:
     [
         ("maximize profit subject to capacity constraints", "agent.optimization_specialist"),
         ("design a PID controller", "agent.control_dynamics"),
+        ("train a neural network MLP with pytorch", "agent.neural"),
+        ("run NSGA2 multi-objective evolutionary optimization", "agent.neural"),
     ],
 )
 def test_default_router_uses_weighted_domain_intent(

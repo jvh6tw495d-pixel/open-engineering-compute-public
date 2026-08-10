@@ -103,6 +103,10 @@ def test_kind_for_skill_closed_table() -> None:
     assert kind_for_skill("materials.linear_constitutive") == "physics_result"
     assert kind_for_skill("control.pid_discrete") == "control_dynamics_result"
     assert kind_for_skill("finance.var") == "finance_uncertainty_result"
+    assert kind_for_skill("neural.mlp.regressor") == "neural_result"
+    assert kind_for_skill("neural.training.hybrid") == "neural_result"
+    assert kind_for_skill("evolutionary.optimize_single") == "evolutionary_result"
+    assert kind_for_skill("evolutionary.nsga2") == "evolutionary_result"
     assert kind_for_skill("unknown.foo") == "generic_result"
     assert kind_for_skill(None, specialist="agent.scientific_reviewer") == "review_result"
 
