@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.training.gradient input",
+  "type": "object",
+  "properties": {
+    "x": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "y": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "number"
+      }
+    },
+    "seed": {
+      "type": "integer",
+      "default": 42
+    },
+    "device": {
+      "type": "string",
+      "enum": [
+        "cpu",
+        "cuda",
+        "auto"
+      ],
+      "default": "cpu"
+    },
+    "capacity": {
+      "type": "string",
+      "enum": [
+        "tiny",
+        "medium",
+        "dense",
+        "wide"
+      ]
+    },
+    "epochs": {
+      "type": "integer",
+      "default": 80
+    },
+    "lr": {
+      "type": "number",
+      "default": 0.01
+    },
+    "optimizer": {
+      "type": "string",
+      "enum": [
+        "adam",
+        "adamw",
+        "sgd",
+        "rmsprop",
+        "lbfgs"
+      ],
+      "default": "adamw"
+    },
+    "momentum": {
+      "type": "number",
+      "default": 0
+    },
+    "weight_decay": {
+      "type": "number",
+      "default": 0
+    },
+    "dropout": {
+      "type": "number",
+      "default": 0
+    },
+    "batch_size": {
+      "type": "integer",
+      "default": 16
+    },
+    "hidden_dims": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "activation": {
+      "type": "string",
+      "default": "relu"
+    },
+    "loss": {
+      "type": "string",
+      "default": "mse"
+    },
+    "lr_scheduler": {
+      "type": "string",
+      "enum": [
+        "none",
+        "cosine",
+        "step"
+      ],
+      "default": "none"
+    },
+    "val_fraction": {
+      "type": "number",
+      "default": 0.2
+    },
+    "normalize_x": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "x",
+    "y"
+  ],
+  "additionalProperties": false
+}

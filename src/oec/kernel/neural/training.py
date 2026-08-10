@@ -148,6 +148,7 @@ def train_mlp(
         model.parameters(),
         rt.optimizer.lr,
         rt.optimizer.weight_decay,
+        momentum=rt.optimizer.momentum,
     )
     scheduler = build_scheduler(torch, optim, rt)
     scaler = None

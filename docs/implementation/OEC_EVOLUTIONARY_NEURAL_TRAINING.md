@@ -200,42 +200,44 @@ multi-seed mean±std. No arm declared superior a priori.
 
 ## 12. Implementation waves
 
-### Wave 1 — Gradient foundation (near-term)
+### Wave 1 — Gradient foundation
 
-- [ ] Extend `OptimizerName`: momentum on SGD, RMSprop, LBFGS
-- [ ] `neural.training.supervised` + `neural.training.gradient` (thin skills over Part A)
-- [ ] Provenance dump of full training runtime on all neural trainers
-- [ ] Golden: MLP AdamW multi-seed stability
-
-**Done already:** Part A dense runtime, capacity, file checkpoints, family migration.
+- [x] OptimizerName: SGD momentum, RMSprop, LBFGS
+- [x] `neural.training.supervised` + `neural.training.gradient`
+- [x] Part A runtime provenance (`n_params`, runtime meta)
 
 ### Wave 2 — Evolutionary HPO
 
-- [ ] Expand search catalog (dropout, batch_size, weight_decay, scheduler, optimizer)
-- [ ] Bind `EvolutionaryRuntimeSpec` budgets to hybrid HPO
-- [ ] `neural.search.hyperparameters` (pymoo and/or Nevergrad selectable)
-- [ ] Multi-seed outer report (Part B `run_seed_matrix` pattern)
-- [ ] Evolve `hybrid.evo_hyperparams` or re-export as search skill
+- [x] Expanded catalog (capacity, dropout, batch, weight_decay, optimizer)
+- [x] `max_evaluations` / `max_wall_time_s` budgets
+- [x] `neural.search.hyperparameters`
+- [x] `hybrid.evo_hyperparams` delegates to hybrid engine
 
 ### Wave 3 — Hybrid training (strategic priority)
 
-- [ ] `neural.training.hybrid` with explicit outer/inner budgets
-- [ ] Fitness = validation metric (+ optional complexity penalty)
-- [ ] Full reproducibility package (outer + inner)
-- [ ] Golden: hybrid beats random search under same eval budget (informational)
+- [x] `neural.training.hybrid` outer/inner budgets
+- [x] Fitness = val score (+ optional size via loss_weights)
+- [x] Fingerprints + budget/inner_training in result
+- [x] Smoke goldens
 
 ### Wave 4 — Direct neuroevolution
 
-- [ ] DEAP genotype for small MLP weights or structural IR
-- [ ] `neural.training.neuroevolution`
-- [ ] Hard caps on n_params / pop / gens (no large-net weight evo by default)
+- [x] Nevergrad weight vector search for small MLP
+- [x] `neural.training.neuroevolution` + max_params fail-closed
 
 ### Wave 5 — Multi-obj + facets + benchmark
 
-- [ ] pymoo multi-obj fitness vector (loss, size, latency proxy)
-- [ ] `neural.search.architecture` / `features` / `loss_weights`
-- [ ] `neural.benchmark.training_strategy`
-- [ ] Horizon VOC integration guide + optional fixtures
+- [x] Pareto front (rmse, n_params) among hybrid trials
+- [x] `neural.search.architecture` / `features` / `loss_weights`
+- [x] `neural.benchmark.training_strategy` (gradient vs hybrid vs neuro)
+- [ ] Horizon VOC integration fixtures (product-side)
+
+### Wave 6 — Feature / loss / policy evolution
+
+- [x] `neural.search.features`
+- [x] `neural.search.loss_weights`
+- [x] `neural.search.policy` (short/standard/long train policies)
+- [ ] RL policy evolution (future, out of core)
 
 ## 13. Success metrics (product)
 
@@ -254,13 +256,7 @@ multi-seed mean±std. No arm declared superior a priori.
 - Shipping Horizon datasets inside oec core
 - Neuroevolution of LLM-scale models
 
-## 15. Immediate next implementation slice (recommended)
+## 15. Status
 
-**W1 + W2 thin:**
-
-1. Optimizer enum expansion + SGD momentum
-2. `neural.search.hyperparameters` as promoted API over improved `evo_hyperparameter_search`
-3. Wire outer budget from `EvolutionaryRuntimeSpec`
-4. Document Horizon VOC hybrid recipe in integrations (optional)
-
-Wave 3 hybrid skill follows once W2 catalog + budgets are stable.
+**W1–W6 core delivered in-tree** (kernel + 10 skills + tests). Optional polish:
+Horizon VOC fixtures, DEAP structural genotype, native pymoo multi-obj for neural.

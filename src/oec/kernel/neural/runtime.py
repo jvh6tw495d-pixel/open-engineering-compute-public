@@ -48,13 +48,19 @@ def build_optimizer(
     params: Any,
     lr: float,
     weight_decay: float,
+    *,
+    momentum: float = 0.0,
 ) -> Any:
     if name == OptimizerName.ADAM:
         return torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
     if name == OptimizerName.ADAMW:
         return torch.optim.AdamW(params, lr=lr, weight_decay=weight_decay)
     if name == OptimizerName.SGD:
-        return torch.optim.SGD(params, lr=lr, weight_decay=weight_decay)
+        return torch.optim.SGD(params, lr=lr, weight_decay=weight_decay, momentum=momentum)
+    if name == OptimizerName.RMSPROP:
+        return torch.optim.RMSprop(params, lr=lr, weight_decay=weight_decay, momentum=momentum)
+    if name == OptimizerName.LBFGS:
+        return torch.optim.LBFGS(params, lr=lr, max_iter=20)
     raise ValueError(f"unknown optimizer {name}")
 
 
@@ -344,6 +350,7 @@ def fit_minibatches(
         model.parameters(),
         runtime.optimizer.lr,
         runtime.optimizer.weight_decay,
+        momentum=runtime.optimizer.momentum,
     )
     scheduler = build_scheduler(torch, optim, runtime)
     scaler = make_grad_scaler(torch, use_amp)
@@ -351,45 +358,64 @@ def fit_minibatches(
     history: list[dict[str, float]] = []
     timer = TrainTimer(runtime.max_seconds)
     epochs_ran = 0
+    use_lbfgs = runtime.optimizer.name.value == "lbfgs"
     model.train()
     for epoch in range(runtime.epochs):
         if timer.expired():
             break
-        perm = torch.randperm(n, device=device)
-        total = 0.0
-        batches = 0
-        for start in range(0, n, runtime.batch_size):
-            idx = perm[start : start + runtime.batch_size]
-            xb, yb = x_t[idx], y_t[idx]
-            if input_transform is not None:
-                xb, yb = input_transform(xb, yb)
-            optim.zero_grad(set_to_none=True)
-            if use_amp:
-                assert scaler is not None
-                with torch.autocast(device_type="cuda", dtype=torch.float16):
+        if use_lbfgs:
+            # Full-batch LBFGS closure
+            def _closure() -> Any:
+                optim.zero_grad(set_to_none=True)
+                pred = model(x_t)
+                if multiclass:
+                    loss = criterion(pred, y_t)
+                else:
+                    loss = criterion(pred, y_t if pred.shape == y_t.shape else y_t.view_as(pred))
+                loss.backward()
+                return loss
+
+            loss = optim.step(_closure)
+            total = float(loss.item()) if loss is not None else 0.0
+            batches = 1
+        else:
+            perm = torch.randperm(n, device=device)
+            total = 0.0
+            batches = 0
+            for start in range(0, n, runtime.batch_size):
+                idx = perm[start : start + runtime.batch_size]
+                xb, yb = x_t[idx], y_t[idx]
+                if input_transform is not None:
+                    xb, yb = input_transform(xb, yb)
+                optim.zero_grad(set_to_none=True)
+                if use_amp:
+                    assert scaler is not None
+                    with torch.autocast(device_type="cuda", dtype=torch.float16):
+                        pred = model(xb)
+                        if multiclass:
+                            loss = criterion(pred, yb)
+                        else:
+                            loss = criterion(
+                                pred, yb if pred.shape == yb.shape else yb.view_as(pred)
+                            )
+                    scaler.scale(loss).backward()
+                    if runtime.grad_clip is not None:
+                        scaler.unscale_(optim)
+                        maybe_clip_grads(torch, model, runtime.grad_clip)
+                    scaler.step(optim)
+                    scaler.update()
+                else:
                     pred = model(xb)
                     if multiclass:
                         loss = criterion(pred, yb)
                     else:
                         loss = criterion(pred, yb if pred.shape == yb.shape else yb.view_as(pred))
-                scaler.scale(loss).backward()
-                if runtime.grad_clip is not None:
-                    scaler.unscale_(optim)
+                    loss.backward()
                     maybe_clip_grads(torch, model, runtime.grad_clip)
-                scaler.step(optim)
-                scaler.update()
-            else:
-                pred = model(xb)
-                if multiclass:
-                    loss = criterion(pred, yb)
-                else:
-                    loss = criterion(pred, yb if pred.shape == yb.shape else yb.view_as(pred))
-                loss.backward()
-                maybe_clip_grads(torch, model, runtime.grad_clip)
-                optim.step()
-            total += float(loss.item())
-            batches += 1
-        if scheduler is not None:
+                    optim.step()
+                total += float(loss.item())
+                batches += 1
+        if scheduler is not None and not use_lbfgs:
             scheduler.step()
         epochs_ran = epoch + 1
         history.append({"epoch": float(epochs_ran), "train_loss": total / max(batches, 1)})
@@ -413,6 +439,7 @@ def fit_fullbatch(
         model.parameters(),
         runtime.optimizer.lr,
         runtime.optimizer.weight_decay,
+        momentum=runtime.optimizer.momentum,
     )
     scheduler = build_scheduler(torch, optim, runtime)
     scaler = make_grad_scaler(torch, use_amp)

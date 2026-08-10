@@ -94,7 +94,8 @@ See **[OEC_EVOLUTIONARY_NEURAL_TRAINING.md](./OEC_EVOLUTIONARY_NEURAL_TRAINING.m
 Gradient-Based  +  Neuroevolution  +  Hybrid (evo config → PyTorch train)
 ```
 
-Waves W1–W5 (gradient → HPO → hybrid priority → neuroevolution → multi-obj + strategy benchmark).
+Waves W1–W6 **implemented** (gradient → HPO → hybrid → neuroevolution →
+multi-obj/Pareto search facets → feature/loss/policy evolution + strategy benchmark).
 Horizon/VOC uses hybrid search later; starts with supervised AdamW.
 
 ## Existing hybrid seed (maps to W2/W3)

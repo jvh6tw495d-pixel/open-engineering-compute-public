@@ -34,6 +34,8 @@ class OptimizerName(StrEnum):
     ADAM = "adam"
     ADAMW = "adamw"
     SGD = "sgd"
+    RMSPROP = "rmsprop"
+    LBFGS = "lbfgs"
 
 
 class DeviceSpec(BaseModel):
@@ -99,6 +101,8 @@ class OptimizerSpec(BaseModel):
     name: OptimizerName = OptimizerName.ADAM
     lr: float = Field(default=1e-3, gt=0.0)
     weight_decay: float = Field(default=0.0, ge=0.0)
+    # SGD / RMSprop momentum (ignored by Adam family)
+    momentum: float = Field(default=0.0, ge=0.0, lt=1.0)
 
 
 class TrainingSpec(BaseModel):

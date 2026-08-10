@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.search.hyperparameters input",
+  "type": "object",
+  "properties": {
+    "x": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "y": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "number"
+      }
+    },
+    "seed": {
+      "type": "integer",
+      "default": 42
+    },
+    "device": {
+      "type": "string",
+      "enum": [
+        "cpu",
+        "cuda",
+        "auto"
+      ],
+      "default": "cpu"
+    },
+    "max_evaluations": {
+      "type": "integer",
+      "default": 12,
+      "minimum": 2
+    },
+    "budget": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "inner_epochs": {
+      "type": "integer",
+      "default": 20
+    },
+    "epochs": {
+      "type": "integer"
+    },
+    "max_wall_time_s": {
+      "type": [
+        "number",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "x",
+    "y"
+  ],
+  "additionalProperties": false
+}

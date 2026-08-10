@@ -173,6 +173,20 @@ model size, multi-seed stability. **No strategy is superior by definition.**
 | **W3** | **Hybrid** evo + gradient training skill (`neural.training.hybrid`) — strategic priority | W1 + W2 |
 | **W4** | Direct neuroevolution (DEAP) for small nets / experimental | W2 |
 | **W5** | Multi-objective neural (accuracy vs size vs latency) + architecture/feature/loss search facets + strategy benchmark | W3 |
+| **W6** | Feature evolution, loss-weight evolution, **policy evolution** (closed training-policy catalog) | W5 |
+
+### Formal rule
+
+Neural training is **not** backprop-only:
+
+\[
+\text{Neural Training} = \text{Gradient} \cup \text{Evolutionary} \cup \text{Hybrid}
+\]
+
+PyTorch remains the neural engine; OEC Evolutionary supplies search; OEC governs
+contracts, budgets, validation, and provenance.
+
+**Official integration:** \(\text{OEC Neural} \leftrightarrow \text{OEC Evolutionary}\).
 
 ### Horizon / VOC relation
 

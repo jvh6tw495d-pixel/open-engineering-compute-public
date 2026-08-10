@@ -1,0 +1,39 @@
+id: neural.training.supervised
+version: 0.1.0
+status: experimental
+domain: neural
+title: Supervised Gradient Training
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: torch_supervised_train
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 600
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "ADR 0033 Evolutionary Neural Training"
+  - "PyTorch + OEC Evolutionary"
+
+tags:
+  - neural
+  - experimental

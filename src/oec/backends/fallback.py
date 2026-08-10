@@ -77,6 +77,17 @@ _METHOD_BACKEND_REQUIREMENTS: dict[str, str] = {
     # X2 hybrid (needs torch; nevergrad checked in skill)
     "hybrid_surrogate_optimize": "neural_train",
     "hybrid_evo_hyperparams": "neural_train",
+    # ADR 0033 evolutionary neural training modes
+    "torch_supervised_train": "neural_train",
+    "torch_gradient_train": "neural_train",
+    "hybrid_evolutionary_gradient": "neural_train",
+    "neural_search_hyperparameters": "neural_train",
+    "neural_search_architecture": "neural_train",
+    "neural_search_features": "neural_train",
+    "neural_search_loss_weights": "neural_train",
+    "neural_search_policy": "neural_train",
+    "neural_neuroevolution": "neural_train",
+    "neural_benchmark_training_strategy": "neural_train",
     # X3 method selection (no hard backend; uses registry probes)
     "scientific_method_select": "rng",
 }
