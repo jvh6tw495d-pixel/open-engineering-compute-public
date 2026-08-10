@@ -1,6 +1,9 @@
 ---
 id: evolutionary.benchmark
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: Evolutionary Benchmark Harness (X1 thin)
 ---
 
 # Evolutionary Benchmark (X1 thin)

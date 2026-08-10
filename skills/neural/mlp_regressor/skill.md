@@ -1,6 +1,9 @@
 ---
 id: neural.mlp.regressor
 version: 0.1.0
+status: experimental
+domain: neural
+title: MLP Regressor (PyTorch)
 ---
 
 # MLP Regressor (PyTorch)

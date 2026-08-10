@@ -1,6 +1,9 @@
 ---
 id: evolutionary.pareto_search
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: Pareto Search dispatch (pymoo)
 ---
 
 # Pareto Search dispatch (pymoo)

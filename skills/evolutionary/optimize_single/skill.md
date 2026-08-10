@@ -1,6 +1,9 @@
 ---
 id: evolutionary.optimize_single
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: Single-Objective Evolutionary Optimize (pymoo)
 ---
 
 # Single-Objective Evolutionary Optimize

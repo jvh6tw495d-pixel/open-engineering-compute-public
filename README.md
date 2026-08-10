@@ -1,9 +1,9 @@
 # Open Engineering Compute (OEC)
 
-> **Status:** **`oec==3.3.1` release candidate (private incubation).**
-> Skill catalog: **87** skills including chemistry, multiphysics coupling, and THD.
-> Recovery plan: [3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md).
-> **Do not** treat this tree as public `v3.0.0` — publish when ready as **`v3.3.1`**.
+> **Status:** **`oec==3.4.0` private incubation** — Neural + Evolutionary Compute.
+> Skill catalog: **121** skills / **22** domains (extras optional).
+> Closeout: [v3.4-closeout.md](docs/implementation/v3.4-closeout.md).
+> **Do not** treat this tree as the first public GitHub launch (see public-alpha procedure).
 
 Open Engineering Compute is an open framework for executable, versioned and
 auditable engineering skills. It lets different language models, agents,
@@ -101,31 +101,20 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 
 ## Status / release
 
-**Current: `oec==3.3.1`**, release candidate, **87** skills across 18 domains
-(mathematics, electrical, timeseries, linear, numerical, statistics,
-optimization, energy, battery, finance, control, dynamics, uncertainty,
-thermal, mechanics, fluids, materials, chemistry, multiphysics — see
-[skill-inventory.md](docs/implementation/skill-inventory.md) for the
-authoritative per-domain count).
+**Current: `oec==3.4.0`**, private incubation, **121** skills across **22** domains
+(prior 3.3.x physics/chemistry/multiphysics **plus** neural, evolutionary, hybrid,
+scientific — see [skill-inventory.md](docs/implementation/skill-inventory.md)).
 
-**In-tree expansion (ADR 0031, experimental):** optional **Neural** (`oec[neural]`,
-PyTorch MLP train/predict/evaluate) and **Evolutionary** (`oec[evolutionary]`,
-pymoo single-objective on built-in problems). See
-[OEC_NEURAL_EVOLUTIONARY_WAVES.md](docs/implementation/OEC_NEURAL_EVOLUTIONARY_WAVES.md).
-These skills are additive extras and are **not** counted in the 3.3.1 public
-skill total until a catalog/version bump release. Recovery/publish story:
-[3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md)
-+ [3.3.1-phase0-3-execution-report.md](docs/implementation/3.3.1-phase0-3-execution-report.md)
-(catalog integrity, `agent.default`/MCP domain alignment, quality gates —
-all independently re-verified, not just self-reported) +
-[3.3.1-phase4-5-execution-report.md](docs/implementation/3.3.1-phase4-5-execution-report.md)
-(docs reconciliation + public-tree validation). **`v3.0.0`/Option C is
-withdrawn as the public tag** — an earlier internal cut briefly used that
-label, but the branch kept moving (chemistry, multiphysics, THD) past it
-without a coherent release story; `3.3.1` is the first candidate that
-actually closes the gates. Known open residuals (no auth/rate-limiting on
-REST/MCP, no OS-level sandbox isolation, routing heuristics not yet a
-semantic classifier) are tracked in
+**3.4.0 theme:** optional **Neural** (`oec[neural]` / PyTorch) and **Evolutionary**
+(`oec[evolutionary]` / pymoo + DEAP + Nevergrad) waves N0–N5, E1–E4, X1–X3
+([waves doc](docs/implementation/OEC_NEURAL_EVOLUTIONARY_WAVES.md),
+[closeout](docs/implementation/v3.4-closeout.md), ADR 0031/0032). Core install
+remains free of those engines. Hybrid X2 never promotes surrogate optima to
+engineering truth without high-fidelity re-check.
+
+Baseline recovery notes for 3.3.1 remain under
+[3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md).
+Open residuals (REST/MCP auth, OS sandbox, routing as classifier) stay in
 [technical-debt.md](docs/implementation/technical-debt.md).
 
 <details>

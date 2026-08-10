@@ -1,6 +1,9 @@
 ---
 id: scientific.method_select
 version: 0.1.0
+status: experimental
+domain: scientific
+title: Scientific Method Selection (X3)
 ---
 
 # Scientific Method Selection (X3)

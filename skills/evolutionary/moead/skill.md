@@ -1,6 +1,9 @@
 ---
 id: evolutionary.moead
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: MOEA/D (pymoo)
 ---
 
 # MOEA/D (pymoo)

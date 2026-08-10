@@ -1,6 +1,9 @@
 ---
 id: evolutionary.nsga3
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: NSGA-III (pymoo)
 ---
 
 # NSGA-III (pymoo)

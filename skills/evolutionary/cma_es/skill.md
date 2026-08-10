@@ -1,6 +1,9 @@
-﻿---
+---
 id: evolutionary.cma_es
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: CMA-ES (pymoo)
 ---
 
 # CMA-ES (pymoo)

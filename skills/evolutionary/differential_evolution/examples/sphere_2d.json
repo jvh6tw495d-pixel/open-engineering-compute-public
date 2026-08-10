@@ -1,10 +1,17 @@
 {
   "variables": [
-    { "name": "x1", "lower": -5.0, "upper": 5.0 },
-    { "name": "x2", "lower": -5.0, "upper": 5.0 }
+    {
+      "name": "x1",
+      "lower": -5.0,
+      "upper": 5.0
+    },
+    {
+      "name": "x2",
+      "lower": -5.0,
+      "upper": 5.0
+    }
   ],
   "built_in": "sphere",
-  "algorithm": "differential_evolution",
   "generations": 30,
   "population": 20,
   "seed": 0

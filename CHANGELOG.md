@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-08-02
+
+**Neural Compute + Evolutionary Compute** (optional extras) — full wave stack N0–N5,
+E1–E4, X1–X3 under ADR 0031 / 0032. Core install stays free of torch/pymoo/deap/nevergrad.
+
+### Added
+
+- **Extras:** `oec[neural]` (PyTorch), `oec[evolutionary]` (pymoo + DEAP + Nevergrad)
+- **Backend registry:** probes/domains for `torch`, `pymoo`, `deap`, `nevergrad`; fail-closed
+  `backend_fit` for related `method.id`s
+- **Packages:** `oec.neural`, `oec.evolutionary`, kernels under
+  `oec.kernel.neural|evolutionary|hybrid|scientific`
+- **Neural skills (16):** MLP train/predict/evaluate, autoencoders, CNN1D/LSTM/GRU/TCN,
+  transformer encoder heads, pure-torch GCN/GraphSAGE/GAT (ADR 0032)
+- **Evolutionary skills (15):** single-objective (DE/GA/CMA-ES/PSO), multiobjective
+  (NSGA-II/III, MOEA/D), GP + ES (DEAP, closed operator IR), Nevergrad black-box + portfolio,
+  `evolutionary.benchmark` (X1 thin)
+- **Hybrid / scientific (3):** `hybrid.surrogate_optimize`, `hybrid.evo_hyperparams`,
+  `scientific.method_select` (X2/X3)
+- **Docs:** ADR 0031, ADR 0032, `docs/implementation/OEC_NEURAL_EVOLUTIONARY_WAVES.md`
+- **Catalog:** **121** skills across **22** domains (was 87 / 18 in 3.3.1)
+
+### Notes
+
+- New skills ship as `status: experimental`. Surrogate optima are **not** engineering truth
+  without high-fidelity re-evaluation (`accepted_as_engineering_truth=false`).
+- GP forbids agent Python; operators allow-listed only.
+- CI default pytest deselects `@pytest.mark.neural` / `evolutionary`; run with extras installed
+  for full coverage of optional skills.
+- Public GitHub publish remains a separate milestone (see public-alpha procedure).
+
 ## [3.3.1] - 2026-08-06
 
 **Release recovery** — catalog integrity + MCP domain routing + Engine proofs.
@@ -18,11 +49,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Physical units audit: annotate bare numerics; accept bare series with `x-oec-unit`
 - Skill entrypoint contract: remove illegal `assumptions` key; multiphysics reports `diagnostics.converged`
 - MCP free-text: chemistry/multiphysics/foundation physics aliases → energy specialist surface
+- `ResultDimensionalValidator`: array-typed physical outputs (bare numeric series with a
+  top-level `x-oec-unit`) were wrongly required to be scalar `{value, unit}` objects,
+  turning `battery.soc_trajectory`'s own demo `INVALID` at runtime despite the physical
+  units audit passing it — now validated as a plain numeric series
+- `oec` CLI: `UnicodeEncodeError` crash on Windows consoles with a non-UTF-8 codepage the
+  moment any skill title/description contains a non-Latin-1 character (e.g. η) — stdout/stderr
+  reconfigured to UTF-8 at CLI startup
+- `scripts/check_forbidden_names.py`: same class of Windows console crash, same fix
+- `scripts/prepare_public_alpha.py`: `schemas/` (the publicly-documented `authoritative_answer`
+  contract) was missing from `INCLUDE`, silently absent from every public tree this script
+  ever generated
+- `ruff`/`mypy`/formatting drift pre-existing in `src/oec/physics/coupling/graph.py` and 10
+  other files, unrelated to this recovery's own diff, closed as part of making the gates
+  genuinely green rather than green-by-omission
+- 19 skills (the full 3.1.0–3.3.0 new-domain population) were missing fixtures in
+  `tests/integration/test_execution_result_contract.py`'s whole-catalog contract test —
+  backfilled from each skill's own committed example
 
 ### Added
 
 - `tests/integration/test_engine_new_domains_3_3_1.py` (Engine.run for 9 new-domain skills)
 - Recovery plan + closeout docs
+- `docs/implementation/3.3.1-phase0-3-execution-report.md` — independent re-verification of
+  the above (full test suite, installed-wheel smoke, lint/type gates) plus the fixes it found
+- `docs/implementation/3.3.1-phase4-5-execution-report.md` — documentation reconciliation
+  (README, technical debt, skill inventory, codebase map, V3 plan, superseded v3.0/v3.1
+  release docs) and public-tree generation/validation evidence
+- `docs/release/PUBLISH-3.3.1.md` — the current publish runbook (supersedes `PUBLISH-3.1.md`)
 
 ### Notes
 

@@ -241,6 +241,17 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "dt_hours": {"value": 1.0, "unit": "h"},
         "capacity": {"value": 100.0, "unit": "Wh"},
     },
+    "battery.soc_trajectory": {
+        "initial_soc": 0.5,
+        "powers": [
+            {"value": 10.0, "unit": "W"},
+            {"value": -20.0, "unit": "W"},
+        ],
+        "dt_hours": {"value": 1.0, "unit": "h"},
+        "capacity": {"value": 100.0, "unit": "Wh"},
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+    },
     "energy.load_metrics": {
         "power_values": [
             {"value": 10.0, "unit": "W"},
@@ -514,7 +525,530 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         },
         "rhs_uncertainty": {"cover": 0.1},
     },
+    "chemistry.arrhenius": {
+        "pre_exponential": 42.0,
+        "activation_energy_j_per_mol": 0.0,
+        "temperature_k": 300.0,
+    },
+    "chemistry.batch_kinetics": {
+        "a_mol": 1.0,
+        "b_mol": 0.0,
+        "k": 0.1,
+        "volume_m3": 1.0,
+        "dt_s": 1.0,
+    },
+    "chemistry.equilibrium": {"a_mol": 1.0, "b_mol": 1.0, "kc": 1.0, "volume_m3": 1.0},
+    "chemistry.fick_flux": {
+        "concentration_a_mol_m3": 10.0,
+        "concentration_b_mol_m3": 0.0,
+        "distance_m": 0.1,
+        "diffusivity_m2_s": 1e-05,
+    },
+    "chemistry.nernst": {
+        "e0_v": 1.23,
+        "n_electrons": 2,
+        "reaction_quotient": 1.0,
+        "temperature_k": 298.15,
+    },
+    "chemistry.reaction_extent": {
+        "h2_mol": 4.0,
+        "o2_mol": 1.0,
+        "h2o_mol": 0.0,
+        "extent_mol": 1.0,
+    },
+    "electrical.dc_power_flow": {
+        "lines": [
+            {"from_bus": "A", "to_bus": "B", "susceptance": 10.0},
+            {"from_bus": "B", "to_bus": "C", "susceptance": 10.0},
+            {"from_bus": "A", "to_bus": "C", "susceptance": 10.0},
+        ],
+        "injections": {"A": -1.0, "B": 0.4, "C": 0.6},
+        "slack_bus": "A",
+    },
+    "electrical.harmonics_thd": {
+        "fundamental": {"value": 100.0, "unit": "V"},
+        "harmonics": [{"value": 3.0, "unit": "V"}, {"value": 4.0, "unit": "V"}],
+    },
+    "energy.grid_zero_feasibility": {
+        "load": [{"value": 2.0, "unit": "W"}, {"value": 1.0, "unit": "W"}],
+        "pv": [{"value": 0.5, "unit": "W"}, {"value": 1.5, "unit": "W"}],
+        "storage_charge": [{"value": 0.0, "unit": "W"}, {"value": 0.5, "unit": "W"}],
+        "storage_discharge": [{"value": 1.5, "unit": "W"}, {"value": 0.0, "unit": "W"}],
+        "grid_import": [{"value": 0.0, "unit": "W"}, {"value": 0.0, "unit": "W"}],
+        "dt_hours": {"value": 1.0, "unit": "h"},
+    },
+    "energy.hybrid_balance": {
+        "load": [{"value": 3.0, "unit": "W"}, {"value": 2.0, "unit": "W"}],
+        "pv": [{"value": 0.0, "unit": "W"}, {"value": 3.0, "unit": "W"}],
+        "grid_import": [{"value": 3.0, "unit": "W"}, {"value": -0.5, "unit": "W"}],
+        "storage_charge": [{"value": 0.0, "unit": "W"}, {"value": 0.5, "unit": "W"}],
+        "storage_discharge": [{"value": 0.0, "unit": "W"}, {"value": 0.0, "unit": "W"}],
+        "dt_hours": {"value": 1.0, "unit": "h"},
+    },
+    "energy.min_storage_capacity": {
+        "load": [{"value": 2.0, "unit": "Wh"}, {"value": 1.0, "unit": "Wh"}],
+        "pv": [{"value": 0.0, "unit": "Wh"}, {"value": 0.0, "unit": "Wh"}],
+        "eta_charge": 1.0,
+        "eta_discharge": 1.0,
+        "soc_min": 0.0,
+        "soc_max": 1.0,
+        "initial_soc": 1.0,
+        "horizon_hours": {"value": 2.0, "unit": "h"},
+        "curtailment_allowed": False,
+    },
+    "energy.pv_power": {
+        "irradiance": {"value": 1000.0, "unit": "W / m ** 2"},
+        "area": {"value": 10.0, "unit": "m ** 2"},
+        "efficiency": 0.2,
+    },
+    "energy.service_metrics": {
+        "load": [{"value": 10.0, "unit": "W"}, {"value": 20.0, "unit": "W"}],
+        "pv": [{"value": 0.0, "unit": "W"}, {"value": 0.0, "unit": "W"}],
+        "storage_discharge": [{"value": 10.0, "unit": "W"}, {"value": 20.0, "unit": "W"}],
+        "grid_import": [{"value": 0.0, "unit": "W"}, {"value": 0.0, "unit": "W"}],
+        "dt_hours": {"value": 1.0, "unit": "h"},
+        "capacity": {"value": 50.0, "unit": "Wh"},
+        "initial_soc": 1.0,
+    },
+    "fluids.bernoulli": {
+        "pressure_upstream": {"value": 300000.0, "unit": "Pa"},
+        "pressure_downstream": {"value": 280000.0, "unit": "Pa"},
+        "velocity_upstream": {"value": 2.0, "unit": "m / s"},
+        "velocity_downstream": {"value": 2.0, "unit": "m / s"},
+        "elevation_upstream": {"value": 10.0, "unit": "m"},
+        "elevation_downstream": {"value": 10.0, "unit": "m"},
+        "density": {"value": 1000.0, "unit": "kg / m ** 3"},
+        "friction_factor": 0.02,
+        "length": {"value": 50.0, "unit": "m"},
+        "diameter": {"value": 0.1, "unit": "m"},
+    },
+    "materials.linear_constitutive": {"material_id": "steel_astm_a36", "strain": 0.001},
+    "mechanics.energy_1d": {
+        "mass": {"value": 2.0, "unit": "kg"},
+        "height_initial": {"value": 8.0, "unit": "m"},
+        "height_final": {"value": 0.0, "unit": "m"},
+        "velocity_initial": {"value": 0.0, "unit": "m / s"},
+        "velocity_final": {"value": 12.526228482667877, "unit": "m / s"},
+    },
+    "multiphysics.solar_thermal_electrical": {
+        "irradiance_w_m2": 1000.0,
+        "area_m2": 1.0,
+        "eta0": 0.2,
+        "t_amb_c": 25.0,
+        "ua_w_per_k": 50.0,
+        "gamma_per_c": -0.004,
+        "t_ref_c": 25.0,
+    },
+    "multiphysics.wire_i2r": {
+        "current_a": 10.0,
+        "r0_ohm": 0.1,
+        "t_amb_k": 293.15,
+        "ua_w_per_k": 1.0,
+        "alpha_per_k": 0.0,
+        "t0_k": 293.15,
+    },
+    "thermal.conduction_1d": {
+        "conductivity": {"value": 1.5, "unit": "W / (m * K)"},
+        "area": {"value": 0.5, "unit": "m ** 2"},
+        "length": {"value": 0.02, "unit": "m"},
+        "hot_temperature": {"value": 80.0, "unit": "degC"},
+        "cold_temperature": {"value": 20.0, "unit": "degC"},
+    },
+    # --- OEC 3.4 neural/evolutionary/hybrid/scientific fixtures ---
+    "evolutionary.benchmark": {
+        "algorithms": ["differential_evolution", "genetic_algorithm"],
+        "built_in": "sphere",
+        "generations": 12,
+        "mode": "single",
+        "population": 16,
+        "seeds": [0, 1],
+        "variables": [
+            {"lower": -2.0, "name": "x1", "upper": 2.0},
+            {"lower": -2.0, "name": "x2", "upper": 2.0},
+        ],
+    },
+    "evolutionary.blackbox_optimize": {
+        "budget": 100,
+        "built_in": "sphere",
+        "n_var": 2,
+        "optimizer": "OnePlusOne",
+        "seed": 0,
+    },
+    "evolutionary.cma_es": {
+        "built_in": "sphere",
+        "generations": 30,
+        "population": 20,
+        "seed": 0,
+        "variables": [
+            {"lower": -5.0, "name": "x1", "upper": 5.0},
+            {"lower": -5.0, "name": "x2", "upper": 5.0},
+        ],
+    },
+    "evolutionary.custom_ga": {"built_in": "sphere", "generations": 15, "n_var": 2, "seed": 0},
+    "evolutionary.differential_evolution": {
+        "built_in": "sphere",
+        "generations": 30,
+        "population": 20,
+        "seed": 0,
+        "variables": [
+            {"lower": -5.0, "name": "x1", "upper": 5.0},
+            {"lower": -5.0, "name": "x2", "upper": 5.0},
+        ],
+    },
+    "evolutionary.evolution_strategy": {
+        "built_in": "sphere",
+        "generations": 20,
+        "n_var": 2,
+        "seed": 0,
+    },
+    "evolutionary.genetic_algorithm": {
+        "built_in": "sphere",
+        "generations": 30,
+        "population": 20,
+        "seed": 0,
+        "variables": [
+            {"lower": -5.0, "name": "x1", "upper": 5.0},
+            {"lower": -5.0, "name": "x2", "upper": 5.0},
+        ],
+    },
+    "evolutionary.genetic_programming": {
+        "generations": 15,
+        "population": 40,
+        "seed": 0,
+        "target": "poly2",
+    },
+    "evolutionary.moead": {
+        "built_in": "zdt1",
+        "generations": 20,
+        "population": 30,
+        "seed": 0,
+        "variables": [
+            {"lower": 0.0, "name": "x0", "upper": 1.0},
+            {"lower": 0.0, "name": "x1", "upper": 1.0},
+            {"lower": 0.0, "name": "x2", "upper": 1.0},
+            {"lower": 0.0, "name": "x3", "upper": 1.0},
+            {"lower": 0.0, "name": "x4", "upper": 1.0},
+        ],
+    },
+    "evolutionary.nsga2": {
+        "built_in": "zdt1",
+        "generations": 20,
+        "population": 30,
+        "seed": 0,
+        "variables": [
+            {"lower": 0.0, "name": "x0", "upper": 1.0},
+            {"lower": 0.0, "name": "x1", "upper": 1.0},
+            {"lower": 0.0, "name": "x2", "upper": 1.0},
+            {"lower": 0.0, "name": "x3", "upper": 1.0},
+            {"lower": 0.0, "name": "x4", "upper": 1.0},
+        ],
+    },
+    "evolutionary.nsga3": {
+        "built_in": "zdt1",
+        "generations": 20,
+        "population": 30,
+        "seed": 0,
+        "variables": [
+            {"lower": 0.0, "name": "x0", "upper": 1.0},
+            {"lower": 0.0, "name": "x1", "upper": 1.0},
+            {"lower": 0.0, "name": "x2", "upper": 1.0},
+            {"lower": 0.0, "name": "x3", "upper": 1.0},
+            {"lower": 0.0, "name": "x4", "upper": 1.0},
+        ],
+    },
+    "evolutionary.optimize_single": {
+        "algorithm": "differential_evolution",
+        "built_in": "sphere",
+        "generations": 30,
+        "population": 20,
+        "seed": 0,
+        "variables": [
+            {"lower": -5.0, "name": "x1", "upper": 5.0},
+            {"lower": -5.0, "name": "x2", "upper": 5.0},
+        ],
+    },
+    "evolutionary.optimizer_portfolio": {
+        "budget": 50,
+        "built_in": "sphere",
+        "optimizers": ["OnePlusOne", "RandomSearch"],
+        "seed": 0,
+    },
+    "evolutionary.pareto_search": {
+        "built_in": "zdt1",
+        "generations": 20,
+        "population": 30,
+        "seed": 0,
+        "variables": [
+            {"lower": 0.0, "name": "x0", "upper": 1.0},
+            {"lower": 0.0, "name": "x1", "upper": 1.0},
+            {"lower": 0.0, "name": "x2", "upper": 1.0},
+            {"lower": 0.0, "name": "x3", "upper": 1.0},
+            {"lower": 0.0, "name": "x4", "upper": 1.0},
+        ],
+    },
+    "evolutionary.pso": {
+        "built_in": "sphere",
+        "generations": 30,
+        "population": 20,
+        "seed": 0,
+        "variables": [
+            {"lower": -5.0, "name": "x1", "upper": 5.0},
+            {"lower": -5.0, "name": "x2", "upper": 5.0},
+        ],
+    },
+    "hybrid.evo_hyperparams": {
+        "budget": 4,
+        "epochs": 15,
+        "seed": 0,
+        "x": [[0], [1], [2], [3], [4], [5], [6], [7]],
+        "y": [1, 3, 5, 7, 9, 11, 13, 15],
+    },
+    "hybrid.surrogate_optimize": {
+        "built_in": "sphere",
+        "device": "cpu",
+        "evo_budget": 60,
+        "n_train": 50,
+        "n_var": 2,
+        "seed": 0,
+        "surrogate_epochs": 30,
+    },
+    "neural.autoencoder.basic": {
+        "epochs": 20,
+        "latent_dim": 2,
+        "seed": 0,
+        "x": [[0, 1, 0], [1, 0, 1], [0.5, 0.5, 0.5], [1, 1, 0], [0, 0, 1]],
+    },
+    "neural.autoencoder.denoising": {
+        "epochs": 20,
+        "noise_std": 0.1,
+        "seed": 0,
+        "x": [[0, 1, 0], [1, 0, 1], [0.5, 0.5, 0.5], [1, 1, 0], [0, 0, 1]],
+    },
+    "neural.cnn1d": {
+        "epochs": 15,
+        "seed": 0,
+        "x": [
+            [[0, 1], [1, 1], [2, 1]],
+            [[1, 1], [2, 1], [3, 1]],
+            [[2, 1], [3, 1], [4, 1]],
+            [[3, 1], [4, 1], [5, 1]],
+        ],
+        "y": [1, 2, 3, 4],
+    },
+    "neural.evaluate": {
+        "checkpoint": {
+            "architecture": "mlp",
+            "model_spec": {
+                "activation": "relu",
+                "architecture": "mlp",
+                "dropout": 0.0,
+                "hidden_dims": [8],
+                "input_dim": 1,
+                "output_dim": 1,
+            },
+            "state_dict": {
+                "0.bias": [
+                    -0.08874404430389404,
+                    2.5312869548797607,
+                    -0.7727540135383606,
+                    1.1047155857086182,
+                    -0.9553484916687012,
+                    -0.6622821092605591,
+                    -0.41222310066223145,
+                    2.2125442028045654,
+                ],
+                "0.weight": [
+                    [-0.007486820220947266],
+                    [1.7387737035751343],
+                    [-0.38597673177719116],
+                    [-0.5884883403778076],
+                    [-0.3851543664932251],
+                    [0.26815736293792725],
+                    [-0.019813179969787598],
+                    [2.1322555541992188],
+                ],
+                "2.bias": [1.64408540725708],
+                "2.weight": [
+                    [
+                        0.13977208733558655,
+                        2.016160726547241,
+                        0.33456242084503174,
+                        0.7555960416793823,
+                        0.12841662764549255,
+                        0.29358646273612976,
+                        -0.07276135683059692,
+                        1.9790631532669067,
+                    ]
+                ],
+            },
+            "task": "regression",
+        },
+        "device": "cpu",
+        "normalize": {"mean": [5.5], "std": [3.452052529534663]},
+        "task": "regression",
+        "x": [[0.0], [1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0], [9.0], [10.0], [11.0]],
+        "y": [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 17.0, 19.0, 21.0, 23.0],
+    },
+    "neural.gat": {
+        "edge_index": [[0, 1, 2], [1, 2, 3]],
+        "epochs": 20,
+        "node_features": [[0, 1], [1, 1], [2, 1], [3, 1]],
+        "seed": 0,
+        "y": [0, 1, 2, 3],
+    },
+    "neural.gcn": {
+        "edge_index": [[0, 1, 2], [1, 2, 3]],
+        "epochs": 20,
+        "node_features": [[0, 1], [1, 1], [2, 1], [3, 1]],
+        "seed": 0,
+        "y": [0, 1, 2, 3],
+    },
+    "neural.graphsage": {
+        "edge_index": [[0, 1, 2], [1, 2, 3]],
+        "epochs": 20,
+        "node_features": [[0, 1], [1, 1], [2, 1], [3, 1]],
+        "seed": 0,
+        "y": [0, 1, 2, 3],
+    },
+    "neural.gru": {
+        "epochs": 15,
+        "seed": 0,
+        "x": [
+            [[0, 1], [1, 1], [2, 1]],
+            [[1, 1], [2, 1], [3, 1]],
+            [[2, 1], [3, 1], [4, 1]],
+            [[3, 1], [4, 1], [5, 1]],
+        ],
+        "y": [1, 2, 3, 4],
+    },
+    "neural.lstm": {
+        "epochs": 15,
+        "seed": 0,
+        "x": [
+            [[0, 1], [1, 1], [2, 1]],
+            [[1, 1], [2, 1], [3, 1]],
+            [[2, 1], [3, 1], [4, 1]],
+            [[3, 1], [4, 1], [5, 1]],
+        ],
+        "y": [1, 2, 3, 4],
+    },
+    "neural.mlp.classifier": {
+        "device": "cpu",
+        "epochs": 100,
+        "hidden_dims": [16, 8],
+        "n_classes": 2,
+        "seed": 0,
+        "x": [[0, 0], [0, 1], [1, 0], [1, 1], [0.1, 0.1], [0.9, 0.1], [0.1, 0.9], [0.9, 0.9]],
+        "y": [0, 1, 1, 0, 0, 1, 1, 0],
+    },
+    "neural.mlp.regressor": {
+        "device": "cpu",
+        "epochs": 120,
+        "hidden_dims": [16],
+        "lr": 0.05,
+        "seed": 0,
+        "val_fraction": 0.25,
+        "x": [[0.0], [1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0]],
+        "y": [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0],
+    },
+    "neural.predict": {
+        "checkpoint": {
+            "architecture": "mlp",
+            "model_spec": {
+                "activation": "relu",
+                "architecture": "mlp",
+                "dropout": 0.0,
+                "hidden_dims": [8],
+                "input_dim": 1,
+                "output_dim": 1,
+            },
+            "state_dict": {
+                "0.bias": [
+                    -0.08874404430389404,
+                    2.5312869548797607,
+                    -0.7727540135383606,
+                    1.1047155857086182,
+                    -0.9553484916687012,
+                    -0.6622821092605591,
+                    -0.41222310066223145,
+                    2.2125442028045654,
+                ],
+                "0.weight": [
+                    [-0.007486820220947266],
+                    [1.7387737035751343],
+                    [-0.38597673177719116],
+                    [-0.5884883403778076],
+                    [-0.3851543664932251],
+                    [0.26815736293792725],
+                    [-0.019813179969787598],
+                    [2.1322555541992188],
+                ],
+                "2.bias": [1.64408540725708],
+                "2.weight": [
+                    [
+                        0.13977208733558655,
+                        2.016160726547241,
+                        0.33456242084503174,
+                        0.7555960416793823,
+                        0.12841662764549255,
+                        0.29358646273612976,
+                        -0.07276135683059692,
+                        1.9790631532669067,
+                    ]
+                ],
+            },
+            "task": "regression",
+        },
+        "device": "cpu",
+        "normalize": {"mean": [5.5], "std": [3.452052529534663]},
+        "x": [[0.0], [1.0], [2.0]],
+    },
+    "neural.tcn": {
+        "epochs": 15,
+        "seed": 0,
+        "x": [
+            [[0, 1], [1, 1], [2, 1]],
+            [[1, 1], [2, 1], [3, 1]],
+            [[2, 1], [3, 1], [4, 1]],
+            [[3, 1], [4, 1], [5, 1]],
+        ],
+        "y": [1, 2, 3, 4],
+    },
+    "neural.transformer.encoder": {
+        "d_model": 16,
+        "epochs": 12,
+        "n_heads": 2,
+        "seed": 0,
+        "x": [[[0], [1], [2]], [[1], [2], [3]], [[2], [3], [4]], [[3], [4], [5]]],
+        "y": [1, 2, 3, 4],
+    },
+    "neural.transformer.sequence_classifier": {
+        "d_model": 16,
+        "epochs": 20,
+        "n_classes": 2,
+        "n_heads": 2,
+        "seed": 0,
+        "task": "classification",
+        "x": [[[0], [0], [0]], [[1], [1], [1]], [[0], [0], [1]], [[1], [1], [0]]],
+        "y": [0, 1, 0, 1],
+    },
+    "neural.transformer.sequence_regressor": {
+        "d_model": 16,
+        "epochs": 12,
+        "n_heads": 2,
+        "seed": 0,
+        "task": "regression",
+        "x": [[[0], [1], [2]], [[1], [2], [3]], [[2], [3], [4]], [[3], [4], [5]]],
+        "y": [1, 2, 3, 4],
+    },
+    "scientific.method_select": {
+        "budget_seconds": 30,
+        "problem_class": "soo_box",
+        "run_probe_benchmark": False,
+        "seed": 0,
+    },
 }
+
 
 _REQUIRED_KEYS = frozenset(
     {
@@ -549,11 +1083,66 @@ def test_all_registered_skills_share_execution_result_contract() -> None:
         import highspy  # noqa: F401
     except ImportError:
         highspy = None  # type: ignore[assignment]
+    try:
+        import torch  # noqa: F401
+    except ImportError:
+        torch = None  # type: ignore[assignment]
+    try:
+        import pymoo  # noqa: F401
+    except ImportError:
+        pymoo = None  # type: ignore[assignment]
+    try:
+        import deap  # noqa: F401
+    except ImportError:
+        deap = None  # type: ignore[assignment]
+    try:
+        import nevergrad  # noqa: F401
+    except ImportError:
+        nevergrad = None  # type: ignore[assignment]
 
     for manifest in manifests:
         skill_id = manifest.id
         if skill_id.startswith("optimization.") and highspy is None:
             continue
+        # OEC 3.4 optional extras — skip execute when backend not installed
+        if skill_id.startswith(("neural.", "hybrid.")) and torch is None:
+            continue
+        if skill_id.startswith("hybrid.") and nevergrad is None:
+            continue
+        if skill_id.startswith("evolutionary."):
+            # route by family
+            if (
+                skill_id
+                in {
+                    "evolutionary.genetic_programming",
+                    "evolutionary.evolution_strategy",
+                    "evolutionary.custom_ga",
+                }
+                and deap is None
+            ):
+                continue
+            if (
+                skill_id
+                in {
+                    "evolutionary.blackbox_optimize",
+                    "evolutionary.optimizer_portfolio",
+                }
+                and nevergrad is None
+            ):
+                continue
+            # remaining evolutionary default to pymoo (incl. benchmark multi/single)
+            if (
+                skill_id
+                not in {
+                    "evolutionary.genetic_programming",
+                    "evolutionary.evolution_strategy",
+                    "evolutionary.custom_ga",
+                    "evolutionary.blackbox_optimize",
+                    "evolutionary.optimizer_portfolio",
+                }
+                and pymoo is None
+            ):
+                continue
         assert skill_id in _FIXTURES, f"missing contract fixture for {skill_id}"
         skill = registry.get_skill(skill_id)
         iv, rv = build_validators(skill)

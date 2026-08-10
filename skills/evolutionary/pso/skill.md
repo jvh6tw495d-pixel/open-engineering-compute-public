@@ -1,6 +1,9 @@
-﻿---
+---
 id: evolutionary.pso
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: PSO (pymoo)
 ---
 
 # PSO (pymoo)

@@ -1,6 +1,9 @@
 ---
 id: hybrid.surrogate_optimize
 version: 0.1.0
+status: experimental
+domain: hybrid
+title: Surrogate MLP + Evolutionary Search + High-Fidelity Verify (X2)
 ---
 
 # Surrogate + Evolutionary + High-Fidelity Verify (X2)

@@ -1,6 +1,9 @@
-﻿---
+---
 id: evolutionary.differential_evolution
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: Differential Evolution (pymoo)
 ---
 
 # Differential Evolution (pymoo)

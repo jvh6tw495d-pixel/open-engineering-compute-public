@@ -1,52 +1,67 @@
 # Skill inventory
 
-**Updated:** 2026-08-06 (`oec==3.3.0` — chemistry complete + multiphysics skills + THD)
+**Updated:** 2026-08-02 (`oec==3.4.0`)
 **Registry root:** `skills/`
+**Live load:** **121** skills, **0** contract-audit errors
 
 ## Summary
 
 | Domain | Count | Notes |
 |---|---|---|
 | mathematics | 8 | Math IR `solve_ir`, differentiate, … |
-| electrical | **8** | classic + `dc_power_flow` + **`harmonics_thd`** |
+| electrical | 8 | classic + `dc_power_flow` + `harmonics_thd` |
 | timeseries | 16 | AR/PACF package |
 | linear | 5 | |
 | numerical | 2 | ode_ivp, root_system |
 | statistics | 5 | |
-| optimization | 12 | |
-| energy | 7 | hybrid, grid_zero, pv, service_metrics, … |
-| battery | 2 | soc_step, soc_trajectory |
+| optimization | 12 | HiGHS-backed subset needs `oec[optimization]` |
+| energy | 7 | |
+| battery | 2 | |
 | finance | 3 | |
 | control | 2 | |
 | dynamics | 2 | |
 | uncertainty | 3 | |
-| thermal | 1 | conduction_1d |
-| mechanics | 1 | energy_1d |
-| fluids | 1 | bernoulli |
-| materials | 1 | linear_constitutive |
-| **chemistry** | **6** | nernst, fick, reaction_extent, equilibrium, arrhenius, batch_kinetics |
-| **multiphysics** | **2** | wire_i2r, solar_thermal_electrical |
-| **Total** | **87** | experimental |
+| thermal | 1 | |
+| mechanics | 1 | |
+| fluids | 1 | |
+| materials | 1 | |
+| chemistry | 6 | |
+| multiphysics | 2 | |
+| **neural** | **16** | `oec[neural]` — ADR 0031/0032 |
+| **evolutionary** | **15** | `oec[evolutionary]` — pymoo/DEAP/Nevergrad |
+| **hybrid** | **2** | X2 surrogate + hyperparams |
+| **scientific** | **1** | X3 method_select |
+| **Total** | **121** | all `experimental` in this inventory |
 
-## Chemistry (3.2+)
+## Neural (3.4)
 
-| Skill id | Library |
-|----------|---------|
-| `chemistry.reaction_extent` | stoichiometry |
-| `chemistry.fick_flux` | transport |
-| `chemistry.equilibrium` | Qc/Kc |
-| `chemistry.arrhenius` | kinetics |
-| `chemistry.batch_kinetics` | batch Euler |
-| `chemistry.nernst` | electrochemistry |
+| Skill id | Wave |
+|----------|------|
+| `neural.mlp.regressor` / `classifier` / `predict` / `evaluate` | N1 |
+| `neural.autoencoder.basic` / `denoising` | N2 |
+| `neural.cnn1d` / `lstm` / `gru` / `tcn` | N3 |
+| `neural.transformer.encoder` / `sequence_regressor` / `sequence_classifier` | N4 |
+| `neural.gcn` / `graphsage` / `gat` | N5 (pure torch) |
 
-## Multiphysics (3.3)
+## Evolutionary (3.4)
 
-| Skill id | Library |
-|----------|---------|
-| `multiphysics.wire_i2r` | `oec.physics.coupling.run_wire_i2r_coupling` |
-| `multiphysics.solar_thermal_electrical` | `run_solar_thermal_electrical_coupling` |
+| Skill id | Wave |
+|----------|------|
+| `optimize_single`, DE, GA, CMA-ES, PSO | E1 |
+| `nsga2`, `nsga3`, `moead`, `pareto_search` | E2 |
+| `benchmark` | X1 thin |
+| `genetic_programming`, `evolution_strategy`, `custom_ga` | E3 |
+| `blackbox_optimize`, `optimizer_portfolio` | E4 |
 
-## Physics Foundation P1–P5
+## Hybrid / Scientific (3.4)
+
+| Skill id | Wave |
+|----------|------|
+| `hybrid.surrogate_optimize` | X2 |
+| `hybrid.evo_hyperparams` | X2 |
+| `scientific.method_select` | X3 |
+
+## Physics Foundation P1–P5 (unchanged from 3.3)
 
 | Slice | Skill |
 |-------|--------|
@@ -55,3 +70,11 @@
 | P3 | `mechanics.energy_1d` |
 | P4 | `fluids.bernoulli` |
 | P5 | `materials.linear_constitutive` |
+
+## Install extras
+
+```bash
+uv sync --extra neural
+uv sync --extra evolutionary
+uv sync --extra neural --extra evolutionary   # hybrid X2
+```

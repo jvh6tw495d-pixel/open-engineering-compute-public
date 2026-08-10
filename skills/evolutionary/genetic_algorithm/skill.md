@@ -1,6 +1,9 @@
-﻿---
+---
 id: evolutionary.genetic_algorithm
 version: 0.1.0
+status: experimental
+domain: evolutionary
+title: Genetic Algorithm (pymoo)
 ---
 
 # Genetic Algorithm (pymoo)
