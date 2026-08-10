@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/oec-logo-compact-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/oec-logo-compact-light.svg">
+    <img src="docs/assets/oec-logo-compact-light.svg" alt="OEC logo" width="220">
+  </picture>
+</p>
+
 # Open Engineering Compute (OEC)
 
 > **Status:** **`oec==3.4.0` private incubation** — Neural + Evolutionary Compute.
