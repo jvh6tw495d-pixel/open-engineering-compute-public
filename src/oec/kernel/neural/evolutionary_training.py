@@ -1,6 +1,7 @@
 """Evolutionary neural training modes (ADR 0033): hybrid, neuroevolution, search, benchmark.
 
-Merit: PyTorch (inner train) + Nevergrad/DEAP (outer search). No agent Python.
+Merit: PyTorch (inner train) + Nevergrad (HPO / weight evo) + pymoo (NSGA multi-obj).
+DEAP structural genotype is residual polish (not this module). No agent Python.
 """
 
 from __future__ import annotations
@@ -319,9 +320,6 @@ def hybrid_evolutionary_train(
         if "policy" in p:
             out["policy"] = policy_choices[int(p["policy"])]
         trials.append(out)
-        if multiobjective:
-            # scalarize for nevergrad: rmse + size penalty
-            return float(out["score"])
         return float(out["score"])
 
     recommendation = opt.minimize(_score)
@@ -648,6 +646,7 @@ def _hybrid_multiseed(
         "mode": "hybrid_multiseed",
         "pipeline": "multi_seed_outer→hybrid_evolutionary_gradient",
         "seeds": list(seeds),
+        "facets": facets or ["hyperparameters", "architecture"],
         "rows": rows,
         "mean_best_score": float(np.mean(arr)),
         "std_best_score": float(np.std(arr)),
@@ -658,7 +657,17 @@ def _hybrid_multiseed(
             "max_evaluations_per_seed": max_evaluations,
             "n_seeds": len(seeds),
             "total_evaluations_cap": max_evaluations * len(seeds),
+            "max_generations": max_generations,
+            "population_size": population_size,
+            "max_wall_time_s": max_wall_time_s,
         },
+        "inner_training": {
+            "max_epochs": inner_epochs,
+            "early_stopping_patience": early_stopping_patience,
+            "device": device,
+            "val_fraction": val_fraction,
+        },
+        "backends": {"outer": "nevergrad", "inner": "torch", "aggregation": "multi_seed"},
         "message": "ok",
         "policy": (
             "Outer multi-seed hybrid: each seed runs a full evo→gradient search. "

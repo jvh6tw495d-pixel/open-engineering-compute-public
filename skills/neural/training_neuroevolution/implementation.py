@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from oec.kernel.evolutionary.errors import NevergradNotAvailableError
+from oec.kernel.evolutionary.errors import NevergradNotAvailableError, PymooNotAvailableError
 from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.kernel.neural.evolutionary_training import neuroevolution_train
 
@@ -20,7 +20,12 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             max_params=int(inputs.get("max_params", 500)),
             device=str(inputs.get("device", "cpu")),
         )
-    except (TorchNotAvailableError, NevergradNotAvailableError, ValueError) as exc:
+    except (
+        TorchNotAvailableError,
+        NevergradNotAvailableError,
+        PymooNotAvailableError,
+        ValueError,
+    ) as exc:
         msg = getattr(exc, "message", str(exc))
         return {
             "result": {"error": {"message": msg}},
