@@ -11,7 +11,7 @@ from typing import Any, Literal
 import numpy as np
 
 from oec.evolutionary.hashing import problem_fingerprint
-from oec.kernel.evolutionary.errors import NevergradNotAvailableError
+from oec.kernel.evolutionary.errors import NevergradNotAvailableError, PymooNotAvailableError
 from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.kernel.neural.training import train_mlp
 from oec.neural.contracts import (
@@ -176,6 +176,7 @@ def hybrid_evolutionary_train(
     population_size: int = 8,
     max_wall_time_s: float | None = None,
     seed: int = 42,
+    seeds: list[int] | None = None,
     inner_epochs: int = 20,
     early_stopping_patience: int = 5,
     device: str = "cpu",
@@ -187,7 +188,39 @@ def hybrid_evolutionary_train(
 
     Default facets: hyperparameters + architecture (capacity). Optional features,
     loss_weights, policy when listed in ``facets``.
+
+    When ``seeds`` has more than one value, runs the full hybrid loop per seed
+    and aggregates mean/std of best scores (industrial multi-seed outer).
+    When ``multiobjective`` is True, uses pymoo NSGA-II on (rmse, n_params)
+    over a closed capacity×lr×activation catalog (native multi-obj path).
     """
+    if seeds is not None and len(seeds) > 1:
+        return _hybrid_multiseed(
+            x,
+            y,
+            seeds=list(seeds),
+            max_evaluations=max_evaluations,
+            max_generations=max_generations,
+            population_size=population_size,
+            max_wall_time_s=max_wall_time_s,
+            inner_epochs=inner_epochs,
+            early_stopping_patience=early_stopping_patience,
+            device=device,
+            val_fraction=val_fraction,
+            facets=facets,
+        )
+    if multiobjective:
+        return multiobjective_neural_search(
+            x,
+            y,
+            seed=seed,
+            max_generations=max_generations or max(4, max_evaluations // max(population_size, 4)),
+            population_size=population_size,
+            inner_epochs=inner_epochs,
+            device=device,
+            val_fraction=val_fraction,
+        )
+
     ng = _require_nevergrad()
     facets = facets or ["hyperparameters", "architecture"]
     t0 = time.perf_counter()
@@ -560,3 +593,234 @@ def search_policy(x: list[list[float]], y: list[float], **kwargs: Any) -> dict[s
     return hybrid_evolutionary_train(
         x, y, facets=["policy", "hyperparameters", "architecture"], **kwargs
     )
+
+
+def _hybrid_multiseed(
+    x: list[list[float]],
+    y: list[float],
+    *,
+    seeds: list[int],
+    max_evaluations: int,
+    max_generations: int | None,
+    population_size: int,
+    max_wall_time_s: float | None,
+    inner_epochs: int,
+    early_stopping_patience: int,
+    device: str,
+    val_fraction: float,
+    facets: list[str] | None,
+) -> dict[str, Any]:
+    """Run hybrid once per outer seed; report mean±std of best scores."""
+    rows: list[dict[str, Any]] = []
+    scores: list[float] = []
+    for s in seeds:
+        rep = hybrid_evolutionary_train(
+            x,
+            y,
+            max_evaluations=max_evaluations,
+            max_generations=max_generations,
+            population_size=population_size,
+            max_wall_time_s=max_wall_time_s,
+            seed=s,
+            seeds=None,
+            inner_epochs=inner_epochs,
+            early_stopping_patience=early_stopping_patience,
+            device=device,
+            val_fraction=val_fraction,
+            facets=facets,
+            multiobjective=False,
+        )
+        best = rep.get("best_config") or {}
+        sc = float(best.get("score", 1e6))
+        scores.append(sc)
+        rows.append(
+            {
+                "seed": s,
+                "best_score": sc,
+                "best_rmse": best.get("rmse"),
+                "best_n_params": best.get("n_params"),
+                "n_trials": rep.get("n_trials"),
+                "best_config": best,
+            }
+        )
+    arr = np.asarray(scores, dtype=float)
+    return {
+        "mode": "hybrid_multiseed",
+        "pipeline": "multi_seed_outer→hybrid_evolutionary_gradient",
+        "seeds": list(seeds),
+        "rows": rows,
+        "mean_best_score": float(np.mean(arr)),
+        "std_best_score": float(np.std(arr)),
+        "min_best_score": float(np.min(arr)),
+        "max_best_score": float(np.max(arr)),
+        "best_config": min(rows, key=lambda r: r["best_score"])["best_config"],
+        "budget": {
+            "max_evaluations_per_seed": max_evaluations,
+            "n_seeds": len(seeds),
+            "total_evaluations_cap": max_evaluations * len(seeds),
+        },
+        "message": "ok",
+        "policy": (
+            "Outer multi-seed hybrid: each seed runs a full evo→gradient search. "
+            "Report mean±std of best scores; no strategy declared superior a priori."
+        ),
+        "problem_fingerprint": problem_fingerprint(
+            {"n": len(x), "seeds": seeds, "budget": max_evaluations}
+        ),
+    }
+
+
+def multiobjective_neural_search(
+    x: list[list[float]],
+    y: list[float],
+    *,
+    seed: int = 42,
+    max_generations: int = 6,
+    population_size: int = 8,
+    inner_epochs: int = 12,
+    device: str = "cpu",
+    val_fraction: float = 0.25,
+) -> dict[str, Any]:
+    """Native pymoo NSGA-II multi-obj search over closed neural catalog.
+
+    Decision vars (int indices): capacity, learning_rate, activation.
+    Objectives (minimize): validation RMSE, parameter count.
+    """
+    try:
+        from pymoo.algorithms.moo.nsga2 import NSGA2
+        from pymoo.core.problem import Problem
+        from pymoo.operators.crossover.sbx import SBX
+        from pymoo.operators.mutation.pm import PM
+        from pymoo.operators.repair.rounding import RoundingRepair
+        from pymoo.operators.sampling.rnd import IntegerRandomSampling
+        from pymoo.optimize import minimize
+    except ImportError as exc:
+        raise PymooNotAvailableError(
+            "pymoo is not installed. Install with: uv sync --extra evolutionary"
+        ) from exc
+
+    capacity_choices = ("tiny", "medium", "dense")
+    lr_choices = (1e-3, 3e-3, 1e-2, 3e-2)
+    act_choices = (ActivationName.RELU, ActivationName.GELU, ActivationName.TANH)
+    trials: list[dict[str, Any]] = []
+
+    class _NeuralCatalogProblem(Problem):  # type: ignore[misc]
+        def __init__(self) -> None:
+            super().__init__(
+                n_var=3,
+                n_obj=2,
+                n_ieq_constr=0,
+                xl=np.array([0, 0, 0]),
+                xu=np.array(
+                    [
+                        len(capacity_choices) - 1,
+                        len(lr_choices) - 1,
+                        len(act_choices) - 1,
+                    ]
+                ),
+                vtype=int,
+            )
+
+        def _evaluate(
+            self, x_mat: np.ndarray, out: dict[str, Any], *args: Any, **kwargs: Any
+        ) -> None:
+            f = np.empty((x_mat.shape[0], 2), dtype=float)
+            for i in range(x_mat.shape[0]):
+                ci = int(np.clip(round(float(x_mat[i, 0])), 0, len(capacity_choices) - 1))
+                li = int(np.clip(round(float(x_mat[i, 1])), 0, len(lr_choices) - 1))
+                ai = int(np.clip(round(float(x_mat[i, 2])), 0, len(act_choices) - 1))
+                cap = capacity_choices[ci]
+                knobs = resolve_capacity("mlp", cap)  # type: ignore[arg-type]
+                cand = _train_candidate(
+                    x,
+                    y,
+                    hidden_dims=list(knobs["hidden_dims"]),
+                    activation=act_choices[ai],
+                    lr=float(lr_choices[li]),
+                    weight_decay=0.0,
+                    dropout=0.0,
+                    optimizer=OptimizerName.ADAMW,
+                    momentum=0.0,
+                    epochs=inner_epochs,
+                    batch_size=16,
+                    seed=seed,
+                    device=device,
+                    val_fraction=val_fraction,
+                )
+                rmse = float(cand.get("rmse", 1e3))
+                n_params = float(cand.get("n_params") or 1e6)
+                f[i, 0] = rmse
+                f[i, 1] = n_params
+                cand["capacity"] = cap
+                cand["lr"] = float(lr_choices[li])
+                cand["activation"] = act_choices[ai].value
+                trials.append(cand)
+            out["F"] = f
+
+    algo = NSGA2(
+        pop_size=population_size,
+        sampling=IntegerRandomSampling(),
+        crossover=SBX(prob=0.9, eta=15, vtype=float, repair=RoundingRepair()),
+        mutation=PM(eta=20, vtype=float, repair=RoundingRepair()),
+        eliminate_duplicates=True,
+    )
+    res = minimize(
+        _NeuralCatalogProblem(),
+        algo,
+        termination=("n_gen", max_generations),
+        seed=seed,
+        verbose=False,
+    )
+    pareto: list[dict[str, Any]] = []
+    if res.F is not None:
+        f_mat = np.atleast_2d(np.asarray(res.F, dtype=float))
+        x_mat = np.atleast_2d(np.asarray(res.X, dtype=float)) if res.X is not None else None
+        for i in range(f_mat.shape[0]):
+            entry: dict[str, Any] = {
+                "rmse": float(f_mat[i, 0]),
+                "n_params": int(f_mat[i, 1]),
+            }
+            if x_mat is not None:
+                ci = int(np.clip(round(float(x_mat[i, 0])), 0, len(capacity_choices) - 1))
+                li = int(np.clip(round(float(x_mat[i, 1])), 0, len(lr_choices) - 1))
+                ai = int(np.clip(round(float(x_mat[i, 2])), 0, len(act_choices) - 1))
+                entry["capacity"] = capacity_choices[ci]
+                entry["lr"] = float(lr_choices[li])
+                entry["activation"] = act_choices[ai].value
+            pareto.append(entry)
+    if not pareto:
+        pareto = _pareto_front(trials)
+
+    best = min(pareto, key=lambda p: (p["rmse"], p["n_params"])) if pareto else None
+    return {
+        "mode": "multiobjective_neural_search",
+        "pipeline": "pymoo_nsga2→gradient_train→pareto(rmse,n_params)",
+        "seed": seed,
+        "budget": {
+            "max_generations": max_generations,
+            "population_size": population_size,
+            "inner_epochs": inner_epochs,
+            "max_evaluations_est": max_generations * population_size,
+        },
+        "objectives": ["rmse", "n_params"],
+        "pareto_front": pareto,
+        "best_compromise": best,
+        "best_config": best,
+        "n_trials": len(trials),
+        "trials": trials[-min(20, len(trials)) :],
+        "backends": {"outer": "pymoo", "inner": "torch", "algorithm": "nsga2"},
+        "message": "ok",
+        "policy": (
+            "Multi-objective neural search (ADR 0033 industrial). "
+            "Pareto over validation RMSE and parameter count."
+        ),
+        "problem_fingerprint": problem_fingerprint(
+            {
+                "n": len(x),
+                "seed": seed,
+                "gens": max_generations,
+                "pop": population_size,
+                "mode": "nsga2_neural",
+            }
+        ),
+    }

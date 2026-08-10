@@ -1,8 +1,8 @@
 # Skill inventory
 
-**Updated:** 2026-08-02 (`oec==3.4.0`)
+**Updated:** 2026-08-10 (`oec==3.4.0` + Unreleased ADR 0033 industrial)
 **Registry root:** `skills/`
-**Live load:** **121** skills, **0** contract-audit errors
+**Live load:** **131** skills, **0** contract-audit errors
 
 ## Summary
 
@@ -27,13 +27,13 @@
 | materials | 1 | |
 | chemistry | 6 | |
 | multiphysics | 2 | |
-| **neural** | **16** | `oec[neural]` — ADR 0031/0032 |
-| **evolutionary** | **15** | `oec[evolutionary]` — pymoo/DEAP/Nevergrad |
+| **neural** | **26** | ADR 0031/0032 + **0033 training/search** |
+| **evolutionary** | **15** | pymoo/DEAP/Nevergrad |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
-| **Total** | **121** | all `experimental` in this inventory |
+| **Total** | **131** | all `experimental` in this inventory |
 
-## Neural (3.4)
+## Neural (3.4 + ADR 0033)
 
 | Skill id | Wave |
 |----------|------|
@@ -42,6 +42,9 @@
 | `neural.cnn1d` / `lstm` / `gru` / `tcn` | N3 |
 | `neural.transformer.encoder` / `sequence_regressor` / `sequence_classifier` | N4 |
 | `neural.gcn` / `graphsage` / `gat` | N5 (pure torch) |
+| `neural.training.supervised` / `gradient` / `hybrid` / `neuroevolution` | ADR 0033 W1–W4 |
+| `neural.search.hyperparameters` / `architecture` / `features` / `loss_weights` / `policy` | ADR 0033 W2–W6 |
+| `neural.benchmark.training_strategy` | ADR 0033 W5 |
 
 ## Evolutionary (3.4)
 

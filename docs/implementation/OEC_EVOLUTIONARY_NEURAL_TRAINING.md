@@ -246,5 +246,13 @@ multi-seed mean±std. No arm declared superior a priori.
 
 ## 15. Status
 
-**W1–W6 core delivered in-tree** (kernel + 10 skills + tests). Optional polish:
-DEAP structural genotype, native pymoo multi-obj for neural configs.
+**W1–W6 core + industrial closeout delivered:**
+
+- Multi-seed outer hybrid (`seeds=[…]` → mean±std)
+- Native pymoo NSGA-II multi-obj neural search (`rmse`, `n_params`)
+- Industrial gate tests (`test_evolutionary_neural_industrial.py`)
+- Closeout: `docs/implementation/v3.4.1-evolutionary-neural-closeout.md`
+- Skill inventory: **131** skills
+
+Optional residual polish: DEAP structural genotype; latency as 3rd multi-obj axis;
+`validated` skill promotion process.

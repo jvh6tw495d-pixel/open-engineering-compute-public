@@ -7,6 +7,7 @@ from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.kernel.neural.evolutionary_training import (
     benchmark_training_strategies,
     hybrid_evolutionary_train,
+    multiobjective_neural_search,
     neuroevolution_train,
 )
 from oec.kernel.neural.gnn import train_gnn
@@ -22,6 +23,7 @@ __all__ = [
     "evaluate_mlp",
     "hybrid_evolutionary_train",
     "load_state_dict_from_checkpoint",
+    "multiobjective_neural_search",
     "neuroevolution_train",
     "predict_mlp",
     "train_autoencoder",

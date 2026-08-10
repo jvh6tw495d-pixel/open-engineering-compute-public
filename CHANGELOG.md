@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `neural.search.{hyperparameters,architecture,features,loss_weights,policy}`,
   `neural.benchmark.training_strategy`; optimizers + SGD momentum / RMSprop /
   LBFGS; hybrid outer Nevergrad + inner torch with budgets, Pareto (rmse, n_params).
+- **Industrial closeout:** multi-seed hybrid outer; pymoo NSGA-II multi-obj neural
+  catalog search; gate tests; skill inventory **131**; closeout doc
+  `v3.4.1-evolutionary-neural-closeout.md`. Product-agnostic (no inference-engine branding).
 - Agent authority P0 helpers + strong neural/evo goldens; optional CI extras job.
 
 ## [3.4.0] - 2026-08-02

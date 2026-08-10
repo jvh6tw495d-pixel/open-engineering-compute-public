@@ -55,6 +55,13 @@
         "null"
       ]
     },
+    "seeds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "Outer multi-seed matrix (industrial)"
+    },
+    "population_size": { "type": "integer", "default": 8, "minimum": 4 },
+    "max_generations": { "type": ["integer", "null"], "minimum": 1 },
     "facets": {
       "type": "array",
       "items": {
@@ -63,7 +70,8 @@
     },
     "multiobjective": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "If true, use pymoo NSGA-II on (rmse, n_params)"
     }
   },
   "required": [
