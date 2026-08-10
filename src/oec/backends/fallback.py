@@ -74,6 +74,11 @@ _METHOD_BACKEND_REQUIREMENTS: dict[str, str] = {
     # E4 Nevergrad black-box
     "nevergrad_blackbox_optimize": "blackbox_optimize",
     "nevergrad_optimizer_portfolio": "blackbox_optimize",
+    # X2 hybrid (needs torch; nevergrad checked in skill)
+    "hybrid_surrogate_optimize": "neural_train",
+    "hybrid_evo_hyperparams": "neural_train",
+    # X3 method selection (no hard backend; uses registry probes)
+    "scientific_method_select": "rng",
 }
 
 

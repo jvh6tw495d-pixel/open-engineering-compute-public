@@ -1,0 +1,39 @@
+id: hybrid.evo_hyperparams
+version: 0.1.0
+status: experimental
+domain: hybrid
+title: Evolutionary MLP Hyperparameter Search (X2)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: hybrid_evo_hyperparams
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 600
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "ADR 0031 X2 Hybrid"
+  - "Nevergrad + PyTorch"
+
+tags:
+  - hybrid
+  - experimental

@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "best_config": { "type": "object" },
+    "n_trials": { "type": "integer" }
+  },
+  "required": ["best_config"],
+  "additionalProperties": true
+}

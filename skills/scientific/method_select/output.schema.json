@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "problem_class": { "type": "string" },
+    "selected": { "type": ["object", "null"] },
+    "available_candidates": { "type": "array" },
+    "policy": { "type": "string" }
+  },
+  "required": ["problem_class", "selected", "available_candidates"],
+  "additionalProperties": true
+}

@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "pipeline": { "type": "string" },
+    "high_fidelity": { "type": "object" },
+    "surrogate": { "type": "object" }
+  },
+  "required": ["pipeline", "high_fidelity"],
+  "additionalProperties": true
+}

@@ -1,0 +1,6 @@
+{
+  "problem_class": "soo_box",
+  "budget_seconds": 30,
+  "run_probe_benchmark": false,
+  "seed": 0
+}

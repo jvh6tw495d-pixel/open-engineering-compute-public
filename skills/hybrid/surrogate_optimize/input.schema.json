@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "built_in": {
+      "type": "string",
+      "enum": ["sphere", "rosenbrock", "rastrigin"],
+      "default": "sphere"
+    },
+    "n_var": { "type": "integer", "minimum": 1, "maximum": 10, "default": 2 },
+    "lower": { "type": "number", "default": -5.0 },
+    "upper": { "type": "number", "default": 5.0 },
+    "n_train": { "type": "integer", "minimum": 20, "default": 60 },
+    "surrogate_epochs": { "type": "integer", "minimum": 5, "default": 40 },
+    "evo_budget": { "type": "integer", "minimum": 20, "default": 80 },
+    "optimizer": {
+      "type": "string",
+      "enum": ["NGOpt", "TwoPointsDE", "OnePlusOne", "CMA", "PSO", "RandomSearch"],
+      "default": "OnePlusOne"
+    },
+    "seed": { "type": "integer", "default": 42 },
+    "n_verify": { "type": "integer", "minimum": 1, "default": 5 },
+    "device": { "type": "string", "enum": ["cpu", "cuda", "auto"], "default": "cpu" }
+  },
+  "additionalProperties": false
+}

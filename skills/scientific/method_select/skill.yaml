@@ -1,0 +1,40 @@
+id: scientific.method_select
+version: 0.1.0
+status: experimental
+domain: scientific
+title: Scientific Method Selection (X3)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: scientific_method_select
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 180
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: false
+
+references:
+  - "ADR 0031 X3 Agent-Native Scientific Selection"
+  - "Backend Capability Registry ADR 0021"
+
+tags:
+  - scientific
+  - routing
+  - experimental

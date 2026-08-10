@@ -30,7 +30,8 @@ External engine (torch / pymoo / …)
 | **N5** | GCN / GraphSAGE / GAT pure torch (ADR 0032) | **in tree (v0)** |
 | **E3** | Genetic programming + ES (DEAP, operator IR) | **in tree (v0)** |
 | **E4** | Black-box + optimizer portfolio (Nevergrad) | **in tree (v0)** |
-| X2–X3 | Hybrid neural+evo / agent selection | backlog |
+| **X2** | Hybrid surrogate+evo + evo hyperparams | **in tree (v0)** |
+| **X3** | `scientific.method_select` agent routing | **in tree (v0)** |
 
 ## Install
 
@@ -63,6 +64,12 @@ uv sync --extra neural --extra evolutionary
 - `evolutionary.benchmark` — X1 thin harness (single or multi)
 - `evolutionary.genetic_programming` / `evolution_strategy` / `custom_ga` (E3 DEAP)
 - `evolutionary.blackbox_optimize` / `optimizer_portfolio` (E4 Nevergrad)
+
+### Hybrid / Scientific (X2–X3)
+
+- `hybrid.surrogate_optimize` — sample → MLP surrogate → evo → **true-f verify**
+- `hybrid.evo_hyperparams` — Nevergrad over closed MLP hyperparam catalog
+- `scientific.method_select` — capability-aware skill recommendation (+ optional probe)
 
 ## Safety
 

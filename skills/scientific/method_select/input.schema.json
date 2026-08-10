@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "properties": {
+    "problem_class": {
+      "type": "string",
+      "enum": [
+        "soo_box",
+        "multiobjective",
+        "symbolic_regression",
+        "blackbox",
+        "neural_tabular",
+        "neural_sequence",
+        "neural_graph",
+        "hybrid_surrogate",
+        "hyperparam_search"
+      ]
+    },
+    "budget_seconds": { "type": ["number", "null"] },
+    "prefer_backend": {
+      "type": ["string", "null"],
+      "enum": ["pymoo", "nevergrad", "deap", "torch", "highs", null]
+    },
+    "run_probe_benchmark": { "type": "boolean", "default": false },
+    "seed": { "type": "integer", "default": 42 }
+  },
+  "required": ["problem_class"],
+  "additionalProperties": false
+}

@@ -1,0 +1,9 @@
+{
+  "built_in": "sphere",
+  "n_var": 2,
+  "n_train": 50,
+  "surrogate_epochs": 30,
+  "evo_budget": 60,
+  "seed": 0,
+  "device": "cpu"
+}
