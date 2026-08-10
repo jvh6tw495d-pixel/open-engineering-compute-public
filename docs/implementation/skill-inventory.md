@@ -1,6 +1,6 @@
 # Skill inventory
 
-**Updated:** 2026-08-10 (`oec==3.4.0` + Unreleased ADR 0033 industrial)
+**Updated:** 2026-08-10 (`oec==3.4.1` / tag `v3.4.1-neural-evo`)
 **Registry root:** `skills/`
 **Live load:** **131** skills, **0** contract-audit errors
 

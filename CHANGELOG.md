@@ -7,27 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.4.1] - 2026-08-10
+
+**Tag:** `v3.4.1-neural-evo`
+**Theme:** Dense neural runtime + evolutionary depth + ADR 0033 evolutionary
+neural training (industrial incubation). Product-agnostic OEC (no proprietary
+inference-engine branding).
+
 ### Added
 
-- **Dense neural Part A (complete N-D0–N-D5):** shared `TrainingRuntimeSpec` +
-  capacity presets (`tiny|medium|dense|wide`) for all neural families; shared
-  minibatch/full-batch train loops; MLP/sequence/transformer/GNN/AE migrated;
-  npy `dataset_path` load; file checkpoints (`OEC_CACHE_DIR` + sha256).
-- **Evolutionary Part B (E-D0–E-D4):** `EvolutionaryRuntimeSpec`, closed
-  expression IR objectives, inequality constraint IR, multi-seed matrix
-  (`run_seed_matrix`), fixed HV reference for multi-obj; `optimize_single` skill
-  extended. Design: `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md`.
-- **ADR 0033 + plan:** three-mode neural training (gradient / neuroevolution /
-  hybrid evo→gradient), waves W1–W6, strategy benchmark.
-- **Evolutionary neural training skills (W1–W6):**
+- **Dense neural Part A (N-D0–N-D5):** shared `TrainingRuntimeSpec` + capacity
+  presets (`tiny|medium|dense|wide`) for all neural families; shared train loops;
+  MLP/sequence/transformer/GNN/AE migration; npy `dataset_path`; file checkpoints.
+- **Evolutionary Part B (E-D0–E-D4):** `EvolutionaryRuntimeSpec`, expression IR
+  objectives, inequality constraints, multi-seed matrix, fixed HV reference.
+- **ADR 0033:** three-mode neural training (gradient ∪ evolutionary ∪ hybrid).
+- **Skills (W1–W6):**
   `neural.training.{supervised,gradient,hybrid,neuroevolution}`,
   `neural.search.{hyperparameters,architecture,features,loss_weights,policy}`,
-  `neural.benchmark.training_strategy`; optimizers + SGD momentum / RMSprop /
-  LBFGS; hybrid outer Nevergrad + inner torch with budgets, Pareto (rmse, n_params).
-- **Industrial closeout:** multi-seed hybrid outer; pymoo NSGA-II multi-obj neural
-  catalog search; gate tests; skill inventory **131**; closeout doc
-  `v3.4.1-evolutionary-neural-closeout.md`. Product-agnostic (no inference-engine branding).
+  `neural.benchmark.training_strategy`.
+- **Industrial:** multi-seed hybrid outer; pymoo NSGA-II multi-obj (rmse, n_params);
+  gate tests; skill inventory **131**.
 - Agent authority P0 helpers + strong neural/evo goldens; optional CI extras job.
+
+### Notes
+
+- Skills remain `status: experimental`.
+- Core install still free of torch/pymoo/deap/nevergrad (optional extras).
+- Closeout: `docs/implementation/v3.4.1-evolutionary-neural-closeout.md`.
 
 ## [3.4.0] - 2026-08-02
 
