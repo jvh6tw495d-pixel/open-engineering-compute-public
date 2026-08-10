@@ -14,6 +14,15 @@ on:
 
 jobs:
   lint-type-test:
+    # Default gate: uv sync --all-extras installs torch/pymoo/deap/nevergrad
+    # when available, but pyproject.toml addopts deselects markers
+    # `neural` and `evolutionary` so the PR job stays fast and
+    # independent of heavy optional stacks. Strong goldens live under
+    # tests/golden/test_neural_evolutionary_strong.py and skill-level
+    # tests marked @pytest.mark.neural / @pytest.mark.evolutionary —
+    # they run in the extras-neural-evolutionary job below (nightly /
+    # workflow_dispatch), or locally:
+    #   uv run pytest -m "neural or evolutionary" -o addopts= --import-mode=importlib
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +52,36 @@ jobs:
 
       - name: Build package
         run: uv build
+
+  extras-neural-evolutionary:
+    # Optional-extras quality bar (OEC 3.4). Not on every PR: torch +
+    # pymoo install and full neural/evo goldens are heavier than the
+    # core gate. Nightly + manual dispatch only.
+    # Markers: pyproject [tool.pytest.ini_options] neural / evolutionary.
+    # Strong goldens: tests/golden/test_neural_evolutionary_strong.py
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync with neural + evolutionary extras
+        run: uv sync --extra neural --extra evolutionary --all-groups
+
+      - name: Neural and evolutionary marked tests
+        run: >
+          uv run pytest -m "neural or evolutionary"
+          --import-mode=importlib
+          -o addopts=
+          --no-cov
+          -q
 
   installation-smoke:
     # Deselected from the default `pytest -q` gate (pyproject.toml's

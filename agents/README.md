@@ -78,5 +78,9 @@ from agents.energy.specialist import EnergySpecialist
 
 1. **No silent method shopping** — method is the OEC skill (+ OPS when applicable).
 2. **No invented numbers** — narrative cites only `ExecutionResult` fields.
-3. **SciPy/HiGHS/pandas own numerical merit** — agents contribute workflow, not algorithms.
-4. Private decision engines stay out of this tree (what/why/decision).
+3. **No number without `run_id`** — every narrative attached to an execution must
+   include `execution.run_id`. Helpers: `agents.common.narrative_cites_run_id`,
+   `narrative_authority_violations`, `assert_narrative_authority`. Gate script:
+   `scripts/check_agent_no_number_without_run_id.py`.
+4. **SciPy/HiGHS/pandas/torch/pymoo own numerical merit** — agents contribute workflow, not algorithms.
+5. Private decision engines stay out of this tree (what/why/decision).

@@ -100,8 +100,14 @@ def _numbers_from_execution(er: ExecutionResult) -> set[str]:
     walk(er.diagnostics or {})
     walk(er.provenance or {})
     # Structural ids/versions may appear in narrative by design
+    # (e.g. "v1.0.0" yields tokens 1 / 0 / 1.0 — allow all parsed pieces)
     allowed.add(er.skill.version)
     allowed.add(er.method.version)
+    allowed.update(_numbers_in_text(er.skill.version))
+    allowed.update(_numbers_in_text(er.method.version))
+    allowed.update(_numbers_in_text(er.skill.id))
+    allowed.update(_numbers_in_text(er.method.id))
+    allowed.update(_numbers_in_text(er.status.value))
     return allowed
 
 
