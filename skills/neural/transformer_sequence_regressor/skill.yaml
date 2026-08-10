@@ -1,0 +1,39 @@
+id: neural.transformer.sequence_regressor
+version: 0.1.0
+status: experimental
+domain: neural
+title: Transformer Sequence Regressor
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: torch_transformer_seq_regressor
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 300
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "PyTorch — https://pytorch.org/docs/stable/index.html"
+  - "ADR 0031 / 0032 Neural Compute"
+
+tags:
+  - neural
+  - experimental

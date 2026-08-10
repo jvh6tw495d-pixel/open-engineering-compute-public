@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "backend": { "type": "string" },
+    "train_metrics": { "type": "object" },
+    "checkpoint": { "type": "object" },
+    "seed": { "type": "integer" }
+  },
+  "required": ["backend", "train_metrics", "checkpoint"],
+  "additionalProperties": true
+}

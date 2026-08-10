@@ -39,6 +39,22 @@ _METHOD_BACKEND_REQUIREMENTS: dict[str, str] = {
     "torch_mlp_classifier_train": "neural_train",
     "torch_mlp_predict": "neural_eval",
     "torch_mlp_evaluate": "neural_eval",
+    # N2 autoencoders
+    "torch_autoencoder_basic": "neural_train",
+    "torch_autoencoder_denoising": "neural_train",
+    # N3 sequence models
+    "torch_cnn1d_train": "neural_train",
+    "torch_lstm_train": "neural_train",
+    "torch_gru_train": "neural_train",
+    "torch_tcn_train": "neural_train",
+    # N4 transformer
+    "torch_transformer_encoder_train": "neural_train",
+    "torch_transformer_seq_regressor": "neural_train",
+    "torch_transformer_seq_classifier": "neural_train",
+    # N5 GNN (pure torch, ADR 0032)
+    "torch_gcn_train": "neural_train",
+    "torch_graphsage_train": "neural_train",
+    "torch_gat_train": "neural_train",
     # ADR 0031 — evolutionary (oec[evolutionary] / pymoo)
     "pymoo_optimize_single": "evolutionary_single",
     "pymoo_de": "evolutionary_single",

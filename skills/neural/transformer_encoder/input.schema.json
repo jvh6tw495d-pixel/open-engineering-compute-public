@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "properties": {
+    "x": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": {"type": "array", "minItems": 1, "items": {"type": "number"}}
+      }
+    },
+    "y": {"type": "array", "minItems": 2, "items": {"type": "number"}},
+    "task": {"type": "string", "enum": ["regression", "classification"], "default": "regression"},
+    "n_classes": {"type": "integer", "minimum": 1, "default": 1},
+    "d_model": {"type": "integer", "minimum": 4, "default": 32},
+    "n_heads": {"type": "integer", "minimum": 1, "default": 4},
+    "n_layers": {"type": "integer", "minimum": 1, "default": 2},
+    "ff_dim": {"type": "integer", "minimum": 4, "default": 64},
+    "dropout": {"type": "number", "minimum": 0, "maximum": 0.9, "default": 0.0},
+    "epochs": {"type": "integer", "minimum": 1, "default": 25},
+    "batch_size": {"type": "integer", "minimum": 1, "default": 8},
+    "lr": {"type": "number", "exclusiveMinimum": 0, "default": 0.001},
+    "seed": {"type": "integer", "default": 42},
+    "device": {"type": "string", "enum": ["cpu", "cuda", "auto"], "default": "cpu"}
+  },
+  "required": ["x", "y"],
+  "additionalProperties": false
+}

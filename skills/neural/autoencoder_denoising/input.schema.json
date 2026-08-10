@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "x": {"type": "array", "minItems": 2, "items": {"type": "array", "items": {"type": "number"}}},
+    "latent_dim": {"type": "integer", "minimum": 1, "default": 8},
+    "hidden_dims": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+    "epochs": {"type": "integer", "minimum": 1, "default": 40},
+    "batch_size": {"type": "integer", "minimum": 1, "default": 16},
+    "lr": {"type": "number", "exclusiveMinimum": 0, "default": 0.001},
+    "seed": {"type": "integer", "default": 42},
+    "device": {"type": "string", "enum": ["cpu", "cuda", "auto"], "default": "cpu"},
+    "noise_std": {"type": "number", "minimum": 0, "default": 0.1},
+    "activation": {"type": "string", "enum": ["relu", "gelu", "tanh", "sigmoid"], "default": "relu"}
+  },
+  "required": ["x"],
+  "additionalProperties": false
+}

@@ -24,7 +24,11 @@ External engine (torch / pymoo / …)
 | **E1** | Single-objective DE / GA / CMA-ES / PSO via pymoo | **in tree (v0)** |
 | **E2** | NSGA-II / NSGA-III / MOEA/D + ParetoResult | **in tree (v0)** |
 | **X1 thin** | `evolutionary.benchmark` multi-algo × multi-seed | **in tree (v0)** |
-| N2–N5, E3–E4, X2–X3 | see full roadmap | backlog |
+| **N2** | Autoencoder basic + denoising | **in tree (v0)** |
+| **N3** | CNN1D / LSTM / GRU / TCN sequences | **in tree (v0)** |
+| **N4** | Transformer encoder (not LLM) | **in tree (v0)** |
+| **N5** | GCN / GraphSAGE / GAT pure torch (ADR 0032) | **in tree (v0)** |
+| E3–E4, X2–X3 | GP / Nevergrad / hybrid / agent selection | backlog |
 
 ## Install
 
@@ -39,10 +43,11 @@ uv sync --extra neural --extra evolutionary
 
 ### Neural
 
-- `neural.mlp.regressor` — supervised MLP regression train
-- `neural.mlp.classifier` — supervised MLP classification train
-- `neural.predict` — forward pass from checkpoint payload
-- `neural.evaluate` — metrics on held-out arrays
+- `neural.mlp.regressor` / `classifier` / `predict` / `evaluate` (N1)
+- `neural.autoencoder.basic` / `denoising` (N2)
+- `neural.cnn1d` / `lstm` / `gru` / `tcn` (N3)
+- `neural.transformer.encoder` / `sequence_regressor` / `sequence_classifier` (N4)
+- `neural.gcn` / `graphsage` / `gat` (N5, pure torch — ADR 0032)
 
 ### Evolutionary
 
