@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "backend": {"type": "string"},
+    "seed": {"type": "integer"}
+  },
+  "required": ["backend"],
+  "additionalProperties": true
+}

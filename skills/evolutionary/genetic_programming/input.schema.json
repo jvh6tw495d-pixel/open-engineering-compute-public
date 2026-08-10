@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "n_var": {"type": "integer", "minimum": 1, "maximum": 5, "default": 1},
+    "target": {"type": "string", "enum": ["poly2", "sin_x", "keijzer"], "default": "poly2"},
+    "n_samples": {"type": "integer", "minimum": 10, "default": 40},
+    "population": {"type": "integer", "minimum": 10, "default": 60},
+    "generations": {"type": "integer", "minimum": 1, "default": 20},
+    "max_depth": {"type": "integer", "minimum": 1, "maximum": 8, "default": 5},
+    "max_size": {"type": "integer", "minimum": 5, "maximum": 100, "default": 40},
+    "seed": {"type": "integer", "default": 42}
+  },
+  "additionalProperties": false
+}

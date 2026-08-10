@@ -8,8 +8,16 @@ from oec.backends.registry import BackendCapability, get_backend_capabilities
 def test_get_backend_capabilities_covers_numpy_scipy_highs() -> None:
     capabilities = get_backend_capabilities()
     names = {capability.name for capability in capabilities}
-    # ADR 0031 adds optional torch / pymoo probes alongside highs.
-    assert names == {"highs", "scipy", "numpy", "torch", "pymoo"}
+    # ADR 0031 + E3/E4: torch/pymoo/deap/nevergrad optional probes.
+    assert names == {
+        "highs",
+        "scipy",
+        "numpy",
+        "torch",
+        "pymoo",
+        "deap",
+        "nevergrad",
+    }
 
 
 def test_numpy_and_scipy_are_required_and_always_available() -> None:

@@ -28,13 +28,15 @@ External engine (torch / pymoo / …)
 | **N3** | CNN1D / LSTM / GRU / TCN sequences | **in tree (v0)** |
 | **N4** | Transformer encoder (not LLM) | **in tree (v0)** |
 | **N5** | GCN / GraphSAGE / GAT pure torch (ADR 0032) | **in tree (v0)** |
-| E3–E4, X2–X3 | GP / Nevergrad / hybrid / agent selection | backlog |
+| **E3** | Genetic programming + ES (DEAP, operator IR) | **in tree (v0)** |
+| **E4** | Black-box + optimizer portfolio (Nevergrad) | **in tree (v0)** |
+| X2–X3 | Hybrid neural+evo / agent selection | backlog |
 
 ## Install
 
 ```bash
 uv sync --extra neural
-uv sync --extra evolutionary
+uv sync --extra evolutionary   # pymoo + deap + nevergrad
 # or both
 uv sync --extra neural --extra evolutionary
 ```
@@ -59,6 +61,8 @@ uv sync --extra neural --extra evolutionary
 - `evolutionary.nsga2` / `nsga3` / `moead` — multi-objective (E2)
 - `evolutionary.pareto_search` — multi-obj dispatch
 - `evolutionary.benchmark` — X1 thin harness (single or multi)
+- `evolutionary.genetic_programming` / `evolution_strategy` / `custom_ga` (E3 DEAP)
+- `evolutionary.blackbox_optimize` / `optimizer_portfolio` (E4 Nevergrad)
 
 ## Safety
 

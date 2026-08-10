@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "built_in": {"type": "string", "enum": ["sphere", "rosenbrock", "rastrigin"], "default": "sphere"},
+    "n_var": {"type": "integer", "minimum": 1, "default": 2},
+    "lower": {"type": "number", "default": -5.0},
+    "upper": {"type": "number", "default": 5.0},
+    "budget": {"type": "integer", "minimum": 10, "default": 80},
+    "optimizers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["NGOpt", "TwoPointsDE", "OnePlusOne", "CMA", "PSO", "RandomSearch", "TBPSA", "MetaTuneRecentering"]
+      }
+    },
+    "seed": {"type": "integer", "default": 42}
+  },
+  "additionalProperties": false
+}

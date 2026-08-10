@@ -67,6 +67,13 @@ _METHOD_BACKEND_REQUIREMENTS: dict[str, str] = {
     "pymoo_moead": "evolutionary_multi",
     "pymoo_pareto_search": "evolutionary_multi",
     "pymoo_evolutionary_benchmark": "evolutionary_single",
+    # E3 DEAP genetic programming / ES
+    "deap_genetic_programming": "genetic_programming",
+    "deap_evolution_strategy": "evolution_strategy",
+    "deap_custom_ga": "genetic_programming",
+    # E4 Nevergrad black-box
+    "nevergrad_blackbox_optimize": "blackbox_optimize",
+    "nevergrad_optimizer_portfolio": "blackbox_optimize",
 }
 
 

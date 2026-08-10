@@ -36,6 +36,8 @@ neural = [
 ]
 evolutionary = [
     "pymoo>=0.6",
+    "deap>=1.4",       # E3 genetic programming
+    "nevergrad>=1.0",  # E4 black-box
 ]
 
 [project.scripts]
@@ -90,6 +92,10 @@ module = [
   "torch.*",
   "pymoo",
   "pymoo.*",
+  "deap",
+  "deap.*",
+  "nevergrad",
+  "nevergrad.*",
 ]
 ignore_missing_imports = true
 

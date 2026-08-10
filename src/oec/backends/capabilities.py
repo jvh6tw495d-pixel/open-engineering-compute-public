@@ -37,6 +37,9 @@ DECLARED_CAPABILITIES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
         # ADR 0031 — optional extras oec[neural] / oec[evolutionary]
         "torch": frozenset({"neural_train", "neural_eval"}),
         "pymoo": frozenset({"evolutionary_single", "evolutionary_multi"}),
+        # E3 / E4 — still oec[evolutionary] extra
+        "deap": frozenset({"genetic_programming", "evolution_strategy"}),
+        "nevergrad": frozenset({"blackbox_optimize"}),
     }
 )
 
@@ -44,7 +47,7 @@ DECLARED_CAPABILITIES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
 # correctly installed environment); optional backends are gated behind an
 # extra and may legitimately be unavailable (ADR 0021 fallback policy).
 REQUIRED_BACKENDS: frozenset[str] = frozenset({"numpy", "scipy"})
-OPTIONAL_BACKENDS: frozenset[str] = frozenset({"highs", "torch", "pymoo"})
+OPTIONAL_BACKENDS: frozenset[str] = frozenset({"highs", "torch", "pymoo", "deap", "nevergrad"})
 
 
 def domains_for(backend: str) -> frozenset[str]:

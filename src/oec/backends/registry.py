@@ -20,7 +20,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from oec.backends import capabilities
 from oec.backends.adapters import (
+    deap_backend,
     highs_backend,
+    nevergrad_backend,
     numpy_backend,
     pymoo_backend,
     scipy_backend,
@@ -47,6 +49,8 @@ _PROBES: dict[str, Callable[[], tuple[bool, str | None, str | None]]] = {
     highs_backend.BACKEND_NAME: highs_backend.probe,
     torch_backend.BACKEND_NAME: torch_backend.probe,
     pymoo_backend.BACKEND_NAME: pymoo_backend.probe,
+    deap_backend.BACKEND_NAME: deap_backend.probe,
+    nevergrad_backend.BACKEND_NAME: nevergrad_backend.probe,
 }
 
 

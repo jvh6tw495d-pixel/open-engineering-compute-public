@@ -32,6 +32,8 @@ _RUNTIME_BACKEND_PACKAGES: tuple[str, ...] = (
     "highspy",  # optional extra oec[optimization]; listed when installed
     "torch",  # optional extra oec[neural]; listed when installed (ADR 0031)
     "pymoo",  # optional extra oec[evolutionary]; listed when installed (ADR 0031)
+    "deap",  # E3 genetic programming
+    "nevergrad",  # E4 black-box
 )
 
 

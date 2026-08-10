@@ -1,0 +1,1 @@
+{"built_in": "sphere", "budget": 50, "optimizers": ["OnePlusOne", "RandomSearch"], "seed": 0}

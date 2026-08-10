@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "n_var": {"type": "integer", "minimum": 1, "maximum": 20, "default": 2},
+    "built_in": {"type": "string", "enum": ["sphere", "rosenbrock", "rastrigin"], "default": "sphere"},
+    "population": {"type": "integer", "minimum": 4, "default": 30},
+    "generations": {"type": "integer", "minimum": 1, "default": 25},
+    "seed": {"type": "integer", "default": 42},
+    "sigma": {"type": "number", "exclusiveMinimum": 0, "default": 0.5}
+  },
+  "additionalProperties": false
+}
