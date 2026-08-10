@@ -3,7 +3,12 @@
 **Status:** Part A **done**; Part B **done** (E-D0–E-D4; E-D5 partial via expression IR)
 **Date:** 2026-08-10
 **Baseline:** `oec==3.4.0` (N0–N5, E1–E4, X1–X3 in tree as experimental v0)
-**Related:** ADR 0031, ADR 0032, `OEC_NEURAL_EVOLUTIONARY_WAVES.md`, P0 goldens / agent authority
+**Related:** ADR 0031, ADR 0032, ADR 0033 (evolutionary neural training modes),
+`OEC_NEURAL_EVOLUTIONARY_WAVES.md`, `OEC_EVOLUTIONARY_NEURAL_TRAINING.md`,
+P0 goldens / agent authority
+
+**Next product arc:** three-mode training (gradient · neuroevolution · hybrid) —
+see ADR 0033. Hybrid evo→gradient is the strategic default for larger nets.
 
 ### Part A delivery map
 

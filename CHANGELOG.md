@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   expression IR objectives, inequality constraint IR, multi-seed matrix
   (`run_seed_matrix`), fixed HV reference for multi-obj; `optimize_single` skill
   extended. Design: `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md`.
+- **ADR 0033 + plan:** three-mode neural training roadmap (gradient /
+  neuroevolution / hybrid evo→gradient), waves W1–W5, strategy benchmark, Horizon
+  VOC recipe — `docs/architecture/adr/0033-evolutionary-neural-training.md`,
+  `docs/implementation/OEC_EVOLUTIONARY_NEURAL_TRAINING.md`.
 - Agent authority P0 helpers + strong neural/evo goldens; optional CI extras job.
 
 ## [3.4.0] - 2026-08-02

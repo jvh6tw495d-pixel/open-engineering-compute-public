@@ -78,10 +78,26 @@ uv sync --extra neural --extra evolutionary
 - Stochastic skills require `seed`
 - Neural/evo results are **not** physics conservation claims
 
-## Follow-on design (dense neural + evo depth)
+## Follow-on design (dense neural + evo depth + evolutionary neural training)
 
 See **[OEC_DENSE_NEURAL_AND_EVO_MATURITY.md](./OEC_DENSE_NEURAL_AND_EVO_MATURITY.md)** for:
 
 - **Part A done:** shared neural runtime + capacity presets for all families;
 - **Part B done:** expression IR objectives, inequality constraints, multi-seed matrix,
   fixed HV reference (`EvolutionaryRuntimeSpec` / `run_seed_matrix`).
+
+See **[OEC_EVOLUTIONARY_NEURAL_TRAINING.md](./OEC_EVOLUTIONARY_NEURAL_TRAINING.md)** and
+**[ADR 0033](../architecture/adr/0033-evolutionary-neural-training.md)** for the
+**three-mode** neural training roadmap:
+
+```text
+Gradient-Based  +  Neuroevolution  +  Hybrid (evo config → PyTorch train)
+```
+
+Waves W1–W5 (gradient → HPO → hybrid priority → neuroevolution → multi-obj + strategy benchmark).
+Horizon/VOC uses hybrid search later; starts with supervised AdamW.
+
+## Existing hybrid seed (maps to W2/W3)
+
+- `hybrid.evo_hyperparams` — Nevergrad outer, `train_mlp` inner (closed catalog)
+- `hybrid.surrogate_optimize` — sample → MLP surrogate → evo → true-f verify (not weight training)
