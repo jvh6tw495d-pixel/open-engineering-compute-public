@@ -190,12 +190,20 @@ def load_dataset_arrays(
     p = Path(path)
     if fmt == "npy":
         if p.is_dir():
-            return np.load(p / "x.npy"), np.load(p / "y.npy")
+            x_arr = np.load(p / "x.npy")
+            y_path = p / "y.npy"
+            if y_path.exists():
+                y_arr = np.load(y_path)
+            else:
+                # unsupervised (autoencoder): dummy y
+                y_arr = np.zeros(x_arr.shape[0], dtype=np.float64)
+            return x_arr, y_arr
         if p.suffix == ".npz":
             data = np.load(p)
-            return data["x"], data["y"]
-        # stem: path_x.npy style not used; treat as directory name
-        raise ValueError("npy path must be a directory with x.npy/y.npy or a .npz file")
+            x_arr = data["x"]
+            y_arr = data["y"] if "y" in data.files else np.zeros(x_arr.shape[0], dtype=np.float64)
+            return x_arr, y_arr
+        raise ValueError("npy path must be a directory with x.npy[/y.npy] or a .npz file")
     if fmt == "parquet":
         raise ValueError("parquet DatasetRef is not enabled in this slice; use npy or json_inline")
     raise ValueError(f"unknown dataset format {fmt!r}")
@@ -239,3 +247,200 @@ def dump_runtime_meta(
 def write_sidecar_meta(path: Path, meta: dict[str, Any]) -> None:
     sidecar = path.with_suffix(path.suffix + ".meta.json")
     sidecar.write_text(json.dumps(meta, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def make_grad_scaler(torch: Any, use_amp: bool) -> Any | None:
+    if not use_amp:
+        return None
+    try:
+        return torch.amp.GradScaler("cuda", enabled=True)
+    except (AttributeError, TypeError):
+        return torch.cuda.amp.GradScaler(enabled=True)
+
+
+def runtime_from_skill_inputs(
+    inputs: dict[str, Any],
+    *,
+    default_epochs: int = 40,
+    default_batch_size: int = 16,
+    default_lr: float = 1e-3,
+    default_optimizer: str = "adam",
+    default_checkpoint: str = "json_inline",
+) -> TrainingRuntimeSpec:
+    """Build TrainingRuntimeSpec from a skill input dict (Part A skills)."""
+    from oec.neural.contracts import DeviceSpec, OptimizerName, OptimizerSpec
+
+    opt_name = str(inputs.get("optimizer", default_optimizer)).lower()
+    try:
+        oname = OptimizerName(opt_name)
+    except ValueError:
+        oname = OptimizerName.ADAM
+    storage = str(inputs.get("checkpoint_storage", default_checkpoint))
+    capacity = inputs.get("capacity")
+    if (
+        storage == "json_inline"
+        and capacity in ("dense", "wide")
+        and "checkpoint_storage" not in inputs
+    ):
+        storage = "file"
+    patience = inputs.get("early_stopping_patience", 20)
+    return TrainingRuntimeSpec(
+        seed=int(inputs.get("seed", 42)),
+        device=DeviceSpec(device=inputs.get("device", "cpu")),
+        epochs=int(inputs.get("epochs", default_epochs)),
+        batch_size=int(inputs.get("batch_size", default_batch_size)),
+        optimizer=OptimizerSpec(
+            name=oname,
+            lr=float(inputs.get("lr", default_lr)),
+            weight_decay=float(inputs.get("weight_decay", 0.0)),
+        ),
+        lr_scheduler=str(inputs.get("lr_scheduler", "none")),
+        step_size=int(inputs.get("step_size", 50)),
+        grad_clip=inputs.get("grad_clip"),
+        amp=bool(inputs.get("amp", False)),
+        early_stopping_patience=None if patience is None else int(patience),
+        max_params=int(inputs.get("max_params", 5_000_000)),
+        max_seconds=inputs.get("max_seconds"),
+        checkpoint_storage=storage,
+    )
+
+
+def load_xy_from_inputs(inputs: dict[str, Any]) -> tuple[Any, Any]:
+    """Load x,y from inline arrays or DatasetRef-style path fields (N-D3)."""
+    fmt = str(inputs.get("dataset_format", "json_inline"))
+    path = inputs.get("dataset_path")
+    if fmt == "json_inline" and path is None:
+        if "x" not in inputs or "y" not in inputs:
+            raise ValueError("inline dataset requires x and y")
+        return load_dataset_arrays(x=inputs["x"], y=inputs["y"], fmt="json_inline")
+    return load_dataset_arrays(
+        x=inputs.get("x"),
+        y=inputs.get("y"),
+        path=path,
+        fmt=fmt,
+    )
+
+
+def fit_minibatches(
+    model: Any,
+    x_t: Any,
+    y_t: Any,
+    criterion: Any,
+    runtime: TrainingRuntimeSpec,
+    *,
+    device: str,
+    multiclass: bool = False,
+    input_transform: Any | None = None,
+) -> tuple[list[dict[str, float]], int]:
+    """Shared minibatch supervised loop (sequences, transformer, AE via transform).
+
+    ``input_transform`` if set: ``inp, target = input_transform(xb, yb)``.
+    """
+    torch = require_torch()
+    use_amp = resolve_amp(torch, runtime, device)
+    optim = build_optimizer(
+        torch,
+        runtime.optimizer.name,
+        model.parameters(),
+        runtime.optimizer.lr,
+        runtime.optimizer.weight_decay,
+    )
+    scheduler = build_scheduler(torch, optim, runtime)
+    scaler = make_grad_scaler(torch, use_amp)
+    n = x_t.shape[0]
+    history: list[dict[str, float]] = []
+    timer = TrainTimer(runtime.max_seconds)
+    epochs_ran = 0
+    model.train()
+    for epoch in range(runtime.epochs):
+        if timer.expired():
+            break
+        perm = torch.randperm(n, device=device)
+        total = 0.0
+        batches = 0
+        for start in range(0, n, runtime.batch_size):
+            idx = perm[start : start + runtime.batch_size]
+            xb, yb = x_t[idx], y_t[idx]
+            if input_transform is not None:
+                xb, yb = input_transform(xb, yb)
+            optim.zero_grad(set_to_none=True)
+            if use_amp:
+                assert scaler is not None
+                with torch.autocast(device_type="cuda", dtype=torch.float16):
+                    pred = model(xb)
+                    if multiclass:
+                        loss = criterion(pred, yb)
+                    else:
+                        loss = criterion(pred, yb if pred.shape == yb.shape else yb.view_as(pred))
+                scaler.scale(loss).backward()
+                if runtime.grad_clip is not None:
+                    scaler.unscale_(optim)
+                    maybe_clip_grads(torch, model, runtime.grad_clip)
+                scaler.step(optim)
+                scaler.update()
+            else:
+                pred = model(xb)
+                if multiclass:
+                    loss = criterion(pred, yb)
+                else:
+                    loss = criterion(pred, yb if pred.shape == yb.shape else yb.view_as(pred))
+                loss.backward()
+                maybe_clip_grads(torch, model, runtime.grad_clip)
+                optim.step()
+            total += float(loss.item())
+            batches += 1
+        if scheduler is not None:
+            scheduler.step()
+        epochs_ran = epoch + 1
+        history.append({"epoch": float(epochs_ran), "train_loss": total / max(batches, 1)})
+    return history, epochs_ran
+
+
+def fit_fullbatch(
+    model: Any,
+    forward_fn: Any,
+    criterion: Any,
+    runtime: TrainingRuntimeSpec,
+    *,
+    device: str,
+) -> tuple[list[dict[str, float]], int]:
+    """Full-batch loop (GNN node tasks). ``forward_fn()`` returns loss tensor."""
+    torch = require_torch()
+    use_amp = resolve_amp(torch, runtime, device)
+    optim = build_optimizer(
+        torch,
+        runtime.optimizer.name,
+        model.parameters(),
+        runtime.optimizer.lr,
+        runtime.optimizer.weight_decay,
+    )
+    scheduler = build_scheduler(torch, optim, runtime)
+    scaler = make_grad_scaler(torch, use_amp)
+    history: list[dict[str, float]] = []
+    timer = TrainTimer(runtime.max_seconds)
+    epochs_ran = 0
+    model.train()
+    for epoch in range(runtime.epochs):
+        if timer.expired():
+            break
+        optim.zero_grad(set_to_none=True)
+        if use_amp:
+            assert scaler is not None
+            with torch.autocast(device_type="cuda", dtype=torch.float16):
+                loss = forward_fn()
+            scaler.scale(loss).backward()
+            if runtime.grad_clip is not None:
+                scaler.unscale_(optim)
+                maybe_clip_grads(torch, model, runtime.grad_clip)
+            scaler.step(optim)
+            scaler.update()
+        else:
+            loss = forward_fn()
+            loss.backward()
+            maybe_clip_grads(torch, model, runtime.grad_clip)
+            optim.step()
+        if scheduler is not None:
+            scheduler.step()
+        epochs_ran = epoch + 1
+        history.append({"epoch": float(epochs_ran), "train_loss": float(loss.item())})
+    return history, epochs_ran

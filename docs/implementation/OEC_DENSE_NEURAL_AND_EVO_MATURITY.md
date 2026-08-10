@@ -12,9 +12,10 @@
 | N-D0 contracts + capacity | **done** | `src/oec/neural/runtime.py`, `tests/unit/test_neural_runtime_contracts.py` |
 | N-D1 shared train + MLP | **done** | `src/oec/kernel/neural/runtime.py`, `training.py` |
 | N-D2 checkpoint file | **done** | `save_checkpoint` / `load_state_dict_from_checkpoint` |
-| N-D3 dataset npy path | **partial** | `DatasetRef` + `load_dataset_arrays` (npy); skills still inline |
-| N-D4–N-D5 other arches | **pending** | capacity tables ready; train loops not migrated |
-| Skills MLP capacity | **done** | `skills/neural/mlp_regressor`, `mlp_classifier` |
+| N-D3 dataset npy path | **done** | `load_xy_from_inputs` / `load_dataset_arrays`; MLP + sequence skills |
+| N-D4 sequences + transformer | **done** | `fit_minibatches` + `skill_io.train_sequence/transformer_from_inputs` |
+| N-D5 GNN + AE | **done** | `fit_fullbatch` + AE/GNN train paths + skills |
+| Skills capacity | **done** | all train neural skills via `skill_io` or MLP capacity |
 
 ## Purpose
 

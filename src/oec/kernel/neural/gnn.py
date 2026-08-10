@@ -12,11 +12,7 @@ import numpy as np
 
 from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.kernel.neural.metrics import classification_metrics, regression_metrics
-from oec.kernel.neural.seeding import (
-    configure_torch_seeds,
-    state_dict_to_jsonable,
-    torch_version,
-)
+from oec.kernel.neural.seeding import torch_version
 from oec.neural.hashing import dataset_fingerprint, model_spec_fingerprint
 
 GnnArch = Literal["gcn", "graphsage", "gat"]
@@ -152,9 +148,9 @@ def build_gnn(
 
 
 def train_gnn(
-    node_features: list[list[float]],
-    edge_index: list[list[int]],
-    y: list[float],
+    node_features: Any,
+    edge_index: Any,
+    y: Any,
     *,
     train_mask: list[bool] | None = None,
     arch: GnnArch = "gcn",
@@ -168,7 +164,20 @@ def train_gnn(
     seed: int = 42,
     device: str = "cpu",
     dropout: float = 0.0,
+    runtime: Any | None = None,
+    capacity: str | None = None,
+    run_id: str | None = None,
 ) -> dict[str, Any]:
+    from oec.kernel.neural.runtime import (
+        count_parameters,
+        enforce_max_params,
+        fit_fullbatch,
+        prepare_device_and_seeds,
+        save_checkpoint,
+    )
+    from oec.neural.contracts import DeviceSpec, OptimizerName, OptimizerSpec
+    from oec.neural.runtime import TrainingRuntimeSpec
+
     torch, nn, _functional = _require_torch()
     del _functional
     x = np.asarray(node_features, dtype=np.float64)
@@ -189,7 +198,15 @@ def train_gnn(
             raise ValueError("train_mask length mismatch")
 
     out_dim = 1 if task == "regression" or n_classes == 2 else n_classes
-    resolved, det = configure_torch_seeds(seed, device)
+    rt: TrainingRuntimeSpec = runtime or TrainingRuntimeSpec(
+        seed=seed,
+        device=DeviceSpec(device=device),
+        epochs=epochs,
+        batch_size=max(n_nodes, 1),
+        optimizer=OptimizerSpec(name=OptimizerName.ADAM, lr=lr),
+        early_stopping_patience=None,
+    )
+    resolved, det = prepare_device_and_seeds(rt)
     model = build_gnn(
         arch,
         in_dim,
@@ -199,7 +216,9 @@ def train_gnn(
         heads=heads,
         dropout=dropout,
     ).to(resolved)
-    optim = torch.optim.Adam(model.parameters(), lr=lr)
+    n_params = count_parameters(model)
+    enforce_max_params(n_params, rt.max_params)
+
     if task == "regression":
         crit: Any = nn.MSELoss()
     elif n_classes == 2:
@@ -216,18 +235,13 @@ def train_gnn(
     else:
         y_t = torch.tensor(y_arr, dtype=torch.long, device=resolved)
 
-    history: list[dict[str, float]] = []
-    model.train()
-    for epoch in range(epochs):
-        optim.zero_grad(set_to_none=True)
+    def _loss_fn() -> Any:
         pred = model(x_t, e_t, adj)
         if task == "classification" and n_classes > 2:
-            loss = crit(pred[mask_t], y_t[mask_t])
-        else:
-            loss = crit(pred[mask_t], y_t[mask_t].view_as(pred[mask_t]))
-        loss.backward()
-        optim.step()
-        history.append({"epoch": float(epoch + 1), "train_loss": float(loss.item())})
+            return crit(pred[mask_t], y_t[mask_t])
+        return crit(pred[mask_t], y_t[mask_t].view_as(pred[mask_t]))
+
+    history, epochs_ran = fit_fullbatch(model, _loss_fn, crit, rt, device=resolved)
 
     model.eval()
     with torch.no_grad():
@@ -256,24 +270,44 @@ def train_gnn(
         "n_nodes": n_nodes,
         "n_edges": int(edges.shape[1]),
     }
+    meta = {
+        "architecture": arch,
+        "model_spec": spec,
+        "task": f"gnn_{task}",
+        "n_params": n_params,
+        "capacity": capacity,
+    }
+    ckpt, cref = save_checkpoint(
+        storage=rt.checkpoint_storage,
+        state_dict=model.state_dict(),
+        meta=meta,
+        run_id=run_id,
+    )
+    # node_features for fingerprint: use list form
+    nf = x.tolist() if hasattr(x, "tolist") else node_features
     return {
         "task": f"gnn_{task}",
         "backend": "torch",
         "backend_version": torch_version(),
         "device": resolved,
-        "seed": seed,
+        "seed": rt.seed,
         "deterministic_status": det,
-        "epochs_ran": epochs,
+        "epochs_ran": epochs_ran,
         "train_metrics": metrics,
         "history": history[-5:],
-        "checkpoint": {
-            "architecture": arch,
-            "model_spec": spec,
-            "state_dict": state_dict_to_jsonable(model.state_dict()),
-            "task": f"gnn_{task}",
-        },
+        "checkpoint": ckpt,
+        "checkpoint_ref": cref.model_dump(mode="json"),
         "n_train": int(mask.sum()),
-        "dataset_fingerprint": dataset_fingerprint(node_features, y_arr.tolist()),
+        "n_params": n_params,
+        "capacity": capacity,
+        "runtime": {
+            "lr_scheduler": rt.lr_scheduler,
+            "grad_clip": rt.grad_clip,
+            "amp": rt.amp,
+            "max_params": rt.max_params,
+            "checkpoint_storage": rt.checkpoint_storage,
+        },
+        "dataset_fingerprint": dataset_fingerprint(nf, y_arr.tolist()),
         "model_fingerprint": model_spec_fingerprint(spec),
         "arch": arch,
     }

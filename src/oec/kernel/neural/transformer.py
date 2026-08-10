@@ -8,12 +8,17 @@ import numpy as np
 
 from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.kernel.neural.metrics import classification_metrics, regression_metrics
-from oec.kernel.neural.seeding import (
-    configure_torch_seeds,
-    state_dict_to_jsonable,
-    torch_version,
+from oec.kernel.neural.runtime import (
+    count_parameters,
+    enforce_max_params,
+    fit_minibatches,
+    prepare_device_and_seeds,
+    save_checkpoint,
 )
+from oec.kernel.neural.seeding import torch_version
+from oec.neural.contracts import DeviceSpec, OptimizerName, OptimizerSpec
 from oec.neural.hashing import dataset_fingerprint, model_spec_fingerprint
+from oec.neural.runtime import CapacityName, TrainingRuntimeSpec
 
 
 def _require_torch() -> Any:
@@ -66,8 +71,8 @@ def build_transformer_encoder(
 
 
 def train_transformer_sequence(
-    x: list[Any],
-    y: list[float],
+    x: Any,
+    y: Any,
     *,
     task: Literal["regression", "classification"] = "regression",
     n_classes: int = 1,
@@ -81,6 +86,9 @@ def train_transformer_sequence(
     lr: float = 1e-3,
     seed: int = 42,
     device: str = "cpu",
+    runtime: TrainingRuntimeSpec | None = None,
+    capacity: CapacityName | None = None,
+    run_id: str | None = None,
 ) -> dict[str, Any]:
     torch, nn = _require_torch()
     arr = np.asarray(x, dtype=np.float64)
@@ -92,7 +100,15 @@ def train_transformer_sequence(
         raise ValueError("len(y) must equal n")
 
     out_dim = 1 if task == "regression" or n_classes == 2 else n_classes
-    resolved, det = configure_torch_seeds(seed, device)
+    rt = runtime or TrainingRuntimeSpec(
+        seed=seed,
+        device=DeviceSpec(device=device),
+        epochs=epochs,
+        batch_size=batch_size,
+        optimizer=OptimizerSpec(name=OptimizerName.ADAMW, lr=lr),
+        early_stopping_patience=None,
+    )
+    resolved, det = prepare_device_and_seeds(rt)
     model = build_transformer_encoder(
         n_feat,
         d_model=d_model,
@@ -102,7 +118,9 @@ def train_transformer_sequence(
         dropout=dropout,
         output_dim=out_dim,
     ).to(resolved)
-    optim = torch.optim.AdamW(model.parameters(), lr=lr)
+    n_params = count_parameters(model)
+    enforce_max_params(n_params, rt.max_params)
+
     if task == "regression":
         crit: Any = nn.MSELoss()
     elif n_classes == 2:
@@ -111,30 +129,15 @@ def train_transformer_sequence(
         crit = nn.CrossEntropyLoss()
 
     x_t = torch.tensor(arr, dtype=torch.float32, device=resolved)
+    multiclass = task == "classification" and n_classes > 2
     if task == "regression" or n_classes == 2:
         y_t = torch.tensor(y_arr, dtype=torch.float32, device=resolved).view(-1, 1)
     else:
         y_t = torch.tensor(y_arr, dtype=torch.long, device=resolved)
 
-    history: list[dict[str, float]] = []
-    model.train()
-    for epoch in range(epochs):
-        perm = torch.randperm(n, device=resolved)
-        total = 0.0
-        batches = 0
-        for start in range(0, n, batch_size):
-            idx = perm[start : start + batch_size]
-            optim.zero_grad(set_to_none=True)
-            pred = model(x_t[idx])
-            if task == "classification" and n_classes > 2:
-                loss = crit(pred, y_t[idx])
-            else:
-                loss = crit(pred, y_t[idx].view_as(pred))
-            loss.backward()
-            optim.step()
-            total += float(loss.item())
-            batches += 1
-        history.append({"epoch": float(epoch + 1), "train_loss": total / max(batches, 1)})
+    history, epochs_ran = fit_minibatches(
+        model, x_t, y_t, crit, rt, device=resolved, multiclass=multiclass
+    )
 
     model.eval()
     with torch.no_grad():
@@ -160,23 +163,41 @@ def train_transformer_sequence(
         "task": task,
         "n_classes": n_classes,
     }
+    meta = {
+        "architecture": "transformer_encoder",
+        "model_spec": spec,
+        "task": f"transformer_{task}",
+        "n_params": n_params,
+        "capacity": capacity,
+    }
+    ckpt, cref = save_checkpoint(
+        storage=rt.checkpoint_storage,
+        state_dict=model.state_dict(),
+        meta=meta,
+        run_id=run_id,
+    )
     return {
         "task": f"transformer_{task}",
         "backend": "torch",
         "backend_version": torch_version(),
         "device": resolved,
-        "seed": seed,
+        "seed": rt.seed,
         "deterministic_status": det,
-        "epochs_ran": epochs,
+        "epochs_ran": epochs_ran,
         "train_metrics": metrics,
         "history": history[-5:],
-        "checkpoint": {
-            "architecture": "transformer_encoder",
-            "model_spec": spec,
-            "state_dict": state_dict_to_jsonable(model.state_dict()),
-            "task": f"transformer_{task}",
-        },
+        "checkpoint": ckpt,
+        "checkpoint_ref": cref.model_dump(mode="json"),
         "n_train": n,
+        "n_params": n_params,
+        "capacity": capacity,
+        "runtime": {
+            "lr_scheduler": rt.lr_scheduler,
+            "grad_clip": rt.grad_clip,
+            "amp": rt.amp,
+            "max_params": rt.max_params,
+            "checkpoint_storage": rt.checkpoint_storage,
+        },
         "dataset_fingerprint": dataset_fingerprint([[float(n_feat)]], y_arr.tolist()),
         "model_fingerprint": model_spec_fingerprint(spec),
     }

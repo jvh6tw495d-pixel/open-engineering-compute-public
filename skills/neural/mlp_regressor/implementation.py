@@ -21,8 +21,21 @@ from oec.neural.runtime import CapacityName, TrainingRuntimeSpec, resolve_mlp_hi
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
-    x = inputs["x"]
-    y = inputs["y"]
+    # N-D3: prefer dataset_path when set; else inline x/y (schema requires x,y for contract)
+    if inputs.get("dataset_path"):
+        from oec.kernel.neural.runtime import load_xy_from_inputs
+
+        x_arr, y_arr = load_xy_from_inputs(
+            {
+                **inputs,
+                "dataset_format": inputs.get("dataset_format", "npy"),
+            }
+        )
+        x = x_arr.tolist()
+        y = y_arr.reshape(-1).tolist()
+    else:
+        x = inputs["x"]
+        y = inputs["y"]
     capacity: CapacityName | None = inputs.get("capacity")  # type: ignore[assignment]
     raw_hidden = inputs.get("hidden_dims")
     # Precedence (Part A.5): raw hidden_dims wins; else capacity; else tiny

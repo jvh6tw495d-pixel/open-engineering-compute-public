@@ -60,7 +60,16 @@
     "val_fraction": { "type": "number", "minimum": 0, "maximum": 0.9, "default": 0.2 },
     "seed": { "type": "integer", "default": 42 },
     "device": { "type": "string", "enum": ["cpu", "cuda", "auto"], "default": "cpu" },
-    "normalize_x": { "type": "boolean", "default": true }
+    "normalize_x": { "type": "boolean", "default": true },
+    "dataset_format": {
+      "type": "string",
+      "enum": ["json_inline", "npy", "parquet"],
+      "default": "json_inline"
+    },
+    "dataset_path": {
+      "type": "string",
+      "description": "Directory with x.npy/y.npy or .npz with keys x,y (when format=npy)"
+    }
   },
   "required": ["x", "y"],
   "additionalProperties": false

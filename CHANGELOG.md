@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **Dense neural Part A (N-D0/N-D1):** shared `TrainingRuntimeSpec`, capacity presets
-  (`tiny|medium|dense|wide`) for all neural families, MLP train path with scheduler /
-  grad clip / AMP hooks, param caps, file checkpoints (`OEC_CACHE_DIR` + sha256).
+- **Dense neural Part A (complete N-D0–N-D5):** shared `TrainingRuntimeSpec` +
+  capacity presets (`tiny|medium|dense|wide`) for all neural families; shared
+  minibatch/full-batch train loops; MLP/sequence/transformer/GNN/AE migrated;
+  npy `dataset_path` load; file checkpoints (`OEC_CACHE_DIR` + sha256).
   Design: `docs/implementation/OEC_DENSE_NEURAL_AND_EVO_MATURITY.md`.
 - Agent authority P0 helpers + strong neural/evo goldens; optional CI extras job.
 

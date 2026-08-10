@@ -126,6 +126,32 @@ def resolve_mlp_hidden_dims(
     return list(resolved["hidden_dims"]), cap
 
 
+def resolve_knobs_with_capacity(
+    family_or_arch: str,
+    capacity: CapacityName | None,
+    overrides: dict[str, Any],
+) -> tuple[dict[str, Any], CapacityName | None]:
+    """Merge capacity preset with raw overrides (overrides win per key).
+
+    If any override key is present and non-None, that key is not taken from
+    the preset. If *no* capacity and no overrides, uses ``tiny``.
+    Returns ``(knobs, capacity_used)`` — capacity_used is None when the
+    caller fully specified all preset keys via overrides.
+    """
+    table_keys = set(resolve_capacity(family_or_arch, "tiny").keys())
+    provided = {k: v for k, v in overrides.items() if v is not None and k in table_keys}
+    if capacity is None and provided:
+        # partial raw knobs: fill missing from tiny
+        base = resolve_capacity(family_or_arch, "tiny")
+        base.update(provided)
+        return base, None if provided.keys() >= table_keys else "tiny"
+    cap: CapacityName = capacity or "tiny"
+    base = resolve_capacity(family_or_arch, cap)
+    base.update(provided)
+    used: CapacityName | None = None if provided.keys() >= table_keys else cap
+    return base, used
+
+
 def estimate_mlp_param_count(
     input_dim: int,
     hidden_dims: list[int],

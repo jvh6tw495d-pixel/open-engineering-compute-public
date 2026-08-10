@@ -24,6 +24,7 @@ from oec.neural.runtime import (
     TrainingRuntimeSpec,
     estimate_mlp_param_count,
     resolve_capacity,
+    resolve_knobs_with_capacity,
     resolve_mlp_hidden_dims,
 )
 
@@ -44,5 +45,6 @@ __all__ = [
     "TrainingSpec",
     "estimate_mlp_param_count",
     "resolve_capacity",
+    "resolve_knobs_with_capacity",
     "resolve_mlp_hidden_dims",
 ]
