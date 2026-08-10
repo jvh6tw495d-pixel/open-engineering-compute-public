@@ -1,0 +1,12 @@
+{
+  "mode": "single",
+  "variables": [
+    { "name": "x1", "lower": -2.0, "upper": 2.0 },
+    { "name": "x2", "lower": -2.0, "upper": 2.0 }
+  ],
+  "built_in": "sphere",
+  "algorithms": ["differential_evolution", "genetic_algorithm"],
+  "generations": 12,
+  "population": 16,
+  "seeds": [0, 1]
+}

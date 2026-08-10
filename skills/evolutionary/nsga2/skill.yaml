@@ -1,0 +1,41 @@
+id: evolutionary.nsga2
+version: 0.1.0
+status: experimental
+domain: evolutionary
+title: NSGA-II (pymoo)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: pymoo_nsga2
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 180
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "pymoo — https://pymoo.org/"
+  - "Deb et al. — NSGA-II / NSGA-III"
+  - "ADR 0031 Neural and Evolutionary Compute"
+
+tags:
+  - evolutionary
+  - multiobjective
+  - experimental

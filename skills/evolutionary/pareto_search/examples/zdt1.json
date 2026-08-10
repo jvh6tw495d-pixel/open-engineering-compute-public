@@ -1,0 +1,13 @@
+{
+  "variables": [
+    {"name": "x0", "lower": 0.0, "upper": 1.0},
+    {"name": "x1", "lower": 0.0, "upper": 1.0},
+    {"name": "x2", "lower": 0.0, "upper": 1.0},
+    {"name": "x3", "lower": 0.0, "upper": 1.0},
+    {"name": "x4", "lower": 0.0, "upper": 1.0}
+  ],
+  "built_in": "zdt1",
+  "generations": 20,
+  "population": 30,
+  "seed": 0
+}

@@ -8,20 +8,36 @@ from __future__ import annotations
 
 from oec.evolutionary.contracts import (
     AlgorithmName,
+    BenchmarkSpec,
     BudgetSpec,
+    BuiltInMultiProblemName,
     BuiltInProblemName,
     EvolutionaryAlgorithmSpec,
     EvolutionaryProblemSpec,
+    MultiObjectiveAlgorithmName,
+    MultiObjectiveAlgorithmSpec,
+    MultiObjectiveProblemSpec,
     VariableSpec,
 )
-from oec.evolutionary.results import EvolutionaryResult
+from oec.evolutionary.results import (
+    BenchmarkResult,
+    EvolutionaryParetoResult,
+    EvolutionaryResult,
+)
 
 __all__ = [
     "AlgorithmName",
+    "BenchmarkResult",
+    "BenchmarkSpec",
     "BudgetSpec",
+    "BuiltInMultiProblemName",
     "BuiltInProblemName",
     "EvolutionaryAlgorithmSpec",
+    "EvolutionaryParetoResult",
     "EvolutionaryProblemSpec",
     "EvolutionaryResult",
+    "MultiObjectiveAlgorithmName",
+    "MultiObjectiveAlgorithmSpec",
+    "MultiObjectiveProblemSpec",
     "VariableSpec",
 ]

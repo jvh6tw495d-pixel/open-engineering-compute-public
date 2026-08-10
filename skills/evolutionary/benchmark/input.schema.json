@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "evolutionary.benchmark input",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["single", "multi"],
+      "default": "single"
+    },
+    "variables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "lower": { "type": "number" },
+          "upper": { "type": "number" }
+        },
+        "required": ["name", "lower", "upper"],
+        "additionalProperties": false
+      }
+    },
+    "built_in": {
+      "type": "string",
+      "enum": ["sphere", "rosenbrock", "rastrigin"]
+    },
+    "algorithms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["differential_evolution", "genetic_algorithm", "cma_es", "pso"]
+      }
+    },
+    "multi_built_in": {
+      "type": "string",
+      "enum": ["zdt1", "zdt2", "bi_sphere"]
+    },
+    "multi_algorithms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["nsga2", "nsga3", "moead"]
+      }
+    },
+    "generations": { "type": "integer", "minimum": 1, "default": 15 },
+    "population": { "type": "integer", "minimum": 4, "default": 20 },
+    "seeds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "default": [0, 1, 2]
+    }
+  },
+  "required": ["variables", "mode"],
+  "additionalProperties": false
+}

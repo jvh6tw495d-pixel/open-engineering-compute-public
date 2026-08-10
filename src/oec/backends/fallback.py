@@ -45,6 +45,12 @@ _METHOD_BACKEND_REQUIREMENTS: dict[str, str] = {
     "pymoo_ga": "evolutionary_single",
     "pymoo_cmaes": "evolutionary_single",
     "pymoo_pso": "evolutionary_single",
+    # E2 multi-objective + X1 benchmark
+    "pymoo_nsga2": "evolutionary_multi",
+    "pymoo_nsga3": "evolutionary_multi",
+    "pymoo_moead": "evolutionary_multi",
+    "pymoo_pareto_search": "evolutionary_multi",
+    "pymoo_evolutionary_benchmark": "evolutionary_single",
 }
 
 

@@ -22,8 +22,9 @@ External engine (torch / pymoo / …)
 | **N0** | Contracts, extras, capability probes | **in tree** |
 | **N1** | MLP regressor / classifier / predict | **in tree (v0)** |
 | **E1** | Single-objective DE / GA / CMA-ES / PSO via pymoo | **in tree (v0)** |
-| E2 | NSGA-II/III multiobjective | backlog |
-| N2–N5, E3–E4, X1–X3 | see full roadmap | backlog |
+| **E2** | NSGA-II / NSGA-III / MOEA/D + ParetoResult | **in tree (v0)** |
+| **X1 thin** | `evolutionary.benchmark` multi-algo × multi-seed | **in tree (v0)** |
+| N2–N5, E3–E4, X2–X3 | see full roadmap | backlog |
 
 ## Install
 
@@ -50,6 +51,9 @@ uv sync --extra neural --extra evolutionary
 - `evolutionary.genetic_algorithm`
 - `evolutionary.cma_es`
 - `evolutionary.pso`
+- `evolutionary.nsga2` / `nsga3` / `moead` — multi-objective (E2)
+- `evolutionary.pareto_search` — multi-obj dispatch
+- `evolutionary.benchmark` — X1 thin harness (single or multi)
 
 ## Safety
 

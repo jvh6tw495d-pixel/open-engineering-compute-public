@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "evolutionary.moead input",
+  "type": "object",
+  "properties": {
+    "variables": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "lower": { "type": "number" },
+          "upper": { "type": "number" }
+        },
+        "required": ["name", "lower", "upper"],
+        "additionalProperties": false
+      }
+    },
+    "built_in": {
+      "type": "string",
+      "enum": ["zdt1", "zdt2", "bi_sphere"],
+      "default": "zdt1"
+    },
+    "generations": { "type": "integer", "minimum": 1, "default": 30 },
+    "population": { "type": "integer", "minimum": 4, "default": 40 },
+    "seed": { "type": "integer", "default": 42 },
+    "n_partitions": { "type": "integer", "minimum": 1, "default": 12 }
+  },
+  "required": ["variables"],
+  "additionalProperties": false
+}

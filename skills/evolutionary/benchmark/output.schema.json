@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "evolutionary.benchmark output",
+  "type": "object",
+  "properties": {
+    "mode": { "type": "string" },
+    "backend": { "type": "string" },
+    "seeds": { "type": "array" },
+    "algorithms": { "type": "array" },
+    "rows": { "type": "array" },
+    "summary": { "type": "object" },
+    "problem_fingerprint": { "type": "string" }
+  },
+  "required": ["mode", "rows", "summary"],
+  "additionalProperties": true
+}

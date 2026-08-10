@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mo output",
+  "type": "object",
+  "properties": {
+    "backend": { "type": "string" },
+    "algorithm": { "type": "string" },
+    "seed": { "type": "integer" },
+    "n_objectives": { "type": "integer" },
+    "decision_vectors": { "type": "array" },
+    "objective_vectors": { "type": "array" },
+    "nondominated_mask": { "type": "array" },
+    "n_nondominated": { "type": "integer" },
+    "hypervolume": { "type": ["number", "null"] },
+    "problem_fingerprint": { "type": "string" }
+  },
+  "required": ["backend", "algorithm", "objective_vectors", "n_nondominated"],
+  "additionalProperties": true
+}
