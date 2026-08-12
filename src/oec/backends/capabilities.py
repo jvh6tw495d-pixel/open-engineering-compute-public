@@ -35,7 +35,7 @@ DECLARED_CAPABILITIES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
         ),
         "highs": frozenset({"lp", "milp"}),
         # ADR 0031 — optional extras oec[neural] / oec[evolutionary]
-        "torch": frozenset({"neural_train", "neural_eval"}),
+        "torch": frozenset({"neural_train", "neural_eval", "neural_distill"}),
         "pymoo": frozenset({"evolutionary_single", "evolutionary_multi"}),
         # E3 / E4 — still oec[evolutionary] extra
         "deap": frozenset({"genetic_programming", "evolution_strategy"}),

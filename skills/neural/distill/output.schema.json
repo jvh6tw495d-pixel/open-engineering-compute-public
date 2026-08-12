@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.distill output",
+  "type": "object",
+  "properties": {
+    "task": {"type": "string", "const": "regression"},
+    "backend": {"type": "string", "const": "torch"},
+    "seed": {"type": "integer"},
+    "checkpoint": {"type": "object"},
+    "normalize": {"type": ["object", "null"]},
+    "train_metrics": {"type": "object"},
+    "runtime": {"type": "object"}
+  },
+  "required": ["task", "backend", "seed", "checkpoint", "train_metrics"],
+  "additionalProperties": true
+}

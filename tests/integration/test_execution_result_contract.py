@@ -835,6 +835,33 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         ],
         "y": [1, 2, 3, 4],
     },
+    "neural.distill": {
+        "x": [[0.0], [1.0], [2.0]],
+        "y": [0.0, 1.0, 2.0],
+        "teacher_checkpoint": {
+            "storage": "json_inline",
+            "model_spec": {
+                "architecture": "mlp",
+                "input_dim": 1,
+                "output_dim": 1,
+                "hidden_dims": [1],
+                "activation": "relu",
+                "dropout": 0.0,
+            },
+            "state_dict": {
+                "0.weight": [[1.0]],
+                "0.bias": [0.0],
+                "2.weight": [[1.0]],
+                "2.bias": [0.0],
+            },
+        },
+        "student_hidden_dims": [1],
+        "epochs": 2,
+        "batch_size": 3,
+        "max_epochs": 2,
+        "max_batch_size": 3,
+        "seed": 0,
+    },
     "neural.evaluate": {
         "checkpoint": {
             "architecture": "mlp",

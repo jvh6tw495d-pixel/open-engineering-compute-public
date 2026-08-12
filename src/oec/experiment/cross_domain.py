@@ -341,6 +341,69 @@ def build_peft_train_then_generate_experiment(
     )
 
 
+def build_distill_then_eval_experiment(
+    *,
+    teacher_checkpoint: dict[str, Any],
+    teacher_normalize: dict[str, list[float]] | None = None,
+    experiment_id: str = "s2.distill_then_eval",
+    seed: int = 0,
+    x: list[list[float]] | None = None,
+    y: list[float] | None = None,
+    student_hidden_dims: list[int] | None = None,
+    epochs: int = 80,
+) -> ExperimentSpec:
+    """S2 tabular distillation followed by evaluation of the student artifact."""
+    x = x or [[float(i)] for i in range(12)]
+    y = y or [2.0 * float(i) + 1.0 for i in range(12)]
+    return ExperimentSpec(
+        id=experiment_id,
+        title="S2: tabular distill then student evaluation",
+        seed=seed,
+        tags=("s2", "neural", "distillation"),
+        required_extras=("neural",),
+        steps=(
+            ExperimentStep(
+                step_id="distill",
+                skill_id="neural.distill",
+                inputs={
+                    "x": x,
+                    "y": y,
+                    "teacher_checkpoint": teacher_checkpoint,
+                    "teacher_normalize": teacher_normalize,
+                    "student_hidden_dims": student_hidden_dims or [8],
+                    "epochs": int(epochs),
+                    "batch_size": min(16, len(x)),
+                    "max_epochs": max(int(epochs), 1),
+                    "max_batch_size": min(128, max(len(x), 1)),
+                    "seed": int(seed),
+                },
+            ),
+            ExperimentStep(
+                step_id="evaluate",
+                skill_id="neural.evaluate",
+                inputs={"x": x, "y": y, "task": "regression"},
+                binds_from=(
+                    BindSpec.model_validate(
+                        {
+                            "step_id": "distill",
+                            "path": "result.checkpoint",
+                            "as": "checkpoint",
+                        }
+                    ),
+                    BindSpec.model_validate(
+                        {
+                            "step_id": "distill",
+                            "path": "result.normalize",
+                            "as": "normalize",
+                        }
+                    ),
+                ),
+            ),
+        ),
+        validation=ValidationSpec(),
+    )
+
+
 def build_root_bind_to_distribution_experiment(
     *,
     experiment_id: str = "w7.root_to_pdf",
@@ -420,6 +483,11 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
         "fn": build_peft_train_then_generate_experiment,
         "domains": ["foundation"],
         "extras": ["foundation"],
+    },
+    "build_distill_then_eval_experiment": {
+        "fn": build_distill_then_eval_experiment,
+        "domains": ["neural"],
+        "extras": ["neural"],
     },
     "build_root_bind_to_distribution_experiment": {
         "fn": build_root_bind_to_distribution_experiment,
