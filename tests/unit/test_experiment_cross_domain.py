@@ -6,6 +6,7 @@ import oec.experiment.cross_domain as cd
 from oec.experiment.cross_domain import (
     build_foundation_embed_then_stats_experiment,
     build_monte_carlo_then_describe_experiment,
+    build_peft_train_then_generate_experiment,
     build_physics_kinematics_experiment,
     build_root_bind_to_distribution_experiment,
     build_wave_then_stats_experiment,
@@ -62,3 +63,10 @@ def test_builder_shapes() -> None:
     assert root.steps[1].binds_from
     emb = build_foundation_embed_then_stats_experiment(dim=16)
     assert emb.steps[0].skill_id == "foundation.embed"
+    peft = build_peft_train_then_generate_experiment()
+    assert peft.steps[0].skill_id == "foundation.peft_train"
+    assert peft.steps[1].skill_id == "foundation.generate"
+    assert peft.steps[1].binds_from
+    assert peft.steps[1].binds_from[0].path == "result.artifact.path"
+    assert peft.steps[1].binds_from[0].as_key == "adapter_path"
+    assert peft.required_extras == ("foundation",)

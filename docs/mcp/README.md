@@ -91,11 +91,11 @@ run another agent first and pass its result's `execution` back in.
 | `agent.control_dynamics` | Domain wrapper over public `control.*` and `dynamics.*` skills. |
 | `agent.finance_uncertainty` | Domain wrapper over public `finance.*` and `uncertainty.*` skills. |
 | `agent.neural` | Neural & evolutionary specialist: public `neural.*` and `evolutionary.*` skills (ADR 0031 / ADR 0033). |
-| `agent.foundation` | Foundation models: `foundation.embed` (builtin_hash offline or transformers), `foundation.generate` (`oec[foundation]`), `foundation.capabilities`. |
-| `experiment.list_builders` | List W7 cross-domain experiment builder names (domains + required extras). |
-| `experiment.run` | Multi-step `ExperimentSpec` runner (W2–W7). Pass `spec` **or** `builder` + optional `builder_kwargs`. Returns `ExperimentRecord`. |
+| `agent.foundation` | Foundation models: `foundation.embed` (builtin_hash offline or transformers), `foundation.generate` (`oec[foundation]`, optional `adapter_path` reload), `foundation.peft_train` (`oec[foundation]`; LoRA/QLoRA/full — S1 ADR 0041), `foundation.capabilities`. |
+| `experiment.list_builders` | List cross-domain experiment builder names (domains + required extras). |
+| `experiment.run` | Multi-step `ExperimentSpec` runner (W2–W7, S1). Pass `spec` **or** `builder` + optional `builder_kwargs`. Returns `ExperimentRecord`. |
 | `list_agents` | Specialist-agent catalog. Preferred discovery entrypoint for hosts. |
-| `list_skills` | Raw skill catalog (~147 skills including foundation/W3). |
+| `list_skills` | Raw skill catalog (~148 skills including foundation/W3). |
 | `<skill_id>` | Run a specific low-level skill directly. `inputSchema` is the skill's own `input.schema.json`. Result is the full `ExecutionResult` JSON. |
 
 ### What’s new (3.5.0 / W6–W8 on MCP)
@@ -103,8 +103,14 @@ run another agent first and pass its result's `execution` back in.
 1. **`agent.foundation`** + raw tools `foundation.embed`, `foundation.generate`, `foundation.capabilities` (demos: `embed`, `capabilities`, `generate`)
 2. **`experiment.list_builders`** + `experiment.run` with named W7 builders only (fail-closed catalog; not arbitrary module callables)
 3. **W3 physics skills** as raw tools (`waves.*`, `optics.*`, `em.*`, `statistical_physics.*`, …) routed via `agent.energy` / skill prefixes
-4. **Full skill catalog** auto-listed (147 skills) — no hard-coded subset
+4. **Full skill catalog** auto-listed (147 skills at 3.5.0) — no hard-coded subset
 5. Package **OEC 3.5.0** — restart MCP process to pick up the new catalog
+
+### S1 (Scientific AI Completion, post-3.5.0)
+
+6. **`foundation.peft_train`** raw tool + `agent.foundation` demo `peft_train`: LoRA/QLoRA/full fine-tune with a machine-readable adapter/checkpoint artifact (ADR 0041).
+7. **`foundation.generate`** gains optional `adapter_path` to reload a `foundation.peft_train` artifact with provenance (fail-closed if missing/unloadable).
+8. **`build_peft_train_then_generate_experiment`** added to the cross-domain builder catalog — train then reload-and-generate in one `ExperimentSpec`.
 
 ## Recommended host behavior
 

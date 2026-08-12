@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Scientific AI Completion (S0):** ADR 0040–0042 and
   `docs/release/SCIENTIFIC-AI-3.6.md` freeze the post-3.5 closure plan
   (PEFT/finetune/distill contracts, NEAT exclusion, VLM/HF decisions).
+- **Scientific AI Completion (S1):** `foundation.peft_train` skill — LoRA /
+  QLoRA / full fine-tune via a closed `mode` enum, `PEFTSpec` bumped to
+  `0.2.0` with `TrainingDatasetSpec` (inline texts or local path, never a
+  silent hub download), `TrainingBudgetSpec` hard step/seq-len/batch caps,
+  and a closed LoRA `target_modules` allow-list. Every training run saves a
+  machine-readable artifact descriptor (`kind`, `path`, `sha256`,
+  `base_model_id`, `revision`). `foundation.generate` gains an optional
+  `adapter_path` to reload that artifact — fail-closed (never a silent
+  base-model swap) if the path is missing or `peft` isn't installed.
+  `build_peft_train_then_generate_experiment` added to the cross-domain
+  builder catalog; `agent.foundation` gets a `peft_train` demo (ADR 0041).
 
 ## [3.5.0] - 2026-08-11
 

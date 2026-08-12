@@ -263,6 +263,84 @@ def build_foundation_embed_then_stats_experiment(
     )
 
 
+def build_peft_train_then_generate_experiment(
+    *,
+    experiment_id: str = "s1.peft_train_then_generate",
+    seed: int = 0,
+    model_id: str = "sshleifer/tiny-gpt2",
+    texts: list[str] | None = None,
+    mode: str = "peft_lora",
+    max_steps: int = 2,
+    prompt: str = "Hello",
+    max_new_tokens: int = 8,
+) -> ExperimentSpec:
+    """S1: train a LoRA/QLoRA/full adapter, then reload it for generation.
+
+    ``foundation.generate``'s ``adapter_path`` is bound from
+    ``foundation.peft_train``'s artifact descriptor — the reload is
+    provenance-driven, not a re-guessed path. Requires ``oec[foundation]``;
+    both steps fail closed without it (ADR 0041).
+    """
+    texts = texts or ["open engineering compute", "scientific skills for agents"]
+    return ExperimentSpec(
+        id=experiment_id,
+        title="S1: PEFT train then adapter-reload generate",
+        seed=seed,
+        tags=("s1", "foundation", "peft"),
+        required_extras=("foundation",),
+        steps=(
+            ExperimentStep(
+                step_id="train",
+                skill_id="foundation.peft_train",
+                inputs={
+                    "model_id": model_id,
+                    "mode": mode,
+                    "texts": texts,
+                    "target_modules": ["c_attn"],
+                    "max_steps": int(max_steps),
+                    "max_seq_len": 32,
+                    "batch_size": 2,
+                    "seed": int(seed),
+                },
+            ),
+            ExperimentStep(
+                step_id="generate",
+                skill_id="foundation.generate",
+                inputs={
+                    "prompt": prompt,
+                    "model_id": model_id,
+                    "max_new_tokens": int(max_new_tokens),
+                    "seed": int(seed),
+                },
+                binds_from=(
+                    BindSpec.model_validate(
+                        {"step_id": "train", "path": "result.artifact.path", "as": "adapter_path"}
+                    ),
+                ),
+            ),
+        ),
+        metrics=(
+            MetricSpec(
+                name="steps_run",
+                path="result.steps_run",
+                step_id="train",
+                direction=MetricDirection.TARGET,
+                target=float(max_steps),
+                target_abs_tol=0.0,
+            ),
+            MetricSpec(
+                name="max_new_tokens",
+                path="result.max_new_tokens",
+                step_id="generate",
+                direction=MetricDirection.TARGET,
+                target=float(max_new_tokens),
+                target_abs_tol=0.0,
+            ),
+        ),
+        validation=ValidationSpec(),
+    )
+
+
 def build_root_bind_to_distribution_experiment(
     *,
     experiment_id: str = "w7.root_to_pdf",
@@ -337,6 +415,11 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
         "fn": build_foundation_embed_then_stats_experiment,
         "domains": ["foundation", "statistics"],
         "extras": [],
+    },
+    "build_peft_train_then_generate_experiment": {
+        "fn": build_peft_train_then_generate_experiment,
+        "domains": ["foundation"],
+        "extras": ["foundation"],
     },
     "build_root_bind_to_distribution_experiment": {
         "fn": build_root_bind_to_distribution_experiment,

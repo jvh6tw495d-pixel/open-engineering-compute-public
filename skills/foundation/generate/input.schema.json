@@ -22,6 +22,11 @@
       "maximum": 2,
       "default": 0
     },
-    "seed": { "type": "integer", "default": 0 }
+    "seed": { "type": "integer", "default": 0 },
+    "adapter_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional trained adapter/checkpoint directory (from foundation.peft_train) to reload onto model_id before generating. Missing/unloadable path fails closed."
+    }
   }
 }

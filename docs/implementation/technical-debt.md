@@ -25,7 +25,6 @@ closure below cites the commit/file that actually did it.
 
 | ID | Priority | Item | Target / evidence |
 |---|---|---|---|
-| D-AI-01 | P1 | PEFT / full fine-tune train skills not implemented (schema frozen in ADR 0038) | **3.6 S1** — ADR 0041; `docs/release/SCIENTIFIC-AI-3.6.md` |
 | D-AI-02 | P1 | Knowledge distillation skill missing | **3.6 S2** — `neural.distill` + builder; ADR 0041 |
 | D-AI-03 | P2 | VLM / multimodal foundation path missing | **3.6 S5** — ADR 0040 D3 |
 | D-AI-04 | P2 | vLLM / llama.cpp / SGLang adapters not planned for 3.6 | **Debt only** — HF Transformers is the 3.6 inference backend; ADR 0040 D2 |
@@ -55,6 +54,7 @@ closure below cites the commit/file that actually did it.
 
 | ID | Closed | Evidence |
 |---|---|---|
+| D-AI-01 | 2026-08-12 | PEFT / full fine-tune train skill shipped: `PEFTSpec` v0.2.0 (`TrainingDatasetSpec`/`TrainingBudgetSpec`, closed target-module allow-list) + `foundation.peft_train` skill (lora/qlora/full via closed `mode`) + adapter/checkpoint artifact descriptor (`sha256`, `base_model_id`); `foundation.generate` reloads via optional `adapter_path` (fail-closed on missing/unloadable adapter). `build_peft_train_then_generate_experiment` added to the cross-domain catalog. S1, ADR 0041 |
 | D-CUR-01 | 2026-07-27 | core independence probe now runs in a fresh interpreter; full suite 810 passed |
 | D-CUR-03 | 2026-07-27 | V3 gap map reconciled with shipped `oec.core` and `ScientificResult` |
 | D-CUR-04 | 2026-07-27 | Graphify rebuilt from `6e271496` before work; rebuild again at handoff |

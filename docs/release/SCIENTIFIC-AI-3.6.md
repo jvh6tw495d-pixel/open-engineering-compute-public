@@ -53,16 +53,16 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | Neural train/eval | Done | Harden checkpoints | S3 | existing + predict reload |
 | Evolutionary | Done | Harden builders/gates | S4 | existing |
 | Neuroevolution / hybrid | Done | Builders + smoke | S4 | existing |
-| Foundation embed/generate | Done | Provenance harden | S1 | existing |
-| **PEFT train** | Spec only | **Implement** | S1 | `foundation.peft_train` |
-| **Full fine-tune** | Missing | Mode or skill | S1 | `foundation.finetune` or mode |
+| Foundation embed/generate | Done | Provenance harden | **S1 done** | `adapter_path` reload, fail-closed |
+| **PEFT train** | **Done (S1)** | Implement | **S1 done** | `foundation.peft_train` |
+| **Full fine-tune** | **Done (S1)** | Mode or skill | **S1 done** | `mode: full` on `foundation.peft_train` |
 | **Distillation** | Missing | Implement | S2 | `neural.distill` |
 | **VLM** | Missing | MVP | S5 | `foundation.vision_embed`, `foundation.vlm_generate` |
 | NEAT | Deferred | **Exclude** | — | ADR 0042 |
 | vLLM etc. | Missing | Debt only | — | technical-debt |
-| Experiment PEFT→gen | Partial | Builder | S1 | catalog allow-list |
+| Experiment PEFT→gen | **Done (S1)** | Builder | **S1 done** | `build_peft_train_then_generate_experiment` |
 | Experiment distill→eval | Missing | Builder | S2 | catalog allow-list |
-| MCP demos | foundation embed | + peft | S1/S6 | `agent.foundation` |
+| MCP demos | foundation embed | + peft | **S1 done** | `agent.foundation` demo `peft_train` |
 | CI extras job | markers only | optional job | S6 | torch+HF tiny |
 
 ---
@@ -72,7 +72,7 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | Wave | Goal | Exit criteria |
 |------|------|---------------|
 | **S0** | ADR freeze + this matrix | ADRs 0040–0042 accepted; decisions closed |
-| **S1** | PEFT / FT + artifacts | train→artifact→generate path; `-m foundation` smoke |
+| **S1** ✅ | PEFT / FT + artifacts | train→artifact→generate path; `-m foundation` smoke |
 | **S2** | Distill | `neural.distill` + builder COMPLETED |
 | **S3** | Neural industrial | checkpoint contract; promotion criteria; subset stable optional |
 | **S4** | Evo industrial | no NEAT; hybrid/neuroevolution builders hardened |
@@ -114,9 +114,9 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 
 ## 7. DoD checklist (release gate)
 
-- [ ] ADR 0040–0042 in tree (S0)
-- [ ] `foundation.peft_train` (+ FT mode/skill) with golden / fail-closed (S1)
-- [ ] Adapter/checkpoint artifact + generate reload provenance (S1)
+- [x] ADR 0040–0042 in tree (S0)
+- [x] `foundation.peft_train` (+ FT mode/skill) with golden / fail-closed (S1)
+- [x] Adapter/checkpoint artifact + generate reload provenance (S1)
 - [ ] `neural.distill` + builder (S2)
 - [ ] Neural checkpoint reload stable for predict/evaluate (S3)
 - [ ] Evo/hybrid builders green; NEAT documented excluded (S4)

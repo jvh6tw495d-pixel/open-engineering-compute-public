@@ -1,8 +1,8 @@
-id: foundation.generate
-version: 0.2.0
+id: foundation.peft_train
+version: 0.1.0
 status: experimental
 domain: foundation
-title: Causal LM Text Generation (transformers)
+title: PEFT / Full Fine-Tune Training (transformers + peft)
 
 entrypoint:
   module: implementation
@@ -13,15 +13,15 @@ schemas:
   output: output.schema.json
 
 method:
-  id: transformers_generate
+  id: transformers_peft_train
   version: 0.1.0
   iterative: true
 
 execution:
   deterministic: false
-  timeout_seconds: 300
+  timeout_seconds: 600
   network_access: false
-  filesystem_access: false
+  filesystem_access: true
 
 validation:
   schema: true
@@ -31,9 +31,10 @@ validation:
   numerical: true
 
 references:
-  - "W6 Foundation Models — ADR 0038"
-  - "Hugging Face Transformers"
+  - "S1 Scientific AI Completion — ADR 0040, ADR 0041"
+  - "Hugging Face Transformers + PEFT"
 
 tags:
-  - w6
+  - s1
   - foundation
+  - peft

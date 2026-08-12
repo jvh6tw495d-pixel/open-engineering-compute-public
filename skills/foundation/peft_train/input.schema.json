@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "foundation.peft_train input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "model_id": {
+      "type": "string",
+      "default": "sshleifer/tiny-gpt2",
+      "description": "HF hub id or local path label. Full fine-tune is restricted to tiny models by budget caps, not a model allow-list."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["peft_lora", "peft_qlora", "full"],
+      "default": "peft_lora",
+      "description": "peft_lora/peft_qlora train a LoRA adapter; full trains all base-model parameters."
+    },
+    "texts": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "Inline training texts. Provide this OR dataset_path, never both."
+    },
+    "dataset_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Local path label to a newline-delimited text file. Provide this OR texts, never both. No hub dataset download."
+    },
+    "r": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 256,
+      "default": 8,
+      "description": "LoRA rank (ignored when mode=full)."
+    },
+    "lora_alpha": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 16,
+      "description": "LoRA alpha (ignored when mode=full)."
+    },
+    "lora_dropout": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMaximum": 1,
+      "default": 0.05,
+      "description": "LoRA dropout (ignored when mode=full)."
+    },
+    "target_modules": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "q_proj", "k_proj", "v_proj", "o_proj",
+          "gate_proj", "up_proj", "down_proj",
+          "c_attn", "c_proj", "c_fc",
+          "query", "key", "value", "dense"
+        ]
+      },
+      "minItems": 1,
+      "default": ["q_proj", "v_proj"],
+      "description": "Closed allow-list of LoRA target module names (ignored when mode=full)."
+    },
+    "max_steps": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500,
+      "default": 5,
+      "description": "Hard training step cap."
+    },
+    "max_seq_len": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 1024,
+      "default": 64,
+      "description": "Hard tokenized sequence length cap."
+    },
+    "batch_size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 32,
+      "default": 2,
+      "description": "Hard batch size cap."
+    },
+    "seed": { "type": "integer", "default": 0 },
+    "artifact_root": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Override the artifact storage root. Defaults to OEC_ARTIFACT_ROOT/foundation_peft or ./.oec/artifacts/foundation_peft."
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["texts"],
+      "not": { "required": ["dataset_path"] }
+    },
+    {
+      "required": ["dataset_path"],
+      "not": { "required": ["texts"] }
+    }
+  ]
+}

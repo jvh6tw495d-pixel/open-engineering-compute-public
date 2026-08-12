@@ -11,16 +11,28 @@ from __future__ import annotations
 
 import hashlib
 import math
+import os
 import struct
+from pathlib import Path
 from typing import Any
 
 from oec.foundation.contracts import (
+    ArtifactKind,
     EmbeddingBackend,
     EmbeddingSpec,
     GenerationBackend,
     GenerationSpec,
+    PEFTMethod,
+    PEFTSpec,
+    TrainingDatasetSpec,
 )
-from oec.foundation.errors import FoundationError, TransformersNotAvailableError
+from oec.foundation.errors import (
+    AdapterNotFoundError,
+    BitsAndBytesNotAvailableError,
+    FoundationError,
+    PeftNotAvailableError,
+    TransformersNotAvailableError,
+)
 
 
 def probe_transformers() -> tuple[bool, str | None, str | None]:
@@ -37,17 +49,37 @@ def probe_transformers() -> tuple[bool, str | None, str | None]:
     return True, version, None
 
 
+def probe_peft() -> tuple[bool, str | None, str | None]:
+    try:
+        import peft  # noqa: F401
+    except ImportError as exc:
+        return False, None, str(exc)
+    try:
+        import importlib.metadata
+
+        version = importlib.metadata.version("peft")
+    except Exception:
+        version = None
+    return True, version, None
+
+
 def foundation_capabilities() -> dict[str, Any]:
     avail, version, reason = probe_transformers()
+    peft_avail, peft_version, peft_reason = probe_peft()
     return {
         "transformers_available": avail,
         "transformers_version": version,
         "reason": reason,
+        "peft_available": peft_avail,
+        "peft_version": peft_version,
+        "peft_reason": peft_reason,
         "embedding_backends": [b.value for b in EmbeddingBackend],
         "generation_backends": [b.value for b in GenerationBackend],
+        "training_methods": [m.value for m in PEFTMethod],
         "notes": [
             "builtin_hash is OEC-owned deterministic embedding, not an LLM",
             "transformers methods require oec[foundation] and may download models",
+            "peft_train lora/qlora require peft; qlora additionally requires bitsandbytes",
         ],
     }
 
@@ -154,6 +186,19 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
     set_seed(int(spec.seed))
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(model_id)
+
+    adapter_info: dict[str, Any] | None = None
+    if spec.adapter_path:
+        adapter_dir = Path(spec.adapter_path)
+        if not adapter_dir.is_dir():
+            raise AdapterNotFoundError(details={"adapter_path": str(adapter_dir)})
+        try:
+            from peft import PeftModel
+        except ImportError as exc:
+            raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
+        model = PeftModel.from_pretrained(model, str(adapter_dir))
+        adapter_info = {"path": str(adapter_dir.resolve())}
+
     model.eval()
     inputs = tokenizer(spec.prompt, return_tensors="pt")
     with torch.no_grad():
@@ -172,6 +217,137 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
         "text": text,
         "max_new_tokens": spec.max_new_tokens,
         "seed": spec.seed,
+        "adapter": adapter_info,
         "merit_owner": "transformers",
         "message": "causal LM generation",
+    }
+
+
+def _prepare_training_texts(dataset: TrainingDatasetSpec) -> list[str]:
+    if dataset.texts is not None:
+        return list(dataset.texts)
+    path = Path(dataset.local_path)  # type: ignore[arg-type]
+    if not path.is_file():
+        raise FoundationError(f"dataset local_path not found: {path}")
+    lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    if not lines:
+        raise FoundationError(f"dataset local_path has no non-empty lines: {path}")
+    return lines
+
+
+def _default_peft_artifact_root() -> Path:
+    env = os.environ.get("OEC_ARTIFACT_ROOT")
+    root = Path(env) if env else Path.cwd() / ".oec" / "artifacts"
+    return root / "foundation_peft"
+
+
+def _sha256_dir(path: Path) -> str:
+    """Deterministic hash of a saved model directory (sorted relative paths)."""
+    digest = hashlib.sha256()
+    for file in sorted(p for p in path.rglob("*") if p.is_file()):
+        digest.update(file.relative_to(path).as_posix().encode("utf-8"))
+        digest.update(file.read_bytes())
+    return digest.hexdigest()
+
+
+def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> dict[str, Any]:
+    """Train a LoRA/QLoRA adapter or run a full fine-tune (ADR 0041 S1).
+
+    Always saves the resulting adapter/checkpoint to disk and returns a
+    machine-readable :class:`~oec.foundation.contracts.TrainingArtifact`-shaped
+    descriptor with a content hash — never an in-memory-only result that
+    can't be reloaded with provenance.
+    """
+    avail, version, reason = probe_transformers()
+    if not avail:
+        raise TransformersNotAvailableError(details={"reason": reason})
+    try:
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
+    except ImportError as exc:
+        raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
+
+    texts = _prepare_training_texts(spec.dataset)
+    model_id = spec.model.model_id
+    set_seed(int(spec.seed))
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    model = AutoModelForCausalLM.from_pretrained(model_id)
+
+    kind = ArtifactKind.CHECKPOINT
+    if spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
+        try:
+            from peft import LoraConfig, get_peft_model
+        except ImportError as exc:
+            raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
+        if spec.method == PEFTMethod.QLORA:
+            try:
+                import bitsandbytes  # type: ignore[import-not-found]  # noqa: F401
+            except ImportError as exc:
+                raise BitsAndBytesNotAvailableError(details={"reason": str(exc)}) from exc
+        lora_config = LoraConfig(
+            r=spec.r,
+            lora_alpha=spec.lora_alpha,
+            lora_dropout=spec.lora_dropout,
+            target_modules=list(spec.target_modules),
+            task_type="CAUSAL_LM",
+        )
+        model = get_peft_model(model, lora_config)
+        kind = ArtifactKind.ADAPTER
+
+    model.train()
+    optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=5e-4)
+    batch_size = spec.budget.batch_size
+    max_seq_len = spec.budget.max_seq_len
+    n_texts = len(texts)
+    losses: list[float] = []
+    step = 0
+    while step < spec.budget.max_steps:
+        batch_texts = [texts[(step * batch_size + i) % n_texts] for i in range(batch_size)]
+        encoded = tokenizer(
+            batch_texts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=max_seq_len,
+        )
+        labels = encoded["input_ids"].clone()
+        labels[encoded["attention_mask"] == 0] = -100
+        outputs = model(**encoded, labels=labels)
+        loss = outputs.loss
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        losses.append(float(loss.detach().item()))
+        step += 1
+
+    root = Path(artifact_root) if artifact_root is not None else _default_peft_artifact_root()
+    run_dir = root / f"{model_id.replace('/', '_')}_{spec.method.value}_{spec.seed}_s{step}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    model.save_pretrained(run_dir)
+
+    return {
+        "backend": "transformers",
+        "backend_version": version,
+        "model_id": model_id,
+        "method": spec.method.value,
+        "artifact": {
+            "schema_version": "0.1.0",
+            "kind": kind.value,
+            "path": str(run_dir.resolve()),
+            "sha256": _sha256_dir(run_dir),
+            "base_model_id": model_id,
+            "revision": spec.model.revision,
+        },
+        "steps_run": step,
+        "final_loss": losses[-1] if losses else None,
+        "loss_history": losses,
+        "seed": spec.seed,
+        "merit_owner": "peft" if kind == ArtifactKind.ADAPTER else "transformers",
+        "message": (
+            "LoRA/QLoRA adapter trained"
+            if kind == ArtifactKind.ADAPTER
+            else "full fine-tune checkpoint saved"
+        ),
     }

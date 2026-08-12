@@ -1,7 +1,8 @@
-"""Foundation Models Specialist for governed public OEC skills (W6).
+"""Foundation Models Specialist for governed public OEC skills (W6 + S1).
 
-Covers ``foundation.*`` embed / generate / capabilities. ``builtin_hash``
-embeddings work without extras; transformers generate requires ``oec[foundation]``.
+Covers ``foundation.*`` embed / generate / capabilities / peft_train.
+``builtin_hash`` embeddings work without extras; transformers generate and
+peft_train require ``oec[foundation]``.
 """
 
 from __future__ import annotations
@@ -31,6 +32,18 @@ class FoundationSpecialist(SkillSpecialist):
                 "model_id": "sshleifer/tiny-gpt2",
                 "max_new_tokens": 8,
                 "temperature": 0,
+                "seed": 0,
+            },
+        ),
+        # S1 (ADR 0041): LoRA train; requires oec[foundation], fail-closed without it.
+        "peft_train": (
+            "foundation.peft_train",
+            {
+                "model_id": "sshleifer/tiny-gpt2",
+                "mode": "peft_lora",
+                "texts": ["open engineering compute", "scientific skills"],
+                "target_modules": ["c_attn"],
+                "max_steps": 2,
                 "seed": 0,
             },
         ),
