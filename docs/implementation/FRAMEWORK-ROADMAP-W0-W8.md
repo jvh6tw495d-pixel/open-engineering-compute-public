@@ -24,11 +24,11 @@ W4  Neural Computing             ✅ builders: MLP + ADR 0033 modes under Experi
  ↓
 W5  Evolutionary Computing       ✅ builders: optimize_single/NSGA2/hybrid; NEAT deferred
  ↓
-W6  Foundation Models            Transformers/PEFT behind contracts
+W6  Foundation Models            ✅ oec[foundation] + embed/generate/capabilities
  ↓
-W7  Hybrid scientific experiments
+W7  Cross-domain experiments     ✅ oec.experiment.cross_domain library
  ↓
-W8  Hardening / OEC 3.x product surfaces
+W8  Hardening / 3.5.0            ✅ backends CLI, builders CLI, registry, docs
 
 POST-OEC (not this repo): Persistent Scientific Harness
 ```

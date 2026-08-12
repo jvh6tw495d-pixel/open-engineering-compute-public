@@ -1,8 +1,8 @@
 # Skill inventory
 
-**Updated:** 2026-08-10 (`oec==3.4.1` + W1–W3 framework skills)
+**Updated:** 2026-08-10 (`oec==3.5.0` framework W0–W8)
 **Registry root:** `skills/`
-**Live load:** **144** skills, **0** contract-audit errors
+**Live load:** **147** skills, **0** contract-audit errors
 
 ## Summary
 
@@ -32,7 +32,8 @@
 | **evolutionary** | **15** | pymoo/DEAP/Nevergrad |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
-| **Total** | **144** | all `experimental` in this inventory |
+| foundation | 3 | W6 embed / generate / capabilities |
+| **Total** | **147** | all `experimental` in this inventory |
 
 ## W1-MVP scientific core (no AI)
 

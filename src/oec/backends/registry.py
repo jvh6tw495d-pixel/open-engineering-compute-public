@@ -26,7 +26,9 @@ from oec.backends.adapters import (
     numpy_backend,
     pymoo_backend,
     scipy_backend,
+    sympy_backend,
     torch_backend,
+    transformers_backend,
 )
 
 
@@ -46,11 +48,13 @@ class BackendCapability(BaseModel):
 _PROBES: dict[str, Callable[[], tuple[bool, str | None, str | None]]] = {
     numpy_backend.BACKEND_NAME: numpy_backend.probe,
     scipy_backend.BACKEND_NAME: scipy_backend.probe,
+    sympy_backend.BACKEND_NAME: sympy_backend.probe,
     highs_backend.BACKEND_NAME: highs_backend.probe,
     torch_backend.BACKEND_NAME: torch_backend.probe,
     pymoo_backend.BACKEND_NAME: pymoo_backend.probe,
     deap_backend.BACKEND_NAME: deap_backend.probe,
     nevergrad_backend.BACKEND_NAME: nevergrad_backend.probe,
+    transformers_backend.BACKEND_NAME: transformers_backend.probe,
 }
 
 

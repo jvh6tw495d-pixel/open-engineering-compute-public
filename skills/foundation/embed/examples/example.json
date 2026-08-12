@@ -1,0 +1,10 @@
+{
+  "description": "Builtin hash embeddings for two short texts",
+  "input": {
+    "texts": ["hello engineering", "hello science"],
+    "backend": "builtin_hash",
+    "dim": 16,
+    "seed": 0,
+    "normalize": true
+  }
+}

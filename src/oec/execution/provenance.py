@@ -34,6 +34,7 @@ _RUNTIME_BACKEND_PACKAGES: tuple[str, ...] = (
     "pymoo",  # optional extra oec[evolutionary]; listed when installed (ADR 0031)
     "deap",  # E3 genetic programming
     "nevergrad",  # E4 black-box
+    "transformers",  # W6 oec[foundation]
 )
 
 

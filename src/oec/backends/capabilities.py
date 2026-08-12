@@ -40,14 +40,20 @@ DECLARED_CAPABILITIES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
         # E3 / E4 — still oec[evolutionary] extra
         "deap": frozenset({"genetic_programming", "evolution_strategy"}),
         "nevergrad": frozenset({"blackbox_optimize"}),
+        # W6 — optional oec[foundation]
+        "transformers": frozenset({"foundation_embed", "foundation_generate", "foundation_peft"}),
+        # SymPy is a core dep; declare symbolic domain for registry honesty
+        "sympy": frozenset({"symbolic"}),
     }
 )
 
 # Required backends are hard runtime dependencies (always importable in a
 # correctly installed environment); optional backends are gated behind an
 # extra and may legitimately be unavailable (ADR 0021 fallback policy).
-REQUIRED_BACKENDS: frozenset[str] = frozenset({"numpy", "scipy"})
-OPTIONAL_BACKENDS: frozenset[str] = frozenset({"highs", "torch", "pymoo", "deap", "nevergrad"})
+REQUIRED_BACKENDS: frozenset[str] = frozenset({"numpy", "scipy", "sympy"})
+OPTIONAL_BACKENDS: frozenset[str] = frozenset(
+    {"highs", "torch", "pymoo", "deap", "nevergrad", "transformers"}
+)
 
 
 def domains_for(backend: str) -> frozenset[str]:

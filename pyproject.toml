@@ -1,6 +1,6 @@
 [project]
 name = "oec"
-version = "3.4.1"
+version = "3.5.0"
 description = "Open Engineering Compute — an open framework for executable, versioned and auditable engineering skills."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -38,6 +38,12 @@ evolutionary = [
     "pymoo>=0.6",
     "deap>=1.4",       # E3 genetic programming
     "nevergrad>=1.0",  # E4 black-box
+]
+# W6 / ADR 0038 — optional; never pull into core deps
+foundation = [
+    "transformers>=4.40",
+    "accelerate>=0.30",
+    "peft>=0.11",
 ]
 
 [project.scripts]
@@ -96,6 +102,14 @@ module = [
   "deap.*",
   "nevergrad",
   "nevergrad.*",
+  "transformers",
+  "transformers.*",
+  "accelerate",
+  "accelerate.*",
+  "peft",
+  "peft.*",
+  "sympy",
+  "sympy.*",
 ]
 ignore_missing_imports = true
 
@@ -108,11 +122,12 @@ testpaths = [
   "agents",
 ]
 pythonpath = ["."]
-addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml -m \"not slow and not neural and not evolutionary\""
+addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml -m \"not slow and not neural and not evolutionary and not foundation\""
 markers = [
   "slow: builds/installs a real wheel into a throwaway venv (deselected by default; run with `uv run pytest -m slow --no-cov`)",
   "neural: requires oec[neural] / torch (deselected unless installed; run with `uv run pytest -m neural`)",
   "evolutionary: requires oec[evolutionary] / pymoo (deselected unless installed; run with `uv run pytest -m evolutionary`)",
+  "foundation: requires oec[foundation] / transformers (deselected unless installed; run with `uv run pytest -m foundation`)",
 ]
 
 [tool.coverage.run]

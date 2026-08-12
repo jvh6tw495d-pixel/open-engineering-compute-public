@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "foundation.generate input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["prompt"],
+  "properties": {
+    "prompt": { "type": "string", "minLength": 1 },
+    "model_id": {
+      "type": "string",
+      "default": "sshleifer/tiny-gpt2"
+    },
+    "max_new_tokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 512,
+      "default": 16
+    },
+    "temperature": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0
+    },
+    "seed": { "type": "integer", "default": 0 }
+  }
+}

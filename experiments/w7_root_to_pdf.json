@@ -1,0 +1,34 @@
+{
+  "id": "w7.root_to_pdf",
+  "version": "0.1.0",
+  "title": "W7: solve root then PDF at root",
+  "seed": 0,
+  "tags": ["w7", "mathematics", "statistics"],
+  "steps": [
+    {
+      "step_id": "root",
+      "skill_id": "mathematics.solve_root",
+      "inputs": { "expression": "x**2 - 4", "bracket": [0, 3] }
+    },
+    {
+      "step_id": "pdf",
+      "skill_id": "statistics.distribution_eval",
+      "inputs": {
+        "distribution": "norm",
+        "operation": "pdf",
+        "params": { "loc": 0.0, "scale": 1.0 }
+      },
+      "binds_from": [
+        { "step_id": "root", "path": "result.root", "as": "x" }
+      ]
+    }
+  ],
+  "metrics": [
+    {
+      "name": "pdf",
+      "path": "result.value",
+      "step_id": "pdf",
+      "direction": "maximize"
+    }
+  ]
+}

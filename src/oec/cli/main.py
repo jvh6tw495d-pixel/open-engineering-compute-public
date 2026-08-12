@@ -91,6 +91,68 @@ def version() -> None:
     console.print(__version__)
 
 
+@app.command("backends")
+def backends_list(
+    as_json: JsonOption = False,
+) -> None:
+    """List Backend Capability Registry probes (ADR 0021 / W8)."""
+    from oec.backends.registry import get_backend_capabilities
+
+    caps = get_backend_capabilities()
+    if as_json:
+        console.print_json(
+            data=[
+                {
+                    "name": c.name,
+                    "available": c.available,
+                    "version": c.version,
+                    "required": c.required,
+                    "domains": sorted(c.domains),
+                    "reason": c.reason,
+                }
+                for c in caps
+            ]
+        )
+        return
+    table = Table(title="OEC backends")
+    table.add_column("name")
+    table.add_column("available")
+    table.add_column("required")
+    table.add_column("version")
+    table.add_column("domains")
+    for c in caps:
+        table.add_row(
+            c.name,
+            "yes" if c.available else "no",
+            "yes" if c.required else "no",
+            c.version or "-",
+            ", ".join(sorted(c.domains)) or "-",
+        )
+    console.print(table)
+
+
+@experiment_app.command("builders")
+def experiment_builders(as_json: JsonOption = False) -> None:
+    """List W7 cross-domain experiment builders."""
+    from oec.experiment.cross_domain import list_cross_domain_builders
+
+    rows = list_cross_domain_builders()
+    if as_json:
+        console.print_json(data=rows)
+        return
+    table = Table(title="Cross-domain experiment builders (W7)")
+    table.add_column("name")
+    table.add_column("domains")
+    table.add_column("extras")
+    for row in rows:
+        table.add_row(
+            str(row["name"]),
+            ", ".join(row["domains"]),
+            ", ".join(row["extras"]) if row["extras"] else "-",
+        )
+    console.print(table)
+
+
 def _load_registry(skills_root: Path) -> tuple[SkillRegistry, list[str]]:
     registry = SkillRegistry()
     report = registry.register_all(skills_root)

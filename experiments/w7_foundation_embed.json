@@ -1,0 +1,30 @@
+{
+  "id": "w7.foundation_embed_stats",
+  "version": "0.1.0",
+  "title": "W7: foundation builtin embed",
+  "seed": 0,
+  "tags": ["w7", "foundation"],
+  "steps": [
+    {
+      "step_id": "embed",
+      "skill_id": "foundation.embed",
+      "inputs": {
+        "texts": ["open engineering compute", "scientific skills"],
+        "backend": "builtin_hash",
+        "dim": 16,
+        "seed": 0,
+        "normalize": true
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "name": "dim",
+      "path": "result.dim",
+      "step_id": "embed",
+      "direction": "target",
+      "target": 16,
+      "target_abs_tol": 0
+    }
+  ]
+}

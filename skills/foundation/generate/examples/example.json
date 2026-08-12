@@ -1,0 +1,10 @@
+{
+  "description": "Tiny generation prompt (requires oec[foundation] + model weights)",
+  "input": {
+    "prompt": "Hello",
+    "model_id": "sshleifer/tiny-gpt2",
+    "max_new_tokens": 8,
+    "temperature": 0,
+    "seed": 0
+  }
+}

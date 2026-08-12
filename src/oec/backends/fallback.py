@@ -90,6 +90,9 @@ _METHOD_BACKEND_REQUIREMENTS: dict[str, str] = {
     "neural_benchmark_training_strategy": "neural_train",
     # X3 method selection (no hard backend; uses registry probes)
     "scientific_method_select": "rng",
+    # W6 foundation (oec[foundation] / transformers) — builtin_hash needs no domain
+    "transformers_embed": "foundation_embed",
+    "transformers_generate": "foundation_generate",
 }
 
 

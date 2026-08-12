@@ -13,16 +13,18 @@ def test_get_backend_capabilities_covers_numpy_scipy_highs() -> None:
         "highs",
         "scipy",
         "numpy",
+        "sympy",
         "torch",
         "pymoo",
         "deap",
         "nevergrad",
+        "transformers",
     }
 
 
-def test_numpy_and_scipy_are_required_and_always_available() -> None:
+def test_numpy_scipy_sympy_are_required_and_always_available() -> None:
     capabilities = {c.name: c for c in get_backend_capabilities()}
-    for name in ("numpy", "scipy"):
+    for name in ("numpy", "scipy", "sympy"):
         assert capabilities[name].available is True
         assert capabilities[name].version is not None
         assert capabilities[name].required is True
