@@ -20,9 +20,9 @@ W2  Experiment Engine            ✅ complete: binds, gates, artifacts, REST, MC
  ↓
 W3  Applied Sciences             ✅ MVP: waves/optics/EM/ideal-gas/thermochem skills
  ↓
-W4  Neural Computing             re-homologate existing skills under Experiment
+W4  Neural Computing             ✅ builders: MLP + ADR 0033 modes under Experiment
  ↓
-W5  Evolutionary Computing       re-homologate + NEAT later
+W5  Evolutionary Computing       ✅ builders: optimize_single/NSGA2/hybrid; NEAT deferred
  ↓
 W6  Foundation Models            Transformers/PEFT behind contracts
  ↓

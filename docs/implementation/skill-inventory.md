@@ -55,6 +55,19 @@
 | `chemistry.vanthoff` / `chemistry.hess_enthalpy` | thermochemistry |
 | Experiments | `experiments/w3_*.json` |
 
+## W4/W5 experiment builders (no new skills)
+
+| Builder | Module | Maps to |
+|---------|--------|---------|
+| `build_mlp_regressor_experiment` | `oec.experiment.neural` | `neural.mlp.regressor` |
+| `build_neural_training_mode_experiment` | `oec.experiment.neural` | `neural.training.*` |
+| `build_optimize_single_experiment` | `oec.experiment.evolutionary` | `evolutionary.optimize_single` |
+| `build_nsga2_experiment` | `oec.experiment.evolutionary` | `evolutionary.nsga2` |
+| `build_hybrid_training_experiment` | `oec.experiment.evolutionary` | `neural.training.hybrid` |
+
+See ADR 0037 · `docs/contracts/neural-evolutionary-experiments.md`.
+**Deferred:** NEAT / HyperNEAT.
+
 ## Neural (3.4 + ADR 0033)
 
 | Skill id | Wave |

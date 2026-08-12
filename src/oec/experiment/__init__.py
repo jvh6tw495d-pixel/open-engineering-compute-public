@@ -11,6 +11,21 @@ from oec.experiment.artifacts import (
     load_experiment_record,
     persist_experiment_record,
 )
+from oec.experiment.evolutionary import (
+    PopulationSpec,
+    build_evo_then_describe_experiment,
+    build_hybrid_training_experiment,
+    build_nsga2_experiment,
+    build_optimize_single_experiment,
+    problem_to_optimize_inputs,
+    sphere_problem_2d,
+)
+from oec.experiment.neural import (
+    build_mlp_regressor_experiment,
+    build_neural_training_mode_experiment,
+    mlp_regressor_inputs,
+    neural_dataset_to_inputs,
+)
 from oec.experiment.record import (
     ExperimentRecord,
     ExperimentStatus,
@@ -46,15 +61,26 @@ __all__ = [
     "MetricSpec",
     "MetricValue",
     "ModelSpec",
+    "PopulationSpec",
     "ProducedArtifact",
     "ProvenanceSpec",
     "StepRecord",
     "TrainingSpec",
     "ValidationSpec",
     "ValidationSummary",
+    "build_evo_then_describe_experiment",
+    "build_hybrid_training_experiment",
+    "build_mlp_regressor_experiment",
+    "build_neural_training_mode_experiment",
+    "build_nsga2_experiment",
+    "build_optimize_single_experiment",
     "config_hash",
     "default_artifact_root",
     "load_experiment_record",
+    "mlp_regressor_inputs",
+    "neural_dataset_to_inputs",
     "persist_experiment_record",
+    "problem_to_optimize_inputs",
     "run_experiment",
+    "sphere_problem_2d",
 ]
