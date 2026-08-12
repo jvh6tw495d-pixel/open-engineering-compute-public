@@ -141,6 +141,20 @@ _DOMAIN_ALIASES: dict[str, tuple[str, ...]] = {
         "harmonic",
         "harmônico",
         "thd",
+        # W3 applied-sciences foundations free-text
+        "wave",
+        "onda",
+        "wavelength",
+        "comprimento de onda",
+        "optics",
+        "óptica",
+        "snell",
+        "lens",
+        "lente",
+        "coulomb",
+        "capacitor",
+        "ideal gas",
+        "gás ideal",
     ),
     "control_dynamics": (
         "control",
@@ -215,6 +229,23 @@ _DOMAIN_ALIASES: dict[str, tuple[str, ...]] = {
         "treinamento supervisionado",
     ),
     "review": ("review", "audit", "revisar", "auditar"),
+    # W6 foundation models (avoid bare "transformer" alone — neural also uses it)
+    "foundation": (
+        "foundation model",
+        "embedding",
+        "embeddings",
+        "huggingface",
+        "hugging face",
+        "language model",
+        "modelo de linguagem",
+        "llm",
+        "lora",
+        "qlora",
+        "peft",
+        "tokeniz",
+        "foundation.embed",
+        "text embedding",
+    ),
 }
 _FIELD_WEIGHTS = {"id": 4, "title": 5, "tags": 3, "description": 1}
 

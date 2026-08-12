@@ -107,6 +107,11 @@ def test_kind_for_skill_closed_table() -> None:
     assert kind_for_skill("neural.training.hybrid") == "neural_result"
     assert kind_for_skill("evolutionary.optimize_single") == "evolutionary_result"
     assert kind_for_skill("evolutionary.nsga2") == "evolutionary_result"
+    assert kind_for_skill("foundation.embed") == "foundation_result"
+    assert kind_for_skill("waves.phase_speed") == "physics_result"
+    assert kind_for_skill("optics.snell") == "physics_result"
+    assert kind_for_skill("em.coulomb") == "physics_result"
+    assert kind_for_skill("chemistry.vanthoff") == "chemistry_result"
     assert kind_for_skill("unknown.foo") == "generic_result"
     assert kind_for_skill(None, specialist="agent.scientific_reviewer") == "review_result"
 

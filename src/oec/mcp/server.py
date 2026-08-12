@@ -63,9 +63,15 @@ _ensure_agents_importable()
 LIST_AGENTS_TOOL_NAME = "list_agents"
 LIST_SKILLS_TOOL_NAME = "list_skills"
 EXPERIMENT_RUN_TOOL_NAME = "experiment.run"
+EXPERIMENT_LIST_BUILDERS_TOOL_NAME = "experiment.list_builders"
 
 _LIST_AGENTS_INPUT_SCHEMA: dict[str, Any] = {"type": "object", "properties": {}}
 _LIST_SKILLS_INPUT_SCHEMA: dict[str, Any] = {"type": "object", "properties": {}}
+_EXPERIMENT_LIST_BUILDERS_INPUT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {},
+}
 _EXPERIMENT_RUN_INPUT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -73,6 +79,17 @@ _EXPERIMENT_RUN_INPUT_SCHEMA: dict[str, Any] = {
         "spec": {
             "type": "object",
             "description": "Full ExperimentSpec JSON object (id, steps, metrics, …).",
+        },
+        "builder": {
+            "type": "string",
+            "description": (
+                "Optional W7 cross-domain builder name from experiment.list_builders "
+                "(e.g. build_wave_then_stats_experiment). Used when 'spec' is omitted."
+            ),
+        },
+        "builder_kwargs": {
+            "type": "object",
+            "description": "Optional kwargs for the named builder.",
         },
         "persist_artifacts": {
             "type": "boolean",
@@ -85,17 +102,19 @@ _EXPERIMENT_RUN_INPUT_SCHEMA: dict[str, Any] = {
         "requested_by": {"type": "string"},
         "trace_id": {"type": "string"},
     },
-    "required": ["spec"],
 }
 _LIST_AGENTS_DESCRIPTION = "List built-in OEC specialist agents exposed by this MCP server."
 _LIST_SKILLS_DESCRIPTION = (
     "List registered OEC raw skill manifests (mirrors `oec skills list --json`)."
 )
 _EXPERIMENT_RUN_DESCRIPTION = (
-    "Run a multi-step OEC ExperimentSpec (W2). Each step is one skill execution; "
-    "returns ExperimentRecord with metrics and validation gates. Prefer this for "
-    "composed scientific workflows; use agent.default or raw skill tools for "
-    "single-skill calls."
+    "Run a multi-step OEC ExperimentSpec (W2–W7). Pass 'spec' (full plan) or "
+    "'builder' (W7 name from experiment.list_builders) + optional builder_kwargs. "
+    "Returns ExperimentRecord with metrics, validation, and optional artifacts."
+)
+_EXPERIMENT_LIST_BUILDERS_DESCRIPTION = (
+    "List W7 cross-domain experiment builder names, domains, and required extras. "
+    "Use a builder name with experiment.run when you do not want to hand-write a full spec."
 )
 
 _AGENT_DEFAULT_TOOL_NAME = "agent.default"
@@ -107,6 +126,7 @@ _AGENT_ENERGY_TOOL_NAME = "agent.energy"
 _AGENT_CONTROL_DYNAMICS_TOOL_NAME = "agent.control_dynamics"
 _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME = "agent.finance_uncertainty"
 _AGENT_NEURAL_TOOL_NAME = "agent.neural"
+_AGENT_FOUNDATION_TOOL_NAME = "agent.foundation"
 
 # Skill-manifest ``domain`` values each specialist's dispatch spans, for the
 # discovery fallback's candidate ranking (agents/*/specialist.py's own
@@ -128,11 +148,18 @@ _DOMAIN_GROUPS: dict[str, tuple[str, ...]] = {
         "mechanics",
         "fluids",
         "materials",
+        # W3 applied-sciences foundations (surfaced via energy multi-domain agent)
+        "waves",
+        "optics",
+        "em",
+        "statistical_physics",
     ),
     _AGENT_CONTROL_DYNAMICS_TOOL_NAME: ("control", "dynamics"),
     _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME: ("finance", "uncertainty"),
     # ADR 0031 / 0033 — dense neural families + evolutionary + hybrid training.
     _AGENT_NEURAL_TOOL_NAME: ("neural", "evolutionary"),
+    # W6 foundation models
+    _AGENT_FOUNDATION_TOOL_NAME: ("foundation",),
 }
 
 # Wave 2 (v2.5.3): a host may voluntarily attach its own belief about the
@@ -158,6 +185,7 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
                     "control_dynamics",
                     "finance_uncertainty",
                     "neural",
+                    "foundation",
                 ],
             },
             "ops": {"type": "object"},
@@ -255,6 +283,16 @@ _AGENT_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
         },
         "additionalProperties": False,
     },
+    _AGENT_FOUNDATION_TOOL_NAME: {
+        "type": "object",
+        "properties": {
+            "demo_label": {"type": "string"},
+            "skill_id": {"type": "string"},
+            "inputs": {"type": "object"},
+            "claimed_answer": _CLAIMED_ANSWER_SCHEMA,
+        },
+        "additionalProperties": False,
+    },
 }
 
 _AGENT_TOOL_DESCRIPTIONS: dict[str, str] = {
@@ -277,7 +315,9 @@ _AGENT_TOOL_DESCRIPTIONS: dict[str, str] = {
         "Time-Series Specialist: domain wrapper over timeseries.* quality/grid skills."
     ),
     _AGENT_ENERGY_TOOL_NAME: (
-        "Energy Specialist: domain wrapper over public energy/battery/electrical skills."
+        "Energy & Applied Physics Specialist: energy/battery/electrical plus W3 foundations "
+        "(waves, optics, em, statistical_physics, chemistry, thermal, mechanics, fluids, "
+        "materials)."
     ),
     _AGENT_CONTROL_DYNAMICS_TOOL_NAME: (
         "Control & Dynamics Specialist: control.* and dynamics.* skills."
@@ -289,6 +329,11 @@ _AGENT_TOOL_DESCRIPTIONS: dict[str, str] = {
         "Neural & Evolutionary Specialist: neural.* training/families/search and "
         "evolutionary.* single/multi-objective skills (ADR 0031 / ADR 0033). "
         "Requires oec[neural] / oec[evolutionary] extras for most demos."
+    ),
+    _AGENT_FOUNDATION_TOOL_NAME: (
+        "Foundation Models Specialist: foundation.embed (builtin_hash offline or "
+        "transformers), foundation.generate (oec[foundation]), foundation.capabilities. "
+        "Prefer experiment.run for multi-step scientific workflows that include embeddings."
     ),
 }
 
@@ -387,6 +432,14 @@ def _agent_catalog() -> list[dict[str, Any]]:
             "domain": "neural",
             "default": True,
             "description": _AGENT_TOOL_DESCRIPTIONS[_AGENT_NEURAL_TOOL_NAME],
+        },
+        {
+            "id": _AGENT_FOUNDATION_TOOL_NAME,
+            "title": "Foundation Models Specialist",
+            "kind": "agent",
+            "domain": "foundation",
+            "default": True,
+            "description": _AGENT_TOOL_DESCRIPTIONS[_AGENT_FOUNDATION_TOOL_NAME],
         },
     ]
 
@@ -551,6 +604,44 @@ def _infer_domain_from_request(request: str) -> str | None:
         )
     ):
         return "neural"
+    if any(
+        _contains_token(text, token)
+        for token in (
+            "foundation model",
+            "embedding",
+            "embeddings",
+            "huggingface",
+            "hugging face",
+            "transformers",
+            "llm",
+            "language model",
+            "modelo de linguagem",
+            "lora",
+            "qlora",
+            "peft",
+            "tokeniz",
+        )
+    ):
+        return "foundation"
+    if any(
+        _contains_token(text, token)
+        for token in (
+            "wave",
+            "onda",
+            "wavelength",
+            "comprimento de onda",
+            "optics",
+            "óptica",
+            "snell",
+            "lens",
+            "lente",
+            "coulomb",
+            "capacitor",
+            "ideal gas",
+            "gás ideal",
+        )
+    ):
+        return "energy"
     return None
 
 
@@ -606,6 +697,7 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
         "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
         "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
         "neural": _AGENT_NEURAL_TOOL_NAME,
+        "foundation": _AGENT_FOUNDATION_TOOL_NAME,
     }
     if preferred in preferred_targets:
         return RouteDecision(
@@ -621,7 +713,23 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             target = _AGENT_OPTIMIZATION_TOOL_NAME
         elif skill_id.startswith("timeseries."):
             target = _AGENT_TIME_SERIES_TOOL_NAME
-        elif skill_id.startswith(("energy.", "battery.", "electrical.")):
+        elif skill_id.startswith(
+            (
+                "energy.",
+                "battery.",
+                "electrical.",
+                "chemistry.",
+                "thermal.",
+                "mechanics.",
+                "fluids.",
+                "materials.",
+                "waves.",
+                "optics.",
+                "em.",
+                "statistical_physics.",
+                "multiphysics.",
+            )
+        ):
             target = _AGENT_ENERGY_TOOL_NAME
         elif skill_id.startswith(("control.", "dynamics.")):
             target = _AGENT_CONTROL_DYNAMICS_TOOL_NAME
@@ -629,6 +737,8 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             target = _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME
         elif skill_id.startswith(("neural.", "evolutionary.")):
             target = _AGENT_NEURAL_TOOL_NAME
+        elif skill_id.startswith("foundation."):
+            target = _AGENT_FOUNDATION_TOOL_NAME
         else:
             target = _AGENT_APPLIED_MATH_TOOL_NAME
         return RouteDecision(
@@ -718,6 +828,13 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             reason=f"demo_label={demo_label}",
             signal="demo_label",
         )
+    if demo_label in {"embed", "capabilities"}:
+        return RouteDecision(
+            target=_AGENT_FOUNDATION_TOOL_NAME,
+            confidence=1.0,
+            reason=f"demo_label={demo_label}",
+            signal="demo_label",
+        )
 
     request = arguments.get("request")
     if isinstance(request, str):
@@ -730,6 +847,7 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             "control_dynamics": _AGENT_CONTROL_DYNAMICS_TOOL_NAME,
             "finance_uncertainty": _AGENT_FINANCE_UNCERTAINTY_TOOL_NAME,
             "neural": _AGENT_NEURAL_TOOL_NAME,
+            "foundation": _AGENT_FOUNDATION_TOOL_NAME,
         }
         intents = rank_domain_intents(request)
         if intents and not needs_domain_clarification(intents):
@@ -870,6 +988,10 @@ def _run_specialist_by_name(engine: Engine, name: str, arguments: dict[str, Any]
         from agents.neural.specialist import NeuralEvolutionarySpecialist
 
         specialist = NeuralEvolutionarySpecialist(skills_root=skills_root)
+    elif name == _AGENT_FOUNDATION_TOOL_NAME:
+        from agents.foundation.specialist import FoundationSpecialist
+
+        specialist = FoundationSpecialist(skills_root=skills_root)
     else:
         raise ValueError(f"Unknown agent tool: {name!r}")
 
@@ -916,6 +1038,13 @@ def build_tools(engine: Engine) -> list[Tool]:
     )
     tools.append(
         Tool(
+            name=EXPERIMENT_LIST_BUILDERS_TOOL_NAME,
+            description=_EXPERIMENT_LIST_BUILDERS_DESCRIPTION,
+            inputSchema=dict(_EXPERIMENT_LIST_BUILDERS_INPUT_SCHEMA),
+        )
+    )
+    tools.append(
+        Tool(
             name=EXPERIMENT_RUN_TOOL_NAME,
             description=_EXPERIMENT_RUN_DESCRIPTION,
             inputSchema=dict(_EXPERIMENT_RUN_INPUT_SCHEMA),
@@ -948,6 +1077,11 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
         manifest_payload = [m.model_dump(mode="json", by_alias=True) for m in manifests]
         return CallToolResult(content=[_json_text(manifest_payload)], isError=False)
 
+    if name == EXPERIMENT_LIST_BUILDERS_TOOL_NAME:
+        from oec.experiment.cross_domain import list_cross_domain_builders
+
+        return CallToolResult(content=[_json_text(list_cross_domain_builders())], isError=False)
+
     if name == EXPERIMENT_RUN_TOOL_NAME:
         if not isinstance(arguments, dict):
             return _error_result(
@@ -955,15 +1089,38 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
                 details={"tool": name},
             )
         try:
+            from oec.experiment import cross_domain as cd
             from oec.experiment.specs import ExperimentSpec
 
             raw_spec = arguments.get("spec")
-            if not isinstance(raw_spec, dict):
+            builder_name = arguments.get("builder")
+            if isinstance(raw_spec, dict):
+                exp_spec = ExperimentSpec.model_validate(raw_spec)
+            elif isinstance(builder_name, str) and builder_name:
+                if not hasattr(cd, builder_name):
+                    return _error_result(
+                        f"unknown experiment builder {builder_name!r}; "
+                        "call experiment.list_builders for names",
+                        details={"tool": name, "builder": builder_name},
+                    )
+                kwargs = arguments.get("builder_kwargs") or {}
+                if not isinstance(kwargs, dict):
+                    return _error_result(
+                        "builder_kwargs must be an object",
+                        details={"tool": name},
+                    )
+                built = getattr(cd, builder_name)(**kwargs)
+                if not isinstance(built, ExperimentSpec):
+                    return _error_result(
+                        f"builder {builder_name!r} did not return ExperimentSpec",
+                        details={"tool": name},
+                    )
+                exp_spec = built
+            else:
                 return _error_result(
-                    "experiment.run requires 'spec' object",
+                    "experiment.run requires 'spec' object or 'builder' name",
                     details={"tool": name},
                 )
-            exp_spec = ExperimentSpec.model_validate(raw_spec)
             record = engine.run_experiment(
                 exp_spec,
                 requested_by=arguments.get("requested_by"),

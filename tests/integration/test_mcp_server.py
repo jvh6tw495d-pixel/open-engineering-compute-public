@@ -74,10 +74,13 @@ def test_list_tools_includes_agents_skills_and_discovery(engine: Engine) -> None
     assert by_name["mathematics.solve_root"].inputSchema == loaded.input_schema
     assert "Prefer `agent.default`" in by_name["mathematics.solve_root"].description
 
-    # Agent-first catalog: specialists + list_agents + list_skills + experiment.run.
-    # 9 specialists + list_agents + list_skills + experiment.run = 12.
+    # Agent-first catalog: specialists + discovery + experiment tools + raw skills.
+    # 10 specialists (incl. agent.foundation) + list_agents + list_skills
+    # + experiment.list_builders + experiment.run = 14.
     assert "experiment.run" in by_name
-    assert len(tools) == len(skill_ids) + 12
+    assert "experiment.list_builders" in by_name
+    assert "agent.foundation" in by_name
+    assert len(tools) == len(skill_ids) + 14
     # foundation skills registered (W6)
     assert "foundation.embed" in skill_ids
 

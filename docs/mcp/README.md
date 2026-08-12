@@ -87,14 +87,24 @@ run another agent first and pass its result's `execution` back in.
 | `agent.scientific_reviewer` | Audits OPS + `ExecutionResult` without re-solving. |
 | `agent.applied_mathematics` | Domain wrapper over math / linear / statistics / numerical skills. |
 | `agent.time_series` | Domain wrapper over `timeseries.*` quality and grid skills. |
-| `agent.energy` | Domain wrapper over public energy / battery / electrical skills. |
+| `agent.energy` | Energy & applied physics: energy/battery/electrical + W3 foundations (waves, optics, em, statistical_physics, chemistry, thermal, mechanics, …). |
 | `agent.control_dynamics` | Domain wrapper over public `control.*` and `dynamics.*` skills. |
 | `agent.finance_uncertainty` | Domain wrapper over public `finance.*` and `uncertainty.*` skills. |
-| `agent.neural` | Neural & evolutionary specialist: public `neural.*` and `evolutionary.*` skills (ADR 0031 / ADR 0033 training + search). Prefer this for MLP/LSTM/CNN/transformer, neuroevolution, NSGA/DE/CMA-ES. Raw skill tools (`neural.mlp.regressor`, `evolutionary.optimize_single`, …) remain in the catalog. |
-| `experiment.run` | Multi-step `ExperimentSpec` runner (W2). Returns `ExperimentRecord` with metrics and validation. |
+| `agent.neural` | Neural & evolutionary specialist: public `neural.*` and `evolutionary.*` skills (ADR 0031 / ADR 0033). |
+| `agent.foundation` | Foundation models: `foundation.embed` (builtin_hash offline or transformers), `foundation.generate` (`oec[foundation]`), `foundation.capabilities`. |
+| `experiment.list_builders` | List W7 cross-domain experiment builder names (domains + required extras). |
+| `experiment.run` | Multi-step `ExperimentSpec` runner (W2–W7). Pass `spec` **or** `builder` + optional `builder_kwargs`. Returns `ExperimentRecord`. |
 | `list_agents` | Specialist-agent catalog. Preferred discovery entrypoint for hosts. |
-| `list_skills` | Raw skill catalog, mirroring `oec skills list --json`. |
+| `list_skills` | Raw skill catalog (~147 skills including foundation/W3). |
 | `<skill_id>` | Run a specific low-level skill directly. `inputSchema` is the skill's own `input.schema.json`. Result is the full `ExecutionResult` JSON. |
+
+### What’s new (3.5.0 / W6–W8 on MCP)
+
+1. **`agent.foundation`** + raw tools `foundation.embed`, `foundation.generate`, `foundation.capabilities`
+2. **`experiment.list_builders`** + `experiment.run` with named W7 builders
+3. **W3 physics skills** as raw tools (`waves.*`, `optics.*`, `em.*`, `statistical_physics.*`, …) routed via `agent.energy` / skill prefixes
+4. **Full skill catalog** auto-listed (147 skills) — no hard-coded subset
+5. Package **OEC 3.5.0** — restart MCP process to pick up the new catalog
 
 ## Recommended host behavior
 

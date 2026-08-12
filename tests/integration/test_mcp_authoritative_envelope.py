@@ -156,7 +156,7 @@ def test_router_nested_needs_more_information_has_no_authoritative_answer(
 def test_smoke_all_specialist_agents_normalize_without_crash(engine: Engine) -> None:
     """Each specialist path returns a parseable payload; authority only when solved."""
     agent_names = [name for name in _AGENT_TOOL_SCHEMAS if name != "agent.default"]
-    assert len(agent_names) == 8
+    assert len(agent_names) == 9
 
     calls: list[tuple[str, dict[str, Any]]] = [
         ("agent.optimization_specialist", {"demo_label": "diet"}),
@@ -172,6 +172,7 @@ def test_smoke_all_specialist_agents_normalize_without_crash(engine: Engine) -> 
         ("agent.control_dynamics", {"demo_label": "pid"}),
         ("agent.finance_uncertainty", {"demo_label": "returns"}),
         ("agent.neural", {"demo_label": "optimize_single"}),
+        ("agent.foundation", {"demo_label": "embed"}),
     ]
 
     for name, arguments in calls:

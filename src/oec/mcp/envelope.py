@@ -46,6 +46,14 @@ _KIND_BY_PREFIX: tuple[tuple[str, str], ...] = (
     # ADR 0031 / 0033 — dense neural + evolutionary compute surface.
     ("neural.", "neural_result"),
     ("evolutionary.", "evolutionary_result"),
+    # W3 applied-sciences foundations
+    ("waves.", "physics_result"),
+    ("optics.", "physics_result"),
+    ("em.", "physics_result"),
+    ("statistical_physics.", "physics_result"),
+    ("chemistry.", "chemistry_result"),
+    # W6 foundation models
+    ("foundation.", "foundation_result"),
 )
 
 _EXECUTION_SHAPE_KEYS = ("status", "skill", "method", "started_at")
