@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-08-11
+
+**Theme:** Scientific framework cut W0–W8 — Experiment Engine, applied foundations,
+neural/evo builders, foundation models, hardened MCP surface.
+
+### Added
+
+- **W0–W2:** Experiment specs (ADR 0034/0035), sequential `run_experiment`, binds,
+  target gates, artifacts; REST + MCP `experiment.run`.
+- **W1 scientific core skills:** distribution eval, hypothesis tests, Jacobian, PDE 1D heat.
+- **W3 applied sciences:** waves / optics / EM / statistical physics (+ chem/thermal/mechanics
+  foundations) as public skills.
+- **W4–W5:** experiment builders for neural and evolutionary re-homologation.
+- **W6 foundation:** `oec[foundation]`, skills `foundation.embed` / `generate` / `capabilities`,
+  MCP `agent.foundation`.
+- **W7 cross-domain:** `oec.experiment.cross_domain` builders + `experiment.list_builders`.
+- **W8:** package **3.5.0**, backends/builders CLIs, framework release notes.
+- **MCP hardening:** fail-closed builder allow-list (`get_cross_domain_builder`), exact domain
+  envelope kinds, foundation-before-neural free-text routing, catalog drift tests.
+
+### Notes
+
+- Skill catalog baseline: **147** skills / **28** domains.
+- Core install still free of torch / pymoo / transformers (optional extras).
+- Framework doc: `docs/release/FRAMEWORK-3.5.0.md`.
+
 ## [3.4.1] - 2026-08-10
 
 **Tag:** `v3.4.1-neural-evo`

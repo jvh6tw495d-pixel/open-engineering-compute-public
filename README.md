@@ -8,10 +8,10 @@
 
 # Open Engineering Compute (OEC)
 
-> **Status:** **`oec==3.4.0` private incubation** — Neural + Evolutionary Compute.
-> Skill catalog: **121** skills / **22** domains (extras optional).
-> Closeout: [v3.4-closeout.md](docs/implementation/v3.4-closeout.md).
-> **Do not** treat this tree as the first public GitHub launch (see public-alpha procedure).
+> **Status:** **`oec==3.5.0` scientific framework cut (W0–W8)**.
+> Skill catalog: **147** skills / **28** domains (extras optional).
+> Framework notes: [FRAMEWORK-3.5.0.md](docs/release/FRAMEWORK-3.5.0.md).
+> Prior neural/evo incubation: [v3.4-closeout.md](docs/implementation/v3.4-closeout.md).
 
 Open Engineering Compute is an open framework for executable, versioned and
 auditable engineering skills. It lets different language models, agents,
@@ -61,8 +61,9 @@ Optional extras:
 uv sync --extra api           # REST:  oec server api --skills-root skills
 uv sync --extra mcp           # MCP:   oec server mcp --skills-root skills
 uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
-uv sync --extra neural        # PyTorch: neural.mlp.* / neural.predict (ADR 0031)
-uv sync --extra evolutionary  # pymoo: evolutionary.* single-objective (ADR 0031)
+uv sync --extra neural        # PyTorch: neural.* families / training (ADR 0031)
+uv sync --extra evolutionary  # pymoo/DEAP/Nevergrad: evolutionary.* (ADR 0031/0033)
+uv sync --extra foundation    # transformers: foundation.embed / generate (W6)
 ```
 
 ## Interfaces
@@ -73,7 +74,7 @@ uv sync --extra evolutionary  # pymoo: evolutionary.* single-objective (ADR 0031
 | Python SDK (scientific) | `Engine.run_scientific` → `ScientificResult` ([ADR 0019](docs/architecture/adr/0019-scientific-kernel.md)) |
 | CLI | `oec skills …`, `oec run`, `oec server …` |
 | REST | `/v1/skills`, `/v1/skills/{id}/run` — [docs/api](docs/api/README.md) |
-| MCP | stdio tools per skill — [docs/mcp](docs/mcp/README.md) |
+| MCP | agent-first tools + raw skills + `experiment.*` — [docs/mcp](docs/mcp/README.md) |
 
 See [docs/concepts/scientific-kernel.md](docs/concepts/scientific-kernel.md) for when to use `ScientificResult` vs `ExecutionResult`.
 
@@ -83,7 +84,7 @@ See [docs/concepts/scientific-kernel.md](docs/concepts/scientific-kernel.md) for
 |---|---|---|
 | Odysseus (MCP host) | `integrations/odysseus/` | config + tutorial; core has zero Odysseus deps |
 | Open Science | `integrations/open_science/` | Method Change Proposals; **never** auto-mutates `stable` skills |
-| **Agents (v1.5+)** | `agents/` | 7 specialists outside the wheel — formulate/review only; numbers from OEC ([packaging](agents/README.md)) |
+| **Agents (v1.5+)** | `agents/` | 9 specialists outside the wheel (incl. neural + foundation) — formulate/review only; numbers from OEC ([packaging](agents/README.md)) |
 
 ```python
 from agents.optimization_specialist.specialist import OptimizationSpecialist
@@ -109,19 +110,22 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 
 ## Status / release
 
-**Current: `oec==3.4.0`**, private incubation, **121** skills across **22** domains
-(prior 3.3.x physics/chemistry/multiphysics **plus** neural, evolutionary, hybrid,
-scientific — see [skill-inventory.md](docs/implementation/skill-inventory.md)).
+**Current: `oec==3.5.0`**, scientific framework cut, **147** skills across **28** domains
+(see [skill-inventory.md](docs/implementation/skill-inventory.md) and
+[FRAMEWORK-3.5.0.md](docs/release/FRAMEWORK-3.5.0.md)).
 
-**3.4.0 theme:** optional **Neural** (`oec[neural]` / PyTorch) and **Evolutionary**
-(`oec[evolutionary]` / pymoo + DEAP + Nevergrad) waves N0–N5, E1–E4, X1–X3
-([waves doc](docs/implementation/OEC_NEURAL_EVOLUTIONARY_WAVES.md),
-[closeout](docs/implementation/v3.4-closeout.md), ADR 0031/0032). Core install
-remains free of those engines. Hybrid X2 never promotes surrogate optima to
-engineering truth without high-fidelity re-check.
+**3.5.0 theme (W0–W8):** Experiment Engine (`Engine.run_experiment`), applied-sciences
+foundations (waves/optics/EM/statistical physics/…), neural + evolutionary experiment
+builders, optional **Foundation** models (`oec[foundation]`), cross-domain builder library,
+and hardened MCP/CLI surfaces (`agent.foundation`, `experiment.list_builders` /
+`experiment.run` with fail-closed builder catalog). Core install remains free of torch /
+pymoo / transformers.
 
-Baseline recovery notes for 3.3.1 remain under
-[3.3.1-release-recovery-plan.md](docs/implementation/3.3.1-release-recovery-plan.md).
+**3.4.x baseline:** optional **Neural** / **Evolutionary** extras under ADR 0031–0033
+([waves](docs/implementation/OEC_NEURAL_EVOLUTIONARY_WAVES.md),
+[v3.4 closeout](docs/implementation/v3.4-closeout.md)). Hybrid paths never promote
+surrogate optima to engineering truth without high-fidelity re-check.
+
 Open residuals (REST/MCP auth, OS sandbox, routing as classifier) stay in
 [technical-debt.md](docs/implementation/technical-debt.md).
 
@@ -154,8 +158,8 @@ chemistry, added THD and the sequential chemistry network. Full detail in
 
 </details>
 
-This clone is the **incubation** repository (no remote). Public Alpha must use a
-**new directory and clean git history** — see:
+This tree is the **incubation / scientific framework** line. A separate Public Alpha
+export (clean history) may still use a new directory — see:
 
 - [docs/release/public-alpha.md](docs/release/public-alpha.md)
 - `uv run python scripts/prepare_public_alpha.py --dry-run`
