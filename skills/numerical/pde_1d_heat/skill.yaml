@@ -1,0 +1,41 @@
+id: numerical.pde_1d_heat
+version: 0.1.0
+status: experimental
+domain: numerical
+title: 1D Heat / Poisson PDE (FDM foundation)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: fdm_heat_1d
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "LeVeque, Finite Difference Methods for ODEs and PDEs"
+  - "Framework W1 scientific core (PDE foundations)"
+
+tags:
+  - numerical
+  - pde
+  - heat
+  - w1

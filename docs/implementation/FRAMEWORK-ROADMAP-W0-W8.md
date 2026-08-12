@@ -14,9 +14,9 @@
 ```text
 W0  Architecture Freeze          ✅ contracts + docs + specs stubs
  ↓
-W1  Scientific Core (no AI)      next — stats/PDE/symbolic gaps
+W1  Scientific Core (no AI)      ✅ MVP: distributions, hypothesis, jacobian, pde_1d_heat
  ↓
-W2  Experiment Engine            critical — run_experiment
+W2  Experiment Engine            next — run_experiment
  ↓
 W3  Applied Sciences             physics → chemistry → engineering apps
  ↓

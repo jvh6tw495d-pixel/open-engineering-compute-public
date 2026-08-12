@@ -1,0 +1,40 @@
+id: statistics.distribution_eval
+version: 0.1.0
+status: experimental
+domain: statistics
+title: Distribution Evaluation (PDF/CDF/PPF/Sample)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: scipy_stats_distribution
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "SciPy stats — https://docs.scipy.org/doc/scipy/reference/stats.html"
+  - "Framework W1 scientific core (distributions)"
+
+tags:
+  - statistics
+  - distributions
+  - w1

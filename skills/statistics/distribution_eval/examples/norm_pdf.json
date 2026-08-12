@@ -1,0 +1,9 @@
+{
+  "description": "Standard normal PDF at 0",
+  "input": {
+    "distribution": "norm",
+    "operation": "pdf",
+    "params": { "loc": 0.0, "scale": 1.0 },
+    "x": 0.0
+  }
+}

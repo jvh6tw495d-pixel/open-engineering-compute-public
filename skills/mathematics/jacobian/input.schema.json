@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mathematics.jacobian input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["expressions", "variables", "at"],
+  "properties": {
+    "expressions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "variables": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "at": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "number" }
+    },
+    "method": {
+      "type": "string",
+      "enum": ["central", "forward", "backward"],
+      "default": "central"
+    },
+    "step": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  }
+}

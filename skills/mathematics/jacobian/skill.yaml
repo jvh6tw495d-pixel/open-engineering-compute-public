@@ -1,0 +1,42 @@
+id: mathematics.jacobian
+version: 0.1.0
+status: experimental
+domain: mathematics
+title: Numerical Jacobian (Finite Difference)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: finite_difference_jacobian
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 10
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Burden & Faires, Numerical Analysis — finite differences"
+  - "docs/architecture/adr/0022-computational-kernel-unification.md"
+  - "Framework W1 scientific core (Jacobian)"
+
+tags:
+  - mathematics
+  - differentiation
+  - jacobian
+  - w1

@@ -1,14 +1,9 @@
-"""Finite-difference numerical differentiation — new under
-``kernel/computational`` (ADR 0022). Scalar-to-scalar only for v0
-(gradient/Jacobian for vector-valued functions is a non-goal this pass).
+"""Finite-difference numerical differentiation — under
+``kernel/computational`` (ADR 0022).
 
-``scipy.misc.derivative`` (the function that used to fit this need) was
-removed from modern SciPy; ``scipy.optimize.approx_fprime`` only does
-forward differences with no step control suited to a general
-derivative-at-a-point primitive. A small, auditable central/forward/
-backward finite-difference implementation is the right-sized choice here —
-not a reimplementation of existing SciPy/NumPy functionality, since
-nothing suitable remains to wrap.
+Scalar first derivative (v0) plus multi-variable Jacobian (W1) via the same
+central/forward/backward finite-difference stencils. SciPy no longer ships a
+general scalar ``derivative`` helper; OEC keeps a small auditable FD kernel.
 
 Not iterative: ``diagnostics.converged`` is always ``None`` (ADR 0013),
 same convention as interpolation and tabulated integration.
@@ -17,7 +12,7 @@ same convention as interpolation and tabulated integration.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -89,3 +84,86 @@ def differentiate(
 def _default_step(x: float, *, order: float) -> float:
     """The adaptive finite-difference step ``h = max(|x|, 1) * eps**order``."""
     return float(max(abs(x), 1.0) * (_MACHINE_EPS**order))
+
+
+class JacobianResult(BaseModel):
+    """Jacobian matrix (m functions × n variables) via finite differences."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    jacobian: list[list[float]]
+    point: list[float]
+    variables: list[str]
+    diagnostics: ComputationalDiagnostics
+
+
+def jacobian(
+    functions: Sequence[Callable[[Sequence[float]], float]],
+    point: Sequence[float],
+    *,
+    variables: Sequence[str] | None = None,
+    method: DifferentiationMethod = "central",
+    step: float | None = None,
+) -> JacobianResult:
+    """Approximate Jacobian J[i,j] = ∂f_i / ∂x_j at ``point``.
+
+    Each callable receives the full variable vector. Raises
+    :class:`~oec.errors.NumericalDomainError` for empty functions/point or
+    invalid method/step.
+    """
+    if not functions:
+        raise NumericalDomainError("functions must be non-empty")
+    if not point:
+        raise NumericalDomainError("point must be non-empty")
+    if step is not None and step <= 0:
+        raise NumericalDomainError(f"step must be positive, got {step!r}", details={"step": step})
+    if method not in {"central", "forward", "backward"}:
+        raise NumericalDomainError(
+            f"unknown differentiation method {method!r}", details={"method": method}
+        )
+
+    x0 = [float(v) for v in point]
+    n = len(x0)
+    names = list(variables) if variables is not None else [f"x{i}" for i in range(n)]
+    if len(names) != n:
+        raise NumericalDomainError(
+            f"variables length {len(names)} must match point length {n}",
+            details={"variables": names, "point": x0},
+        )
+
+    order = _CENTRAL_STEP_ORDER if method == "central" else _ONE_SIDED_STEP_ORDER
+    steps = [step if step is not None else _default_step(xi, order=order) for xi in x0]
+
+    rows: list[list[float]] = []
+    for f in functions:
+        row: list[float] = []
+        for j in range(n):
+            h = steps[j]
+            if method == "central":
+                xp = list(x0)
+                xm = list(x0)
+                xp[j] = x0[j] + h
+                xm[j] = x0[j] - h
+                deriv = (float(f(xp)) - float(f(xm))) / (2.0 * h)
+            elif method == "forward":
+                xp = list(x0)
+                xp[j] = x0[j] + h
+                deriv = (float(f(xp)) - float(f(x0))) / h
+            else:  # backward
+                xm = list(x0)
+                xm[j] = x0[j] - h
+                deriv = (float(f(x0)) - float(f(xm))) / h
+            row.append(float(deriv))
+        rows.append(row)
+
+    return JacobianResult(
+        jacobian=rows,
+        point=x0,
+        variables=names,
+        diagnostics=ComputationalDiagnostics(
+            method=method,
+            backend="oec",
+            converged=None,
+            step=float(min(steps)) if steps else None,
+        ),
+    )

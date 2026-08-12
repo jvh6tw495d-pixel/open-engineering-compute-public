@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "numerical.pde_1d_heat input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "length": { "type": "number", "exclusiveMinimum": 0, "default": 1.0 },
+    "n_intervals": { "type": "integer", "minimum": 2, "default": 20 },
+    "left_value": { "type": "number", "default": 0.0 },
+    "right_value": { "type": "number", "default": 0.0 },
+    "source": { "type": "number", "default": 0.0 },
+    "diffusivity": { "type": "number", "exclusiveMinimum": 0, "default": 1.0 },
+    "mode": {
+      "type": "string",
+      "enum": ["steady", "transient"],
+      "default": "steady"
+    },
+    "n_steps": { "type": "integer", "minimum": 1, "default": 50 },
+    "dt": { "type": "number", "exclusiveMinimum": 0 },
+    "initial": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3
+    }
+  }
+}

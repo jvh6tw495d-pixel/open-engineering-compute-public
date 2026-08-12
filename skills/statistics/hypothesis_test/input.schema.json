@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "statistics.hypothesis_test input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["test"],
+  "properties": {
+    "test": {
+      "type": "string",
+      "enum": ["t_one_sample", "t_two_sample", "ks_1samp", "mannwhitney"]
+    },
+    "sample": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1
+    },
+    "sample_a": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1
+    },
+    "sample_b": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1
+    },
+    "popmean": { "type": "number", "default": 0.0 },
+    "equal_var": { "type": "boolean", "default": true },
+    "alternative": {
+      "type": "string",
+      "enum": ["two-sided", "less", "greater"],
+      "default": "two-sided"
+    },
+    "reference_distribution": {
+      "type": "string",
+      "enum": ["norm", "uniform"],
+      "default": "norm"
+    },
+    "reference_params": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "statistics.distribution_eval input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["distribution", "operation"],
+  "properties": {
+    "distribution": {
+      "type": "string",
+      "enum": ["norm", "t", "uniform", "expon", "chi2", "beta"]
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["pdf", "cdf", "ppf", "mean", "std", "sample"]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "x": {
+      "oneOf": [
+        { "type": "number" },
+        { "type": "array", "items": { "type": "number" }, "minItems": 1 }
+      ]
+    },
+    "p": {
+      "oneOf": [
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        {
+          "type": "array",
+          "items": { "type": "number", "minimum": 0, "maximum": 1 },
+          "minItems": 1
+        }
+      ]
+    },
+    "n_samples": { "type": "integer", "minimum": 1, "default": 1 },
+    "seed": { "type": "integer" }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Jacobian of [x**2 + y, x*y] at (1, 2)",
+  "input": {
+    "expressions": ["x**2 + y", "x*y"],
+    "variables": ["x", "y"],
+    "at": [1.0, 2.0],
+    "method": "central"
+  }
+}

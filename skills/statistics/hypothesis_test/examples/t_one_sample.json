@@ -1,0 +1,9 @@
+{
+  "description": "One-sample t-test against popmean=0",
+  "input": {
+    "test": "t_one_sample",
+    "sample": [0.1, -0.2, 0.05, 0.0, -0.1, 0.15, -0.05, 0.02],
+    "popmean": 0.0,
+    "alternative": "two-sided"
+  }
+}

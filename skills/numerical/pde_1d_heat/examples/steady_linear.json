@@ -1,0 +1,11 @@
+{
+  "description": "Steady heat with zero source → linear profile between Dirichlet ends",
+  "input": {
+    "mode": "steady",
+    "length": 1.0,
+    "n_intervals": 10,
+    "left_value": 0.0,
+    "right_value": 1.0,
+    "source": 0.0
+  }
+}
