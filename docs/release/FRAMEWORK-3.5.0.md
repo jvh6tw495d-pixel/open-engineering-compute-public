@@ -34,9 +34,12 @@ oec experiment builders --json
 oec experiment run --spec-file experiments/w3_wave_optics.json
 ```
 
-## Out of scope (POST-OEC / later)
+## Out of scope at 3.5 cut
 
-- Persistent scientific harness / autonomous agents
-- NEAT/HyperNEAT productization
-- Full PEFT train skill
-- vLLM / llama.cpp adapters
+- Persistent scientific harness / autonomous agents (**still out of repo**)
+- NEAT/HyperNEAT productization (**excluded from 3.6 DoD** — ADR 0042)
+- Full PEFT train skill (**moved to 3.6 S1** — ADR 0041)
+- vLLM / llama.cpp adapters (**debt**; HF-only in 3.6 — ADR 0040 D2)
+
+**Scientific AI completion (post-3.5):** [SCIENTIFIC-AI-3.6.md](SCIENTIFIC-AI-3.6.md)
+and ADR 0040–0042 (PEFT, distill, VLM MVP, industrial harden).

@@ -1,10 +1,20 @@
 # Technical debt
 
-**Current-state review:** 2026-07-30 at `oec==2.5.2` — the v2.5.1 refinement
-release (AR/autocorrelation package, `agent.default` routing, catalog
-reconciliation, kernel coverage push) landed; see
-`docs/implementation/v2.1-delivery-status-and-v2.5-next-steps.md` §6 Step E
-for the v2.5 consolidation gate closed on 2026-07-29.
+**Current-state review:** 2026-08-07 at `oec==3.3.1` (updated from the prior
+2026-07-30 `oec==2.5.2` review — see
+[3.3.1-phase0-3-execution-report.md](3.3.1-phase0-3-execution-report.md) and
+[3.3.1-phase4-5-execution-report.md](3.3.1-phase4-5-execution-report.md) for
+what changed between those two points: physics/multiphysics co-simulation
+(2.6–2.7), chemistry foundation + Scientific IR + Model Registry (2.8–2.9),
+chemistry completion + THD + sequential chemistry network (3.1–3.3.0), and
+the 3.3.1 catalog/gate recovery). The 3.3.1 recovery pass directly verified
+D-CUR-21 through D-CUR-27 (the `agent.default`/MCP routing family) plus the
+skill-catalog/quality-gate items are still accurate as of `3.3.1` (see the
+two reports above for evidence). Items outside that pass's scope (sandbox
+isolation, REST/MCP auth, coverage/telemetry items below) were not
+re-audited in this update — their "still open" status is carried forward,
+not re-verified, and should not be read as fresher than the review date on
+each row.
 
 This file began as a Phase A snapshot. Historical entries remain for
 traceability; the current queue below is the canonical starting point for new
@@ -15,6 +25,13 @@ closure below cites the commit/file that actually did it.
 
 | ID | Priority | Item | Target / evidence |
 |---|---|---|---|
+| D-AI-01 | P1 | PEFT / full fine-tune train skills not implemented (schema frozen in ADR 0038) | **3.6 S1** — ADR 0041; `docs/release/SCIENTIFIC-AI-3.6.md` |
+| D-AI-02 | P1 | Knowledge distillation skill missing | **3.6 S2** — `neural.distill` + builder; ADR 0041 |
+| D-AI-03 | P2 | VLM / multimodal foundation path missing | **3.6 S5** — ADR 0040 D3 |
+| D-AI-04 | P2 | vLLM / llama.cpp / SGLang adapters not planned for 3.6 | **Debt only** — HF Transformers is the 3.6 inference backend; ADR 0040 D2 |
+| D-AI-05 | P3 | NEAT / HyperNEAT productization | **Excluded from 3.6 DoD** — ADR 0042 (re-open only with new ADR) |
+| D-AI-06 | P2 | Neural checkpoint/file reload + industrial status promotion incomplete | **3.6 S3** — SCIENTIFIC-AI-3.6 |
+| D-AI-07 | P2 | Optional CI job for `neural`/`evolutionary`/`foundation` extras | **3.6 S6** |
 | D-CUR-02 | P1 | Default five-second skill timeout can be consumed by a cold SciPy import on Windows | Still open — measure and decide import/warmup versus timeout policy before public distribution |
 | D-CUR-07 | P1 | `diagnostics_from_mapping` (`src/oec/core/diagnostics.py`) heuristic coverage is thin | Still open — core hardening |
 | D-CUR-08 | P1 | `oec.core.provenance.ProvenanceRecord` permits untyped extra passthrough (`extra="allow"`) | Still open by design (ADR 0017); revisit only if it starts hiding real schema drift |

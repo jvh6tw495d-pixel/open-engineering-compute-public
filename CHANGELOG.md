@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Scientific AI Completion (S0):** ADR 0040–0042 and
+  `docs/release/SCIENTIFIC-AI-3.6.md` freeze the post-3.5 closure plan
+  (PEFT/finetune/distill contracts, NEAT exclusion, VLM/HF decisions).
+
 ## [3.5.0] - 2026-08-11
 
 **Theme:** Scientific framework cut W0–W8 — Experiment Engine, applied foundations,
