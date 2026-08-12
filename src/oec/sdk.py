@@ -136,6 +136,25 @@ class Engine:
             )
         )
 
+    def run_experiment(
+        self,
+        spec: Any,
+        *,
+        requested_by: str | None = None,
+        trace_id: str | None = None,
+    ) -> Any:
+        """Run a multi-step :class:`~oec.experiment.ExperimentSpec` (W2 / ADR 0034).
+
+        Sequential composition of :meth:`run`. Does not replace skill single-shot.
+        Returns :class:`~oec.experiment.ExperimentRecord`.
+        """
+        from oec.experiment.runner import run_experiment as _run_experiment
+        from oec.experiment.specs import ExperimentSpec
+
+        if not isinstance(spec, ExperimentSpec):
+            spec = ExperimentSpec.model_validate(spec)
+        return _run_experiment(self, spec, requested_by=requested_by, trace_id=trace_id)
+
     def _get_or_build_service_locked(self, skill_id: str, skill_version: str) -> ExecutionService:
         """Must only be called while holding ``self._lock``."""
         cache_key = (skill_id, skill_version)

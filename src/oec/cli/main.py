@@ -26,6 +26,14 @@ from oec.execution.models import ExecutionResult, ExecutionStatus
 from oec.sdk import Engine
 from oec.skills.registry.registry import SkillRegistry
 
+if sys.platform == "win32":
+    # Non-UTF-8 Windows console codepages (e.g. cp1252) otherwise crash on any
+    # skill title/description containing non-Latin-1 characters (e.g. Greek
+    # letters in physics skill metadata) the moment Rich writes them out.
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8")
+
 _STATUS_EXIT_CODES: dict[ExecutionStatus, int] = {
     ExecutionStatus.VERIFIED: 0,
     ExecutionStatus.VALIDATED: 0,
@@ -44,6 +52,8 @@ skills_app = typer.Typer(no_args_is_help=True)
 app.add_typer(skills_app, name="skills")
 server_app = typer.Typer(no_args_is_help=True)
 app.add_typer(server_app, name="server")
+experiment_app = typer.Typer(no_args_is_help=True)
+app.add_typer(experiment_app, name="experiment")
 
 console = Console()
 error_console = Console(stderr=True)
@@ -288,6 +298,81 @@ def _print_run_summary(result: ExecutionResult) -> None:
         console.print_json(data=result.diagnostics)
     for warning in result.warnings:
         console.print(f"[yellow]warning[/yellow]: {warning}")
+
+
+_EXPERIMENT_EXIT: dict[str, int] = {
+    "COMPLETED": 0,
+    "VALIDATION_FAILED": 2,
+    "ABORTED": 3,
+    "INVALID": 3,
+    "FAILED": 4,
+}
+
+
+@experiment_app.command("run")
+def experiment_run(
+    skills_root: SkillsRootOption = Path("skills"),
+    spec_file: Annotated[
+        Path | None,
+        typer.Option("--spec-file", help="ExperimentSpec JSON file."),
+    ] = None,
+    spec_json: Annotated[
+        str | None,
+        typer.Option("--spec", help="ExperimentSpec as a JSON object string."),
+    ] = None,
+    as_json: JsonOption = True,
+) -> None:
+    """Run a multi-step ExperimentSpec (W2 / ADR 0034).
+
+    Exit codes: 0 COMPLETED, 2 VALIDATION_FAILED, 3 ABORTED/INVALID, 4 FAILED,
+    1 CLI error (bad JSON / missing file).
+    """
+    from oec.experiment import ExperimentSpec
+    from oec.experiment.record import ExperimentStatus
+
+    if spec_file is not None and spec_json is not None:
+        error_console.print("[bold red]error[/bold red]: pass only one of --spec-file/--spec")
+        raise typer.Exit(code=1)
+    if spec_file is None and spec_json is None:
+        error_console.print("[bold red]error[/bold red]: provide --spec-file or --spec")
+        raise typer.Exit(code=1)
+
+    if spec_file is not None:
+        try:
+            raw = spec_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            error_console.print(f"[bold red]error[/bold red]: cannot read --spec-file: {exc}")
+            raise typer.Exit(code=1) from exc
+    else:
+        raw = spec_json or ""
+
+    try:
+        payload = json.loads(raw)
+        exp_spec = ExperimentSpec.model_validate(payload)
+    except (json.JSONDecodeError, Exception) as exc:
+        error_console.print(f"[bold red]error[/bold red]: invalid ExperimentSpec: {exc}")
+        raise typer.Exit(code=1) from exc
+
+    try:
+        engine = Engine(skills_root=skills_root)
+        record = engine.run_experiment(exp_spec)
+    except OECError as exc:
+        _fail(exc)
+
+    if as_json:
+        console.print_json(data=record.to_dict())
+    else:
+        color = "green" if record.status == ExperimentStatus.COMPLETED else "red"
+        console.print(
+            f"[bold {color}]{record.status.value}[/bold {color}] "
+            f"experiment={record.spec.id} run_id={record.run_id} "
+            f"steps={len(record.steps)} validation_passed={record.validation.passed}"
+        )
+        if record.metrics:
+            console.print("metrics:")
+            console.print_json(data=[m.model_dump(mode="json") for m in record.metrics])
+
+    raise typer.Exit(code=_EXPERIMENT_EXIT.get(record.status.value, 4))
 
 
 @server_app.command("api")
