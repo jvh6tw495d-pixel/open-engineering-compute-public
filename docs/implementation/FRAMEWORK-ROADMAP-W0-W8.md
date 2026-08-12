@@ -18,7 +18,7 @@ W1  Scientific Core (no AI)      ✅ MVP: distributions, hypothesis, jacobian, p
  ↓
 W2  Experiment Engine            ✅ complete: binds, gates, artifacts, REST, MCP
  ↓
-W3  Applied Sciences             physics → chemistry → engineering apps
+W3  Applied Sciences             ✅ MVP: waves/optics/EM/ideal-gas/thermochem skills
  ↓
 W4  Neural Computing             re-homologate existing skills under Experiment
  ↓

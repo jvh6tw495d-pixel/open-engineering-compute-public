@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "focal_length_m",
+    "object_distance_m"
+  ],
+  "properties": {
+    "focal_length_m": {
+      "type": "number"
+    },
+    "object_distance_m": {
+      "type": "number"
+    }
+  }
+}

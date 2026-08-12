@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "steps"
+  ],
+  "properties": {
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "delta_h_j_per_mol"
+        ],
+        "properties": {
+          "delta_h_j_per_mol": {
+            "type": "number"
+          },
+          "coefficient": {
+            "type": "number",
+            "default": 1.0
+          }
+        }
+      }
+    }
+  }
+}

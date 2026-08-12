@@ -1,0 +1,21 @@
+{
+  "description": "1D Uniform Acceleration Kinematics",
+  "input": {
+    "v0": {
+      "value": 0.0,
+      "unit": "m/s"
+    },
+    "a": {
+      "value": 9.81,
+      "unit": "m/s**2"
+    },
+    "t": {
+      "value": 2.0,
+      "unit": "s"
+    },
+    "x0": {
+      "value": 0.0,
+      "unit": "m"
+    }
+  }
+}

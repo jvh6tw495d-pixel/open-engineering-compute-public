@@ -1,0 +1,30 @@
+{
+  "id": "w3_vanthoff_thermochem",
+  "version": "0.1.0",
+  "title": "W3: van't Hoff K(T) thermochemistry",
+  "seed": 0,
+  "tags": ["w3", "chemistry"],
+  "steps": [
+    {
+      "step_id": "k_shift",
+      "skill_id": "chemistry.vanthoff",
+      "inputs": {
+        "k1": 1.0,
+        "t1_k": 298.15,
+        "t2_k": 310.15,
+        "delta_h_j_per_mol": 50000.0
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "name": "k2",
+      "path": "result.k2",
+      "step_id": "k_shift",
+      "direction": "maximize"
+    }
+  ],
+  "validation": {
+    "metric_min": { "k2": 1.0 }
+  }
+}

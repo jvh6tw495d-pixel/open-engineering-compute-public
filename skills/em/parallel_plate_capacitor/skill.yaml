@@ -1,0 +1,40 @@
+id: em.parallel_plate_capacitor
+version: 0.1.0
+status: experimental
+domain: em
+title: Parallel-Plate Capacitor
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: em_parallel_plate_capacitor
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 10
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: true
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Framework W3 Applied Sciences foundations"
+  - "Classical textbook identities; OEC governs contract"
+
+tags:
+  - w3
+  - applied-sciences
+  - em

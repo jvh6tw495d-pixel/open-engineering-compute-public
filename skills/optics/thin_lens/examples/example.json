@@ -1,0 +1,7 @@
+{
+  "description": "Thin Lens Image Distance",
+  "input": {
+    "focal_length_m": 0.1,
+    "object_distance_m": 0.2
+  }
+}

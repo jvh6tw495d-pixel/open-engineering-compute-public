@@ -1,0 +1,15 @@
+{
+  "description": "Ideal Gas Law",
+  "input": {
+    "amount_mol": 1.0,
+    "temperature": {
+      "value": 273.15,
+      "unit": "K"
+    },
+    "volume": {
+      "value": 0.0224,
+      "unit": "m**3"
+    },
+    "molar_mass_kg_per_mol": 0.028
+  }
+}

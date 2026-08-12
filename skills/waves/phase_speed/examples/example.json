@@ -1,0 +1,13 @@
+{
+  "description": "Wave Phase Speed (v = f \u03bb)",
+  "input": {
+    "frequency": {
+      "value": 50.0,
+      "unit": "Hz"
+    },
+    "wavelength": {
+      "value": 6.0,
+      "unit": "m"
+    }
+  }
+}

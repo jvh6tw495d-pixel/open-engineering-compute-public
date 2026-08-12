@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "k1",
+    "t1_k",
+    "t2_k",
+    "delta_h_j_per_mol"
+  ],
+  "properties": {
+    "k1": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "t1_k": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "t2_k": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "delta_h_j_per_mol": {
+      "type": "number"
+    }
+  }
+}

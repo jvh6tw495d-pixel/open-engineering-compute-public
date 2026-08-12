@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "n1",
+    "n2",
+    "theta1_rad"
+  ],
+  "properties": {
+    "n1": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "n2": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "theta1_rad": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1.5707963267948966
+    }
+  }
+}

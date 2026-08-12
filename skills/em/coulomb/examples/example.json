@@ -1,0 +1,17 @@
+{
+  "description": "Coulomb Force Magnitude",
+  "input": {
+    "charge1": {
+      "value": 1e-06,
+      "unit": "C"
+    },
+    "charge2": {
+      "value": 1e-06,
+      "unit": "C"
+    },
+    "separation": {
+      "value": 0.1,
+      "unit": "m"
+    }
+  }
+}

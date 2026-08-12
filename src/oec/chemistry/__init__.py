@@ -50,6 +50,7 @@ from oec.chemistry.kinetics import (
 from oec.chemistry.network import NetworkResult, ReactionStep, apply_reaction_network
 from oec.chemistry.species import Composition, Mixture, Species
 from oec.chemistry.stoichiometry import Reaction, parse_reaction, water_formation_reaction
+from oec.chemistry.thermochemistry import hess_reaction_enthalpy, vanthoff_k2  # W3
 from oec.chemistry.transport import (
     TRANSPORT_ASSUMPTIONS,
     DiffusionFlux1D,
@@ -101,4 +102,6 @@ __all__ = [
     "reaction_quotient_mole_fraction",
     "two_node_diffusion_step",
     "water_formation_reaction",
+    "hess_reaction_enthalpy",
+    "vanthoff_k2",
 ]

@@ -1,0 +1,29 @@
+{
+  "id": "w3_kinematics_demo",
+  "version": "0.1.0",
+  "title": "W3: free-fall kinematics (demo experiment)",
+  "seed": 0,
+  "tags": ["w3", "mechanics"],
+  "steps": [
+    {
+      "step_id": "fall",
+      "skill_id": "mechanics.kinematics_1d",
+      "inputs": {
+        "v0": { "value": 0.0, "unit": "m/s" },
+        "a": { "value": 9.81, "unit": "m/s**2" },
+        "t": { "value": 2.0, "unit": "s" },
+        "x0": { "value": 0.0, "unit": "m" }
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "name": "speed",
+      "path": "result.velocity.value",
+      "step_id": "fall",
+      "direction": "target",
+      "target": 19.62,
+      "target_abs_tol": 0.05
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 # Skill inventory
 
-**Updated:** 2026-08-10 (`oec==3.4.1` + W1-MVP core skills)
+**Updated:** 2026-08-10 (`oec==3.4.1` + W1–W3 framework skills)
 **Registry root:** `skills/`
-**Live load:** **135** skills, **0** contract-audit errors
+**Live load:** **144** skills, **0** contract-audit errors
 
 ## Summary
 
@@ -22,16 +22,17 @@
 | dynamics | 2 | |
 | uncertainty | 3 | |
 | thermal | 1 | |
-| mechanics | 1 | |
+| mechanics | 2 | + kinematics_1d (W3) |
 | fluids | 1 | |
 | materials | 1 | |
-| chemistry | 6 | |
+| chemistry | 8 | + vanthoff, hess_enthalpy (W3) |
+| waves / optics / em / statistical_physics | 6 | W3 foundations |
 | multiphysics | 2 | |
 | **neural** | **26** | ADR 0031/0032 + **0033 training/search** |
 | **evolutionary** | **15** | pymoo/DEAP/Nevergrad |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
-| **Total** | **135** | all `experimental` in this inventory |
+| **Total** | **144** | all `experimental` in this inventory |
 
 ## W1-MVP scientific core (no AI)
 
@@ -41,6 +42,18 @@
 | `statistics.hypothesis_test` | t_one/t_two/ks_1samp/mannwhitney |
 | `mathematics.jacobian` | multi-var FD Jacobian |
 | `numerical.pde_1d_heat` | 1D FDM heat/Poisson foundation |
+
+## W3-MVP applied sciences foundations
+
+| Skill id | Notes |
+|----------|-------|
+| `waves.phase_speed` | v = f λ + period/ω/k |
+| `optics.snell` / `optics.thin_lens` | geometrical optics |
+| `em.coulomb` / `em.parallel_plate_capacitor` | vacuum electrostatics |
+| `statistical_physics.ideal_gas` | PV = nRT (+ optional v_rms) |
+| `mechanics.kinematics_1d` | uniform acceleration |
+| `chemistry.vanthoff` / `chemistry.hess_enthalpy` | thermochemistry |
+| Experiments | `experiments/w3_*.json` |
 
 ## Neural (3.4 + ADR 0033)
 

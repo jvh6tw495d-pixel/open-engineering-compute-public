@@ -1,0 +1,55 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "amount_mol",
+    "temperature",
+    "volume"
+  ],
+  "properties": {
+    "amount_mol": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "temperature": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "x-oec-unit": "K"
+    },
+    "volume": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "x-oec-unit": "m ** 3"
+    },
+    "molar_mass_kg_per_mol": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "w3_wave_optics",
+  "version": "0.1.0",
+  "title": "W3: wave phase speed then Snell refraction",
+  "seed": 0,
+  "tags": ["w3", "waves", "optics"],
+  "steps": [
+    {
+      "step_id": "wave",
+      "skill_id": "waves.phase_speed",
+      "inputs": {
+        "frequency": { "value": 50.0, "unit": "Hz" },
+        "wavelength": { "value": 6.0, "unit": "m" }
+      }
+    },
+    {
+      "step_id": "snell",
+      "skill_id": "optics.snell",
+      "inputs": {
+        "n1": 1.0,
+        "n2": 1.5,
+        "theta1_rad": 0.5
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "name": "phase_speed",
+      "path": "result.phase_speed.value",
+      "step_id": "wave",
+      "direction": "target",
+      "target": 300.0,
+      "target_abs_tol": 1e-9
+    },
+    {
+      "name": "theta2",
+      "path": "result.theta2_rad",
+      "step_id": "snell",
+      "direction": "minimize"
+    }
+  ]
+}

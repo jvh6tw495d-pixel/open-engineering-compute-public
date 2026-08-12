@@ -15,6 +15,7 @@ from oec.physics.electrical import (
     NetworkLine,
     dc_power_flow,
 )
+from oec.physics.electromagnetism import coulomb_force, parallel_plate_capacitance  # W3
 from oec.physics.errors import ConservationError, PhysicsError, PhysicsEvaluationError
 from oec.physics.fluids import (
     bernoulli_balance,
@@ -39,9 +40,11 @@ from oec.physics.mechanics import (
     uniform_acceleration_velocity,
     work_done,
 )
+from oec.physics.optics import snell_refracted_angle, thin_lens_image_distance  # W3
 from oec.physics.pv import PV_ASSUMPTIONS, pv_energy_from_series, pv_power
 from oec.physics.result import ConservationCheck, PhysicsResult
 from oec.physics.service_metrics import autonomy_hours, energy_delivered
+from oec.physics.statistical import ideal_gas_pressure  # W3
 from oec.physics.storage import energy_based_soc_update, storage_trajectory
 from oec.physics.thermal import (
     conduction_heat_rate,
@@ -49,6 +52,7 @@ from oec.physics.thermal import (
     stored_thermal_energy,
 )
 from oec.physics.types import PhysicsDomain, Residual, ValidityFrame
+from oec.physics.waves import period_from_frequency, phase_speed  # W3
 
 __all__ = [
     "CouplingGraph",
@@ -101,4 +105,12 @@ __all__ = [
     "uniform_acceleration_position",
     "uniform_acceleration_velocity",
     "work_done",
+    # W3 applied-sciences foundations
+    "phase_speed",
+    "period_from_frequency",
+    "snell_refracted_angle",
+    "thin_lens_image_distance",
+    "coulomb_force",
+    "parallel_plate_capacitance",
+    "ideal_gas_pressure",
 ]

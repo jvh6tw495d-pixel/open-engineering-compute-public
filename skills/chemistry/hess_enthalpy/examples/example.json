@@ -1,0 +1,15 @@
+{
+  "description": "Hess Law Reaction Enthalpy",
+  "input": {
+    "steps": [
+      {
+        "delta_h_j_per_mol": -285800.0,
+        "coefficient": 1.0
+      },
+      {
+        "delta_h_j_per_mol": -393500.0,
+        "coefficient": -1.0
+      }
+    ]
+  }
+}

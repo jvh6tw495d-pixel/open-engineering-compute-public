@@ -1,0 +1,8 @@
+{
+  "description": "Snell's Law Refraction",
+  "input": {
+    "n1": 1.0,
+    "n2": 1.5,
+    "theta1_rad": 0.5
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "description": "Parallel-Plate Capacitor",
+  "input": {
+    "area": {
+      "value": 0.01,
+      "unit": "m**2"
+    },
+    "gap": {
+      "value": 0.001,
+      "unit": "m"
+    },
+    "relative_permittivity": 1.0,
+    "voltage": {
+      "value": 10.0,
+      "unit": "V"
+    }
+  }
+}

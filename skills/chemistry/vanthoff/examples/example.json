@@ -1,0 +1,9 @@
+{
+  "description": "van't Hoff Equilibrium Constant Shift",
+  "input": {
+    "k1": 1.0,
+    "t1_k": 298.15,
+    "t2_k": 310.15,
+    "delta_h_j_per_mol": 50000.0
+  }
+}
