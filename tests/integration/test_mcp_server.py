@@ -85,6 +85,63 @@ def test_list_tools_includes_agents_skills_and_discovery(engine: Engine) -> None
     assert "foundation.embed" in skill_ids
 
 
+def test_call_tool_experiment_list_builders(engine: Engine) -> None:
+    result = call_tool(engine, "experiment.list_builders", {})
+    assert result.isError is False
+    catalog = _parse_content(result)
+    assert isinstance(catalog, list)
+    names = {row["name"] for row in catalog}
+    assert "build_physics_kinematics_experiment" in names
+    assert "build_wave_then_stats_experiment" in names
+    for row in catalog:
+        assert "domains" in row and "extras" in row
+
+
+def test_call_tool_experiment_run_named_builder(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "experiment.run",
+        {
+            "builder": "build_monte_carlo_then_describe_experiment",
+            "builder_kwargs": {"seed": 0, "n_samples": 40},
+        },
+    )
+    assert result.isError is False
+    body = _parse_content(result)
+    assert body["status"] == "COMPLETED"
+    assert body["spec"]["id"] == "w7.mc_uncertainty"
+    assert body["steps"]
+    assert body["metrics"]
+
+
+def test_call_tool_experiment_run_unknown_builder_fail_closed(engine: Engine) -> None:
+    # F1: module callables outside the catalog must be rejected (not invoked).
+    for bad in (
+        "ExperimentSpec",
+        "sphere_problem_2d",
+        "list_cross_domain_builders",
+        "not_a_builder",
+    ):
+        result = call_tool(engine, "experiment.run", {"builder": bad})
+        assert result.isError is True, bad
+        payload = _parse_content(result)
+        assert "unknown experiment builder" in payload["error"].lower()
+
+
+def test_call_tool_experiment_run_builder_kwargs_must_be_object(engine: Engine) -> None:
+    result = call_tool(
+        engine,
+        "experiment.run",
+        {
+            "builder": "build_physics_kinematics_experiment",
+            "builder_kwargs": ["not", "an", "object"],
+        },
+    )
+    assert result.isError is True
+    payload = _parse_content(result)
+    assert "builder_kwargs" in payload["error"].lower()
+
+
 def test_call_tool_solve_root_returns_validated_result(engine: Engine) -> None:
     result = call_tool(
         engine,
@@ -624,6 +681,14 @@ def test_infer_domain_from_request_does_not_misroute_on_substring() -> None:
     assert _infer_domain_from_request("Solve this LP problem for me") == "optimization"
 
 
+def test_infer_domain_foundation_before_neural_on_transformers() -> None:
+    """HF library name must route foundation, not neural via 'transformer' stem."""
+    assert _infer_domain_from_request("use transformers embeddings") == "foundation"
+    assert _infer_domain_from_request("huggingface llm embedding") == "foundation"
+    assert _infer_domain_from_request("train a transformer network with torch") == "neural"
+    assert _infer_domain_from_request("mlp neural regressor") == "neural"
+
+
 @pytest.mark.parametrize(
     ("skill_id", "expected_agent"),
     [
@@ -635,6 +700,9 @@ def test_infer_domain_from_request_does_not_misroute_on_substring() -> None:
         ("neural.mlp.regressor", "agent.neural"),
         ("evolutionary.optimize_single", "agent.neural"),
         ("neural.training.hybrid", "agent.neural"),
+        ("foundation.embed", "agent.foundation"),
+        ("waves.phase_speed", "agent.energy"),
+        ("em.coulomb", "agent.energy"),
     ],
 )
 def test_call_tool_default_router_infers_agent_from_skill_prefix(

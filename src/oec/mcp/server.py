@@ -580,30 +580,8 @@ def _infer_domain_from_request(request: str) -> str | None:
         for token in ("finance", "finanças", "var", "uncertainty", "incerteza", "morris")
     ):
         return "finance_uncertainty"
-    if any(
-        _contains_token(text, token)
-        for token in (
-            "neural",
-            "neuronal",
-            "mlp",
-            "pytorch",
-            "torch",
-            "lstm",
-            "cnn",
-            "transformer",
-            "neuroevolution",
-            "evolutionary",
-            "evolutivo",
-            "genetic algorithm",
-            "algoritmo genético",
-            "nsga",
-            "cma-es",
-            "cmaes",
-            "particle swarm",
-            "enxame de partículas",
-        )
-    ):
-        return "neural"
+    # Foundation before neural: bare "transformers" must not land on neural
+    # via the "transformer" stem (prefix match without trailing word boundary).
     if any(
         _contains_token(text, token)
         for token in (
@@ -623,6 +601,32 @@ def _infer_domain_from_request(request: str) -> str | None:
         )
     ):
         return "foundation"
+    if any(
+        _contains_token(text, token)
+        for token in (
+            "neural",
+            "neuronal",
+            "mlp",
+            "pytorch",
+            "torch",
+            "lstm",
+            "cnn",
+            # Checked after foundation so bare "transformers" (HF) does not
+            # land here via this stem; "transformer" alone still routes neural.
+            "transformer",
+            "neuroevolution",
+            "evolutionary",
+            "evolutivo",
+            "genetic algorithm",
+            "algoritmo genético",
+            "nsga",
+            "cma-es",
+            "cmaes",
+            "particle swarm",
+            "enxame de partículas",
+        )
+    ):
+        return "neural"
     if any(
         _contains_token(text, token)
         for token in (
@@ -828,7 +832,7 @@ def _route_decision(arguments: dict[str, Any]) -> RouteDecision:
             reason=f"demo_label={demo_label}",
             signal="demo_label",
         )
-    if demo_label in {"embed", "capabilities"}:
+    if demo_label in {"embed", "capabilities", "generate"}:
         return RouteDecision(
             target=_AGENT_FOUNDATION_TOOL_NAME,
             confidence=1.0,
@@ -1097,7 +1101,10 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
             if isinstance(raw_spec, dict):
                 exp_spec = ExperimentSpec.model_validate(raw_spec)
             elif isinstance(builder_name, str) and builder_name:
-                if not hasattr(cd, builder_name):
+                # Fail-closed: only names from list_cross_domain_builders —
+                # never getattr the module (imports/classes would be callable).
+                builder_fn = cd.get_cross_domain_builder(builder_name)
+                if builder_fn is None:
                     return _error_result(
                         f"unknown experiment builder {builder_name!r}; "
                         "call experiment.list_builders for names",
@@ -1109,7 +1116,7 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
                         "builder_kwargs must be an object",
                         details={"tool": name},
                     )
-                built = getattr(cd, builder_name)(**kwargs)
+                built = builder_fn(**kwargs)
                 if not isinstance(built, ExperimentSpec):
                     return _error_result(
                         f"builder {builder_name!r} did not return ExperimentSpec",

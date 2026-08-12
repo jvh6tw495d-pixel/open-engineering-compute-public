@@ -19,6 +19,7 @@ from oec.experiment.cross_domain import (
     build_physics_to_neural_surrogate_experiment,
     build_root_bind_to_distribution_experiment,
     build_wave_then_stats_experiment,
+    get_cross_domain_builder,
     list_cross_domain_builders,
 )
 from oec.experiment.evolutionary import (
@@ -93,6 +94,7 @@ __all__ = [
     "build_wave_then_stats_experiment",
     "config_hash",
     "default_artifact_root",
+    "get_cross_domain_builder",
     "list_cross_domain_builders",
     "load_experiment_record",
     "mlp_regressor_inputs",

@@ -146,10 +146,16 @@ def looks_like_execution(payload: dict[str, Any]) -> bool:
 
 
 def kind_for_skill(skill_id: str | None, *, specialist: str | None = None) -> str:
-    """Closed prefix → kind table with ``generic_result`` fallback."""
+    """Closed domain → kind table with ``generic_result`` fallback.
+
+    Matches the first path segment exactly (``em.coulomb`` → domain ``em``),
+    not a bare ``startswith`` prefix. That avoids short domains like ``em.``
+    swallowing future namespaces such as ``email.*`` or ``ember.*``.
+    """
     if isinstance(skill_id, str) and skill_id:
+        domain = skill_id.split(".", 1)[0]
         for prefix, kind in _KIND_BY_PREFIX:
-            if skill_id.startswith(prefix):
+            if domain == prefix.rstrip("."):
                 return kind
     if specialist and "review" in specialist:
         return "review_result"

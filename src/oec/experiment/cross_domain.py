@@ -304,42 +304,68 @@ def build_root_bind_to_distribution_experiment(
     )
 
 
+# Single source of truth for W7 public builders (name → fn, domains, extras).
+# Imported helpers (build_optimize_single_experiment, build_mlp_regressor_*)
+# must NOT appear here — MCP/CLI only expose this catalog.
+_CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
+    "build_physics_kinematics_experiment": {
+        "fn": build_physics_kinematics_experiment,
+        "domains": ["mechanics"],
+        "extras": [],
+    },
+    "build_wave_then_stats_experiment": {
+        "fn": build_wave_then_stats_experiment,
+        "domains": ["waves", "statistics"],
+        "extras": [],
+    },
+    "build_monte_carlo_then_describe_experiment": {
+        "fn": build_monte_carlo_then_describe_experiment,
+        "domains": ["statistics"],
+        "extras": [],
+    },
+    "build_evo_sphere_experiment": {
+        "fn": build_evo_sphere_experiment,
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
+    "build_physics_to_neural_surrogate_experiment": {
+        "fn": build_physics_to_neural_surrogate_experiment,
+        "domains": ["neural"],
+        "extras": ["neural"],
+    },
+    "build_foundation_embed_then_stats_experiment": {
+        "fn": build_foundation_embed_then_stats_experiment,
+        "domains": ["foundation", "statistics"],
+        "extras": [],
+    },
+    "build_root_bind_to_distribution_experiment": {
+        "fn": build_root_bind_to_distribution_experiment,
+        "domains": ["mathematics", "statistics"],
+        "extras": [],
+    },
+}
+
+
 def list_cross_domain_builders() -> list[dict[str, Any]]:
-    """Catalog of W7 builders for CLI / docs."""
+    """Catalog of W7 builders for CLI / MCP / docs."""
     return [
         {
-            "name": "build_physics_kinematics_experiment",
-            "domains": ["mechanics"],
-            "extras": [],
-        },
-        {
-            "name": "build_wave_then_stats_experiment",
-            "domains": ["waves", "statistics"],
-            "extras": [],
-        },
-        {
-            "name": "build_monte_carlo_then_describe_experiment",
-            "domains": ["statistics"],
-            "extras": [],
-        },
-        {
-            "name": "build_evo_sphere_experiment",
-            "domains": ["evolutionary"],
-            "extras": ["evolutionary"],
-        },
-        {
-            "name": "build_physics_to_neural_surrogate_experiment",
-            "domains": ["neural"],
-            "extras": ["neural"],
-        },
-        {
-            "name": "build_foundation_embed_then_stats_experiment",
-            "domains": ["foundation", "statistics"],
-            "extras": [],
-        },
-        {
-            "name": "build_root_bind_to_distribution_experiment",
-            "domains": ["mathematics", "statistics"],
-            "extras": [],
-        },
+            "name": name,
+            "domains": list(meta["domains"]),
+            "extras": list(meta["extras"]),
+        }
+        for name, meta in _CROSS_DOMAIN_BUILDER_CATALOG.items()
     ]
+
+
+def get_cross_domain_builder(name: str) -> Any | None:
+    """Return a catalogued builder callable, or ``None`` if unknown.
+
+    Fail-closed: only names in :func:`list_cross_domain_builders` resolve.
+    Never ``getattr`` the module namespace for host-supplied names.
+    """
+    meta = _CROSS_DOMAIN_BUILDER_CATALOG.get(name)
+    if meta is None:
+        return None
+    fn = meta["fn"]
+    return fn if callable(fn) else None

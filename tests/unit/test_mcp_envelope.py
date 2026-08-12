@@ -112,6 +112,9 @@ def test_kind_for_skill_closed_table() -> None:
     assert kind_for_skill("optics.snell") == "physics_result"
     assert kind_for_skill("em.coulomb") == "physics_result"
     assert kind_for_skill("chemistry.vanthoff") == "chemistry_result"
+    # Exact domain segment: short "em." must not swallow email./ember.
+    assert kind_for_skill("email.send") == "generic_result"
+    assert kind_for_skill("ember.spark") == "generic_result"
     assert kind_for_skill("unknown.foo") == "generic_result"
     assert kind_for_skill(None, specialist="agent.scientific_reviewer") == "review_result"
 

@@ -23,4 +23,15 @@ class FoundationSpecialist(SkillSpecialist):
             },
         ),
         "capabilities": ("foundation.capabilities", {}),
+        # Requires oec[foundation] + model weights; fail-closed without extras.
+        "generate": (
+            "foundation.generate",
+            {
+                "prompt": "Hello",
+                "model_id": "sshleifer/tiny-gpt2",
+                "max_new_tokens": 8,
+                "temperature": 0,
+                "seed": 0,
+            },
+        ),
     }
