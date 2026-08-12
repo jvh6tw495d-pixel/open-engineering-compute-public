@@ -131,6 +131,8 @@ class MetricSpec(_SpecBase):
     path: str = Field(min_length=1)
     step_id: str | None = None  # default: last step
     target: float | None = None  # used when direction == TARGET
+    # Absolute tolerance for TARGET direction gates (W2.2); None = soft only
+    target_abs_tol: float | None = Field(default=None, ge=0.0)
     weight: float = Field(default=1.0, gt=0.0)
 
 
@@ -147,6 +149,10 @@ class ValidationSpec(_SpecBase):
     metric_max: dict[str, float] = Field(default_factory=dict)
     # Metric name → min allowed value (for maximize metrics)
     metric_min: dict[str, float] = Field(default_factory=dict)
+    # Metric name → absolute |value - target| max (overrides MetricSpec.target_abs_tol)
+    metric_target_abs_tol: dict[str, float] = Field(default_factory=dict)
+    # Fail experiment if any declared metric fails to resolve
+    require_all_metrics: bool = True
     abort_on_invalid: bool = True
     abort_on_failed: bool = True
 
@@ -175,15 +181,28 @@ class ProvenanceSpec(_SpecBase):
     extra_keys: tuple[str, ...] = ()
 
 
+class BindSpec(_SpecBase):
+    """Copy a value from a prior step ExecutionResult into this step's inputs.
+
+    ``path`` is a dotted path into the source step's execution dict
+    (e.g. ``result.root``). ``as_key`` is the input field name on this step.
+    JSON field name for ``as_key`` is ``as`` (serialization alias).
+    """
+
+    step_id: str = Field(min_length=1)
+    path: str = Field(min_length=1)
+    as_key: str = Field(min_length=1, serialization_alias="as", validation_alias="as")
+
+
 class ExperimentStep(_SpecBase):
-    """One skill invocation inside an experiment (v0: concrete inputs only)."""
+    """One skill invocation inside an experiment."""
 
     step_id: str = Field(min_length=1)
     skill_id: str = Field(min_length=1)
     skill_version: str | None = None
     inputs: dict[str, Any] = Field(default_factory=dict)
-    # Reserved for W2 template binding (additive; empty in v0)
-    binds_from: tuple[dict[str, str], ...] = ()
+    # W2.2: wire prior step outputs into this step's inputs
+    binds_from: tuple[BindSpec, ...] = ()
 
 
 class ExperimentSpec(_SpecBase):

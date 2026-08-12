@@ -1,6 +1,10 @@
-"""W2 unit tests: sequential experiment runner + metrics/gates."""
+"""W2 unit tests: sequential experiment runner + metrics/gates + binds + artifacts."""
 
 from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
 
 from oec.experiment import (
     ExperimentSpec,
@@ -164,6 +168,127 @@ def test_engine_run_experiment_api() -> None:
     )
     assert record.status == ExperimentStatus.COMPLETED
     assert record.metrics[0].value == 15.0
+
+
+def test_binds_from_wires_step_output() -> None:
+    """W2.2: take describe mean and feed as values list via... use root into pdf x."""
+    # solve_root → result.root → distribution_eval x (scalar path)
+    # Actually distribution wants x number; root is a float.
+    engine = _engine()
+    record = engine.run_experiment(
+        {
+            "id": "bind_root_to_pdf",
+            "seed": 0,
+            "steps": [
+                {
+                    "step_id": "root",
+                    "skill_id": "mathematics.solve_root",
+                    "inputs": {"expression": "x**2 - 4", "bracket": [0, 3]},
+                },
+                {
+                    "step_id": "pdf",
+                    "skill_id": "statistics.distribution_eval",
+                    "inputs": {
+                        "distribution": "norm",
+                        "operation": "pdf",
+                        "params": {"loc": 0.0, "scale": 1.0},
+                    },
+                    "binds_from": [
+                        {"step_id": "root", "path": "result.root", "as": "x"},
+                    ],
+                },
+            ],
+            "metrics": [
+                {
+                    "name": "pdf_at_root",
+                    "path": "result.value",
+                    "step_id": "pdf",
+                    "direction": "maximize",
+                }
+            ],
+        }
+    )
+    assert record.status == ExperimentStatus.COMPLETED
+    assert record.metrics[0].value is not None
+    # N(0,1) pdf at ~2
+    assert record.metrics[0].value == pytest.approx(0.05399096651, rel=1e-5)
+
+
+def test_target_abs_tol_gate() -> None:
+    record = run_experiment(
+        _engine(),
+        ExperimentSpec(
+            id="target_gate",
+            metrics=(
+                MetricSpec(
+                    name="mean",
+                    path="result.mean",
+                    step_id="d",
+                    direction=MetricDirection.TARGET,
+                    target=2.0,
+                    target_abs_tol=0.01,
+                ),
+            ),
+            steps=(
+                ExperimentStep(
+                    step_id="d",
+                    skill_id="statistics.describe",
+                    inputs={"values": [1.0, 2.0, 3.0]},
+                ),
+            ),
+        ),
+    )
+    assert record.status == ExperimentStatus.COMPLETED
+    assert record.metrics[0].abs_error_to_target == pytest.approx(0.0)
+
+
+def test_target_abs_tol_fails() -> None:
+    record = run_experiment(
+        _engine(),
+        ExperimentSpec(
+            id="target_gate_fail",
+            metrics=(
+                MetricSpec(
+                    name="mean",
+                    path="result.mean",
+                    step_id="d",
+                    direction=MetricDirection.TARGET,
+                    target=10.0,
+                    target_abs_tol=0.5,
+                ),
+            ),
+            steps=(
+                ExperimentStep(
+                    step_id="d",
+                    skill_id="statistics.describe",
+                    inputs={"values": [1.0, 2.0, 3.0]},
+                ),
+            ),
+        ),
+    )
+    assert record.status == ExperimentStatus.VALIDATION_FAILED
+
+
+def test_persist_artifacts(tmp_path: Path) -> None:
+    root = tmp_path / "arts"
+    record = _engine().run_experiment(
+        {
+            "id": "persist_demo",
+            "seed": 1,
+            "steps": [
+                {
+                    "step_id": "d",
+                    "skill_id": "statistics.describe",
+                    "inputs": {"values": [1.0, 2.0]},
+                }
+            ],
+        },
+        artifact_root=root,
+    )
+    assert record.artifacts_produced
+    paths = [Path(a.path) for a in record.artifacts_produced]
+    assert any(p.name == "record.json" for p in paths)
+    assert all(p.is_file() for p in paths)
 
 
 def test_same_spec_same_config_hash_across_runs() -> None:

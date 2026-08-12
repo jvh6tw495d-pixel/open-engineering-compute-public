@@ -16,7 +16,7 @@ W0  Architecture Freeze          ✅ contracts + docs + specs stubs
  ↓
 W1  Scientific Core (no AI)      ✅ MVP: distributions, hypothesis, jacobian, pde_1d_heat
  ↓
-W2  Experiment Engine            ✅ MVP: run_experiment sequential + metrics + CLI
+W2  Experiment Engine            ✅ complete: binds, gates, artifacts, REST, MCP
  ↓
 W3  Applied Sciences             physics → chemistry → engineering apps
  ↓

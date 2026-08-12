@@ -64,6 +64,25 @@ class ValidateRequest(BaseModel):
     version: str | None = None
 
 
+class ExperimentRunRequest(BaseModel):
+    """Body of ``POST /v1/experiments/run`` (W2.4)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Full ExperimentSpec as JSON object (or nested under "spec")
+    spec: dict[str, Any] | None = None
+    # Allow top-level ExperimentSpec fields for convenience
+    id: str | None = None
+    seed: int | None = None
+    steps: list[dict[str, Any]] | None = None
+    metrics: list[dict[str, Any]] | None = None
+    validation: dict[str, Any] | None = None
+    requested_by: str | None = None
+    trace_id: str | None = None
+    artifact_root: str | None = None
+    persist_artifacts: bool | None = None
+
+
 def _engine(request: Request) -> Engine:
     return request.app.state.engine  # type: ignore[no-any-return]
 
@@ -148,5 +167,51 @@ def create_app(skills_root: str | Path = "skills") -> FastAPI:
             raise HTTPException(status_code=404, detail=exc.message) from exc
         except OECError as exc:
             raise HTTPException(status_code=500, detail=exc.message) from exc
+
+    @app.post("/v1/experiments/run")
+    def run_experiment_endpoint(request: Request, body: ExperimentRunRequest) -> dict[str, Any]:
+        """Run a multi-step ExperimentSpec (W2.4 / ADR 0034).
+
+        Returns the full ``ExperimentRecord`` JSON. Scientific step outcomes
+        live inside ``steps[].execution.status``; top-level ``status`` is
+        ``ExperimentStatus`` (COMPLETED / VALIDATION_FAILED / …).
+        """
+        from oec.experiment.specs import ExperimentSpec
+
+        if body.spec is not None:
+            raw_spec: dict[str, Any] = dict(body.spec)
+        else:
+            raw_spec = {}
+            if body.id is not None:
+                raw_spec["id"] = body.id
+            if body.seed is not None:
+                raw_spec["seed"] = body.seed
+            if body.steps is not None:
+                raw_spec["steps"] = body.steps
+            if body.metrics is not None:
+                raw_spec["metrics"] = body.metrics
+            if body.validation is not None:
+                raw_spec["validation"] = body.validation
+
+        try:
+            exp_spec = ExperimentSpec.model_validate(raw_spec)
+        except Exception as exc:
+            raise HTTPException(status_code=422, detail=f"invalid ExperimentSpec: {exc}") from exc
+
+        try:
+            record = _engine(request).run_experiment(
+                exp_spec,
+                requested_by=body.requested_by,
+                trace_id=body.trace_id,
+                artifact_root=body.artifact_root,
+                persist_artifacts=body.persist_artifacts,
+            )
+        except SkillNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=exc.message) from exc
+        except OECError as exc:
+            raise HTTPException(status_code=500, detail=exc.message) from exc
+
+        payload: dict[str, Any] = record.to_dict()
+        return payload
 
     return app

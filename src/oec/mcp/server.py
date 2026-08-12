@@ -62,12 +62,40 @@ _ensure_agents_importable()
 
 LIST_AGENTS_TOOL_NAME = "list_agents"
 LIST_SKILLS_TOOL_NAME = "list_skills"
+EXPERIMENT_RUN_TOOL_NAME = "experiment.run"
 
 _LIST_AGENTS_INPUT_SCHEMA: dict[str, Any] = {"type": "object", "properties": {}}
 _LIST_SKILLS_INPUT_SCHEMA: dict[str, Any] = {"type": "object", "properties": {}}
+_EXPERIMENT_RUN_INPUT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "spec": {
+            "type": "object",
+            "description": "Full ExperimentSpec JSON object (id, steps, metrics, …).",
+        },
+        "persist_artifacts": {
+            "type": "boolean",
+            "description": "When true, write record under OEC_ARTIFACT_ROOT / .oec/artifacts.",
+        },
+        "artifact_root": {
+            "type": "string",
+            "description": "Optional local directory for experiment artifacts.",
+        },
+        "requested_by": {"type": "string"},
+        "trace_id": {"type": "string"},
+    },
+    "required": ["spec"],
+}
 _LIST_AGENTS_DESCRIPTION = "List built-in OEC specialist agents exposed by this MCP server."
 _LIST_SKILLS_DESCRIPTION = (
     "List registered OEC raw skill manifests (mirrors `oec skills list --json`)."
+)
+_EXPERIMENT_RUN_DESCRIPTION = (
+    "Run a multi-step OEC ExperimentSpec (W2). Each step is one skill execution; "
+    "returns ExperimentRecord with metrics and validation gates. Prefer this for "
+    "composed scientific workflows; use agent.default or raw skill tools for "
+    "single-skill calls."
 )
 
 _AGENT_DEFAULT_TOOL_NAME = "agent.default"
@@ -886,6 +914,13 @@ def build_tools(engine: Engine) -> list[Tool]:
             inputSchema=dict(_LIST_SKILLS_INPUT_SCHEMA),
         )
     )
+    tools.append(
+        Tool(
+            name=EXPERIMENT_RUN_TOOL_NAME,
+            description=_EXPERIMENT_RUN_DESCRIPTION,
+            inputSchema=dict(_EXPERIMENT_RUN_INPUT_SCHEMA),
+        )
+    )
     for manifest in engine.registry.list_skills(include_retired=False):
         skill = engine.registry.get_skill(manifest.id, manifest.version)
         description = _raw_skill_description(skill.manifest.description or skill.manifest.title)
@@ -912,6 +947,39 @@ def call_tool(engine: Engine, name: str, arguments: dict[str, Any]) -> CallToolR
         manifests = engine.registry.list_skills(include_retired=False)
         manifest_payload = [m.model_dump(mode="json", by_alias=True) for m in manifests]
         return CallToolResult(content=[_json_text(manifest_payload)], isError=False)
+
+    if name == EXPERIMENT_RUN_TOOL_NAME:
+        if not isinstance(arguments, dict):
+            return _error_result(
+                f"'arguments' must be an object, got {type(arguments).__name__}",
+                details={"tool": name},
+            )
+        try:
+            from oec.experiment.specs import ExperimentSpec
+
+            raw_spec = arguments.get("spec")
+            if not isinstance(raw_spec, dict):
+                return _error_result(
+                    "experiment.run requires 'spec' object",
+                    details={"tool": name},
+                )
+            exp_spec = ExperimentSpec.model_validate(raw_spec)
+            record = engine.run_experiment(
+                exp_spec,
+                requested_by=arguments.get("requested_by"),
+                trace_id=arguments.get("trace_id"),
+                artifact_root=arguments.get("artifact_root"),
+                persist_artifacts=arguments.get("persist_artifacts"),
+            )
+            return CallToolResult(content=[_json_text(record.to_dict())], isError=False)
+        except (OECError, ValueError, TypeError) as exc:
+            return _error_result(str(exc), details={"tool": name, "error_type": type(exc).__name__})
+        except Exception as exc:
+            _logger.exception("unexpected error running experiment")
+            return _error_result(
+                f"{type(exc).__name__}: {exc}",
+                details={"tool": name, "error_type": type(exc).__name__},
+            )
 
     if not isinstance(arguments, dict):
         return _error_result(

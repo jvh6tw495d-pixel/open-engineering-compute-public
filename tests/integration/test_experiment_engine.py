@@ -1,4 +1,4 @@
-"""W2 integration: multi-step experiment via Engine + CLI wiring smoke."""
+"""W2 integration: multi-step experiment via Engine + CLI + REST + MCP."""
 
 from __future__ import annotations
 
@@ -61,6 +61,79 @@ def test_e2e_root_and_distribution() -> None:
         "CONVERGED_WITH_WARNINGS",
         "APPROXIMATE",
     }
+
+
+def test_mcp_experiment_run(engine: Engine | None = None) -> None:
+    from oec.mcp.server import call_tool
+    from oec.sdk import Engine as Eng
+
+    eng = engine or Eng(skills_root="skills")
+    result = call_tool(
+        eng,
+        "experiment.run",
+        {
+            "spec": {
+                "id": "mcp_exp",
+                "seed": 0,
+                "steps": [
+                    {
+                        "step_id": "d",
+                        "skill_id": "statistics.describe",
+                        "inputs": {"values": [2.0, 4.0, 6.0]},
+                    }
+                ],
+                "metrics": [
+                    {
+                        "name": "mean",
+                        "path": "result.mean",
+                        "step_id": "d",
+                        "direction": "minimize",
+                    }
+                ],
+            }
+        },
+    )
+    assert result.isError is False
+    body = json.loads(result.content[0].text)
+    assert body["status"] == "COMPLETED"
+    assert body["metrics"][0]["value"] == 4.0
+
+
+def test_rest_experiment_run() -> None:
+    import pytest
+
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from oec.api.app import create_app
+
+    with TestClient(create_app(skills_root="skills")) as client:
+        resp = client.post(
+            "/v1/experiments/run",
+            json={
+                "id": "rest_exp",
+                "seed": 0,
+                "steps": [
+                    {
+                        "step_id": "d",
+                        "skill_id": "statistics.describe",
+                        "inputs": {"values": [1.0, 3.0]},
+                    }
+                ],
+                "metrics": [
+                    {
+                        "name": "mean",
+                        "path": "result.mean",
+                        "step_id": "d",
+                        "direction": "minimize",
+                    }
+                ],
+            },
+        )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "COMPLETED"
+    assert body["metrics"][0]["value"] == 2.0
 
 
 def test_cli_experiment_run(tmp_path: Path) -> None:

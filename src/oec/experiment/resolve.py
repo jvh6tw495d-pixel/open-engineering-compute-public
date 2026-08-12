@@ -1,4 +1,4 @@
-"""Resolve metric paths and experiment validation gates (W2)."""
+"""Resolve metric paths, binds_from, and experiment validation gates (W2.2)."""
 
 from __future__ import annotations
 
@@ -6,10 +6,10 @@ from typing import Any
 
 from oec.execution.models import ExecutionResult
 from oec.experiment.record import MetricValue, StepRecord, ValidationSummary
-from oec.experiment.specs import ExperimentSpec, MetricDirection
+from oec.experiment.specs import BindSpec, ExperimentSpec, ExperimentStep, MetricDirection
 
 
-def _walk_path(payload: Any, path: str) -> Any:
+def walk_path(payload: Any, path: str) -> Any:
     """Walk a dotted path into nested dicts/lists (e.g. ``result.rmse``)."""
     cur: Any = payload
     for part in path.split("."):
@@ -32,11 +32,37 @@ def execution_as_dict(execution: ExecutionResult) -> dict[str, Any]:
 
 
 def resolve_path_from_execution(execution: ExecutionResult, path: str) -> Any:
-    return _walk_path(execution_as_dict(execution), path)
+    return walk_path(execution_as_dict(execution), path)
 
 
 def _step_map(steps: tuple[StepRecord, ...]) -> dict[str, StepRecord]:
     return {s.step_id: s for s in steps}
+
+
+def apply_binds(
+    step: ExperimentStep,
+    prior_steps: tuple[StepRecord, ...],
+) -> dict[str, Any]:
+    """Merge ``step.inputs`` with values bound from prior step executions.
+
+    Explicit ``inputs`` keys win over binds if both set the same key
+    (base inputs first, then binds override — binds are the dataflow edge).
+    """
+    merged = dict(step.inputs)
+    if not step.binds_from:
+        return merged
+    by_id = _step_map(prior_steps)
+    for bind in step.binds_from:
+        bind_spec = bind if isinstance(bind, BindSpec) else BindSpec.model_validate(bind)
+        src = by_id.get(bind_spec.step_id)
+        if src is None or src.execution is None:
+            raise KeyError(
+                f"bind step_id={bind_spec.step_id!r} not available "
+                f"(missing or no execution) for target step {step.step_id!r}"
+            )
+        value = resolve_path_from_execution(src.execution, bind_spec.path)
+        merged[bind_spec.as_key] = value
+    return merged
 
 
 def resolve_metrics(spec: ExperimentSpec, steps: tuple[StepRecord, ...]) -> tuple[MetricValue, ...]:
@@ -55,6 +81,7 @@ def resolve_metrics(spec: ExperimentSpec, steps: tuple[StepRecord, ...]) -> tupl
                     path=metric.path,
                     step_id=None,
                     direction=metric.direction.value,
+                    target=metric.target,
                     error="no steps available to resolve metric",
                 )
             )
@@ -68,6 +95,7 @@ def resolve_metrics(spec: ExperimentSpec, steps: tuple[StepRecord, ...]) -> tupl
                     path=metric.path,
                     step_id=step_id,
                     direction=metric.direction.value,
+                    target=metric.target,
                     error=f"step {step_id!r} missing or has no execution",
                 )
             )
@@ -75,6 +103,9 @@ def resolve_metrics(spec: ExperimentSpec, steps: tuple[StepRecord, ...]) -> tupl
         try:
             raw = resolve_path_from_execution(step.execution, metric.path)
             value = float(raw)
+            abs_err: float | None = None
+            if metric.target is not None:
+                abs_err = abs(value - float(metric.target))
             resolved.append(
                 MetricValue(
                     name=metric.name,
@@ -82,6 +113,8 @@ def resolve_metrics(spec: ExperimentSpec, steps: tuple[StepRecord, ...]) -> tupl
                     path=metric.path,
                     step_id=step_id,
                     direction=metric.direction.value,
+                    target=metric.target,
+                    abs_error_to_target=abs_err,
                 )
             )
         except (KeyError, TypeError, ValueError) as exc:
@@ -92,6 +125,7 @@ def resolve_metrics(spec: ExperimentSpec, steps: tuple[StepRecord, ...]) -> tupl
                     path=metric.path,
                     step_id=step_id,
                     direction=metric.direction.value,
+                    target=metric.target,
                     error=str(exc),
                 )
             )
@@ -103,7 +137,7 @@ def apply_validation_gates(
     steps: tuple[StepRecord, ...],
     metrics: tuple[MetricValue, ...],
 ) -> ValidationSummary:
-    """Check step statuses and metric thresholds from ValidationSpec."""
+    """Check step statuses and metric thresholds from ValidationSpec (W2.2)."""
     messages: list[str] = []
     metric_checks: dict[str, bool] = {}
     policy = spec.validation
@@ -120,6 +154,7 @@ def apply_validation_gates(
             )
 
     by_name = {m.name: m for m in metrics}
+
     for name, max_v in policy.metric_max.items():
         mv = by_name.get(name)
         if mv is None or mv.value is None:
@@ -142,19 +177,34 @@ def apply_validation_gates(
         if not ok:
             messages.append(f"metric {name!r}: value {mv.value} below metric_min {min_v}")
 
-    # TARGET direction metrics: optional soft note if target set on MetricSpec
+    # TARGET direction: hard gate when target_abs_tol is set (spec or validation map)
     for metric in spec.metrics:
         if metric.direction != MetricDirection.TARGET or metric.target is None:
             continue
         mv = by_name.get(metric.name)
+        tol = policy.metric_target_abs_tol.get(metric.name)
+        if tol is None:
+            tol = metric.target_abs_tol
+        if tol is None:
+            continue  # soft target only
         if mv is None or mv.value is None:
+            messages.append(f"metric {metric.name!r}: missing for TARGET gate")
+            metric_checks[metric.name] = False
             continue
-        # no hard fail unless also listed in metric_max; record distance only if far
-        _ = abs(mv.value - float(metric.target))
+        err = abs(mv.value - float(metric.target))
+        ok = err <= float(tol)
+        metric_checks[metric.name] = ok
+        if not ok:
+            messages.append(
+                f"metric {metric.name!r}: |value-target|={err} exceeds tol={tol} "
+                f"(value={mv.value}, target={metric.target})"
+            )
 
-    for mv in metrics:
-        if mv.error:
-            messages.append(f"metric {mv.name!r}: {mv.error}")
+    if policy.require_all_metrics:
+        for mv in metrics:
+            if mv.error:
+                messages.append(f"metric {mv.name!r}: {mv.error}")
+                metric_checks.setdefault(mv.name, False)
 
     return ValidationSummary(
         passed=len(messages) == 0,

@@ -320,6 +320,21 @@ def experiment_run(
         str | None,
         typer.Option("--spec", help="ExperimentSpec as a JSON object string."),
     ] = None,
+    artifact_root: Annotated[
+        Path | None,
+        typer.Option(
+            "--artifact-root",
+            envvar="OEC_ARTIFACT_ROOT",
+            help="Persist ExperimentRecord under this directory (W2.3).",
+        ),
+    ] = None,
+    persist: Annotated[
+        bool,
+        typer.Option(
+            "--persist/--no-persist",
+            help="Write artifacts even without --artifact-root.",
+        ),
+    ] = False,
     as_json: JsonOption = True,
 ) -> None:
     """Run a multi-step ExperimentSpec (W2 / ADR 0034).
@@ -355,7 +370,11 @@ def experiment_run(
 
     try:
         engine = Engine(skills_root=skills_root)
-        record = engine.run_experiment(exp_spec)
+        record = engine.run_experiment(
+            exp_spec,
+            artifact_root=artifact_root,
+            persist_artifacts=True if artifact_root is not None else persist,
+        )
     except OECError as exc:
         _fail(exc)
 
@@ -371,6 +390,10 @@ def experiment_run(
         if record.metrics:
             console.print("metrics:")
             console.print_json(data=[m.model_dump(mode="json") for m in record.metrics])
+        if record.artifacts_produced:
+            console.print("artifacts:")
+            for art in record.artifacts_produced:
+                console.print(f"  {art.name}: {art.path}")
 
     raise typer.Exit(code=_EXPERIMENT_EXIT.get(record.status.value, 4))
 

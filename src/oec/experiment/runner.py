@@ -1,7 +1,9 @@
-"""Sequential Experiment Engine (W2-MVP / ADR 0034).
+"""Sequential Experiment Engine (W2 / ADR 0034).
 
 Each step is exactly one ``Engine.run`` → one ``ExecutionResult``.
 Metrics are resolved only from declared paths into those results.
+W2.2: ``binds_from`` dataflow + TARGET metric gates.
+W2.3: optional local artifact persistence.
 """
 
 from __future__ import annotations
@@ -11,10 +13,12 @@ import json
 import time
 import uuid
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, Protocol
+from pathlib import Path
+from typing import Any, Protocol
 
 from oec import __version__
 from oec.execution.models import ExecutionResult
+from oec.experiment.artifacts import persist_experiment_record
 from oec.experiment.record import (
     ExperimentRecord,
     ExperimentStatus,
@@ -22,14 +26,12 @@ from oec.experiment.record import (
     ValidationSummary,
 )
 from oec.experiment.resolve import (
+    apply_binds,
     apply_validation_gates,
     resolve_metrics,
     should_abort_on_status,
 )
 from oec.experiment.specs import ExperimentSpec
-
-if TYPE_CHECKING:
-    pass
 
 
 class _EngineLike(Protocol):
@@ -58,25 +60,32 @@ def run_experiment(
     *,
     requested_by: str | None = None,
     trace_id: str | None = None,
+    artifact_root: str | Path | None = None,
+    persist_artifacts: bool | None = None,
 ) -> ExperimentRecord:
     """Execute ``spec.steps`` sequentially and return an :class:`ExperimentRecord`.
 
     Authority: all numeric metrics come from step ``ExecutionResult`` fields.
 
     Seed is recorded on the experiment and passed to ``Engine.run`` for
-    provenance only — it is **not** injected into skill inputs (skills with
-    ``additionalProperties: false`` would reject unknown ``seed`` keys).
-    Callers that need a skill-level seed must put it in ``step.inputs``.
+    provenance only — it is **not** injected into skill inputs.
+
+    ``persist_artifacts``: when True, write record under ``artifact_root``
+    (or ``OEC_ARTIFACT_ROOT`` / ``.oec/artifacts``). Default True when
+    ``artifact_root`` is set, else False.
     """
     started = datetime.now(UTC)
     t0 = time.perf_counter()
     exp_trace = trace_id or str(uuid.uuid4())
     seed = int(spec.seed)
     notes: list[str] = []
+    do_persist = (
+        bool(persist_artifacts) if persist_artifacts is not None else artifact_root is not None
+    )
 
     if not spec.steps:
         completed = datetime.now(UTC)
-        return ExperimentRecord(
+        record = ExperimentRecord(
             status=ExperimentStatus.INVALID,
             spec=spec,
             seed=seed,
@@ -94,13 +103,34 @@ def run_experiment(
             duration_ms=(completed - started).total_seconds() * 1000.0,
             notes=("no steps",),
         )
+        if do_persist:
+            record, _ = persist_experiment_record(record, artifact_root=artifact_root)
+        return record
 
     step_records: list[StepRecord] = []
     aborted = False
     infra_failed = False
 
     for step in spec.steps:
-        inputs = dict(step.inputs)
+        try:
+            inputs = apply_binds(step, tuple(step_records))
+        except (KeyError, TypeError, ValueError) as exc:
+            infra_failed = True
+            step_records.append(
+                StepRecord(
+                    step_id=step.step_id,
+                    skill_id=step.skill_id,
+                    skill_version=step.skill_version,
+                    execution=None,
+                    error=f"bind_error: {exc}",
+                )
+            )
+            notes.append(f"step {step.step_id!r} bind failed: {exc}")
+            if spec.validation.abort_on_failed:
+                aborted = True
+                break
+            continue
+
         try:
             execution = engine.run(
                 step.skill_id,
@@ -146,7 +176,6 @@ def run_experiment(
     if infra_failed and aborted:
         status = ExperimentStatus.FAILED
     elif aborted:
-        # If last recorded step is INVALID → prefer INVALID-like ABORTED
         status = ExperimentStatus.ABORTED
     elif not validation.passed:
         status = ExperimentStatus.VALIDATION_FAILED
@@ -156,7 +185,6 @@ def run_experiment(
     completed = datetime.now(UTC)
     duration_ms = (time.perf_counter() - t0) * 1000.0
 
-    # Collect backend list from step provenances (informational)
     backends: list[Any] = []
     for sr in steps_t:
         if sr.execution is None:
@@ -166,7 +194,7 @@ def run_experiment(
             if b not in backends:
                 backends.append(b)
 
-    return ExperimentRecord(
+    record = ExperimentRecord(
         status=status,
         spec=spec,
         seed=seed,
@@ -186,6 +214,11 @@ def run_experiment(
         duration_ms=duration_ms,
         notes=tuple(notes),
     )
+
+    if do_persist:
+        record, _ = persist_experiment_record(record, artifact_root=artifact_root)
+
+    return record
 
 
 def _environment_snapshot(spec: ExperimentSpec) -> dict[str, Any]:

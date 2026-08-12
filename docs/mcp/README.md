@@ -91,6 +91,7 @@ run another agent first and pass its result's `execution` back in.
 | `agent.control_dynamics` | Domain wrapper over public `control.*` and `dynamics.*` skills. |
 | `agent.finance_uncertainty` | Domain wrapper over public `finance.*` and `uncertainty.*` skills. |
 | `agent.neural` | Neural & evolutionary specialist: public `neural.*` and `evolutionary.*` skills (ADR 0031 / ADR 0033 training + search). Prefer this for MLP/LSTM/CNN/transformer, neuroevolution, NSGA/DE/CMA-ES. Raw skill tools (`neural.mlp.regressor`, `evolutionary.optimize_single`, …) remain in the catalog. |
+| `experiment.run` | Multi-step `ExperimentSpec` runner (W2). Returns `ExperimentRecord` with metrics and validation. |
 | `list_agents` | Specialist-agent catalog. Preferred discovery entrypoint for hosts. |
 | `list_skills` | Raw skill catalog, mirroring `oec skills list --json`. |
 | `<skill_id>` | Run a specific low-level skill directly. `inputSchema` is the skill's own `input.schema.json`. Result is the full `ExecutionResult` JSON. |

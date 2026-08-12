@@ -45,6 +45,8 @@ class MetricValue(BaseModel):
     path: str
     step_id: str | None
     direction: str
+    target: float | None = None
+    abs_error_to_target: float | None = None
     error: str | None = None
 
 
@@ -56,6 +58,18 @@ class ValidationSummary(BaseModel):
     passed: bool
     messages: tuple[str, ...] = ()
     metric_checks: dict[str, bool] = Field(default_factory=dict)
+
+
+class ProducedArtifact(BaseModel):
+    """Artifact written by the experiment store (W2.3)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    name: str
+    kind: str
+    path: str
+    content_hash: str | None = None
+    media_type: str | None = None
 
 
 class ExperimentRecord(BaseModel):
@@ -74,6 +88,7 @@ class ExperimentRecord(BaseModel):
     validation: ValidationSummary = Field(
         default_factory=lambda: ValidationSummary(passed=True, messages=())
     )
+    artifacts_produced: tuple[ProducedArtifact, ...] = ()
     reproducibility: dict[str, Any] = Field(default_factory=dict)
     started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
@@ -81,4 +96,6 @@ class ExperimentRecord(BaseModel):
     notes: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
-        return self.model_dump(mode="json")
+        data = self.model_dump(mode="json")
+        assert isinstance(data, dict)
+        return data
