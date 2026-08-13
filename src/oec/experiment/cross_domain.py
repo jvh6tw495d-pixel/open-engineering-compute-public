@@ -14,6 +14,8 @@ from oec.evolutionary.contracts import (
     EvolutionaryAlgorithmSpec,
 )
 from oec.experiment.evolutionary import (
+    build_hybrid_training_experiment,
+    build_nsga2_experiment,
     build_optimize_single_experiment,
     sphere_problem_2d,
 )
@@ -447,9 +449,11 @@ def build_root_bind_to_distribution_experiment(
     )
 
 
-# Single source of truth for W7 public builders (name → fn, domains, extras).
-# Imported helpers (build_optimize_single_experiment, build_mlp_regressor_*)
-# must NOT appear here — MCP/CLI only expose this catalog.
+# Single source of truth for public builders (name → fn, domains, extras).
+# MCP/CLI only expose this catalog (fail-closed). Helpers such as
+# sphere_problem_2d / problem_to_optimize_inputs / build_mlp_regressor_* stay out.
+# S4: public W5 evolutionary + hybrid experiment builders are catalogued here;
+# NEAT / HyperNEAT remain excluded (ADR 0042).
 _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
     "build_physics_kinematics_experiment": {
         "fn": build_physics_kinematics_experiment,
@@ -470,6 +474,22 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
         "fn": build_evo_sphere_experiment,
         "domains": ["evolutionary"],
         "extras": ["evolutionary"],
+    },
+    # S4 — public declarative evolutionary / hybrid builders (W5).
+    "build_optimize_single_experiment": {
+        "fn": build_optimize_single_experiment,
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
+    "build_nsga2_experiment": {
+        "fn": build_nsga2_experiment,
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
+    "build_hybrid_training_experiment": {
+        "fn": build_hybrid_training_experiment,
+        "domains": ["neural", "evolutionary"],
+        "extras": ["neural", "evolutionary"],
     },
     "build_physics_to_neural_surrogate_experiment": {
         "fn": build_physics_to_neural_surrogate_experiment,

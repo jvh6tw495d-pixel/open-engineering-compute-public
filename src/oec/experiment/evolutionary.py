@@ -3,7 +3,8 @@
 Declarative only: maps ``EvolutionaryProblemSpec`` / algorithm contracts into
 skill inputs. No arbitrary fitness Python (ADR 0031).
 
-NEAT / HyperNEAT remain **deferred** (ADR 0037) — not implemented here.
+Public builders are discoverable via the fail-closed cross-domain catalog (S4).
+NEAT / HyperNEAT remain **excluded** from 3.6 DoD (ADR 0042; deferred since ADR 0037).
 """
 
 from __future__ import annotations

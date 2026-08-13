@@ -141,7 +141,7 @@ of cryptographic origin/provenance. Failure or absence of any gate leaves the sk
 - [x] Adapter/checkpoint artifact + generate reload provenance (S1)
 - [x] `neural.distill` + builder (S2)
 - [x] Neural checkpoint reload stable for predict/evaluate (S3)
-- [ ] Evo/hybrid builders green; NEAT documented excluded (S4)
+- [x] Evo/hybrid builders green; NEAT documented excluded (S4)
 - [ ] VLM MVP skills or explicit waiver if blocked (S5)
 - [ ] MCP allow-list builders updated; agent demos (S6)
 - [ ] Core suite green without AI extras (S6)

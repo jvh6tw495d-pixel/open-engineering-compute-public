@@ -112,6 +112,15 @@ run another agent first and pass its result's `execution` back in.
 7. **`foundation.generate`** gains optional `adapter_path` to reload a `foundation.peft_train` artifact with provenance (fail-closed if missing/unloadable).
 8. **`build_peft_train_then_generate_experiment`** added to the cross-domain builder catalog — train then reload-and-generate in one `ExperimentSpec`.
 
+### S4 (evolutionary / hybrid industrial closure)
+
+9. **Public W5 builders on the fail-closed catalog:** `build_optimize_single_experiment`,
+   `build_nsga2_experiment`, `build_hybrid_training_experiment` (domains + required
+   extras accurate). Helpers and non-catalog factories remain rejected by
+   `experiment.run`.
+10. **NEAT / HyperNEAT** stay **excluded** (ADR 0042) — no `evolutionary.neat` skill
+    or builder stubs.
+
 ## Recommended host behavior
 
 1. Consult `list_agents` first.

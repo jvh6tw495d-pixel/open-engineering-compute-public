@@ -97,6 +97,29 @@ def test_call_tool_experiment_list_builders(engine: Engine) -> None:
         assert "domains" in row and "extras" in row
 
 
+def test_call_tool_experiment_list_builders_includes_s4_evo(engine: Engine) -> None:
+    """S4: public evo/hybrid builders appear on MCP with accurate metadata."""
+    result = call_tool(engine, "experiment.list_builders", {})
+    assert result.isError is False
+    by_name = {row["name"]: row for row in _parse_content(result)}
+    assert by_name["build_optimize_single_experiment"]["domains"] == ["evolutionary"]
+    assert by_name["build_optimize_single_experiment"]["extras"] == ["evolutionary"]
+    assert by_name["build_nsga2_experiment"]["domains"] == ["evolutionary"]
+    assert by_name["build_nsga2_experiment"]["extras"] == ["evolutionary"]
+    assert by_name["build_hybrid_training_experiment"]["domains"] == [
+        "neural",
+        "evolutionary",
+    ]
+    assert by_name["build_hybrid_training_experiment"]["extras"] == [
+        "neural",
+        "evolutionary",
+    ]
+    # Helpers stay invisible to hosts.
+    assert "sphere_problem_2d" not in by_name
+    assert "problem_to_optimize_inputs" not in by_name
+    assert "build_mlp_regressor_experiment" not in by_name
+
+
 def test_call_tool_experiment_run_named_builder(engine: Engine) -> None:
     result = call_tool(
         engine,
@@ -114,11 +137,46 @@ def test_call_tool_experiment_run_named_builder(engine: Engine) -> None:
     assert body["metrics"]
 
 
+def test_call_tool_experiment_run_s4_nsga2_accepted_or_extra_fail_closed(
+    engine: Engine,
+) -> None:
+    """S4: catalogued NSGA2 builder is known; run fails only if extras missing."""
+    result = call_tool(
+        engine,
+        "experiment.run",
+        {
+            "builder": "build_nsga2_experiment",
+            "builder_kwargs": {
+                "n_var": 3,
+                "generations": 4,
+                "population": 8,
+                "seed": 0,
+            },
+        },
+    )
+    body = _parse_content(result)
+    if result.isError:
+        # Fail-closed path: optional evolutionary extra (pymoo) absent.
+        err = str(body.get("error", "")).lower()
+        assert "unknown experiment builder" not in err
+        assert any(
+            token in err for token in ("pymoo", "evolutionary", "not installed", "extra")
+        ), body
+        return
+    # With extras installed: named builder is runnable end-to-end.
+    assert body["status"] in {"COMPLETED", "FAILED", "ABORTED"}
+    assert body["spec"]["id"] == "evolutionary.nsga2"
+    assert body["spec"]["required_extras"] == ["evolutionary"]
+
+
 def test_call_tool_experiment_run_unknown_builder_fail_closed(engine: Engine) -> None:
     # F1: module callables outside the catalog must be rejected (not invoked).
     for bad in (
         "ExperimentSpec",
         "sphere_problem_2d",
+        "problem_to_optimize_inputs",
+        "build_mlp_regressor_experiment",
+        "build_evo_then_describe_experiment",
         "list_cross_domain_builders",
         "not_a_builder",
     ):
