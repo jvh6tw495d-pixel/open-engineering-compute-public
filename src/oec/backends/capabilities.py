@@ -40,9 +40,16 @@ DECLARED_CAPABILITIES: MappingProxyType[str, frozenset[str]] = MappingProxyType(
         # E3 / E4 — still oec[evolutionary] extra
         "deap": frozenset({"genetic_programming", "evolution_strategy"}),
         "nevergrad": frozenset({"blackbox_optimize"}),
-        # W6/S1 — optional oec[foundation]
+        # W6/S1/S5 — optional oec[foundation]
         "transformers": frozenset(
-            {"foundation_embed", "foundation_generate", "foundation_peft", "foundation_finetune"}
+            {
+                "foundation_embed",
+                "foundation_generate",
+                "foundation_peft",
+                "foundation_finetune",
+                "foundation_vision",
+                "foundation_vlm",
+            }
         ),
         # SymPy is a core dep; declare symbolic domain for registry honesty
         "sympy": frozenset({"symbolic"}),

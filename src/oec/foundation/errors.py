@@ -77,3 +77,68 @@ class AdapterNotFoundError(FoundationError):
         details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message, details=details or {})
+
+
+class PillowNotAvailableError(FoundationError):
+    """Raised when Pillow is required for image decode but missing."""
+
+    default_code = "pillow_not_available"
+
+    def __init__(
+        self,
+        message: str = (
+            "Pillow is not installed. Image decode requires the foundation extra: "
+            "pip install 'oec[foundation]'"
+        ),
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, details=details or {})
+
+
+class InvalidImageSourceError(FoundationError):
+    """Raised when an image source fails validation or decode."""
+
+    default_code = "invalid_image_source"
+
+    def __init__(
+        self,
+        message: str = "invalid image source",
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, details=details or {})
+
+
+class ModelRevisionRequiredError(FoundationError):
+    """Raised when a remote HF model is requested without an immutable revision."""
+
+    default_code = "model_revision_required"
+
+    def __init__(
+        self,
+        message: str = (
+            "remote Hugging Face model requires an immutable revision "
+            "(or an existing local model path for local-only mode)"
+        ),
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, details=details or {})
+
+
+class UnsupportedVisionModelError(FoundationError):
+    """Raised when the loaded model class is not a supported vision/VLM path.
+
+    Fail-closed: never silently substitute a text-only / base LM.
+    """
+
+    default_code = "unsupported_vision_model"
+
+    def __init__(
+        self,
+        message: str = "model is not a supported vision or VLM class",
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, details=details or {})

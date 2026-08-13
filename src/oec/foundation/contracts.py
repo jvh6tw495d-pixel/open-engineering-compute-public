@@ -168,3 +168,114 @@ class TrainingArtifact(BaseModel):
     sha256: str = Field(min_length=64, max_length=64)
     base_model_id: str = Field(min_length=1)
     revision: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# S5 VLM MVP (ADR 0040 D3) — closed vision / VLM contracts
+# ---------------------------------------------------------------------------
+
+ALLOWED_IMAGE_EXTENSIONS: frozenset[str] = frozenset({".png", ".jpg", ".jpeg", ".webp"})
+MAX_IMAGE_BYTES: int = 5 * 1024 * 1024  # 5 MiB decoded raster bound
+
+
+class VisionBackend(StrEnum):
+    """Only Transformers is in-scope for the S5 VLM MVP."""
+
+    TRANSFORMERS = "transformers"
+
+
+def is_local_model_path(model_id: str) -> bool:
+    """True when ``model_id`` names an existing local path (local-only mode)."""
+    from pathlib import Path
+
+    p = Path(model_id)
+    return p.exists()
+
+
+def require_pinned_or_local_model(model: FoundationModelSpec) -> None:
+    """Fail closed: remote HF labels need an immutable revision; no remote code.
+
+    Local directory/file model ids are the explicit local-only escape hatch.
+    """
+    if model.trust_remote_code:
+        raise ValueError("trust_remote_code must be false (unsafe remote code disabled)")
+    if is_local_model_path(model.model_id):
+        return
+    if model.revision is None or not str(model.revision).strip():
+        raise ValueError(
+            "revision is required for remote Hugging Face model ids "
+            "(fail-closed reproducibility; use a local path for local-only mode)"
+        )
+
+
+class VisionImageInput(BaseModel):
+    """Bounded raster input — base64 bytes or a controlled local path.
+
+    No URL download. Extension and decoded-size bounds are enforced at runtime
+    load; schema rejects obvious URL schemes and disallowed path suffixes.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["0.1.0"] = "0.1.0"
+    image_base64: str | None = Field(default=None, min_length=1)
+    image_path: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _exactly_one_source(self) -> VisionImageInput:
+        has_b64 = self.image_base64 is not None
+        has_path = self.image_path is not None
+        if has_b64 == has_path:
+            raise ValueError("image requires exactly one of image_base64 or image_path")
+        if has_path:
+            path = str(self.image_path)
+            lower = path.strip().lower()
+            if lower.startswith("http://") or lower.startswith("https://"):
+                raise ValueError("image_path must be a local path; URL download is not allowed")
+            from pathlib import Path
+
+            suffix = Path(path).suffix.lower()
+            if suffix not in ALLOWED_IMAGE_EXTENSIONS:
+                raise ValueError(
+                    f"image_path extension must be one of {sorted(ALLOWED_IMAGE_EXTENSIONS)}"
+                )
+        return self
+
+
+class VisionEmbeddingSpec(BaseModel):
+    """Governed vision embedding request (S5 MVP)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["0.1.0"] = "0.1.0"
+    backend: VisionBackend = VisionBackend.TRANSFORMERS
+    images: list[VisionImageInput] = Field(min_length=1)
+    model: FoundationModelSpec
+    dim: int = Field(default=512, ge=8, le=4096)
+    normalize: bool = True
+    seed: int = 0
+
+    @model_validator(mode="after")
+    def _check_model_pin(self) -> VisionEmbeddingSpec:
+        require_pinned_or_local_model(self.model)
+        return self
+
+
+class VLMGenerationSpec(BaseModel):
+    """Governed vision-language generation request (S5 MVP)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["0.1.0"] = "0.1.0"
+    backend: VisionBackend = VisionBackend.TRANSFORMERS
+    prompt: str = Field(min_length=1)
+    image: VisionImageInput
+    model: FoundationModelSpec
+    max_new_tokens: int = Field(default=32, ge=1, le=512)
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    seed: int = 0
+
+    @model_validator(mode="after")
+    def _check_model_pin(self) -> VLMGenerationSpec:
+        require_pinned_or_local_model(self.model)
+        return self

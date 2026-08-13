@@ -1,15 +1,19 @@
-"""Foundation runtime — builtin utilities + optional transformers (W6).
+"""Foundation runtime — builtin utilities + optional transformers (W6 / S5).
 
 ``builtin_hash`` embeddings are **OEC-owned** deterministic vectors for
 reproducible experiments without network/model downloads. They are **not**
 a language-model merit claim.
 
 ``transformers`` paths require ``oec[foundation]`` and fail closed when absent.
+S5 vision / VLM paths additionally require Pillow for image decode and pin
+remote models with an immutable ``revision`` (or local-only paths).
 """
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import io
 import math
 import os
 import struct
@@ -17,21 +21,51 @@ from pathlib import Path
 from typing import Any
 
 from oec.foundation.contracts import (
+    ALLOWED_IMAGE_EXTENSIONS,
+    MAX_IMAGE_BYTES,
     ArtifactKind,
     EmbeddingBackend,
     EmbeddingSpec,
+    FoundationModelSpec,
     GenerationBackend,
     GenerationSpec,
     PEFTMethod,
     PEFTSpec,
     TrainingDatasetSpec,
+    VisionBackend,
+    VisionEmbeddingSpec,
+    VisionImageInput,
+    VLMGenerationSpec,
+    is_local_model_path,
 )
 from oec.foundation.errors import (
     AdapterNotFoundError,
     BitsAndBytesNotAvailableError,
     FoundationError,
+    InvalidImageSourceError,
+    ModelRevisionRequiredError,
     PeftNotAvailableError,
+    PillowNotAvailableError,
     TransformersNotAvailableError,
+    UnsupportedVisionModelError,
+)
+
+# Closed allow-lists for S5 — never silently accept text-only stand-ins.
+_VISION_EMBED_MODEL_TYPES: frozenset[str] = frozenset({"clip", "chinese_clip", "siglip"})
+_VLM_GENERATE_MODEL_TYPES: frozenset[str] = frozenset(
+    {
+        "blip",
+        "blip-2",
+        "blip_2",
+        "git",
+        "instructblip",
+        "idefics",
+        "idefics2",
+        "idefics3",
+        "llava",
+        "paligemma",
+        "vision-encoder-decoder",
+    }
 )
 
 
@@ -63,9 +97,24 @@ def probe_peft() -> tuple[bool, str | None, str | None]:
     return True, version, None
 
 
+def probe_pillow() -> tuple[bool, str | None, str | None]:
+    try:
+        import PIL  # noqa: F401
+    except ImportError as exc:
+        return False, None, str(exc)
+    try:
+        import importlib.metadata
+
+        version = importlib.metadata.version("pillow")
+    except Exception:
+        version = None
+    return True, version, None
+
+
 def foundation_capabilities() -> dict[str, Any]:
     avail, version, reason = probe_transformers()
     peft_avail, peft_version, peft_reason = probe_peft()
+    pillow_avail, pillow_version, pillow_reason = probe_pillow()
     return {
         "transformers_available": avail,
         "transformers_version": version,
@@ -73,14 +122,302 @@ def foundation_capabilities() -> dict[str, Any]:
         "peft_available": peft_avail,
         "peft_version": peft_version,
         "peft_reason": peft_reason,
+        "pillow_available": pillow_avail,
+        "pillow_version": pillow_version,
+        "pillow_reason": pillow_reason,
         "embedding_backends": [b.value for b in EmbeddingBackend],
         "generation_backends": [b.value for b in GenerationBackend],
+        "vision_embed_backends": [VisionBackend.TRANSFORMERS.value],
+        "vlm_generate_backends": [VisionBackend.TRANSFORMERS.value],
         "training_methods": [m.value for m in PEFTMethod],
         "notes": [
             "builtin_hash is OEC-owned deterministic embedding, not an LLM",
             "transformers methods require oec[foundation] and may download models",
             "peft_train lora/qlora require peft; qlora additionally requires bitsandbytes",
+            "vision_embed / vlm_generate require transformers + pillow; "
+            "remote models need revision",
         ],
+    }
+
+
+def pretrained_load_kwargs(model: FoundationModelSpec) -> dict[str, Any]:
+    """Build fail-closed kwargs for every Transformers ``from_pretrained`` call.
+
+    Always sets ``trust_remote_code=False``. Remote hub ids require a non-empty
+    ``revision``; existing local paths are the local-only mode.
+    """
+    kwargs: dict[str, Any] = {"trust_remote_code": False}
+    if is_local_model_path(model.model_id):
+        if model.revision is not None and str(model.revision).strip():
+            kwargs["revision"] = str(model.revision)
+        return kwargs
+    if model.revision is None or not str(model.revision).strip():
+        raise ModelRevisionRequiredError(
+            details={"model_id": model.model_id, "revision": model.revision}
+        )
+    kwargs["revision"] = str(model.revision)
+    return kwargs
+
+
+def load_vision_image(source: VisionImageInput) -> Any:
+    """Decode a single bounded raster via optional Pillow. No URL fetch."""
+    avail, _version, reason = probe_pillow()
+    if not avail:
+        raise PillowNotAvailableError(details={"reason": reason})
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise PillowNotAvailableError(details={"reason": str(exc)}) from exc
+
+    try:
+        if source.image_path is not None:
+            path = Path(source.image_path)
+            if not path.is_file():
+                raise InvalidImageSourceError(
+                    "image_path is not an existing file",
+                    details={"image_path": str(path)},
+                )
+            suffix = path.suffix.lower()
+            if suffix not in ALLOWED_IMAGE_EXTENSIONS:
+                raise InvalidImageSourceError(
+                    f"disallowed image extension {suffix!r}",
+                    details={"image_path": str(path), "suffix": suffix},
+                )
+            size = path.stat().st_size
+            if size > MAX_IMAGE_BYTES:
+                raise InvalidImageSourceError(
+                    f"image exceeds max size of {MAX_IMAGE_BYTES} bytes",
+                    details={"image_path": str(path), "size": size},
+                )
+            with Image.open(path) as img:
+                img.load()
+                return img.convert("RGB")
+
+        assert source.image_base64 is not None
+        try:
+            raw = base64.b64decode(source.image_base64, validate=True)
+        except Exception as exc:
+            raise InvalidImageSourceError(
+                "image_base64 is not valid base64",
+                details={"reason": str(exc)},
+            ) from exc
+        if len(raw) > MAX_IMAGE_BYTES:
+            raise InvalidImageSourceError(
+                f"image exceeds max size of {MAX_IMAGE_BYTES} bytes",
+                details={"size": len(raw)},
+            )
+        try:
+            with Image.open(io.BytesIO(raw)) as img:
+                img.load()
+                return img.convert("RGB")
+        except Exception as exc:
+            raise InvalidImageSourceError(
+                "failed to decode image bytes",
+                details={"reason": str(exc)},
+            ) from exc
+    except (PillowNotAvailableError, InvalidImageSourceError):
+        raise
+    except Exception as exc:
+        raise InvalidImageSourceError(
+            "failed to load image",
+            details={"reason": str(exc)},
+        ) from exc
+
+
+def _require_transformers() -> tuple[str | None, None]:
+    avail, version, reason = probe_transformers()
+    if not avail:
+        raise TransformersNotAvailableError(details={"reason": reason})
+    return version, None
+
+
+def vision_embed(spec: VisionEmbeddingSpec) -> dict[str, Any]:
+    """Embed images with a closed Transformers vision model (CLIP family).
+
+    Fail-closed: missing extra, missing Pillow, unsupported architecture, or
+    unloadable processor/model. Never substitutes a text-only embedder.
+    """
+    if spec.backend != VisionBackend.TRANSFORMERS:
+        raise FoundationError(f"unsupported vision embedding backend {spec.backend!r}")
+    version, _ = _require_transformers()
+    load_kwargs = pretrained_load_kwargs(spec.model)
+    model_id = spec.model.model_id
+
+    try:
+        from transformers import AutoConfig, CLIPModel, CLIPProcessor
+    except ImportError as exc:
+        raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
+
+    try:
+        config = AutoConfig.from_pretrained(model_id, **load_kwargs)
+    except Exception as exc:
+        raise UnsupportedVisionModelError(
+            "failed to load vision model config",
+            details={"model_id": model_id, "reason": str(exc)},
+        ) from exc
+
+    model_type = str(getattr(config, "model_type", "") or "").lower()
+    if model_type not in _VISION_EMBED_MODEL_TYPES:
+        raise UnsupportedVisionModelError(
+            f"model_type {model_type!r} is not a supported vision embedding architecture",
+            details={
+                "model_id": model_id,
+                "model_type": model_type,
+                "allowed": sorted(_VISION_EMBED_MODEL_TYPES),
+            },
+        )
+
+    images = [load_vision_image(src) for src in spec.images]
+
+    try:
+        processor = CLIPProcessor.from_pretrained(model_id, **load_kwargs)
+        model = CLIPModel.from_pretrained(model_id, **load_kwargs)
+    except Exception as exc:
+        raise UnsupportedVisionModelError(
+            "failed to load CLIP model/processor (no text-only fallback)",
+            details={"model_id": model_id, "reason": str(exc)},
+        ) from exc
+
+    model.eval()
+    try:
+        import torch
+    except ImportError as exc:
+        raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
+
+    vectors: list[list[float]] = []
+    with torch.no_grad():
+        for image in images:
+            inputs = processor(images=image, return_tensors="pt")
+            feats = model.get_image_features(**inputs)
+            vec = feats.squeeze(0).tolist()
+            if isinstance(vec[0], list):  # unlikely nested
+                vec = vec[0]
+            if spec.normalize:
+                norm = math.sqrt(sum(float(v) * float(v) for v in vec)) or 1.0
+                vec = [float(v) / norm for v in vec]
+            else:
+                vec = [float(v) for v in vec]
+            if len(vec) < spec.dim:
+                vec = vec + [0.0] * (spec.dim - len(vec))
+            vectors.append(vec[: spec.dim])
+
+    return {
+        "backend": "transformers",
+        "backend_version": version,
+        "model_id": model_id,
+        "revision": load_kwargs.get("revision"),
+        "dim": spec.dim,
+        "n": len(vectors),
+        "vectors": vectors,
+        "normalized": spec.normalize,
+        "seed": spec.seed,
+        "merit_owner": "transformers",
+        "message": "CLIP image embedding (no text-only fallback)",
+        "trust_remote_code": False,
+    }
+
+
+def vlm_generate(spec: VLMGenerationSpec) -> dict[str, Any]:
+    """Vision-language generation via Transformers Vision2Seq path only.
+
+    Fail-closed: never falls back to ``AutoModelForCausalLM`` / text-only.
+    """
+    if spec.backend != VisionBackend.TRANSFORMERS:
+        raise FoundationError(f"unsupported VLM generation backend {spec.backend!r}")
+    version, _ = _require_transformers()
+    load_kwargs = pretrained_load_kwargs(spec.model)
+    model_id = spec.model.model_id
+
+    try:
+        from transformers import AutoConfig, AutoModelForVision2Seq, AutoProcessor, set_seed
+    except ImportError as exc:
+        raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
+
+    try:
+        config = AutoConfig.from_pretrained(model_id, **load_kwargs)
+    except Exception as exc:
+        raise UnsupportedVisionModelError(
+            "failed to load VLM model config",
+            details={"model_id": model_id, "reason": str(exc)},
+        ) from exc
+
+    model_type = str(getattr(config, "model_type", "") or "").lower()
+    # Some Vision2Seq models report nested types; allow exact + known families.
+    if model_type not in _VLM_GENERATE_MODEL_TYPES and not any(
+        model_type.startswith(prefix) for prefix in ("blip", "idefics", "llava", "git")
+    ):
+        raise UnsupportedVisionModelError(
+            f"model_type {model_type!r} is not a supported VLM architecture",
+            details={
+                "model_id": model_id,
+                "model_type": model_type,
+                "allowed": sorted(_VLM_GENERATE_MODEL_TYPES),
+            },
+        )
+
+    image = load_vision_image(spec.image)
+
+    try:
+        processor = AutoProcessor.from_pretrained(model_id, **load_kwargs)
+        model = AutoModelForVision2Seq.from_pretrained(model_id, **load_kwargs)
+    except Exception as exc:
+        raise UnsupportedVisionModelError(
+            "failed to load Vision2Seq model/processor (no text-only fallback)",
+            details={"model_id": model_id, "reason": str(exc)},
+        ) from exc
+
+    set_seed(int(spec.seed))
+    model.eval()
+    try:
+        import torch
+    except ImportError as exc:
+        raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
+
+    try:
+        inputs = processor(images=image, text=spec.prompt, return_tensors="pt")
+    except TypeError:
+        # Some processors use `text` vs prompt keyword differences — fail closed
+        # rather than guessing a text-only path.
+        try:
+            inputs = processor(image, spec.prompt, return_tensors="pt")
+        except Exception as exc:
+            raise UnsupportedVisionModelError(
+                "processor rejected image+text inputs",
+                details={"model_id": model_id, "reason": str(exc)},
+            ) from exc
+    except Exception as exc:
+        raise UnsupportedVisionModelError(
+            "processor rejected image+text inputs",
+            details={"model_id": model_id, "reason": str(exc)},
+        ) from exc
+
+    gen_kwargs: dict[str, Any] = {"max_new_tokens": int(spec.max_new_tokens)}
+    if spec.temperature > 0:
+        gen_kwargs["do_sample"] = True
+        gen_kwargs["temperature"] = float(spec.temperature)
+    else:
+        gen_kwargs["do_sample"] = False
+
+    with torch.no_grad():
+        out = model.generate(**inputs, **gen_kwargs)
+
+    try:
+        text = processor.batch_decode(out, skip_special_tokens=True)[0]
+    except Exception:
+        text = str(out)
+
+    return {
+        "backend": "transformers",
+        "backend_version": version,
+        "model_id": model_id,
+        "revision": load_kwargs.get("revision"),
+        "prompt": spec.prompt,
+        "text": text,
+        "max_new_tokens": spec.max_new_tokens,
+        "seed": spec.seed,
+        "merit_owner": "transformers",
+        "message": "vision-language generation (Vision2Seq only)",
+        "trust_remote_code": False,
     }
 
 
