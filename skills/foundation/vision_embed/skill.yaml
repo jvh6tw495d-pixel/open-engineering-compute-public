@@ -1,0 +1,40 @@
+id: foundation.vision_embed
+version: 0.1.0
+status: experimental
+domain: foundation
+title: Vision Embeddings (CLIP family, transformers)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: foundation_vision_embed
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 120
+  network_access: false
+  filesystem_access: true
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "S5 VLM MVP — ADR 0040 D3"
+  - "Hugging Face Transformers CLIP (optional oec[foundation])"
+
+tags:
+  - s5
+  - foundation
+  - vision

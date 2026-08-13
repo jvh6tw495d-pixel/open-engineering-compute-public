@@ -1,8 +1,9 @@
-"""Foundation Models Specialist for governed public OEC skills (W6 + S1).
+"""Foundation Models Specialist for governed public OEC skills (W6 + S1 + S5).
 
-Covers ``foundation.*`` embed / generate / capabilities / peft_train.
-``builtin_hash`` embeddings work without extras; transformers generate and
-peft_train require ``oec[foundation]``.
+Covers ``foundation.*`` embed / generate / capabilities / peft_train /
+vision_embed / vlm_generate. ``builtin_hash`` embeddings work without
+extras; transformers generate, peft_train, vision_embed and vlm_generate
+require ``oec[foundation]`` and fail closed without it.
 """
 
 from __future__ import annotations
@@ -44,6 +45,43 @@ class FoundationSpecialist(SkillSpecialist):
                 "texts": ["open engineering compute", "scientific skills"],
                 "target_modules": ["c_attn"],
                 "max_steps": 2,
+                "seed": 0,
+            },
+        ),
+        # S5 (ADR 0040 D3): CLIP image embedding; requires oec[foundation],
+        # fail-closed without it. Pinned revision — no mutable model label.
+        "vision_embed": (
+            "foundation.vision_embed",
+            {
+                "images": [
+                    {
+                        "image_base64": (
+                            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//"
+                            "8/AAX+Av4N70a4AAAAAElFTkSuQmCC"
+                        )
+                    }
+                ],
+                "model_id": "openai/clip-vit-base-patch32",
+                "revision": "5812e510083bb2d23fa43778a39ac065d205ed4d",
+                "dim": 16,
+                "seed": 0,
+            },
+        ),
+        # S5 (ADR 0040 D3): BLIP captioning; requires oec[foundation],
+        # fail-closed without it. Pinned revision — no mutable model label.
+        "vlm_generate": (
+            "foundation.vlm_generate",
+            {
+                "prompt": "describe this image",
+                "image": {
+                    "image_base64": (
+                        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//"
+                        "8/AAX+Av4N70a4AAAAAElFTkSuQmCC"
+                    )
+                },
+                "model_id": "Salesforce/blip-image-captioning-base",
+                "revision": "89b09ea1789f7addf2f6d6f0dfc4ce10f0dc4",
+                "max_new_tokens": 8,
                 "seed": 0,
             },
         ),

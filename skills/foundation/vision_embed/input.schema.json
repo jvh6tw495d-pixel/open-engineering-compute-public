@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "foundation.vision_embed input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["images", "model_id"],
+  "properties": {
+    "images": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "image_base64": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Base64-encoded raster bytes (PNG/JPEG/WEBP). No URL download."
+          },
+          "image_path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Local file path label. Must end in .png/.jpg/.jpeg/.webp."
+          }
+        },
+        "oneOf": [
+          { "required": ["image_base64"], "not": { "required": ["image_path"] } },
+          { "required": ["image_path"], "not": { "required": ["image_base64"] } }
+        ]
+      }
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "HF hub id (requires revision) or an existing local model directory (local-only mode)."
+    },
+    "revision": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Immutable HF revision (commit SHA or tag). Required for remote hub model ids; optional for local paths."
+    },
+    "dim": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 4096,
+      "default": 512,
+      "description": "Output vector length. Native CLIP feature vectors are truncated/zero-padded to this length."
+    },
+    "normalize": { "type": "boolean", "default": true },
+    "seed": { "type": "integer", "default": 0 }
+  }
+}
