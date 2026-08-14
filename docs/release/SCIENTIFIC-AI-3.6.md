@@ -73,8 +73,8 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 |------|------|---------------|
 | **S0** | ADR freeze + this matrix | ADRs 0040–0042 accepted; decisions closed |
 | **S1** ✅ | PEFT / FT + artifacts | train→artifact→generate path; `-m foundation` smoke |
-| **S2** | Distill | `neural.distill` + builder COMPLETED |
-| **S3** | Neural industrial | checkpoint contract; promotion criteria; subset stable optional |
+| **S2** ✅ | Distill | `neural.distill` + catalogued builder completed in a neural-enabled focused run |
+| **S3** ✅ | Neural industrial | versioned checkpoint normalization/reload; SHA-checked and cache-confined file checkpoints; bounded S2 teacher/student MLPs; promotion criteria documented (skills remain experimental) |
 | **S4** | Evo industrial | no NEAT; hybrid/neuroevolution builders hardened |
 | **S5** | VLM MVP | vision embed + vlm generate fail-closed |
 | **S6** | Release | CHANGELOG, README counts, tag, optional CI job |
@@ -112,13 +112,35 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 
 ---
 
-## 7. DoD checklist (release gate)
+## 7. Neural skill promotion criteria
+
+S2/S3 hardening does **not** promote any skill. All neural skills, including
+`neural.distill`, remain `experimental` until a release owner records every gate
+below for the exact version being promoted:
+
+1. Clean core suite plus neural-enabled focused suite, Ruff, MyPy, contract audit,
+   and the ExecutionResult contract test.
+2. Multi-seed benchmark report with declared data, metrics, tolerances, and a
+   documented regression threshold for the candidate skill.
+3. Independent review of checkpoint behavior: inline state-integrity digest,
+   file SHA verification, cache-root confinement, and `weights_only=True` loading.
+4. Reproducibility evidence for the supported CPU/device configuration and a
+   documented operational rollback/compatibility path.
+5. A release decision updates the manifest status and release notes together.
+
+The inline SHA-256 check is integrity-only: it is neither a signature nor evidence
+of cryptographic origin/provenance. Failure or absence of any gate leaves the skill
+`experimental`.
+
+---
+
+## 8. DoD checklist (release gate)
 
 - [x] ADR 0040–0042 in tree (S0)
 - [x] `foundation.peft_train` (+ FT mode/skill) with golden / fail-closed (S1)
 - [x] Adapter/checkpoint artifact + generate reload provenance (S1)
-- [ ] `neural.distill` + builder (S2)
-- [ ] Neural checkpoint reload stable for predict/evaluate (S3)
+- [x] `neural.distill` + builder (S2)
+- [x] Neural checkpoint reload stable for predict/evaluate (S3)
 - [ ] Evo/hybrid builders green; NEAT documented excluded (S4)
 - [ ] VLM MVP skills or explicit waiver if blocked (S5)
 - [ ] MCP allow-list builders updated; agent demos (S6)

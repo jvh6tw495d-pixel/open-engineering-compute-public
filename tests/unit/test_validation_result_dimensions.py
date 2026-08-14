@@ -162,3 +162,54 @@ def test_missing_optional_declared_quantity_is_left_to_schema_validator() -> Non
 
 def test_layer_class_attribute() -> None:
     assert ResultDimensionalValidator.layer == "dimensional"
+
+
+def _array_unit_schema() -> dict[str, Any]:
+    """Schema shape used by battery.soc_trajectory.energy_delta (array + x-oec-unit)."""
+    return {
+        "type": "object",
+        "properties": {
+            "energy_delta": {
+                "type": "array",
+                "items": {"type": "number", "x-oec-unit": "Wh"},
+                "x-oec-unit": "Wh",
+            },
+            "label": {"type": "string"},
+        },
+    }
+
+
+def test_declared_physical_series_array_of_numbers_passes() -> None:
+    assert (
+        _validate(
+            {"energy_delta": [10.0, 5.0, -2.5], "label": "ok"},
+            output_schema=_array_unit_schema(),
+        )
+        == []
+    )
+
+
+def test_declared_physical_series_empty_array_passes() -> None:
+    assert _validate({"energy_delta": []}, output_schema=_array_unit_schema()) == []
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        10.0,
+        {"value": 10.0, "unit": "Wh"},
+        [10.0, True],
+        [10.0, "1"],
+        [None],
+        [{"value": 10.0, "unit": "Wh"}],
+    ],
+)
+def test_declared_physical_series_rejects_non_numeric_items(raw: Any) -> None:
+    outcomes = _validate({"energy_delta": raw}, output_schema=_array_unit_schema())
+
+    assert len(outcomes) == 1
+    assert outcomes[0].severity is Severity.ERROR
+    assert outcomes[0].details == {
+        "field": "energy_delta",
+        "reason": "malformed_quantity_series_output",
+    }
