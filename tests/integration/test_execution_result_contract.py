@@ -1291,7 +1291,11 @@ def test_all_registered_skills_share_execution_result_contract() -> None:
 
     for manifest in manifests:
         skill_id = manifest.id
-        if skill_id.startswith("optimization.") and highspy is None:
+        # HiGHS backs optimization.* and the composed energy sizing skill.
+        # Do not execute either without the optional oec[optimization] extra.
+        if (
+            skill_id.startswith("optimization.") or skill_id == "energy.min_storage_capacity"
+        ) and highspy is None:
             continue
         # OEC 3.4 optional extras — skip execute when backend not installed
         if skill_id.startswith(("neural.", "hybrid.")) and torch is None:

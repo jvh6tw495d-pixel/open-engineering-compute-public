@@ -167,7 +167,7 @@ def test_vlm_generate_fail_closed_without_transformers() -> None:
                 image=VisionImageInput(image_base64=_tiny_png_b64()),
                 model=FoundationModelSpec(
                     model_id="Salesforce/blip-image-captioning-base",
-                    revision="main",
+                    revision="82a37760796d32b1411fe092ab5d4e227313294b",
                 ),
             )
         )
