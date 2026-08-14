@@ -3,6 +3,7 @@
   "input": {
     "prompt": "Hello",
     "model_id": "sshleifer/tiny-gpt2",
+    "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
     "max_new_tokens": 8,
     "temperature": 0,
     "seed": 0

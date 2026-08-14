@@ -9,7 +9,7 @@
 # Open Engineering Compute (OEC)
 
 > **Status:** **`oec==3.5.0` scientific framework cut (W0–W8)**.
-> Skill catalog: **147** skills / **28** domains (extras optional).
+> Skill catalog: **151** skills / **28** domains (extras optional).
 > Framework notes: [FRAMEWORK-3.5.0.md](docs/release/FRAMEWORK-3.5.0.md).
 > Scientific AI completion (3.6): [SCIENTIFIC-AI-3.6.md](docs/release/SCIENTIFIC-AI-3.6.md).
 > Prior neural/evo incubation: [v3.4-closeout.md](docs/implementation/v3.4-closeout.md).
@@ -64,7 +64,7 @@ uv sync --extra mcp           # MCP:   oec server mcp --skills-root skills
 uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
 uv sync --extra neural        # PyTorch: neural.* families / training (ADR 0031)
 uv sync --extra evolutionary  # pymoo/DEAP/Nevergrad: evolutionary.* (ADR 0031/0033)
-uv sync --extra foundation    # transformers: foundation.embed / generate (W6)
+uv sync --extra foundation    # transformers + Pillow: foundation.embed / generate / vision / VLM
 ```
 
 ## Interfaces
@@ -111,7 +111,7 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 
 ## Status / release
 
-**Current: `oec==3.5.0`**, scientific framework cut, **147** skills across **28** domains
+**Current: `oec==3.5.0`**, scientific framework cut, **151** skills across **28** domains
 (see [skill-inventory.md](docs/implementation/skill-inventory.md) and
 [FRAMEWORK-3.5.0.md](docs/release/FRAMEWORK-3.5.0.md)).
 

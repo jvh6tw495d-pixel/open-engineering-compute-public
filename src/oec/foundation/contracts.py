@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from enum import StrEnum
 from typing import Literal
 
@@ -88,7 +89,10 @@ class GenerationSpec(BaseModel):
     prompt: str = Field(min_length=1)
     max_new_tokens: int = Field(default=32, ge=1, le=512)
     model: FoundationModelSpec = Field(
-        default_factory=lambda: FoundationModelSpec(model_id="sshleifer/tiny-gpt2")
+        default_factory=lambda: FoundationModelSpec(
+            model_id="sshleifer/tiny-gpt2",
+            revision="5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+        )
     )
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     seed: int = 0
@@ -175,7 +179,12 @@ class TrainingArtifact(BaseModel):
 # ---------------------------------------------------------------------------
 
 ALLOWED_IMAGE_EXTENSIONS: frozenset[str] = frozenset({".png", ".jpg", ".jpeg", ".webp"})
-MAX_IMAGE_BYTES: int = 5 * 1024 * 1024  # 5 MiB decoded raster bound
+MAX_IMAGE_BYTES: int = 5 * 1024 * 1024  # compressed source bytes
+# Bounds are applied from decoded image metadata before ``load()`` / ``convert()``.
+MAX_IMAGE_PIXELS: int = 16_000_000
+MAX_IMAGE_DIMENSION: int = 8_192
+MAX_IMAGE_FRAMES: int = 1
+_HF_COMMIT_SHA_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 
 
 class VisionBackend(StrEnum):
@@ -201,10 +210,15 @@ def require_pinned_or_local_model(model: FoundationModelSpec) -> None:
         raise ValueError("trust_remote_code must be false (unsafe remote code disabled)")
     if is_local_model_path(model.model_id):
         return
-    if model.revision is None or not str(model.revision).strip():
+    revision = str(model.revision or "").strip()
+    if not revision:
         raise ValueError(
             "revision is required for remote Hugging Face model ids "
             "(fail-closed reproducibility; use a local path for local-only mode)"
+        )
+    if not _HF_COMMIT_SHA_RE.fullmatch(revision):
+        raise ValueError(
+            "revision for remote Hugging Face model ids must be an immutable 40-hex commit SHA"
         )
 
 

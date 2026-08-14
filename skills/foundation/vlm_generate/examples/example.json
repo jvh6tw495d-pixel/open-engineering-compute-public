@@ -6,7 +6,7 @@
       "image_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC"
     },
     "model_id": "Salesforce/blip-image-captioning-base",
-    "revision": "89b09ea1789f7addf2f6d6f0dfc4ce10f0dc4",
+    "revision": "82a37760796d32b1411fe092ab5d4e227313294b",
     "max_new_tokens": 8,
     "temperature": 0,
     "seed": 0

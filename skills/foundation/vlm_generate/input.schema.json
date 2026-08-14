@@ -33,8 +33,10 @@
     },
     "revision": {
       "type": "string",
-      "minLength": 1,
-      "description": "Immutable HF revision (commit SHA or tag). Required for remote hub model ids; optional for local paths."
+      "minLength": 40,
+      "maxLength": 40,
+      "pattern": "^[0-9a-fA-F]{40}$",
+      "description": "Immutable 40-hex Hugging Face commit SHA. Required for remote hub model ids; optional for local paths."
     },
     "max_new_tokens": {
       "type": "integer",

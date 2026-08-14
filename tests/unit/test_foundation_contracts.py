@@ -71,7 +71,10 @@ def test_transformers_backend_fail_closed_when_missing() -> None:
 
 
 def _model() -> FoundationModelSpec:
-    return FoundationModelSpec(model_id="sshleifer/tiny-gpt2")
+    return FoundationModelSpec(
+        model_id="sshleifer/tiny-gpt2",
+        revision="5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+    )
 
 
 def test_peft_spec_schema_version_bumped() -> None:

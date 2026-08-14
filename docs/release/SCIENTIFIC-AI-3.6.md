@@ -39,7 +39,7 @@ POST-OEC autonomous research harness remains **out of repo**.
 | neural | 26 | `oec[neural]` | families + train + search + eval/predict |
 | evolutionary | 15 | `oec[evolutionary]` | single/multi-obj + portfolio + GP |
 | hybrid | 2 | neural/evolutionary | ADR 0033 paths |
-| foundation | 3 | `oec[foundation]` | embed / generate / capabilities |
+| foundation | 6 | `oec[foundation]` | embed / generate / capabilities / PEFT / vision / VLM |
 | Experiment | builders W4–W7 | — | fail-closed catalog on MCP |
 
 All AI skills ship as `experimental` until S3/S6 promotion.
@@ -57,12 +57,12 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | **PEFT train** | **Done (S1)** | Implement | **S1 done** | `foundation.peft_train` |
 | **Full fine-tune** | **Done (S1)** | Mode or skill | **S1 done** | `mode: full` on `foundation.peft_train` |
 | **Distillation** | Missing | Implement | S2 | `neural.distill` |
-| **VLM** | Missing | MVP | S5 | `foundation.vision_embed`, `foundation.vlm_generate` |
+| **VLM** | **Delivered (S5)** | Bounded, fail-closed MVP | **S5 done** | `foundation.vision_embed`, `foundation.vlm_generate` |
 | NEAT | Deferred | **Exclude** | — | ADR 0042 |
 | vLLM etc. | Missing | Debt only | — | technical-debt |
 | Experiment PEFT→gen | **Done (S1)** | Builder | **S1 done** | `build_peft_train_then_generate_experiment` |
 | Experiment distill→eval | Missing | Builder | S2 | catalog allow-list |
-| MCP demos | foundation embed | + peft | **S1 done** | `agent.foundation` demo `peft_train` |
+| MCP demos | foundation embed + PEFT | VLM raw + agent discovery | **S5 done** | `agent.foundation` demos `vision_embed` / `vlm_generate`; raw S5 skills discoverable |
 | CI extras job | markers only | optional job | S6 | torch+HF tiny |
 
 ---
@@ -76,7 +76,7 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | **S2** ✅ | Distill | `neural.distill` + catalogued builder completed in a neural-enabled focused run |
 | **S3** ✅ | Neural industrial | versioned checkpoint normalization/reload; SHA-checked and cache-confined file checkpoints; bounded S2 teacher/student MLPs; promotion criteria documented (skills remain experimental) |
 | **S4** | Evo industrial | no NEAT; hybrid/neuroevolution builders hardened |
-| **S5** | VLM MVP | vision embed + vlm generate fail-closed |
+| **S5** | VLM MVP | ✅ Delivered: bounded vision embedding + Vision2Seq generation, immutable HF commit pins, no URL fetch, and MCP raw/agent discovery |
 | **S6** | Release | CHANGELOG, README counts, tag, optional CI job |
 
 ### Recommended execution if capacity is tight
@@ -142,8 +142,8 @@ of cryptographic origin/provenance. Failure or absence of any gate leaves the sk
 - [x] `neural.distill` + builder (S2)
 - [x] Neural checkpoint reload stable for predict/evaluate (S3)
 - [x] Evo/hybrid builders green; NEAT documented excluded (S4)
-- [ ] VLM MVP skills or explicit waiver if blocked (S5)
-- [ ] MCP allow-list builders updated; agent demos (S6)
+- [x] VLM MVP: `foundation.vision_embed` + `foundation.vlm_generate`, immutable remote commit pins, bounded image metadata decode, and no URL fetch (S5)
+- [x] MCP discovery for raw S5 skills + `agent.foundation` demos (S5)
 - [ ] Core suite green without AI extras (S6)
 - [ ] CHANGELOG 3.6.0 + version bump + closeout (S6)
 

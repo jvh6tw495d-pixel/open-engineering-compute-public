@@ -31,6 +31,7 @@ class FoundationSpecialist(SkillSpecialist):
             {
                 "prompt": "Hello",
                 "model_id": "sshleifer/tiny-gpt2",
+                "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
                 "max_new_tokens": 8,
                 "temperature": 0,
                 "seed": 0,
@@ -41,6 +42,7 @@ class FoundationSpecialist(SkillSpecialist):
             "foundation.peft_train",
             {
                 "model_id": "sshleifer/tiny-gpt2",
+                "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
                 "mode": "peft_lora",
                 "texts": ["open engineering compute", "scientific skills"],
                 "target_modules": ["c_attn"],
@@ -80,7 +82,7 @@ class FoundationSpecialist(SkillSpecialist):
                     )
                 },
                 "model_id": "Salesforce/blip-image-captioning-base",
-                "revision": "89b09ea1789f7addf2f6d6f0dfc4ce10f0dc4",
+                "revision": "82a37760796d32b1411fe092ab5d4e227313294b",
                 "max_new_tokens": 8,
                 "seed": 0,
             },

@@ -23,6 +23,9 @@ from typing import Any
 from oec.foundation.contracts import (
     ALLOWED_IMAGE_EXTENSIONS,
     MAX_IMAGE_BYTES,
+    MAX_IMAGE_DIMENSION,
+    MAX_IMAGE_FRAMES,
+    MAX_IMAGE_PIXELS,
     ArtifactKind,
     EmbeddingBackend,
     EmbeddingSpec,
@@ -36,7 +39,7 @@ from oec.foundation.contracts import (
     VisionEmbeddingSpec,
     VisionImageInput,
     VLMGenerationSpec,
-    is_local_model_path,
+    require_pinned_or_local_model,
 )
 from oec.foundation.errors import (
     AdapterNotFoundError,
@@ -143,24 +146,58 @@ def foundation_capabilities() -> dict[str, Any]:
 def pretrained_load_kwargs(model: FoundationModelSpec) -> dict[str, Any]:
     """Build fail-closed kwargs for every Transformers ``from_pretrained`` call.
 
-    Always sets ``trust_remote_code=False``. Remote hub ids require a non-empty
-    ``revision``; existing local paths are the local-only mode.
+    ``trust_remote_code`` is always disabled. Every remote Hub load receives an
+    immutable 40-hex commit revision; local paths remain the explicit local-only
+    mode and may omit a revision.
     """
-    kwargs: dict[str, Any] = {"trust_remote_code": False}
-    if is_local_model_path(model.model_id):
-        if model.revision is not None and str(model.revision).strip():
-            kwargs["revision"] = str(model.revision)
-        return kwargs
-    if model.revision is None or not str(model.revision).strip():
+    try:
+        require_pinned_or_local_model(model)
+    except ValueError as exc:
         raise ModelRevisionRequiredError(
-            details={"model_id": model.model_id, "revision": model.revision}
-        )
-    kwargs["revision"] = str(model.revision)
+            str(exc), details={"model_id": model.model_id, "revision": model.revision}
+        ) from exc
+
+    kwargs: dict[str, Any] = {"trust_remote_code": False}
+    if model.revision is not None and str(model.revision).strip():
+        kwargs["revision"] = str(model.revision).strip()
     return kwargs
 
 
+def _validate_image_metadata(image: Any) -> None:
+    """Reject oversized or animated inputs before pixel decoding/conversion."""
+    width, height = image.size
+    pixels = width * height
+    frames = int(getattr(image, "n_frames", 1))
+    details = {
+        "stage": "metadata",
+        "width": width,
+        "height": height,
+        "pixels": pixels,
+        "frames": frames,
+        "max_dimension": MAX_IMAGE_DIMENSION,
+        "max_pixels": MAX_IMAGE_PIXELS,
+        "max_frames": MAX_IMAGE_FRAMES,
+    }
+    if width > MAX_IMAGE_DIMENSION or height > MAX_IMAGE_DIMENSION:
+        raise InvalidImageSourceError("image dimensions exceed configured limit", details=details)
+    if pixels > MAX_IMAGE_PIXELS:
+        raise InvalidImageSourceError("image pixel count exceeds configured limit", details=details)
+    if frames > MAX_IMAGE_FRAMES:
+        raise InvalidImageSourceError("image frame count exceeds configured limit", details=details)
+
+
+def _decode_opened_image(image: Any) -> Any:
+    _validate_image_metadata(image)
+    image.load()
+    return image.convert("RGB")
+
+
 def load_vision_image(source: VisionImageInput) -> Any:
-    """Decode a single bounded raster via optional Pillow. No URL fetch."""
+    """Decode one bounded local/base64 image without URL fetches.
+
+    Pillow's decompression-bomb warning/error is promoted to the public,
+    structured ``InvalidImageSourceError`` contract before any full decode.
+    """
     avail, _version, reason = probe_pillow()
     if not avail:
         raise PillowNotAvailableError(details={"reason": reason})
@@ -169,59 +206,58 @@ def load_vision_image(source: VisionImageInput) -> Any:
     except ImportError as exc:
         raise PillowNotAvailableError(details={"reason": str(exc)}) from exc
 
-    try:
-        if source.image_path is not None:
-            path = Path(source.image_path)
-            if not path.is_file():
-                raise InvalidImageSourceError(
-                    "image_path is not an existing file",
-                    details={"image_path": str(path)},
-                )
-            suffix = path.suffix.lower()
-            if suffix not in ALLOWED_IMAGE_EXTENSIONS:
-                raise InvalidImageSourceError(
-                    f"disallowed image extension {suffix!r}",
-                    details={"image_path": str(path), "suffix": suffix},
-                )
-            size = path.stat().st_size
-            if size > MAX_IMAGE_BYTES:
-                raise InvalidImageSourceError(
-                    f"image exceeds max size of {MAX_IMAGE_BYTES} bytes",
-                    details={"image_path": str(path), "size": size},
-                )
-            with Image.open(path) as img:
-                img.load()
-                return img.convert("RGB")
+    import warnings
 
-        assert source.image_base64 is not None
+    def open_and_decode(input_: Any) -> Any:
         try:
-            raw = base64.b64decode(source.image_base64, validate=True)
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", Image.DecompressionBombWarning)
+                with Image.open(input_) as image:
+                    return _decode_opened_image(image)
+        except (Image.DecompressionBombWarning, Image.DecompressionBombError) as exc:
+            raise InvalidImageSourceError(
+                "Pillow rejected image as a decompression bomb",
+                details={"stage": "metadata", "reason": str(exc)},
+            ) from exc
+        except InvalidImageSourceError:
+            raise
         except Exception as exc:
             raise InvalidImageSourceError(
-                "image_base64 is not valid base64",
-                details={"reason": str(exc)},
+                "failed to decode image bytes", details={"reason": str(exc)}
             ) from exc
-        if len(raw) > MAX_IMAGE_BYTES:
+
+    if source.image_path is not None:
+        path = Path(source.image_path)
+        if not path.is_file():
+            raise InvalidImageSourceError(
+                "image_path is not an existing file", details={"image_path": str(path)}
+            )
+        suffix = path.suffix.lower()
+        if suffix not in ALLOWED_IMAGE_EXTENSIONS:
+            raise InvalidImageSourceError(
+                f"disallowed image extension {suffix!r}",
+                details={"image_path": str(path), "suffix": suffix},
+            )
+        size = path.stat().st_size
+        if size > MAX_IMAGE_BYTES:
             raise InvalidImageSourceError(
                 f"image exceeds max size of {MAX_IMAGE_BYTES} bytes",
-                details={"size": len(raw)},
+                details={"image_path": str(path), "size": size},
             )
-        try:
-            with Image.open(io.BytesIO(raw)) as img:
-                img.load()
-                return img.convert("RGB")
-        except Exception as exc:
-            raise InvalidImageSourceError(
-                "failed to decode image bytes",
-                details={"reason": str(exc)},
-            ) from exc
-    except (PillowNotAvailableError, InvalidImageSourceError):
-        raise
+        return open_and_decode(path)
+
+    assert source.image_base64 is not None
+    try:
+        raw = base64.b64decode(source.image_base64, validate=True)
     except Exception as exc:
         raise InvalidImageSourceError(
-            "failed to load image",
-            details={"reason": str(exc)},
+            "image_base64 is not valid base64", details={"reason": str(exc)}
         ) from exc
+    if len(raw) > MAX_IMAGE_BYTES:
+        raise InvalidImageSourceError(
+            f"image exceeds max size of {MAX_IMAGE_BYTES} bytes", details={"size": len(raw)}
+        )
+    return open_and_decode(io.BytesIO(raw))
 
 
 def _require_transformers() -> tuple[str | None, None]:
@@ -465,16 +501,21 @@ def embed_texts(spec: EmbeddingSpec) -> dict[str, Any]:
         avail, version, reason = probe_transformers()
         if not avail:
             raise TransformersNotAvailableError(details={"reason": reason})
-        # Minimal path: mean-pool last hidden states via AutoModel
-        model_id = spec.model.model_id if spec.model is not None else "sshleifer/tiny-gpt2"
+        # Minimal path: mean-pool last hidden states via AutoModel.
+        model_ref = spec.model or FoundationModelSpec(
+            model_id="sshleifer/tiny-gpt2",
+            revision="5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+        )
+        model_id = model_ref.model_id
+        load_kwargs = pretrained_load_kwargs(model_ref)
         try:
             import torch
             from transformers import AutoModel, AutoTokenizer
         except ImportError as exc:
             raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
-        tokenizer = AutoTokenizer.from_pretrained(model_id)
-        model = AutoModel.from_pretrained(model_id)
+        tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
+        model = AutoModel.from_pretrained(model_id, **load_kwargs)
         model.eval()
         tf_vectors: list[list[float]] = []
         with torch.no_grad():
@@ -520,9 +561,10 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
         raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
     model_id = spec.model.model_id
+    load_kwargs = pretrained_load_kwargs(spec.model)
     set_seed(int(spec.seed))
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model = AutoModelForCausalLM.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
+    model = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
 
     adapter_info: dict[str, Any] | None = None
     if spec.adapter_path:
@@ -606,11 +648,12 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
 
     texts = _prepare_training_texts(spec.dataset)
     model_id = spec.model.model_id
+    load_kwargs = pretrained_load_kwargs(spec.model)
     set_seed(int(spec.seed))
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
 
     kind = ArtifactKind.CHECKPOINT
     if spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):

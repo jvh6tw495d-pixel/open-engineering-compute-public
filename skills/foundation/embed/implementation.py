@@ -13,7 +13,10 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
     backend = EmbeddingBackend(str(inputs.get("backend", "builtin_hash")))
     model = None
     if inputs.get("model_id"):
-        model = FoundationModelSpec(model_id=str(inputs["model_id"]))
+        model = FoundationModelSpec(
+            model_id=str(inputs["model_id"]),
+            revision=str(inputs["revision"]) if inputs.get("revision") else None,
+        )
     spec = EmbeddingSpec(
         backend=backend,
         texts=list(inputs["texts"]),
