@@ -840,6 +840,7 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "y": [0.0, 1.0, 2.0],
         "teacher_checkpoint": {
             "storage": "json_inline",
+            "checkpoint_format_version": 1,
             "model_spec": {
                 "architecture": "mlp",
                 "input_dim": 1,
@@ -854,6 +855,7 @@ _FIXTURES: dict[str, dict[str, Any]] = {
                 "2.weight": [[1.0]],
                 "2.bias": [0.0],
             },
+            "sha256": "f1d0446468d5e77719bf50ed71d748c6291190450d918b9115640d176ca563a4",
         },
         "student_hidden_dims": [1],
         "epochs": 2,

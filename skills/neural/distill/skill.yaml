@@ -21,7 +21,7 @@ execution:
   deterministic: false
   timeout_seconds: 300
   network_access: false
-  filesystem_access: false
+  filesystem_access: true
 
 validation:
   schema: true

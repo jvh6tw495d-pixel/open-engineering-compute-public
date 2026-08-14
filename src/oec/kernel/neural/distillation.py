@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Any
 
 import numpy as np
 
-from oec.kernel.neural.training import predict_mlp, train_mlp
+from oec.kernel.neural.training import NORMALIZE_UNSET, predict_mlp, train_mlp
 from oec.neural.contracts import (
     DatasetSpec,
     DistillationLossMix,
@@ -18,6 +20,63 @@ from oec.neural.contracts import (
 from oec.neural.results import NeuralTrainingResult
 from oec.neural.runtime import TrainingRuntimeSpec
 
+_MAX_STUDENT_HIDDEN_LAYERS = 4
+_MAX_STUDENT_HIDDEN_WIDTH = 512
+_MAX_MLP_PARAMETERS = 1_000_000
+
+
+def _mlp_parameter_count(model: NeuralModelSpec) -> int:
+    widths = [model.input_dim, *model.hidden_dims, model.output_dim]
+    return sum(
+        in_dim * out_dim + out_dim for in_dim, out_dim in zip(widths[:-1], widths[1:], strict=True)
+    )
+
+
+def _validate_bounded_mlp(model: NeuralModelSpec, *, role: str) -> None:
+    hidden = model.hidden_dims
+    if (
+        len(hidden) > _MAX_STUDENT_HIDDEN_LAYERS
+        or any(width > _MAX_STUDENT_HIDDEN_WIDTH for width in hidden)
+        or _mlp_parameter_count(model) > _MAX_MLP_PARAMETERS
+    ):
+        raise ValueError(
+            f"S2 {role} MLP exceeds governed cap "
+            f"({_MAX_STUDENT_HIDDEN_LAYERS} hidden layers, width <= "
+            f"{_MAX_STUDENT_HIDDEN_WIDTH}, parameters <= {_MAX_MLP_PARAMETERS})"
+        )
+
+
+def _validate_governed_teacher_checkpoint(checkpoint: dict[str, Any]) -> None:
+    """Validate inline checkpoint structure and its self-consistency digest.
+
+    The digest proves that the supplied serialized state dict has not changed
+    relative to its declared value. It is an integrity check, not a signature
+    and does not establish cryptographic origin or provenance.
+    """
+    if checkpoint.get("storage", "json_inline") != "json_inline":
+        raise ValueError("S2 teacher_checkpoint must use json_inline storage")
+    if checkpoint.get("checkpoint_format_version") != 1:
+        raise ValueError("S2 teacher_checkpoint requires governed checkpoint_format_version=1")
+    state_dict = checkpoint.get("state_dict")
+    if not isinstance(state_dict, dict) or not isinstance(checkpoint.get("model_spec"), dict):
+        raise ValueError("S2 teacher_checkpoint requires model_spec and state_dict")
+    expected = checkpoint.get("sha256")
+    if not isinstance(expected, str) or len(expected) != 64:
+        raise ValueError("S2 teacher_checkpoint requires a sha256 identity digest")
+    canonical = json.dumps(state_dict, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    actual = hashlib.sha256(canonical).hexdigest()
+    if actual != expected:
+        raise ValueError("S2 teacher_checkpoint sha256 integrity digest mismatch")
+    try:
+        teacher_model = NeuralModelSpec.model_validate(checkpoint["model_spec"])
+    except ValueError as exc:
+        raise ValueError("S2 teacher_checkpoint has an invalid MLP model_spec") from exc
+    _validate_bounded_mlp(teacher_model, role="teacher")
+
+
+def _validate_governed_student(student_model: NeuralModelSpec) -> None:
+    _validate_bounded_mlp(student_model, role="student")
+
 
 def distill_mlp(
     dataset: DatasetSpec,
@@ -26,7 +85,7 @@ def distill_mlp(
     training: TrainingSpec,
     distillation: DistillationSpec,
     *,
-    teacher_normalize: dict[str, list[float]] | None = None,
+    teacher_normalize: dict[str, list[float]] | None | Any = NORMALIZE_UNSET,
     runtime: TrainingRuntimeSpec | None = None,
 ) -> NeuralTrainingResult:
     """Train a regression student against a closed blend of teacher and labels.
@@ -36,8 +95,8 @@ def distill_mlp(
     one for scalar regression because rescaling dimensional engineering targets
     would be physically meaningless.
     """
-    if teacher_checkpoint.get("storage", "json_inline") != "json_inline":
-        raise ValueError("S2 teacher_checkpoint must use json_inline storage")
+    _validate_governed_teacher_checkpoint(teacher_checkpoint)
+    _validate_governed_student(student_model)
     if training.task is not NeuralTask.REGRESSION:
         raise ValueError("S2 tabular distillation currently supports regression only")
     if distillation.temperature != 1.0:

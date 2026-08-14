@@ -355,6 +355,19 @@ def build_distill_then_eval_experiment(
     """S2 tabular distillation followed by evaluation of the student artifact."""
     x = x or [[float(i)] for i in range(12)]
     y = y or [2.0 * float(i) + 1.0 for i in range(12)]
+    distill_inputs: dict[str, Any] = {
+        "x": x,
+        "y": y,
+        "teacher_checkpoint": teacher_checkpoint,
+        "student_hidden_dims": student_hidden_dims or [8],
+        "epochs": int(epochs),
+        "batch_size": min(16, len(x)),
+        "max_epochs": max(int(epochs), 1),
+        "max_batch_size": min(128, max(len(x), 1)),
+        "seed": int(seed),
+    }
+    if teacher_normalize is not None:
+        distill_inputs["teacher_normalize"] = teacher_normalize
     return ExperimentSpec(
         id=experiment_id,
         title="S2: tabular distill then student evaluation",
@@ -365,18 +378,7 @@ def build_distill_then_eval_experiment(
             ExperimentStep(
                 step_id="distill",
                 skill_id="neural.distill",
-                inputs={
-                    "x": x,
-                    "y": y,
-                    "teacher_checkpoint": teacher_checkpoint,
-                    "teacher_normalize": teacher_normalize,
-                    "student_hidden_dims": student_hidden_dims or [8],
-                    "epochs": int(epochs),
-                    "batch_size": min(16, len(x)),
-                    "max_epochs": max(int(epochs), 1),
-                    "max_batch_size": min(128, max(len(x), 1)),
-                    "seed": int(seed),
-                },
+                inputs=distill_inputs,
             ),
             ExperimentStep(
                 step_id="evaluate",

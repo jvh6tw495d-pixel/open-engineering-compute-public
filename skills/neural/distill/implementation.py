@@ -60,14 +60,11 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             optimizer=training.optimizer,
             checkpoint_storage=str(inputs.get("checkpoint_storage", "json_inline")),  # type: ignore[arg-type]
         )
+        kwargs: dict[str, Any] = {"runtime": runtime}
+        if "teacher_normalize" in inputs:
+            kwargs["teacher_normalize"] = inputs["teacher_normalize"]
         result = distill_mlp(
-            dataset,
-            inputs["teacher_checkpoint"],
-            student,
-            training,
-            policy,
-            teacher_normalize=inputs.get("teacher_normalize"),
-            runtime=runtime,
+            dataset, inputs["teacher_checkpoint"], student, training, policy, **kwargs
         )
     except TorchNotAvailableError as exc:
         return {
