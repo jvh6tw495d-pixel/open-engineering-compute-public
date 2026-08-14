@@ -1,6 +1,6 @@
 # ruff: noqa: E501
 
-"""Direct multi-model benchmark: local models + NIM, without Hermes.
+"""Direct multi-model benchmark: local models + NIM, without host runtime.
 
 Three arms per model:
   A. without_oec      -> model solves the benchmark alone
@@ -8,7 +8,7 @@ Three arms per model:
   C. ops_plus_oec     -> model emits OPS JSON; OEC validates/executes
 
 Sources of models:
-  - Hermes active config default + fallback providers
+  - host runtime active config default + fallback providers
   - NIM models via NVIDIA API
   - local Ollama models via local OpenAI-compatible endpoint
 
@@ -27,7 +27,7 @@ participate in the GATE-W3 three-verdict classification
 site to go through `agent.*` MCP tools the way
 `multiagent_with_without_oec.py::oec_pipeline_envelope` does -- out of scope
 for a migrate-min pass. Superseded for authority-backed, envelope-verified
-comparison by `scripts/hermes_supertest.py` (via Hermes) and
+comparison by `scripts/hermes_supertest.py` (via host runtime) and
 `scripts/multiagent_with_without_oec.py` (direct). Kept for its historical
 multi-provider coverage; do not treat its scores as an authority-backed
 2.5.3 stability signal.
@@ -510,7 +510,7 @@ def write_markdown(path: Path, *, models: list[ModelSpec], runs: list[ArmRun]) -
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Direct provider supertest without Hermes")
+    parser = argparse.ArgumentParser(description="Direct provider supertest without host runtime")
     parser.add_argument("--config", type=Path, default=HERMES_CONFIG)
     parser.add_argument("--env-file", type=Path, default=HERMES_ENV)
     parser.add_argument("--list-models", action="store_true")

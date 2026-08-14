@@ -1,6 +1,6 @@
 # ruff: noqa: E501
 
-"""Run a comparative Hermes benchmark across all active configured models.
+"""Run a comparative host runtime benchmark across all active configured models.
 
 Three arms:
   A. without_oec      -> no OEC toolset, model must solve alone
@@ -346,7 +346,7 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
         by_model.setdefault((run.model, run.provider), {})[run.arm] = run
 
     lines = [
-        "# Hermes supertest report",
+        "# host runtime supertest report",
         "",
         f"**Date:** {timestamp}",
         f"**Config source:** `{HERMES_CONFIG}`",
@@ -486,7 +486,7 @@ def write_markdown_report(path: Path, *, models: list[ModelSpec], runs: list[Arm
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Hermes multi-model supertest across 3 arms")
+    parser = argparse.ArgumentParser(description="host runtime multi-model supertest across 3 arms")
     parser.add_argument("--config", type=Path, default=HERMES_CONFIG)
     parser.add_argument("--list-models", action="store_true")
     parser.add_argument("--models", nargs="*", default=None, help="Specific model names to run")

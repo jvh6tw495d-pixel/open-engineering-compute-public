@@ -444,7 +444,7 @@ async def main_async(args: argparse.Namespace) -> int:
             "TMP": str(server_temp_dir),
             "TEMP": str(server_temp_dir),
         },
-        # Deliberately NOT the repo root: reproduces the Hermes launch condition
+        # Deliberately NOT the repo root: reproduces the host runtime launch condition
         # that used to trigger ModuleNotFoundError: No module named 'agents'.
         cwd=r"C:\Windows",
     )

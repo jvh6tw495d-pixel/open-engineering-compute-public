@@ -96,7 +96,7 @@ Isso indica drift de catálogo/model IDs na NIM, não problema do OEC.
 
 ### OpenAI “puro”
 
-Não foi incluído nesta rodada porque não há credencial `OPENAI_API_KEY` ativa no ambiente local do Hermes.
+Não foi incluído nesta rodada porque não há credencial `OPENAI_API_KEY` ativa no ambiente local do host runtime.
 
 ## Conclusões práticas
 
@@ -119,7 +119,7 @@ Não foi incluído nesta rodada porque não há credencial `OPENAI_API_KEY` ativ
 
 ### Prioridade alta
 
-1. Limpar os modelos NIM com `404/410` do fallback do Hermes.
+1. Limpar os modelos NIM com `404/410` do fallback do host runtime.
 2. Resolver a autorização do OpenCode Go para destravar `grok`, `glm`, `kimi`, `deepseek-v4`, `mimo` e `hy3`.
 3. Manter `extract + OEC` como modo padrão do router do OEC.
 

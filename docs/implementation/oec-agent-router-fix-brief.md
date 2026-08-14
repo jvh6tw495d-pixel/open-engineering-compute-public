@@ -21,7 +21,7 @@ Conclusão prática: hoje o OEC é confiável quando chamado pelas skills direta
 
 ### 2. Agents de alto nível falham
 
-Falhas reportadas nos testes manuais via Hermes/MCP:
+Falhas reportadas nos testes manuais via host runtime/MCP:
 
 - `agent.default`
 - `agent.applied_mathematics`
@@ -41,7 +41,7 @@ O arquivo [agents/README.md](C:\Users\joaop\OneDrive\Anexos de email\Documentos\
 - imports `from agents.<specialist>...` só resolvem quando a raiz do repositório está em `sys.path`;
 - isso costuma funcionar em `pytest` rodando da raiz, mas não é garantido no runtime real do MCP.
 
-Ou seja: o comportamento quebrado no Hermes é compatível com a arquitetura atual.
+Ou seja: o comportamento quebrado no host runtime é compatível com a arquitetura atual.
 
 ## Ponto exato do problema
 
@@ -91,7 +91,7 @@ Garantir que a raiz do repositório entre em `sys.path` quando o MCP server subi
 Exemplos de abordagem:
 
 - ajustar o entrypoint do MCP para injetar a repo root no startup;
-- ajustar o launcher usado pelo Hermes/OEC para exportar `PYTHONPATH`;
+- ajustar o launcher usado pelo host runtime/OEC para exportar `PYTHONPATH`;
 - resolver a raiz dinamicamente em `src/oec/mcp/server.py` antes dos imports.
 
 Vantagem:
@@ -159,14 +159,14 @@ Expandir ou adaptar [tests/integration/test_mcp_server.py](C:\Users\joaop\OneDri
 
 ### C. Smoke externo
 
-Após o patch, repetir via Hermes:
+Após o patch, repetir via host runtime:
 
 - `list_agents`
 - `agent.default`
 - `agent.optimization_specialist`
 - `agent.applied_mathematics`
 
-Se isso não passar no Hermes, a correção ainda não está concluída.
+Se isso não passar no host runtime, a correção ainda não está concluída.
 
 ## Observações adicionais
 
@@ -187,4 +187,4 @@ O patch ideal deve incluir:
 - OEC agent/router: quebrado por import/runtime
 - erro principal: `No module named 'agents'`
 - correção imediata: garantir importabilidade dos agents no runtime do MCP
-- aceite real: passar também no Hermes, não só no pytest
+- aceite real: passar também no host runtime, não só no pytest

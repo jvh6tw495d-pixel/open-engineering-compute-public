@@ -7,11 +7,12 @@ import pytest
 pytest.importorskip("torch")
 
 from oec.kernel.neural.runtime import load_state_dict_from_checkpoint  # noqa: E402
-from oec.kernel.neural.training import predict_mlp, train_mlp  # noqa: E402
+from oec.kernel.neural.training import evaluate_mlp, predict_mlp, train_mlp  # noqa: E402
 from oec.neural.contracts import (  # noqa: E402
     DatasetSpec,
     DeviceSpec,
     NeuralModelSpec,
+    NeuralTask,
     OptimizerName,
     OptimizerSpec,
     TrainingSpec,
@@ -116,6 +117,54 @@ def test_file_checkpoint_rejects_sha256_tamper(tmp_path, monkeypatch) -> None:
     Path(result.checkpoint["path"]).write_bytes(b"tampered")
     with pytest.raises(ValueError, match="sha256.*mismatch"):
         predict_mlp([[0.0]], result.checkpoint)
+
+
+def test_versioned_json_inline_checkpoint_rejects_tampered_state_dict_for_predict_and_evaluate() -> (
+    None
+):
+    result = train_mlp(
+        DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[2], output_dim=1),
+        TrainingSpec(epochs=2, seed=2, early_stopping_patience=None),
+        runtime=TrainingRuntimeSpec(seed=2, epochs=2, checkpoint_storage="json_inline"),
+    )
+    checkpoint = dict(result.checkpoint)
+    checkpoint["state_dict"] = dict(checkpoint["state_dict"])
+    first_key = next(iter(checkpoint["state_dict"]))
+    checkpoint["state_dict"][first_key][0][0] += 1.0
+
+    with pytest.raises(ValueError, match="sha256.*mismatch"):
+        predict_mlp([[0.0]], checkpoint)
+    with pytest.raises(ValueError, match="sha256.*mismatch"):
+        evaluate_mlp([[0.0]], [0.0], checkpoint, task=NeuralTask.REGRESSION)
+
+
+def test_versioned_json_inline_checkpoint_rejects_missing_digest() -> None:
+    result = train_mlp(
+        DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[2], output_dim=1),
+        TrainingSpec(epochs=2, seed=2, early_stopping_patience=None),
+        runtime=TrainingRuntimeSpec(seed=2, epochs=2, checkpoint_storage="json_inline"),
+    )
+    checkpoint = dict(result.checkpoint)
+    checkpoint.pop("sha256")
+
+    with pytest.raises(ValueError, match="required sha256"):
+        load_state_dict_from_checkpoint(checkpoint)
+
+
+def test_explicit_json_inline_checkpoint_rejects_missing_format_version() -> None:
+    result = train_mlp(
+        DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[2], output_dim=1),
+        TrainingSpec(epochs=2, seed=2, early_stopping_patience=None),
+        runtime=TrainingRuntimeSpec(seed=2, epochs=2, checkpoint_storage="json_inline"),
+    )
+    checkpoint = dict(result.checkpoint)
+    checkpoint.pop("checkpoint_format_version")
+
+    with pytest.raises(ValueError, match="checkpoint_format_version"):
+        load_state_dict_from_checkpoint(checkpoint)
 
 
 def test_file_checkpoint_rejects_unconfined_path(tmp_path, monkeypatch) -> None:

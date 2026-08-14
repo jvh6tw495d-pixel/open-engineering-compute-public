@@ -1,4 +1,4 @@
-# Hermes supertest report
+# host runtime supertest report
 
 **Date:** 2026-07-31 03:12 UTC
 **Config source:** `C:\Users\joaop\AppData\Local\hermes\config.yaml`

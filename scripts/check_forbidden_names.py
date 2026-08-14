@@ -52,6 +52,9 @@ FORBIDDEN: tuple[str, ...] = FORBIDDEN_CASE_SENSITIVE + FORBIDDEN_CASE_INSENSITI
 _SKIP_DIR_PARTS = {
     ".git",
     ".venv",
+    # Local virtual environment created for the minimal-core test profile.
+    # It is generated dependency content, not public project source.
+    ".venv-core-minimal",
     "venv",
     "node_modules",
     "__pycache__",

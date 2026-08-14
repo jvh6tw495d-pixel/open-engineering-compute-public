@@ -4,7 +4,7 @@ Data: 2026-07-30
 
 ## Objetivo
 
-Restaurar o modo agent-first do OEC no runtime real do MCP/Hermes, eliminando a falha:
+Restaurar o modo agent-first do OEC no runtime real do MCP/host runtime, eliminando a falha:
 
 ```text
 No module named 'agents'
@@ -50,7 +50,7 @@ Em [agents/README.md](C:\Users\joaop\OneDrive\Anexos de email\Documentos\OEC\age
 Isso explica por que:
 
 - `pytest` a partir da raiz pode passar;
-- o runtime real do Hermes/MCP pode falhar.
+- o runtime real do host runtime/MCP pode falhar.
 
 ## Plano de execução
 
@@ -62,7 +62,7 @@ Provar com evidência curta que a falha está no import path do runtime MCP.
 
 ### Tarefas
 
-1. Identificar o entrypoint real usado para subir o MCP no ambiente do Hermes.
+1. Identificar o entrypoint real usado para subir o MCP no ambiente do host runtime.
 2. Inspecionar o `sys.path` efetivo desse runtime.
 3. Reproduzir a importação de `from agents...` nesse mesmo contexto.
 4. Confirmar se a importação passa apenas quando a repo root é explicitamente adicionada.
@@ -90,7 +90,7 @@ Garantir explicitamente que a raiz do repositório entre em `sys.path` antes dos
 
 Preferência:
 
-1. entrypoint/launcher real do MCP usado pelo Hermes
+1. entrypoint/launcher real do MCP usado pelo host runtime
 2. fallback dentro de [src/oec/mcp/server.py](C:\Users\joaop\OneDrive\Anexos de email\Documentos\OEC\src\oec\mcp\server.py)
 
 ### Requisito
@@ -109,7 +109,7 @@ As chamadas `agent.*` passam a importar corretamente no runtime real.
 
 ### Objetivo
 
-Impedir regressão do tipo “passa no pytest, quebra no Hermes”.
+Impedir regressão do tipo “passa no pytest, quebra no host runtime”.
 
 ### Tarefas
 
@@ -132,7 +132,7 @@ Antes do patch, o teste deve conseguir representar a falha real.
 
 Depois do patch, o teste deve passar.
 
-## Etapa 4 — validar com smoke test real no Hermes
+## Etapa 4 — validar com smoke test real no host runtime
 
 ### Objetivo
 
@@ -151,7 +151,7 @@ Não basta passar em testes internos. Precisa funcionar no runtime externo real.
 
 ### Regra de aceite
 
-Se passar no pytest mas falhar no Hermes, o bug não está resolvido.
+Se passar no pytest mas falhar no host runtime, o bug não está resolvido.
 
 ## Etapa 5 — preparar correção estrutural
 
@@ -182,7 +182,7 @@ Executar nesta ordem:
 3. aplicar o patch mínimo de path/import
 4. validar os imports dos agents
 5. rodar testes MCP/integration
-6. rodar smoke real no Hermes
+6. rodar smoke real no host runtime
 7. documentar follow-up estrutural
 
 ## Riscos por caminho
@@ -231,7 +231,7 @@ Abrir sequência de hardening para empacotar `agents/` corretamente.
 
 Só considerar pronto quando tudo abaixo for verdadeiro:
 
-1. `list_agents` responde no Hermes.
+1. `list_agents` responde no host runtime.
 2. `agent.default` seleciona corretamente um specialist.
 3. `agent.optimization_specialist` executa com `demo_label`.
 4. `agent.applied_mathematics` executa um caso simples governado.
@@ -243,7 +243,7 @@ Só considerar pronto quando tudo abaixo for verdadeiro:
 O problema só está realmente resolvido quando:
 
 - o modo default documentado do MCP volta a funcionar;
-- o Hermes consegue usar `agent.default`;
+- o host runtime consegue usar `agent.default`;
 - os specialists deixam de falhar por import;
 - a correção fica protegida por teste;
 - o time registra, separadamente, a dívida técnica de empacotamento estrutural, se o patch inicial for apenas paliativo.
@@ -253,5 +253,5 @@ O problema só está realmente resolvido quando:
 - Confirmar o import bug no runtime real
 - Corrigir path/import no startup do MCP
 - Testar `list_agents` + `agent.default` + specialists
-- Validar no Hermes
+- Validar no host runtime
 - Registrar follow-up estrutural para empacotar `agents/` direito
