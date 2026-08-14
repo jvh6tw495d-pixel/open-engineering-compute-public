@@ -88,9 +88,13 @@ def maybe_clip_grads(torch: Any, module: Any, grad_clip: float | None) -> None:
         torch.nn.utils.clip_grad_norm_(module.parameters(), grad_clip)
 
 
-def checkpoint_cache_dir(run_id: str | None = None) -> Path:
+def checkpoint_cache_root() -> Path:
     base = os.environ.get("OEC_CACHE_DIR")
-    root = Path(base) if base else Path.home() / ".cache" / "oec" / "checkpoints"
+    return Path(base) if base else Path.home() / ".cache" / "oec" / "checkpoints"
+
+
+def checkpoint_cache_dir(run_id: str | None = None) -> Path:
+    root = checkpoint_cache_root()
     path = root / run_id if run_id else root / "anonymous"
     path.mkdir(parents=True, exist_ok=True)
     return path
@@ -111,12 +115,18 @@ def save_checkpoint(
     """
     torch = require_torch()
     if storage == "json_inline":
+        json_state_dict = state_dict_to_jsonable(state_dict)
+        canonical = json.dumps(json_state_dict, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
         payload = {
             **meta,
-            "state_dict": state_dict_to_jsonable(state_dict),
+            "checkpoint_format_version": 1,
+            "state_dict": json_state_dict,
+            "sha256": hashlib.sha256(canonical).hexdigest(),
             "storage": "json_inline",
         }
-        ref = CheckpointRef(storage="json_inline", format_version=1)
+        ref = CheckpointRef(storage="json_inline", sha256=payload["sha256"], format_version=1)
         return payload, ref
 
     if storage != "file":
@@ -129,6 +139,7 @@ def save_checkpoint(
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     payload = {
         **meta,
+        "checkpoint_format_version": 1,
         "storage": "file",
         "path": str(path),
         "sha256": digest,
@@ -143,27 +154,49 @@ def save_checkpoint(
 
 
 def load_state_dict_from_checkpoint(checkpoint: dict[str, Any]) -> dict[str, Any]:
-    """Load state_dict from json_inline or file checkpoint payload."""
+    """Load state_dict from json_inline or file checkpoint payload.
+
+    File checkpoints are untrusted public input: a sha256 digest is
+    mandatory and verified against the on-disk bytes, the resolved path
+    must be confined to the OEC checkpoint cache root, and the file is
+    loaded with ``weights_only=True`` -- there is no unsafe fallback.
+    """
     from oec.kernel.neural.seeding import state_dict_from_jsonable
 
     storage = checkpoint.get("storage", "json_inline")
     if storage == "file":
         torch = require_torch()
-        path = checkpoint.get("path")
-        if not path:
+        raw_path = checkpoint.get("path")
+        if not raw_path:
             raise ValueError("file checkpoint missing path")
-        # weights_only=False: we store a dict with meta + state_dict (trusted local cache)
+        digest = checkpoint.get("sha256")
+        if not digest:
+            raise ValueError("file checkpoint missing required sha256 digest")
+
+        path = Path(raw_path).resolve()
+        root = checkpoint_cache_root().resolve()
+        if not path.is_relative_to(root):
+            raise ValueError(
+                f"checkpoint path {path} is outside the OEC checkpoint cache root "
+                f"{root}; refusing to load an unconfined file path"
+            )
+        if not path.is_file():
+            raise ValueError(f"checkpoint file not found: {path}")
+
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        if actual != digest:
+            raise ValueError(f"checkpoint sha256 digest mismatch: expected {digest}, got {actual}")
+
         try:
-            blob = torch.load(path, map_location="cpu", weights_only=False)
-        except TypeError:
-            blob = torch.load(path, map_location="cpu")
-        if isinstance(blob, dict) and "state_dict" in blob:
-            sd = blob["state_dict"]
-            if isinstance(sd, dict):
-                return sd
-        if isinstance(blob, dict):
-            return dict(blob)
-        raise ValueError("unrecognized checkpoint file format")
+            blob = torch.load(path, map_location="cpu", weights_only=True)
+        except TypeError as exc:
+            raise ValueError(
+                "installed torch version does not support weights_only=True safe "
+                "loading; upgrade torch to load file checkpoints"
+            ) from exc
+        if isinstance(blob, dict) and "state_dict" in blob and isinstance(blob["state_dict"], dict):
+            return blob["state_dict"]
+        raise ValueError("unrecognized/malformed checkpoint file: missing state_dict envelope")
 
     # json_inline and legacy checkpoints (no storage key, embedded state_dict)
     if "state_dict" in checkpoint:

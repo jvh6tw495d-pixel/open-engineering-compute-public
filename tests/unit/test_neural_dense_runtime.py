@@ -6,6 +6,7 @@ import pytest
 
 pytest.importorskip("torch")
 
+from oec.kernel.neural.runtime import load_state_dict_from_checkpoint  # noqa: E402
 from oec.kernel.neural.training import predict_mlp, train_mlp  # noqa: E402
 from oec.neural.contracts import (  # noqa: E402
     DatasetSpec,
@@ -99,3 +100,49 @@ def test_file_checkpoint_roundtrip(tmp_path, monkeypatch) -> None:
     assert result.checkpoint_ref["sha256"]
     preds = predict_mlp([[3.0]], result.checkpoint, normalize=result.normalize)
     assert len(preds) == 1
+
+
+def test_file_checkpoint_rejects_sha256_tamper(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("OEC_CACHE_DIR", str(tmp_path))
+    result = train_mlp(
+        DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[2], output_dim=1),
+        TrainingSpec(epochs=2, seed=2, early_stopping_patience=None),
+        runtime=TrainingRuntimeSpec(seed=2, epochs=2, checkpoint_storage="file"),
+        run_id="tamper",
+    )
+    from pathlib import Path
+
+    Path(result.checkpoint["path"]).write_bytes(b"tampered")
+    with pytest.raises(ValueError, match="sha256.*mismatch"):
+        predict_mlp([[0.0]], result.checkpoint)
+
+
+def test_file_checkpoint_rejects_unconfined_path(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("OEC_CACHE_DIR", str(tmp_path / "cache"))
+    checkpoint = {"storage": "file", "path": str(tmp_path / "outside.pt"), "sha256": "0" * 64}
+    with pytest.raises(ValueError, match="outside.*cache root"):
+        load_state_dict_from_checkpoint(checkpoint)
+
+
+def test_file_checkpoint_loads_with_weights_only(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("OEC_CACHE_DIR", str(tmp_path))
+    result = train_mlp(
+        DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[2], output_dim=1),
+        TrainingSpec(epochs=2, seed=2, early_stopping_patience=None),
+        runtime=TrainingRuntimeSpec(seed=2, epochs=2, checkpoint_storage="file"),
+        run_id="safe-load",
+    )
+    import torch
+
+    real_load = torch.load
+    seen: dict[str, object] = {}
+
+    def tracking_load(*args, **kwargs):
+        seen.update(kwargs)
+        return real_load(*args, **kwargs)
+
+    monkeypatch.setattr(torch, "load", tracking_load)
+    predict_mlp([[0.0]], result.checkpoint)
+    assert seen["weights_only"] is True

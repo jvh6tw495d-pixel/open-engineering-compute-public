@@ -9,13 +9,14 @@ from oec.kernel.neural.training import predict_mlp
 
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
+    kwargs: dict[str, Any] = {"device": str(inputs.get("device", "cpu"))}
+    if "normalize" in inputs:
+        kwargs["normalize"] = inputs["normalize"]
     try:
-        preds = predict_mlp(
-            inputs["x"],
-            inputs["checkpoint"],
-            normalize=inputs.get("normalize"),
-            device=str(inputs.get("device", "cpu")),
-        )
+        # normalize omitted entirely (not passed as None) so predict_mlp falls
+        # back to the checkpoint's own normalize state instead of silently
+        # skipping normalization.
+        preds = predict_mlp(inputs["x"], inputs["checkpoint"], **kwargs)
     except TorchNotAvailableError as exc:
         return {
             "result": {"error": exc.to_dict()},

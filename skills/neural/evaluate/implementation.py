@@ -11,15 +11,14 @@ from oec.neural.contracts import NeuralTask
 
 def execute(inputs: dict[str, Any]) -> dict[str, Any]:
     task = NeuralTask(inputs.get("task", "regression"))
+    kwargs: dict[str, Any] = {"device": str(inputs.get("device", "cpu"))}
+    if "normalize" in inputs:
+        kwargs["normalize"] = inputs["normalize"]
     try:
-        result = evaluate_mlp(
-            inputs["x"],
-            inputs["y"],
-            inputs["checkpoint"],
-            task=task,
-            normalize=inputs.get("normalize"),
-            device=str(inputs.get("device", "cpu")),
-        )
+        # normalize omitted entirely (not passed as None) so evaluate_mlp falls
+        # back to the checkpoint's own normalize state instead of silently
+        # skipping normalization.
+        result = evaluate_mlp(inputs["x"], inputs["y"], inputs["checkpoint"], task=task, **kwargs)
     except TorchNotAvailableError as exc:
         return {
             "result": {"error": exc.to_dict()},
