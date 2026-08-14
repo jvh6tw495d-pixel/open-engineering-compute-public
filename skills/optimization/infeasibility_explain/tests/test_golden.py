@@ -21,12 +21,8 @@ def test_single_constraint_drop_one() -> None:
                 "ops_version": "0.1.0",
                 "problem_class": "lp",
                 "sense": "min",
-                "variables": [
-                    {"name": "x", "kind": "continuous", "lower": 0, "upper": 1}
-                ],
-                "constraints": [
-                    {"name": "must_ge_2", "coeffs": {"x": 1}, "sense": ">=", "rhs": 2}
-                ],
+                "variables": [{"name": "x", "kind": "continuous", "lower": 0, "upper": 1}],
+                "constraints": [{"name": "must_ge_2", "coeffs": {"x": 1}, "sense": ">=", "rhs": 2}],
                 "objective": {"coeffs": {"x": 1}},
             }
         }
@@ -46,12 +42,8 @@ def test_feasible_model() -> None:
                 "ops_version": "0.1.0",
                 "problem_class": "lp",
                 "sense": "min",
-                "variables": [
-                    {"name": "x", "kind": "continuous", "lower": 0, "upper": 1}
-                ],
-                "constraints": [
-                    {"name": "use", "coeffs": {"x": 1}, "sense": ">=", "rhs": 0}
-                ],
+                "variables": [{"name": "x", "kind": "continuous", "lower": 0, "upper": 1}],
+                "constraints": [{"name": "use", "coeffs": {"x": 1}, "sense": ">=", "rhs": 0}],
                 "objective": {"coeffs": {"x": 1}},
             }
         }
@@ -67,9 +59,7 @@ def test_contradictory_pair_drop_one() -> None:
                 "ops_version": "0.1.0",
                 "problem_class": "lp",
                 "sense": "min",
-                "variables": [
-                    {"name": "x", "kind": "continuous", "lower": 0, "upper": 1}
-                ],
+                "variables": [{"name": "x", "kind": "continuous", "lower": 0, "upper": 1}],
                 "constraints": [
                     {"name": "c1", "coeffs": {"x": 1}, "sense": ">=", "rhs": 1},
                     {"name": "c2", "coeffs": {"x": 1}, "sense": "<=", "rhs": 0},

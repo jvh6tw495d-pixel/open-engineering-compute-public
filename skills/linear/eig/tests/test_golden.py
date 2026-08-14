@@ -76,9 +76,7 @@ def test_rotation_has_unit_magnitude_complex_eigenvalues() -> None:
     theta = 0.4
     a = math.cos(theta)
     b = math.sin(theta)
-    out = implementation.execute(
-        {"A": [[a, -b], [b, a]]}
-    )
+    out = implementation.execute({"A": [[a, -b], [b, a]]})
     eig_real = out["result"]["eigenvalues_real"]
     eig_imag = out["result"]["eigenvalues_imag"]
     assert out["result"]["converged"] is None

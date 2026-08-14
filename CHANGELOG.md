@@ -23,6 +23,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   base-model swap) if the path is missing or `peft` isn't installed.
   `build_peft_train_then_generate_experiment` added to the cross-domain
   builder catalog; `agent.foundation` gets a `peft_train` demo (ADR 0041).
+- **Scientific AI Completion (S2–S3):** `neural.distill` adds governed,
+  tabular teacher/student distillation and a catalogued experiment builder.
+  Checkpoint normalization/reload is versioned, SHA-verified, cache-confined,
+  and fail-closed; promotion criteria are documented, while all skills remain
+  experimental.
+- **Scientific AI Completion (S4):** the public, fail-closed cross-domain
+  builder catalog now includes optimize-single, NSGA-II, and hybrid-training
+  builders with declared optional-extra requirements. NEAT/HyperNEAT remain
+  explicitly excluded by ADR 0042.
+- **Scientific AI Completion (S5):** optional `foundation.vision_embed` and
+  `foundation.vlm_generate` skills, governed image loading, immutable 40-hex
+  Hugging Face revisions for remote models, no URL image fetch, bounded decode,
+  and raw/agent MCP discovery.
+
+### Changed
+
+- **Scientific AI Completion (S6 in progress):** package metadata and public
+  surfaces now identify the 3.6.0 code baseline (151 skills / 28 domains / 6
+  foundation skills). Scheduled/manual CI covers neural, evolutionary, and
+  foundation marker suites with their optional extras; the core package remains
+  free of those extras. This Unreleased section does **not** claim a tag, push,
+  or published release.
 
 ## [3.5.0] - 2026-08-11
 

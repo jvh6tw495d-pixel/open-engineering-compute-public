@@ -691,7 +691,7 @@ def write_report(
         f"**{'Met / see host arms' if host_results else 'AA proven; host arms skipped'}** |",
         f"| ≥1 grid-zero feasibility via physics skill | "
         f"**{'Met' if grid_zero_met else 'FAIL'}** |",
-        f"| ≥1 min capacity via optimization.lp | " f"**{'Met' if min_cap_met else 'FAIL'}** |",
+        f"| ≥1 min capacity via optimization.lp | **{'Met' if min_cap_met else 'FAIL'}** |",
         "| Classification transport / OEC / host / physics / optimization | **Met** |",
         "| Report versioned; no `.stress-tmp/` | **Met** — this file |",
         "",
@@ -778,7 +778,7 @@ def write_report(
         "|---|---|---|",
         "| `physics_assertion` | Deterministic physics skill; no HiGHS | "
         "hybrid_6period, soc_trajectory, grid_zero_feasibility |",
-        "| `optimization` | Composes `optimization.lp` (HiGHS) | " "min_storage_capacity_lp |",
+        "| `optimization` | Composes `optimization.lp` (HiGHS) | min_storage_capacity_lp |",
         "| `transport_failure` | Host/CLI/timeout before authority | host arms |",
         "| `oec_execution_failure` | OEC ran without AA | AA legs if broken |",
         "| `host_corruption` | Host prose ≠ AA values | host arms when host JSON diverges |",

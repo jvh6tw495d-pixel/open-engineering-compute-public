@@ -97,8 +97,10 @@ Location: `src/oec/neural/runtime.py` (new) — pure Pydantic, no torch import.
 ```python
 CapacityName = Literal["tiny", "medium", "dense", "wide"]
 
+
 class DeviceSpec:  # existing, reused
     device: Literal["cpu", "cuda", "auto"] = "cpu"
+
 
 class TrainingRuntimeSpec(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -109,9 +111,9 @@ class TrainingRuntimeSpec(BaseModel):
     batch_size: int = Field(default=32, ge=1, le=65_536)
     optimizer: OptimizerSpec = Field(default_factory=OptimizerSpec)
     lr_scheduler: Literal["none", "cosine", "step"] = "none"
-    step_size: int = Field(default=50, ge=1)          # for step scheduler
+    step_size: int = Field(default=50, ge=1)  # for step scheduler
     grad_clip: float | None = Field(default=None, gt=0.0)
-    amp: bool = False                                 # CUDA only; ignored on CPU
+    amp: bool = False  # CUDA only; ignored on CPU
     early_stopping_patience: int | None = Field(default=20, ge=1)
     # Hard caps (fail closed before train if exceeded)
     max_params: int = Field(default=5_000_000, ge=1_000, le=50_000_000)
@@ -136,13 +138,15 @@ class TrainingRuntimeSpec(BaseModel):
 ```python
 class DatasetRef(BaseModel):
     """Exactly one of inline | path modes (validator)."""
+
     # inline (current skills; size-capped)
     x: list[Any] | None = None
     y: list[Any] | None = None
     # reference mode (dense path)
-    path: str | None = None                 # local .npy / .parquet
+    path: str | None = None  # local .npy / .parquet
     format: Literal["json_inline", "npy", "parquet"] = "json_inline"
     val_fraction: float = Field(default=0.2, ge=0.0, lt=1.0)
+
 
 class CheckpointRef(BaseModel):
     storage: Literal["json_inline", "file"] = "json_inline"
@@ -373,7 +377,7 @@ class EvolutionaryRuntimeSpec(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     seed: int = 42
-    seeds: list[int] | None = None          # multi-seed matrix; None → [seed]
+    seeds: list[int] | None = None  # multi-seed matrix; None → [seed]
     budget: BudgetSpec = Field(default_factory=BudgetSpec)
     max_seconds: float | None = None
     max_evaluations: int | None = Field(default=None, ge=1)

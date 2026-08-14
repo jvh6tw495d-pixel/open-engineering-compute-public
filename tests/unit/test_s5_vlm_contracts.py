@@ -101,16 +101,19 @@ def test_vision_specs_accept_pinned_revision() -> None:
         images=[VisionImageInput(image_base64=_tiny_png_b64())],
         model=FoundationModelSpec(
             model_id="openai/clip-vit-base-patch32",
-            revision="dc80c",
+            revision="5812e510083bb2d23fa43778a39ac065d205ed4d",
         ),
     )
-    assert emb.model.revision == "dc80c"
+    assert emb.model.revision == "5812e510083bb2d23fa43778a39ac065d205ed4d"
     gen = VLMGenerationSpec(
         prompt="caption",
         image=VisionImageInput(image_base64=_tiny_png_b64()),
-        model=FoundationModelSpec(model_id="Salesforce/blip-image-captioning-base", revision="abc"),
+        model=FoundationModelSpec(
+            model_id="Salesforce/blip-image-captioning-base",
+            revision="abcdef0123456789abcdef0123456789abcdef01",
+        ),
     )
-    assert gen.model.revision == "abc"
+    assert gen.model.revision == "abcdef0123456789abcdef0123456789abcdef01"
 
 
 def test_vision_specs_reject_trust_remote_code_true() -> None:
@@ -119,7 +122,7 @@ def test_vision_specs_reject_trust_remote_code_true() -> None:
             images=[VisionImageInput(image_base64=_tiny_png_b64())],
             model=FoundationModelSpec(
                 model_id="openai/clip-vit-base-patch32",
-                revision="dc80c",
+                revision="5812e510083bb2d23fa43778a39ac065d205ed4d",
                 trust_remote_code=True,
             ),
         )
@@ -145,7 +148,7 @@ def test_vision_embed_fail_closed_without_transformers() -> None:
                 images=[VisionImageInput(image_base64=_tiny_png_b64())],
                 model=FoundationModelSpec(
                     model_id="openai/clip-vit-base-patch32",
-                    revision="dc80c",
+                    revision="5812e510083bb2d23fa43778a39ac065d205ed4d",
                 ),
             )
         )

@@ -12,14 +12,10 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
     if "confidence_level" in inputs:
         kwargs["confidence_level"] = inputs["confidence_level"]
     if inputs.get("population_standard_deviation") is not None:
-        kwargs["population_standard_deviation"] = float(
-            inputs["population_standard_deviation"]
-        )
+        kwargs["population_standard_deviation"] = float(inputs["population_standard_deviation"])
     # Explicit rejection of removed API
     if "known_variance" in inputs:
-        raise ValueError(
-            "known_variance was removed in 0.2.0; use population_standard_deviation"
-        )
+        raise ValueError("known_variance was removed in 0.2.0; use population_standard_deviation")
     result = confidence_interval_of_mean(inputs["samples"], **kwargs)
     return {
         "result": {

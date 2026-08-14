@@ -1,6 +1,6 @@
 # Skill inventory
 
-**Updated:** 2026-08-14 (3.6 S5 delivered)
+**Updated:** 2026-08-14 (3.6 S0–S5 implemented; S6 release gate pending)
 **Registry root:** `skills/`
 **Live load:** **151** skills across **28** domains, **0** contract-audit errors
 
@@ -74,6 +74,10 @@ above are on the fail-closed cross-domain catalog
 
 See ADR 0037 · `docs/contracts/neural-evolutionary-experiments.md`.
 **Excluded from 3.6 DoD:** NEAT / HyperNEAT (ADR 0042 — not deferred silently).
+
+**3.6 closeout state:** S0–S5 are implemented; S6 is release CI/evidence and has not
+created a tag, remote push, or published package. See
+[`docs/release/3.6.0-CLOSEOUT.md`](../release/3.6.0-CLOSEOUT.md).
 
 ## Neural (3.4 + ADR 0033)
 

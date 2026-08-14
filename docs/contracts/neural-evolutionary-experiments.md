@@ -31,6 +31,7 @@ Training modes (ADR 0033):
 
 ```python
 from oec.experiment import build_neural_training_mode_experiment
+
 spec = build_neural_training_mode_experiment(mode="hybrid", dataset=ds, seed=0)
 ```
 
@@ -59,6 +60,7 @@ NSGA-II:
 
 ```python
 from oec.experiment import build_nsga2_experiment
+
 spec = build_nsga2_experiment(n_var=5, generations=15, population=20, seed=0)
 ```
 
@@ -66,6 +68,7 @@ spec = build_nsga2_experiment(n_var=5, generations=15, population=20, seed=0)
 
 ```python
 from oec.experiment import build_hybrid_training_experiment
+
 spec = build_hybrid_training_experiment(x=..., y=..., seed=0, max_evaluations=6)
 ```
 

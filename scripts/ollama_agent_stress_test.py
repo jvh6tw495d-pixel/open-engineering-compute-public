@@ -129,8 +129,7 @@ PROMPTS: list[tuple[str, str]] = [
     ("energy", "Give me the load metrics (peak, load factor) for [10, 12, 15, 9] MWh."),
     (
         "energy",
-        "Compute the three-phase power for a 400 V line-to-line, 50 A, power factor 0.92 "
-        "system.",
+        "Compute the three-phase power for a 400 V line-to-line, 50 A, power factor 0.92 system.",
     ),
     ("energy", "Run the battery soc_step demo through the energy specialist."),
     # --- ambiguous / multi-domain (router confusion bait) ---
@@ -169,8 +168,7 @@ PROMPTS: list[tuple[str, str]] = [
     ),
     (
         "malformed_numeric",
-        "Solve the LP with objective coefficients ['a', 'b'] and constraint matrix "
-        "'not a matrix'.",
+        "Solve the LP with objective coefficients ['a', 'b'] and constraint matrix 'not a matrix'.",
     ),
     (
         "malformed_numeric",
@@ -178,7 +176,7 @@ PROMPTS: list[tuple[str, str]] = [
     ),
     (
         "malformed_numeric",
-        "Resample a time series that has no timestamps and no values to 15-minute " "resolution.",
+        "Resample a time series that has no timestamps and no values to 15-minute resolution.",
     ),
     (
         "malformed_numeric",

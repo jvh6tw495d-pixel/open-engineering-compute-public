@@ -16,39 +16,39 @@
 from oec.sdk import Engine
 
 engine = Engine(skills_root="skills")
-record = engine.run_experiment({
-    "id": "demo",
-    "seed": 42,
-    "steps": [
-        {
-            "step_id": "root",
-            "skill_id": "mathematics.solve_root",
-            "inputs": {"expression": "x**2 - 2", "bracket": [0, 2]},
-        },
-        {
-            "step_id": "pdf",
-            "skill_id": "statistics.distribution_eval",
-            "inputs": {
-                "distribution": "norm",
-                "operation": "pdf",
-                "params": {"loc": 0.0, "scale": 1.0},
+record = engine.run_experiment(
+    {
+        "id": "demo",
+        "seed": 42,
+        "steps": [
+            {
+                "step_id": "root",
+                "skill_id": "mathematics.solve_root",
+                "inputs": {"expression": "x**2 - 2", "bracket": [0, 2]},
             },
-            "binds_from": [
-                {"step_id": "root", "path": "result.root", "as": "x"}
-            ],
-        },
-    ],
-    "metrics": [
-        {
-            "name": "pdf_at_root",
-            "path": "result.value",
-            "step_id": "pdf",
-            "direction": "target",
-            "target": 0.24,
-            "target_abs_tol": 0.1,
-        }
-    ],
-})
+            {
+                "step_id": "pdf",
+                "skill_id": "statistics.distribution_eval",
+                "inputs": {
+                    "distribution": "norm",
+                    "operation": "pdf",
+                    "params": {"loc": 0.0, "scale": 1.0},
+                },
+                "binds_from": [{"step_id": "root", "path": "result.root", "as": "x"}],
+            },
+        ],
+        "metrics": [
+            {
+                "name": "pdf_at_root",
+                "path": "result.value",
+                "step_id": "pdf",
+                "direction": "target",
+                "target": 0.24,
+                "target_abs_tol": 0.1,
+            }
+        ],
+    }
+)
 ```
 
 ## W2.2 — Metrics, gates, binds

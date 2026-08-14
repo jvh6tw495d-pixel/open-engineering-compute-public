@@ -19,7 +19,8 @@ method:
 
 execution:
   deterministic: true
-  timeout_seconds: 10
+  # Cold optional-import probes (transformers + PEFT) can exceed 10s in a fresh sandbox.
+  timeout_seconds: 30
   network_access: false
   filesystem_access: false
 

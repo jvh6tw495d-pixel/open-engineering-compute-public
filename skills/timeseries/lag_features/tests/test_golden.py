@@ -47,9 +47,7 @@ def test_lag1_matches_closed_form() -> None:
 def test_multi_lag_alignment() -> None:
     """For values=[10,20,30,40,50] and lags=[1,2]:
     y = [30,40,50], column 1 = [20,30,40], column 2 = [10,20,30]."""
-    out = implementation.execute(
-        {"values": [10.0, 20.0, 30.0, 40.0, 50.0], "lags": [1, 2]}
-    )
+    out = implementation.execute({"values": [10.0, 20.0, 30.0, 40.0, 50.0], "lags": [1, 2]})
     assert out["result"]["n_keep"] == 3
     assert out["result"]["max_lag"] == 2
     assert out["result"]["y"] == [30.0, 40.0, 50.0]

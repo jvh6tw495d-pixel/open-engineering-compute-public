@@ -53,14 +53,17 @@ jobs:
       - name: Build package
         run: uv build
 
-  extras-neural-evolutionary:
-    # Optional-extras quality bar (OEC 3.4). Not on every PR: torch +
-    # pymoo install and full neural/evo goldens are heavier than the
-    # core gate. Nightly + manual dispatch only.
-    # Runs the full @neural/@evolutionary skill matrix (not only
+  scientific-ai-optional-extras:
+    # Scientific AI optional-extras quality bar (OEC 3.6). Not on every PR:
+    # torch + pymoo + transformers/PEFT/Pillow and their focused suites are
+    # heavier than the core gate. Nightly + manual dispatch only. The core
+    # package remains free of these optional dependencies.
+    # Runs the full @neural/@evolutionary/@foundation skill matrix (not only
     # tests/golden/test_neural_evolutionary_strong.py). Strong goldens
     # are a subset of that marker set.
-    # Markers: pyproject [tool.pytest.ini_options] neural / evolutionary.
+    # Markers: pyproject [tool.pytest.ini_options] neural / evolutionary /
+    # foundation. `--import-mode=importlib` prevents duplicate skill-test
+    # basenames from colliding during collection.
     runs-on: ubuntu-latest
     timeout-minutes: 90
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -75,14 +78,14 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Sync with neural + evolutionary extras
-        run: uv sync --extra neural --extra evolutionary --all-groups
+      - name: Sync Scientific AI optional extras
+        run: uv sync --extra neural --extra evolutionary --extra foundation --all-groups
         timeout-minutes: 30
 
-      - name: Neural and evolutionary marked tests
+      - name: Neural, evolutionary, and foundation marked tests
         timeout-minutes: 60
         run: >
-          uv run pytest -m "neural or evolutionary"
+          uv run pytest -m "neural or evolutionary or foundation"
           --import-mode=importlib
           -o addopts=
           --no-cov

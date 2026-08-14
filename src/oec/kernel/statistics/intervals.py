@@ -65,9 +65,7 @@ def confidence_interval_of_mean(
     if population_standard_deviation is not None:
         sigma = float(population_standard_deviation)
         if not math.isfinite(sigma) or sigma <= 0.0:
-            raise ValueError(
-                "population_standard_deviation must be finite and strictly positive"
-            )
+            raise ValueError("population_standard_deviation must be finite and strictly positive")
         z = float(stats.norm.ppf(1.0 - alpha / 2.0))
         half = z * sigma / float(np.sqrt(n))
         return IntervalResult(

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from oec.physics.coupling.errors import CouplingGraphError
@@ -11,14 +11,12 @@ from oec.physics.coupling.errors import CouplingGraphError
 MANIFEST_VERSION = "coupling_manifest.v0"
 
 
-class VariableDirection(str, Enum):
+class VariableDirection(StrEnum):
     """Direction of an interface variable relative to the edge source."""
 
     FORWARD = "forward"  # source domain writes; target reads
     BACKWARD = "backward"  # target writes; source reads
     BIDIRECTIONAL = "bidirectional"
-
-    # Note: kept as str, Enum for 3.11+ compat; ruff UP042 suggests StrEnum on 3.11+
 
 
 @dataclass(frozen=True)

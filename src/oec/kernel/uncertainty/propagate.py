@@ -51,9 +51,7 @@ def propagate_linear(
     if nominal is not None:
         nom = [float(v) for v in nominal]
         if len(nom) != n:
-            raise ValueError(
-                f"nominal length must equal input dimension n={n}, got {len(nom)}"
-            )
+            raise ValueError(f"nominal length must equal input dimension n={n}, got {len(nom)}")
         if not all(np.isfinite(v) for v in nom):
             raise ValueError("nominal values must be finite")
         nominal_out = nom

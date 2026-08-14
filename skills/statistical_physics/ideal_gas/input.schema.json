@@ -9,7 +9,8 @@
   "properties": {
     "amount_mol": {
       "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "x-oec-unit": "mol"
     },
     "temperature": {
       "type": "object",
@@ -49,7 +50,8 @@
     },
     "molar_mass_kg_per_mol": {
       "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "x-oec-unit": "kg / mol"
     }
   }
 }

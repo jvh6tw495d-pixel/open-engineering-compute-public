@@ -306,8 +306,8 @@ def vision_embed(spec: VisionEmbeddingSpec) -> dict[str, Any]:
     images = [load_vision_image(src) for src in spec.images]
 
     try:
-        processor = CLIPProcessor.from_pretrained(model_id, **load_kwargs)
-        model = CLIPModel.from_pretrained(model_id, **load_kwargs)
+        processor: Any = CLIPProcessor.from_pretrained(model_id, **load_kwargs)
+        model: Any = CLIPModel.from_pretrained(model_id, **load_kwargs)
     except Exception as exc:
         raise UnsupportedVisionModelError(
             "failed to load CLIP model/processor (no text-only fallback)",
@@ -325,6 +325,11 @@ def vision_embed(spec: VisionEmbeddingSpec) -> dict[str, Any]:
         for image in images:
             inputs = processor(images=image, return_tensors="pt")
             feats = model.get_image_features(**inputs)
+            # Transformers 4.x returns a tensor here; Transformers 5.x returns
+            # BaseModelOutputWithPooling. In both supported forms the pooled
+            # image feature is the vector exposed to the skill contract.
+            if not hasattr(feats, "squeeze"):
+                feats = feats.pooler_output
             vec = feats.squeeze(0).tolist()
             if isinstance(vec[0], list):  # unlikely nested
                 vec = vec[0]
@@ -365,7 +370,8 @@ def vlm_generate(spec: VLMGenerationSpec) -> dict[str, Any]:
     model_id = spec.model.model_id
 
     try:
-        from transformers import AutoConfig, AutoModelForVision2Seq, AutoProcessor, set_seed
+        import transformers
+        from transformers import AutoConfig, AutoProcessor, set_seed
     except ImportError as exc:
         raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
@@ -394,8 +400,11 @@ def vlm_generate(spec: VLMGenerationSpec) -> dict[str, Any]:
     image = load_vision_image(spec.image)
 
     try:
-        processor = AutoProcessor.from_pretrained(model_id, **load_kwargs)
-        model = AutoModelForVision2Seq.from_pretrained(model_id, **load_kwargs)
+        processor_factory: Any = AutoProcessor
+        processor: Any = processor_factory.from_pretrained(model_id, **load_kwargs)
+        transformers_module: Any = transformers
+        vision_model_factory: Any = transformers_module.AutoModelForVision2Seq
+        model: Any = vision_model_factory.from_pretrained(model_id, **load_kwargs)
     except Exception as exc:
         raise UnsupportedVisionModelError(
             "failed to load Vision2Seq model/processor (no text-only fallback)",
@@ -564,7 +573,7 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
     load_kwargs = pretrained_load_kwargs(spec.model)
     set_seed(int(spec.seed))
     tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
-    model = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
+    model: Any = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
 
     adapter_info: dict[str, Any] | None = None
     if spec.adapter_path:
@@ -653,7 +662,7 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
     tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
+    model: Any = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
 
     kind = ArtifactKind.CHECKPOINT
     if spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):

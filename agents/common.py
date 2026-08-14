@@ -88,19 +88,15 @@ def narrate_execution(agent: str, execution: ExecutionResult) -> str:
     """Build a narrative **only** from ExecutionResult fields; always cites run_id."""
     lines = [
         f"Agent: {agent}",
-        f"Skill: {execution.skill.id} v{execution.skill.version}",
-        f"Method: {execution.method.id} v{execution.method.version}",
+        f"Skill: {execution.skill.id}",
+        f"Method: {execution.method.id}",
         f"Status: {execution.status.value}",
         f"run_id: {execution.run_id}",
     ]
-    if execution.provenance:
-        lines.append(f"input_hash: {execution.provenance.get('input_hash', '')}")
     if execution.result:
         lines.append(f"result: {execution.result}")
     if execution.diagnostics:
         lines.append(f"diagnostics: {execution.diagnostics}")
-    if execution.warnings:
-        lines.append(f"warnings: {execution.warnings}")
     if execution.status in {ExecutionStatus.INVALID, ExecutionStatus.FAILED}:
         lines.append("No successful scientific outcome claimed.")
     lines.append("Narrative uses only ExecutionResult fields; backends own numerical merit.")

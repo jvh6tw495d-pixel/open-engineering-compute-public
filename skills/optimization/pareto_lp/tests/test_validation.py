@@ -9,6 +9,4 @@ V = load_skill_module(_SKILL_DIR, "validation").ParetoLpValidator()
 
 
 def test_empty_obj() -> None:
-    assert V.validate(
-        None, {"objective_a": {}, "objective_b": {"x": 1}, "n_points": 5}
-    )  # type: ignore[arg-type]
+    assert V.validate(None, {"objective_a": {}, "objective_b": {"x": 1}, "n_points": 5})  # type: ignore[arg-type]

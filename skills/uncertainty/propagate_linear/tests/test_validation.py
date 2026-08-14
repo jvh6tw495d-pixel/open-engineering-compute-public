@@ -10,7 +10,5 @@ V = validation.PropagateLinearValidator()
 
 
 def test_nonsquare() -> None:
-    out = V.validate(
-        None, {"jacobian": [1, 1], "covariance": [[1.0, 0.0]]}
-    )  # type: ignore[arg-type]
+    out = V.validate(None, {"jacobian": [1, 1], "covariance": [[1.0, 0.0]]})  # type: ignore[arg-type]
     assert out

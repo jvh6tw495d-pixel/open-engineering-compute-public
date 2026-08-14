@@ -1,7 +1,8 @@
 # OEC 3.6 — Scientific AI Completion
 
 **Baseline:** `oec==3.5.0` (W0–W8 complete)
-**Target:** `oec==3.6.x` / tag `v3.6.0-scientific-ai`
+**Code baseline:** `oec==3.6.0` (S0–S5 implemented; S6 release gate/CI pending)
+**Release action:** a `v3.6.0-scientific-ai` tag is a future owner action; none is claimed here.
 **Governing ADRs:** [0040](../architecture/adr/0040-scientific-ai-completion.md),
 [0041](../architecture/adr/0041-peft-finetune-distill-contracts.md),
 [0042](../architecture/adr/0042-neat-exclusion-3.6.md)
@@ -56,14 +57,14 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | Foundation embed/generate | Done | Provenance harden | **S1 done** | `adapter_path` reload, fail-closed |
 | **PEFT train** | **Done (S1)** | Implement | **S1 done** | `foundation.peft_train` |
 | **Full fine-tune** | **Done (S1)** | Mode or skill | **S1 done** | `mode: full` on `foundation.peft_train` |
-| **Distillation** | Missing | Implement | S2 | `neural.distill` |
+| **Distillation** | **Done (S2)** | Implemented | **S2 done** | `neural.distill` + catalogued builder |
 | **VLM** | **Delivered (S5)** | Bounded, fail-closed MVP | **S5 done** | `foundation.vision_embed`, `foundation.vlm_generate` |
 | NEAT | Deferred | **Exclude** | — | ADR 0042 |
 | vLLM etc. | Missing | Debt only | — | technical-debt |
 | Experiment PEFT→gen | **Done (S1)** | Builder | **S1 done** | `build_peft_train_then_generate_experiment` |
-| Experiment distill→eval | Missing | Builder | S2 | catalog allow-list |
+| Experiment distill→eval | **Done (S2)** | Builder | **S2 done** | catalog allow-list |
 | MCP demos | foundation embed + PEFT | VLM raw + agent discovery | **S5 done** | `agent.foundation` demos `vision_embed` / `vlm_generate`; raw S5 skills discoverable |
-| CI extras job | markers only | optional job | S6 | torch+HF tiny |
+| CI extras job | markers only | scheduled/manual optional gate | **S6 pending evidence** | neural + evolutionary + foundation |
 
 ---
 
@@ -75,9 +76,9 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | **S1** ✅ | PEFT / FT + artifacts | train→artifact→generate path; `-m foundation` smoke |
 | **S2** ✅ | Distill | `neural.distill` + catalogued builder completed in a neural-enabled focused run |
 | **S3** ✅ | Neural industrial | versioned checkpoint normalization/reload; SHA-checked and cache-confined file checkpoints; bounded S2 teacher/student MLPs; promotion criteria documented (skills remain experimental) |
-| **S4** | Evo industrial | no NEAT; hybrid/neuroevolution builders hardened |
-| **S5** | VLM MVP | ✅ Delivered: bounded vision embedding + Vision2Seq generation, immutable HF commit pins, no URL fetch, and MCP raw/agent discovery |
-| **S6** | Release | CHANGELOG, README counts, tag, optional CI job |
+| **S4** ✅ | Evo industrial | no NEAT; hybrid/neuroevolution builders hardened |
+| **S5** ✅ | VLM MVP | bounded vision embedding + Vision2Seq generation, immutable HF commit pins, no URL fetch, and MCP raw/agent discovery |
+| **S6** | Release gate / CI | version and public surfaces updated; scheduled/manual optional-extras CI added; verification evidence and any owner tag/push remain pending |
 
 ### Recommended execution if capacity is tight
 
@@ -144,8 +145,10 @@ of cryptographic origin/provenance. Failure or absence of any gate leaves the sk
 - [x] Evo/hybrid builders green; NEAT documented excluded (S4)
 - [x] VLM MVP: `foundation.vision_embed` + `foundation.vlm_generate`, immutable remote commit pins, bounded image metadata decode, and no URL fetch (S5)
 - [x] MCP discovery for raw S5 skills + `agent.foundation` demos (S5)
-- [ ] Core suite green without AI extras (S6)
-- [ ] CHANGELOG 3.6.0 + version bump + closeout (S6)
+- [ ] Core suite green without AI extras (S6 evidence)
+- [x] Version bump, truthful Unreleased CHANGELOG, public catalog/MCP surfaces, and closeout document (S6)
+- [x] Scheduled/manual optional-extras CI marker gate for neural/evolutionary/foundation (S6)
+- [ ] Release owner reviews evidence and decides whether to tag/push/publish (out of this closeout)
 
 ---
 

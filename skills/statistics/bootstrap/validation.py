@@ -26,7 +26,7 @@ class BootstrapValidator:
                     messages=["samples must be a non-empty 1D list"],
                 )
             ]
-        if any(not isinstance(x, (int, float)) for x in samples):
+        if any(not isinstance(x, int | float) for x in samples):
             return [
                 ValidationOutcome(
                     layer=self.layer,

@@ -71,9 +71,9 @@ def conservation_energy_balance(
 def _assert_same_shape(left: Any, right: Any, path: str = "root") -> None:
     assert type(left) is type(right), f"{path}: type {type(left)} != {type(right)}"
     if isinstance(left, dict):
-        assert set(left.keys()) == set(
-            right.keys()
-        ), f"{path}: keys {set(left.keys())} != {set(right.keys())}"
+        assert set(left.keys()) == set(right.keys()), (
+            f"{path}: keys {set(left.keys())} != {set(right.keys())}"
+        )
         for key in left:
             _assert_same_shape(left[key], right[key], f"{path}.{key}")
     elif isinstance(left, list):
@@ -92,9 +92,9 @@ def _assert_numeric_equal(left: Any, right: Any, path: str = "root") -> None:
     elif isinstance(left, bool):
         assert left is right, f"{path}: {left!r} is not {right!r}"
     elif isinstance(left, int | float):
-        assert left == pytest.approx(
-            right, abs=ATOL, rel=0.0
-        ), f"{path}: {left!r} != {right!r} (atol={ATOL})"
+        assert left == pytest.approx(right, abs=ATOL, rel=0.0), (
+            f"{path}: {left!r} != {right!r} (atol={ATOL})"
+        )
     else:
         assert left == right, f"{path}: {left!r} != {right!r}"
 

@@ -26,7 +26,7 @@ class ResidualNormsValidator:
                     messages=["r must be a non-empty 1D list"],
                 )
             ]
-        if any(not isinstance(x, (int, float)) for x in r):
+        if any(not isinstance(x, int | float) for x in r):
             return [
                 ValidationOutcome(
                     layer=self.layer,

@@ -11,12 +11,14 @@ from oec.kernel.statistics.bootstrap import _statistic, bootstrap_ci
 
 def test_statistic_helper_mean_and_median() -> None:
     from numpy import array
+
     assert _statistic(array([1.0, 2.0, 3.0]), "mean") == 2.0
     assert _statistic(array([1.0, 2.0, 3.0]), "median") == 2.0
 
 
 def test_statistic_helper_variance_for_two_samples() -> None:
     from numpy import array
+
     # variance sample (ddof=1): mean=5, sum_sq=50, /(n-1)=50
     assert _statistic(array([0.0, 10.0]), "variance") == 50.0
     assert _statistic(array([10.0]), "variance") == 0.0
@@ -24,6 +26,7 @@ def test_statistic_helper_variance_for_two_samples() -> None:
 
 def test_statistic_helper_unknown_kind_raises() -> None:
     from numpy import array
+
     with pytest.raises(ValueError):
         _statistic(array([1.0]), "mode")
 

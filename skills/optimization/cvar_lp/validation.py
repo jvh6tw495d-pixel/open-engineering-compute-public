@@ -14,7 +14,7 @@ class CvarLpValidator:
     ) -> list[ValidationOutcome]:
         del skill
         alpha = normalized_inputs.get("alpha")
-        if not isinstance(alpha, (int, float)) or not (0 < float(alpha) < 1):
+        if not isinstance(alpha, int | float) or not (0 < float(alpha) < 1):
             return [
                 ValidationOutcome(
                     layer=self.layer,

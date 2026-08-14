@@ -1,4 +1,5 @@
 """optimization.cvar_lp entrypoint."""
+
 from __future__ import annotations
 
 from typing import Any

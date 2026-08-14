@@ -22,7 +22,7 @@ class RobustLpValidator:
                     messages=["rhs_uncertainty must be a non-empty map"],
                 )
             ]
-        if any(not isinstance(v, (int, float)) or float(v) < 0 for v in unc.values()):
+        if any(not isinstance(v, int | float) or float(v) < 0 for v in unc.values()):
             return [
                 ValidationOutcome(
                     layer=self.layer,

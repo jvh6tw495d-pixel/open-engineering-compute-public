@@ -45,6 +45,7 @@
     "relative_permittivity": {
       "type": "number",
       "exclusiveMinimum": 0,
+      "x-oec-dimensionless": true,
       "default": 1.0
     },
     "voltage": {

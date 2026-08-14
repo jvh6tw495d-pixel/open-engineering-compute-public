@@ -159,9 +159,9 @@ def test_call_tool_experiment_run_s4_nsga2_accepted_or_extra_fail_closed(
         # Fail-closed path: optional evolutionary extra (pymoo) absent.
         err = str(body.get("error", "")).lower()
         assert "unknown experiment builder" not in err
-        assert any(
-            token in err for token in ("pymoo", "evolutionary", "not installed", "extra")
-        ), body
+        assert any(token in err for token in ("pymoo", "evolutionary", "not installed", "extra")), (
+            body
+        )
         return
     # With extras installed: named builder is runnable end-to-end.
     assert body["status"] in {"COMPLETED", "FAILED", "ABORTED"}
