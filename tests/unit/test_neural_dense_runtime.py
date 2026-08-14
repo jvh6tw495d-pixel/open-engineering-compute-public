@@ -119,9 +119,7 @@ def test_file_checkpoint_rejects_sha256_tamper(tmp_path, monkeypatch) -> None:
         predict_mlp([[0.0]], result.checkpoint)
 
 
-def test_versioned_json_inline_checkpoint_rejects_tampered_state_dict_for_predict_and_evaluate() -> (
-    None
-):
+def test_versioned_json_inline_tamper_rejects_predict_and_evaluate() -> None:
     result = train_mlp(
         DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),
         NeuralModelSpec(input_dim=1, hidden_dims=[2], output_dim=1),
