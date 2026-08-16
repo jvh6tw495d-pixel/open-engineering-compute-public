@@ -1,7 +1,7 @@
 # OEC 3.6 — Scientific AI Completion
 
 **Baseline:** `oec==3.5.0` (W0–W8 complete)
-**Code baseline:** `oec==3.6.0` (S0–S5 implemented; S6 release gate/CI pending)
+**Code baseline:** `oec==3.6.0` (S0–S6 local gates complete; remote optional-extras CI and release-owner tag/push decision pending)
 **Release action:** a `v3.6.0-scientific-ai` tag is a future owner action; none is claimed here.
 **Governing ADRs:** [0040](../architecture/adr/0040-scientific-ai-completion.md),
 [0041](../architecture/adr/0041-peft-finetune-distill-contracts.md),
@@ -64,7 +64,7 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | Experiment PEFT→gen | **Done (S1)** | Builder | **S1 done** | `build_peft_train_then_generate_experiment` |
 | Experiment distill→eval | **Done (S2)** | Builder | **S2 done** | catalog allow-list |
 | MCP demos | foundation embed + PEFT | VLM raw + agent discovery | **S5 done** | `agent.foundation` demos `vision_embed` / `vlm_generate`; raw S5 skills discoverable |
-| CI extras job | markers only | scheduled/manual optional gate | **S6 pending evidence** | neural + evolutionary + foundation |
+| CI extras job | core-minimal gate + scheduled/manual optional gate | **S6 local gate done; remote evidence pending** | core-only plus neural + evolutionary + foundation |
 
 ---
 
@@ -145,7 +145,7 @@ of cryptographic origin/provenance. Failure or absence of any gate leaves the sk
 - [x] Evo/hybrid builders green; NEAT documented excluded (S4)
 - [x] VLM MVP: `foundation.vision_embed` + `foundation.vlm_generate`, immutable remote commit pins, bounded image metadata decode, and no URL fetch (S5)
 - [x] MCP discovery for raw S5 skills + `agent.foundation` demos (S5)
-- [ ] Core suite green without AI extras (S6 evidence)
+- [x] Core suite green without AI extras (S6 evidence) — local core-only gate verified
 - [x] Version bump, truthful Unreleased CHANGELOG, public catalog/MCP surfaces, and closeout document (S6)
 - [x] Scheduled/manual optional-extras CI marker gate for neural/evolutionary/foundation (S6)
 - [ ] Release owner reviews evidence and decides whether to tag/push/publish (out of this closeout)
