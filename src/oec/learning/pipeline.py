@@ -6,10 +6,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from oec.learning.contracts import ModelRef, TrainingConfig, TrainingMethod
+from oec.learning.contracts import FineTuneBackendName, ModelRef, TrainingConfig, TrainingMethod
 from oec.learning.datasets import DatasetKind, LearningDataset
 from oec.learning.environments import RewardSpec
-from oec.learning.experiments import LearningExperiment
+from oec.learning.errors import BackendNotAvailableError
+from oec.learning.experiments import LearningExperiment, LearningRunRecord, run_learning_experiment
 
 
 class WorkerStage(BaseModel):
@@ -53,6 +54,48 @@ class WorkerPipeline(BaseModel):
             "dataset_hash": self.dataset.content_hash,
             "stages": [stage.model_dump(mode="json") for stage in self.stages],
             "environment": self.environment_name,
+        }
+
+    def run(self, *, experiment_id: str | None = None) -> dict[str, Any]:
+        """Execute each FineTune stage through ``run_learning_experiment``."""
+        self.dataset.verify_integrity()
+        records: list[LearningRunRecord] = []
+        prefix = experiment_id or self.name
+        for stage in self.stages:
+            backend_key = stage.backend.strip().lower()
+            if backend_key not in {item.value for item in FineTuneBackendName}:
+                raise BackendNotAvailableError(
+                    (
+                        f"worker stage {stage.name!r} backend "
+                        f"{stage.backend!r} is not a FineTune backend"
+                    ),
+                    details={"stage": stage.name, "backend": stage.backend},
+                )
+            method = (
+                stage.method
+                if isinstance(stage.method, TrainingMethod)
+                else TrainingMethod(stage.method)
+            )
+            record = run_learning_experiment(
+                LearningExperiment(
+                    experiment_id=f"{prefix}.{stage.name}",
+                    model=self.model,
+                    dataset=self.dataset,
+                    config=TrainingConfig(
+                        method=method,
+                        backend=FineTuneBackendName(backend_key),
+                        seed=self.dataset.seed,
+                    ),
+                    title=f"{self.name}:{stage.name}",
+                )
+            )
+            records.append(record)
+        return {
+            "name": self.name,
+            "status": "ok",
+            "plan": self.plan(),
+            "experiment_id": prefix,
+            "records": [record.model_dump(mode="json") for record in records],
         }
 
 

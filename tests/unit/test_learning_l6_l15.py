@@ -8,6 +8,7 @@ from oec.learning import (
     BackendNotAvailableError,
     FineTuneBackendName,
     LearningDataset,
+    LearningError,
     MathematicsEnvironment,
     ModelRef,
     RewardSpec,
@@ -30,7 +31,8 @@ from oec.learning.distillation import DistillationConfig
 from oec.learning.rl import Action, Episode, State, Trajectory
 
 
-def test_distill_fail_closed_or_planned() -> None:
+def test_distill_fail_closed_without_torch_or_without_torch_texts() -> None:
+    """default_worker_dataset() is SFT text-only — always fails closed under distill()."""
     ds = default_worker_dataset()
     teacher = ModelRef(model_id="teacher")
     student = ModelRef(model_id="student")
@@ -40,8 +42,8 @@ def test_distill_fail_closed_or_planned() -> None:
         with pytest.raises(BackendNotAvailableError):
             distill(teacher=teacher, student=student, dataset=ds, config=DistillationConfig())
     else:
-        out = distill(teacher=teacher, student=student, dataset=ds)
-        assert out.status in {"planned", "ok"}
+        with pytest.raises(LearningError):
+            distill(teacher=teacher, student=student, dataset=ds)
 
 
 def test_compare_base_vs_distilled() -> None:
@@ -122,5 +124,5 @@ def test_backend_suite_and_capability_matrix() -> None:
     assert "huggingface" in names["finetune"]
     assert "art" in names["rl"]
     matrix = capability_matrix()
-    assert {row["wave"] for row in matrix} >= {"L5", "L7", "L10"}
+    assert {row["wave"] for row in matrix} >= {"L5", "L7", "L10", "L12", "L14"}
     assert "torch" in probe_optional()

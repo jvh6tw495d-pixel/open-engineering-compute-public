@@ -69,13 +69,26 @@ from oec.learning.rl import (
     State,
     Trajectory,
 )
+from oec.learning.store import (
+    load_dataset,
+    load_run,
+    replay_learning_experiment,
+    save_dataset,
+    save_run,
+)
 from oec.learning.suite import (
     agentic_benchmark,
     backend_benchmark,
     compare_backend_runs,
     declared_backends,
+    measure_capability_suite,
 )
-from oec.learning.verifiers import execution_result_reward, execution_result_scores
+from oec.learning.verifiers import (
+    execution_result_reward,
+    execution_result_scores,
+    reward_from_execution,
+    scores_from_execution,
+)
 
 __all__ = [
     "ArtifactRef",
@@ -130,8 +143,16 @@ __all__ = [
     "evaluate_metrics",
     "execution_result_reward",
     "execution_result_scores",
+    "load_dataset",
+    "load_run",
+    "measure_capability_suite",
     "probe_optional",
+    "replay_learning_experiment",
+    "reward_from_execution",
     "run_learning_experiment",
+    "save_dataset",
+    "save_run",
+    "scores_from_execution",
     "select_backend",
     "split_records",
 ]

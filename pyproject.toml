@@ -113,6 +113,16 @@ module = [
   "sympy.*",
   "PIL",
   "PIL.*",
+  "datasets",
+  "datasets.*",
+  "unsloth",
+  "unsloth.*",
+  "axolotl",
+  "axolotl.*",
+  "trl",
+  "trl.*",
+  "art",
+  "art.*",
 ]
 ignore_missing_imports = true
 

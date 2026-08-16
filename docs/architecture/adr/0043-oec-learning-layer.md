@@ -1,8 +1,8 @@
-# ADR 0043: OEC Learning Layer (L1–L5)
+# ADR 0043: OEC Learning Layer (L1–L15)
 
 - **Status:** accepted
 - **Date:** 2026-08-16
-- **Phase:** OEC Learning L1–L5
+- **Phase:** OEC Learning L1–L15
 - **Related:** ADR 0021, 0034, 0035, 0038, 0040, 0041
 
 ## Context
@@ -22,15 +22,24 @@ the public API.
    imported lazily; missing extra → structured fail-closed error.
 4. Existing ``foundation.peft_train`` / generate / Experiment Engine are
    **reused**, not rewritten.
-5. Waves L7+ (Unsloth/Axolotl/ART) must implement the same protocols.
+5. Waves L7–L10 implement the same protocols as fail-closed adapters:
+   Unsloth, Axolotl, ART/GRPO. Missing extras never enter the core import
+   graph.
+6. L11 rewards come only from deterministic verifiers (units, constraints,
+   skill status). No LLM judge.
+7. L12 ``WorkerPipeline.run()`` is a demo worker, not a product.
+8. L13–L14 suite + CI measure availability and contract integrity; they
+   do not invent GPU metrics.
 
 ## Non-goals
 
-- Unsloth, Axolotl, ART, GRPO (L7–L10)
 - Kronos / temporal FMs
-- POST-OEC harness
+- POST-OEC autonomous research harness
+- Foundation-model distillation beyond the tabular ``neural.distill_mlp`` path
+- Making Unsloth/Axolotl/ART structurally required
 
 ## Consequences
 
 - Core install tests import ``oec.learning`` without torch/transformers.
 - Callers choose ``backend="huggingface"``; they never import ``transformers``.
+- Optional adapters fail closed with ``BackendNotAvailableError``.

@@ -30,8 +30,8 @@ class UnslothBackend:
         try:
             fast_language_model = vars(unsloth)["FastLanguageModel"]
             from datasets import Dataset
-            from transformers import TrainingArguments  # type: ignore[import-not-found]
-            from trl import SFTTrainer  # type: ignore[import-not-found]
+            from transformers import TrainingArguments
+            from trl import SFTTrainer
 
             loaded_model, tokenizer = fast_language_model.from_pretrained(
                 model_name=model.model_id,

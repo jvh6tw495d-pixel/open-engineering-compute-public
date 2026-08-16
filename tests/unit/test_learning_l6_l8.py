@@ -24,7 +24,7 @@ from oec.learning.distillation import (
     compare_base_vs_distilled,
     distill,
 )
-from oec.learning.errors import BackendNotAvailableError
+from oec.learning.errors import BackendNotAvailableError, LearningError
 from oec.learning.experiments import LearningExperiment
 
 
@@ -81,22 +81,41 @@ def test_distill_without_torch_fails_closed(monkeypatch: pytest.MonkeyPatch) -> 
         )
 
 
-def test_distill_with_torch_returns_planned_result_without_invented_metrics() -> None:
+def test_distill_with_torch_and_text_only_dataset_fails_closed() -> None:
+    """SFT text-only records have no tabular meaning — must fail, not stub."""
     try:
         import torch  # noqa: F401
     except ImportError:
-        pytest.skip("torch not installed — planned-result path not exercised")
+        pytest.skip("torch not installed — SFT-only fail-closed path not exercised")
+    with pytest.raises(LearningError):
+        distill(
+            teacher=ModelRef(model_id="teacher/base"),
+            student=ModelRef(model_id="student/small"),
+            dataset=_tiny_dataset(),
+            config=DistillationConfig(temperature=3.0, alpha=0.25, seed=7),
+        )
+
+
+def test_distill_with_torch_and_tabular_dataset_returns_real_metrics() -> None:
+    try:
+        import torch  # noqa: F401
+    except ImportError:
+        pytest.skip("torch not installed — real-metrics path not exercised")
+    ds = LearningDataset(
+        name="distill-tabular",
+        kind=DatasetKind.DISTILLATION,
+        records=tuple({"x": [float(i)], "y": 2.0 * i + 1.0} for i in range(8)),
+    )
     result = distill(
         teacher=ModelRef(model_id="teacher/base"),
         student=ModelRef(model_id="student/small"),
-        dataset=_tiny_dataset(),
-        config=DistillationConfig(temperature=3.0, alpha=0.25, seed=7),
+        dataset=ds,
+        config=DistillationConfig(alpha=0.25, seed=7),
     )
     assert isinstance(result, DistillationResult)
-    assert result.status == "planned"
-    assert result.metrics == {}
-    assert "temperature=3.0" in result.message
-    assert "alpha=0.25" in result.message
+    assert result.status == "ok"
+    assert "loss" in result.metrics
+    assert isinstance(result.metrics["loss"], float)
 
 
 def test_compare_base_vs_distilled_picks_lower_loss() -> None:

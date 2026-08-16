@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from oec.learning.capability import capability_matrix, probe_optional
 from oec.learning.contracts import FineTuneBackendName, MetricDirection, MetricSpec
 from oec.learning.evaluation import Benchmark, compare_results
 
@@ -37,3 +38,16 @@ def declared_backends() -> dict[str, tuple[str, ...]]:
 
 def compare_backend_runs(left: dict[str, float], right: dict[str, float]) -> dict[str, Any]:
     return compare_results(backend_benchmark(), left, right, left_id="A", right_id="B")
+
+
+def measure_capability_suite() -> dict[str, Any]:
+    """Measured availability probe — never invents GPU timings or losses."""
+    probes = probe_optional()
+    rows = capability_matrix()
+    return {
+        "benchmark": "learning-capability-probe",
+        "probes": probes,
+        "matrix": rows,
+        "wired": [row["wave"] for row in rows if row.get("status") in {"wired", "adapter"}],
+        "available_backends": [row["backend"] for row in rows if row.get("available")],
+    }

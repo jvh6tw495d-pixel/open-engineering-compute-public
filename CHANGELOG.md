@@ -9,14 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **OEC Learning L1–L5:** core-safe ``oec.learning`` contracts (ADR 0043),
-  versioned datasets with provenance hash, reproducible learning-run records
-  (environment/hardware/commit), evaluation vs benchmark ``compare_results``,
-  and a lazy fail-closed ``HuggingFaceBackend`` that reuses ``foundation.peft_train``.
-  Unsloth/Axolotl/ART remain unimplemented on purpose (L7+).
-- **OEC Learning L6–L15:** distillation workflow + compare_base_vs_distilled;
-  fail-closed Unsloth/Axolotl/ART adapters; RL contracts and verifier rewards;
-  worker pipeline plan; backend comparison suite; capability matrix.
+- **OEC Learning L1–L15 (closed):** core-safe ``oec.learning`` (ADR 0043).
+  L1–L5 contracts, hashed datasets, reproducible run records, evaluation vs
+  benchmark, and a lazy ``HuggingFaceBackend`` over ``foundation.peft_train``.
+  L6 tabular ``distill()`` executes ``neural.distill_mlp``; text/FM distill
+  fails closed (no invented ``planned`` metrics). L7–L8 Unsloth/Axolotl adapters run when the extra is
+  installed and fail closed otherwise (Unsloth HF fallback only when
+  ``allow_hf_fallback=1``). L9 RL contracts; L10 ART/GRPO adapter; L11
+  deterministic verifier rewards from ExecutionResult-like payloads; L12
+  ``WorkerPipeline.run()``; L13 capability/backend suite (no invented GPU
+  numbers); L14 core-only ``learning-contracts`` CI job; L2/L3 persist +
+  replay with dataset-hash integrity. Unsloth/Axolotl/ART stay out of the
+  core install.
 
 ## [3.6.0] - 2026-08-16
 
