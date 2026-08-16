@@ -53,6 +53,27 @@ def test_art_delegates_to_imported_train_grpo(monkeypatch: pytest.MonkeyPatch) -
     assert ARTBackend().train(MathematicsEnvironment(), ()) is expected
 
 
+def test_art_converts_trajectory_instead_of_dropping_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    import oec.learning.backends.art as art_module
+
+    captured: dict[str, object] = {}
+
+    def _train_grpo(**kwargs: object) -> RLResult:
+        captured.update(kwargs)
+        return RLResult(status="ok", backend="art")
+
+    monkeypatch.setattr(
+        art_module.importlib, "import_module", lambda _name: SimpleNamespace(train_grpo=_train_grpo)
+    )
+    trajectory = Trajectory(states=(State(),), actions=(), rewards=())
+    ARTBackend().train(MathematicsEnvironment(), trajectory)
+    episodes = captured["episodes"]
+    assert isinstance(episodes, tuple)
+    assert len(episodes) == 1
+    assert isinstance(episodes[0], Episode)
+    assert episodes[0].trajectory is trajectory
+
+
 def test_execution_result_verifier_bridge_is_closed_and_deterministic() -> None:
     spec = RewardSpec(correct=2.0, units=0.5, constraints=1.0)
     result = {"status": "ok", "units_ok": True, "constraint_ok": False}
@@ -60,7 +81,7 @@ def test_execution_result_verifier_bridge_is_closed_and_deterministic() -> None:
         "correct": 1.0,
         "units": 1.0,
         "constraints": 0.0,
-        "tokens": 0.0,
-        "latency": 0.0,
+        "tokens": 1.0,
+        "latency": 1.0,
     }
     assert execution_result_reward(result, spec) == pytest.approx(2.5)

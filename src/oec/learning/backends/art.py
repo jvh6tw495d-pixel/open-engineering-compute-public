@@ -39,8 +39,9 @@ class ARTBackend:
                 "installed 'art' package does not expose train_grpo",
                 details={"backend": self.name, "algorithm": self.algorithm},
             )
+        episode_items: tuple[Episode, ...]
         if isinstance(episodes, Trajectory):
-            episode_items: tuple[Episode, ...] = ()
+            episode_items = (Episode(episode_id="from-trajectory", trajectory=episodes),)
         else:
             episode_items = episodes
         raw = train_grpo(environment=environment, episodes=episode_items, config=config)

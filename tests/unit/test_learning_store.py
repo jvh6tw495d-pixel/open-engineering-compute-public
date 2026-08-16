@@ -180,8 +180,10 @@ def test_replay_returns_backend_result_without_inventing_metrics(
             )
 
     monkeypatch.setattr("oec.learning.store.select_backend", lambda name: _Backend())
-    result = replay_learning_experiment(record)
-    assert result.metrics == {"loss": 0.42}
+    report = replay_learning_experiment(record)
+    assert report.source_run_id == record.run_id
+    assert report.record.result.metrics == {"loss": 0.42}
+    assert report.record.source_run_id == record.run_id
     assert captured["dataset"] is record.dataset
     assert captured["config"] == record.config
     model = captured["model"]

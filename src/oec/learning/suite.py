@@ -48,6 +48,11 @@ def measure_capability_suite() -> dict[str, Any]:
         "benchmark": "learning-capability-probe",
         "probes": probes,
         "matrix": rows,
-        "wired": [row["wave"] for row in rows if row.get("status") in {"wired", "adapter"}],
+        "wired": [
+            row["wave"]
+            for row in rows
+            if row.get("status")
+            in {"wired", "adapter", "core-tested", "contract-complete", "demo-only"}
+        ],
         "available_backends": [row["backend"] for row in rows if row.get("available")],
     }

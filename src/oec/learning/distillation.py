@@ -26,6 +26,9 @@ class DistillationConfig(BaseModel):
     alpha: float = Field(default=0.5, ge=0.0, le=1.0)
     seed: int = 0
     max_epochs: int = Field(default=2, ge=1, le=100)
+    teacher_checkpoint: dict[str, Any] | None = None
+    teacher_normalize: dict[str, Any] | None = None
+    student_hidden_dims: tuple[int, ...] = (4,)
 
 
 class DistillationResult(BaseModel):
@@ -78,7 +81,11 @@ def distill(
     dataset: LearningDataset,
     config: DistillationConfig | None = None,
 ) -> DistillationResult:
-    """Governed distill entry. Tabular records call ``neural.distill_mlp``."""
+    """Tabular teacher→student via ``neural.distill_mlp``.
+
+    Requires a governed teacher checkpoint. Teacher/student ``ModelRef`` are
+    identity only; architecture comes from the checkpoint + ``student_hidden_dims``.
+    """
     dataset.verify_integrity()
     cfg = config or DistillationConfig()
     try:
@@ -100,36 +107,32 @@ def distill(
                 "dataset_name": dataset.name,
             },
         )
+    if not cfg.teacher_checkpoint:
+        raise LearningError(
+            "distill requires config.teacher_checkpoint; teacher is not trained here",
+            details={"teacher_id": teacher.model_id, "student_id": student.model_id},
+        )
 
     from oec.kernel.neural.distillation import distill_mlp
-    from oec.kernel.neural.training import train_mlp
-    from oec.neural.contracts import (
-        DatasetSpec,
-        DistillationSpec,
-        NeuralModelSpec,
-        TrainingSpec,
-    )
+    from oec.neural.contracts import DatasetSpec, DistillationSpec, NeuralModelSpec, TrainingSpec
 
     features, targets = tabular
     spec = DatasetSpec(x=features, y=targets, val_fraction=0.0)
     input_dim = len(features[0])
+    hidden = [int(width) for width in cfg.student_hidden_dims]
+    if not hidden:
+        raise LearningError("student_hidden_dims must be non-empty")
+    student_model = NeuralModelSpec(input_dim=input_dim, hidden_dims=hidden)
     epochs = min(cfg.max_epochs, 20)
     batch_size = min(len(features), 8)
-    teacher_model = NeuralModelSpec(input_dim=input_dim, hidden_dims=[8])
-    student_model = NeuralModelSpec(input_dim=input_dim, hidden_dims=[4])
-    teacher_out = train_mlp(
-        spec,
-        teacher_model,
-        TrainingSpec(epochs=epochs, batch_size=batch_size, seed=cfg.seed),
-    )
     # S2 scalar regression forbids temperature != 1.0 (dimensional targets).
     student_out = distill_mlp(
         spec,
-        teacher_out.checkpoint,
+        cfg.teacher_checkpoint,
         student_model,
-        TrainingSpec(epochs=epochs, batch_size=batch_size, seed=cfg.seed + 1),
+        TrainingSpec(epochs=epochs, batch_size=batch_size, seed=cfg.seed),
         DistillationSpec(temperature=1.0, soft_weight=cfg.alpha),
-        teacher_normalize=teacher_out.normalize,
+        teacher_normalize=cfg.teacher_normalize,
     )
     metrics: dict[str, float] = {}
     if student_out.history:
@@ -147,13 +150,15 @@ def distill(
         status="ok",
         metrics=metrics,
         message=(
-            "neural.distill_mlp executed "
+            "neural.distill_mlp executed from supplied teacher_checkpoint "
             f"(requested_temperature={cfg.temperature}, alpha={cfg.alpha}, seed={cfg.seed})"
         ),
         details={
             "path": "neural.distill_mlp",
             "epochs_ran": student_out.epochs_ran,
             "regression_temperature": 1.0,
+            "student_hidden_dims": list(cfg.student_hidden_dims),
+            "teacher_retrained": False,
         },
     )
 

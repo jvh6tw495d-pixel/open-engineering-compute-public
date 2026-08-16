@@ -76,13 +76,34 @@ def test_distill_sft_text_only_dataset_fails_closed_with_learning_error() -> Non
         )
 
 
+def _cfg_from_teacher(*, alpha: float, seed: int) -> DistillationConfig:
+    from oec.kernel.neural.training import train_mlp
+    from oec.neural.contracts import DatasetSpec, NeuralModelSpec, TrainingSpec
+
+    x = [[float(i)] for i in range(8)]
+    y = [2.0 * i + 1.0 for i in range(8)]
+    teacher = train_mlp(
+        DatasetSpec(x=x, y=y, val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[8]),
+        TrainingSpec(epochs=2, batch_size=8, seed=seed),
+    )
+    return DistillationConfig(
+        alpha=alpha,
+        seed=seed,
+        max_epochs=2,
+        teacher_checkpoint=teacher.checkpoint,
+        teacher_normalize=teacher.normalize,
+        student_hidden_dims=(4,),
+    )
+
+
 def test_distill_tabular_dataset_executes_real_training() -> None:
     pytest.importorskip("torch")
     result = distill(
         teacher=ModelRef(model_id="teacher/base"),
         student=ModelRef(model_id="student/small"),
         dataset=_tabular_dataset(),
-        config=DistillationConfig(alpha=0.5, seed=3, max_epochs=2),
+        config=_cfg_from_teacher(alpha=0.5, seed=3),
     )
     assert isinstance(result, DistillationResult)
     assert result.status == "ok"
@@ -99,7 +120,7 @@ def test_distill_tabular_dataset_is_deterministic_for_fixed_seed() -> None:
         teacher=ModelRef(model_id="teacher/base"),
         student=ModelRef(model_id="student/small"),
         dataset=_tabular_dataset(),
-        config=DistillationConfig(alpha=0.5, seed=11, max_epochs=2),
+        config=_cfg_from_teacher(alpha=0.5, seed=11),
     )
     first = distill(**kwargs)
     second = distill(**kwargs)
@@ -112,7 +133,7 @@ def test_compare_base_vs_distilled_works_on_real_distillation_metrics() -> None:
         teacher=ModelRef(model_id="teacher/base"),
         student=ModelRef(model_id="student/small"),
         dataset=_tabular_dataset(),
-        config=DistillationConfig(alpha=0.5, seed=5, max_epochs=2),
+        config=_cfg_from_teacher(alpha=0.5, seed=5),
     )
     base = TrainingResult(
         status="ok",

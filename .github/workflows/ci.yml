@@ -168,6 +168,24 @@ jobs:
           --no-cov
           -q
 
+      - name: Learning contracts with neural/foundation extras present
+        # Offline contract run: extras are imported where needed, but tests
+        # must not download models. Live Unsloth/Axolotl/ART remain unverified.
+        timeout-minutes: 20
+        run: >
+          uv run pytest tests/unit/test_learning_l1_l5.py
+          tests/unit/test_learning_l1_l5_hardening.py
+          tests/unit/test_learning_l6_l8.py
+          tests/unit/test_learning_l6_l15.py
+          tests/unit/test_learning_l6_l12_wired.py
+          tests/unit/test_learning_l9_l11.py
+          tests/unit/test_learning_store.py
+          tests/unit/test_learning_closeout.py
+          --import-mode=importlib
+          -o addopts=
+          --no-cov
+          -q
+
   installation-smoke:
     # Excluded from the default `pytest -q` gate because pyproject.toml sets
     # `-m "not slow"`. This dedicated job still runs on every push/PR, builds

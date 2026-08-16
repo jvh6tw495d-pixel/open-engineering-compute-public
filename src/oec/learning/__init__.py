@@ -55,6 +55,7 @@ from oec.learning.evaluation import (
 from oec.learning.experiments import (
     LearningExperiment,
     LearningRunRecord,
+    compute_run_identity,
     run_learning_experiment,
     select_backend,
 )
@@ -70,6 +71,7 @@ from oec.learning.rl import (
     Trajectory,
 )
 from oec.learning.store import (
+    ReplayReport,
     load_dataset,
     load_run,
     replay_learning_experiment,
@@ -125,6 +127,7 @@ __all__ = [
     "Policy",
     "RLResult",
     "ReinforcementTrainer",
+    "ReplayReport",
     "RewardSpec",
     "State",
     "ToolUseEnvironment",
@@ -137,6 +140,7 @@ __all__ = [
     "compare_base_vs_distilled",
     "compare_results",
     "compute_dataset_hash",
+    "compute_run_identity",
     "declared_backends",
     "default_worker_dataset",
     "distill",

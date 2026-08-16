@@ -10,6 +10,7 @@ from oec.learning import (
     LearningDataset,
     ModelRef,
     TrainingConfig,
+    TrainingMethod,
     TrainingResult,
     WorkerPipeline,
     default_worker_dataset,
@@ -111,6 +112,52 @@ def test_unsloth_hf_fallback_is_explicit(monkeypatch: pytest.MonkeyPatch) -> Non
     assert result.backend is FineTuneBackendName.HUGGINGFACE
 
 
+def test_reward_tokens_and_latency_are_monotonic_efficiency() -> None:
+    spec = RewardSpec(correct=0.0, units=0.0, constraints=0.0, tokens=1.0, latency=1.0)
+    cheap = {
+        "status": "ok",
+        "tokens": 10.0,
+        "token_budget": 100.0,
+        "latency": 5.0,
+        "latency_budget": 20.0,
+    }
+    expensive = {
+        "status": "ok",
+        "tokens": 80.0,
+        "token_budget": 100.0,
+        "latency": 18.0,
+        "latency_budget": 20.0,
+    }
+    assert execution_result_reward(cheap, spec) > execution_result_reward(expensive, spec)
+    no_budget = {"status": "ok", "tokens": 50.0, "latency": 10.0}
+    unused = {"status": "ok"}
+    assert execution_result_scores(unused)["tokens"] == 1.0
+    assert execution_result_scores(no_budget)["tokens"] == 0.0
+
+
+def test_sft_prompt_completion_keeps_both_fields() -> None:
+    from oec.learning.datasets import texts_from_sft
+
+    dataset = LearningDataset(
+        name="sft-pairs",
+        kind=DatasetKind.SFT,
+        records=({"prompt": "Q?", "completion": "A."},),
+    )
+    assert texts_from_sft(dataset) == ["Q?\nA."]
+
+
+def test_huggingface_sft_requires_explicit_lora_mapping() -> None:
+    from oec.learning.backends.huggingface import HuggingFaceBackend
+
+    backend = HuggingFaceBackend()
+    with pytest.raises(BackendNotAvailableError, match="sft_via_lora"):
+        backend.finetune(
+            ModelRef(model_id="m"),
+            default_worker_dataset(),
+            TrainingConfig(method=TrainingMethod.SFT),
+        )
+
+
 def test_execution_result_verifier_aliases() -> None:
     spec = RewardSpec(correct=2.0, units=0.5, constraints=1.0)
     payload = {"status": "VALIDATED", "units_ok": True, "constraints_ok": True}
@@ -138,11 +185,31 @@ def test_distill_tabular_runs_when_torch_present() -> None:
         kind=DatasetKind.DISTILLATION,
         records=tuple({"x": [float(i)], "y": 2.0 * i + 1.0} for i in range(8)),
     )
+    from oec.kernel.neural.training import train_mlp
+    from oec.neural.contracts import DatasetSpec, NeuralModelSpec, TrainingSpec
+
+    teacher = train_mlp(
+        DatasetSpec(
+            x=[[float(i)] for i in range(8)],
+            y=[2.0 * i + 1.0 for i in range(8)],
+            val_fraction=0.0,
+        ),
+        NeuralModelSpec(input_dim=1, hidden_dims=[8]),
+        TrainingSpec(epochs=2, batch_size=8, seed=1),
+    )
     result = distill(
         teacher=ModelRef(model_id="teacher"),
         student=ModelRef(model_id="student"),
         dataset=dataset,
-        config=DistillationConfig(temperature=2.0, alpha=0.5, seed=1, max_epochs=2),
+        config=DistillationConfig(
+            temperature=2.0,
+            alpha=0.5,
+            seed=1,
+            max_epochs=2,
+            teacher_checkpoint=teacher.checkpoint,
+            teacher_normalize=teacher.normalize,
+            student_hidden_dims=(4,),
+        ),
     )
     assert isinstance(result, DistillationResult)
     assert result.status == "ok"

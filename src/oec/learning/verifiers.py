@@ -9,22 +9,45 @@ from oec.learning.environments import RewardSpec, VerifierScores, compute_reward
 _OK_STATUSES = frozenset({"validated", "verified", "completed", "ok"})
 
 
+def _efficiency_score(observed: float, budget: float | None) -> float:
+    """Higher is better. Raw consumption must never increase the score."""
+    if observed < 0.0:
+        raise ValueError("observed consumption must be non-negative")
+    if observed == 0.0:
+        return 1.0
+    if budget is None or budget <= 0.0:
+        return 0.0
+    return max(0.0, 1.0 - observed / budget)
+
+
 def execution_result_scores(payload: dict[str, Any]) -> dict[str, float]:
-    """Map an ExecutionResult-like dict to closed verifier scores. No LLM."""
+    """Map an ExecutionResult-like dict to closed verifier scores. No LLM.
+
+    ``tokens`` and ``latency`` in the *output* are efficiency scores in
+    ``[0, 1]`` (higher is better). Raw counts need ``token_budget`` /
+    ``latency_budget`` to be converted; without a budget, any consumption
+    scores 0 so it cannot inflate the reward.
+    """
     status = str(payload.get("status") or "").lower()
     correct = 1.0 if status in _OK_STATUSES else 0.0
     units_ok = payload.get("units_ok")
     units = (1.0 if correct else 0.0) if units_ok is None else (1.0 if units_ok else 0.0)
     constraints_ok = payload.get("constraints_ok", payload.get("constraint_ok", True))
     constraints = 1.0 if constraints_ok else 0.0
-    tokens = float(payload.get("tokens") or 0.0)
-    latency = float(payload.get("latency") or payload.get("duration_ms") or 0.0)
+    tokens_raw = float(payload.get("tokens") or 0.0)
+    latency_raw = float(payload.get("latency") or payload.get("duration_ms") or 0.0)
+    token_budget = payload.get("token_budget")
+    latency_budget = payload.get("latency_budget", payload.get("duration_budget"))
     return {
         "correct": correct,
         "units": units,
         "constraints": constraints,
-        "tokens": tokens,
-        "latency": latency,
+        "tokens": _efficiency_score(
+            tokens_raw, float(token_budget) if token_budget is not None else None
+        ),
+        "latency": _efficiency_score(
+            latency_raw, float(latency_budget) if latency_budget is not None else None
+        ),
     }
 
 

@@ -15,6 +15,18 @@ from oec.learning.contracts import (
 from oec.learning.datasets import LearningDataset, texts_from_sft
 from oec.learning.errors import BackendNotAvailableError
 
+_DEFAULT_TARGETS = ("c_attn", "c_proj")
+_OK_RUNTIME = frozenset({"ok", "success", "completed"})
+
+
+def _target_modules(config: TrainingConfig) -> tuple[str, ...]:
+    raw = config.hyperparameters.get("target_modules")
+    if isinstance(raw, str) and raw.strip():
+        parts = tuple(item.strip() for item in raw.split(",") if item.strip())
+        if parts:
+            return parts
+    return _DEFAULT_TARGETS
+
 
 class HuggingFaceBackend:
     """Reference FineTune backend. Delegates to ``oec.foundation.peft_train``."""
@@ -27,6 +39,26 @@ class HuggingFaceBackend:
         dataset: LearningDataset,
         config: TrainingConfig,
     ) -> TrainingResult:
+        mapped_from: str | None = None
+        method = config.method
+        if method is TrainingMethod.SFT:
+            if str(config.hyperparameters.get("sft_via_lora")) != "1":
+                raise BackendNotAvailableError(
+                    "huggingface SFT requires hyperparameters sft_via_lora=1 "
+                    "(explicit LoRA mapping); otherwise use method=lora",
+                    details={"method": method.value},
+                )
+            mapped_from = "sft"
+        elif method not in {
+            TrainingMethod.LORA,
+            TrainingMethod.QLORA,
+            TrainingMethod.FULL,
+        }:
+            raise BackendNotAvailableError(
+                f"huggingface backend does not implement {method.value}",
+                details={"method": method.value},
+            )
+
         try:
             from oec.foundation.contracts import (
                 FoundationModelSpec,
@@ -50,14 +82,12 @@ class HuggingFaceBackend:
             TrainingMethod.FULL: PEFTMethod.NONE,
             TrainingMethod.SFT: PEFTMethod.LORA,
         }
-        if config.method not in method_map:
-            raise BackendNotAvailableError(
-                f"huggingface backend does not implement {config.method.value}",
-                details={"method": config.method.value},
-            )
+        method_map_value = method_map[method]
         texts = texts_from_sft(dataset)
+        adapter_path = config.hyperparameters.get("adapter_path")
+        targets = _target_modules(config)
         spec = PEFTSpec(
-            method=method_map[config.method],
+            method=method_map_value,
             model=FoundationModelSpec(model_id=model.model_id, revision=model.revision),
             dataset=TrainingDatasetSpec(texts=texts),
             budget=TrainingBudgetSpec(
@@ -65,7 +95,7 @@ class HuggingFaceBackend:
                 max_seq_len=min(config.max_seq_len, 1024),
                 batch_size=min(config.batch_size, 32),
             ),
-            target_modules=("c_attn", "c_proj"),
+            target_modules=targets,
             seed=config.seed,
         )
         try:
@@ -80,15 +110,20 @@ class HuggingFaceBackend:
                 details={"backend": "huggingface", "error_type": type(exc).__name__},
             ) from exc
 
+        raw_status = str(raw.get("status") or "ok").lower()
         raw_artifact = raw.get("artifact")
-        artifact: dict[str, Any] = raw_artifact if isinstance(raw_artifact, dict) else {}
-        art = ArtifactRef(
-            kind=str(artifact.get("kind") or "adapter"),
-            path=artifact.get("path") if isinstance(artifact.get("path"), str) else None,
-            sha256=artifact.get("sha256") if isinstance(artifact.get("sha256"), str) else None,
-            base_model_id=model.model_id,
-            revision=model.revision,
-        )
+        artifact = raw_artifact if isinstance(raw_artifact, dict) else {}
+        path = artifact.get("path") if isinstance(artifact.get("path"), str) else None
+        digest = artifact.get("sha256") if isinstance(artifact.get("sha256"), str) else None
+        art = None
+        if path or digest:
+            art = ArtifactRef(
+                kind=str(artifact.get("kind") or "adapter"),
+                path=path,
+                sha256=digest,
+                base_model_id=model.model_id,
+                revision=model.revision,
+            )
         metrics: dict[str, float] = {}
         if isinstance(raw.get("final_loss"), (int, float)):
             metrics["loss"] = float(raw["final_loss"])
@@ -97,13 +132,28 @@ class HuggingFaceBackend:
             last = history[-1]
             if isinstance(last, (int, float)):
                 metrics["loss"] = float(last)
+        if raw_status not in _OK_RUNTIME:
+            status = "error"
+        elif art is None:
+            status = "incomplete"
+        else:
+            status = "ok"
+        details: dict[str, Any] = {
+            "backend_merit": "transformers+peft",
+            "target_modules": list(targets),
+            "runtime_status": raw_status,
+        }
+        if mapped_from is not None:
+            details["method_mapped_from"] = mapped_from
+        if isinstance(adapter_path, str) and adapter_path:
+            details["base_adapter_path"] = adapter_path
         return TrainingResult(
-            status="ok",
+            status=status,
             backend=FineTuneBackendName.HUGGINGFACE,
             method=config.method,
             model=model,
             artifact=art,
             metrics=metrics,
             message="huggingface peft_train",
-            details={"backend_merit": "transformers+peft"},
+            details=details,
         )

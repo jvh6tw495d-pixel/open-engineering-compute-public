@@ -1,4 +1,4 @@
-"""L12 — Worker training pipeline (demo, not a product)."""
+"""L12 — sequential FineTune demo (not a product, not a full RL factory)."""
 
 from __future__ import annotations
 
@@ -6,11 +6,18 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from oec.learning.contracts import FineTuneBackendName, ModelRef, TrainingConfig, TrainingMethod
+from oec.learning.contracts import (
+    ArtifactRef,
+    FineTuneBackendName,
+    ModelRef,
+    TrainingConfig,
+    TrainingMethod,
+)
 from oec.learning.datasets import DatasetKind, LearningDataset
 from oec.learning.environments import RewardSpec
 from oec.learning.errors import BackendNotAvailableError
 from oec.learning.experiments import LearningExperiment, LearningRunRecord, run_learning_experiment
+from oec.learning.verifiers import execution_result_reward, execution_result_scores
 
 
 class WorkerStage(BaseModel):
@@ -22,7 +29,12 @@ class WorkerStage(BaseModel):
 
 
 class WorkerPipeline(BaseModel):
-    """Declarative E2E plan: dataset → SFT/PEFT → optional RL → evaluate."""
+    """Sequential FineTune stages with optional artifact chaining.
+
+    This is a demo executor: FineTune backends run in order. An ``art`` stage
+    is optional RL. Evaluation only runs when a stage returns verifier scores.
+    It is not a complete SFT→RL→eval product.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -57,12 +69,23 @@ class WorkerPipeline(BaseModel):
         }
 
     def run(self, *, experiment_id: str | None = None) -> dict[str, Any]:
-        """Execute each FineTune stage through ``run_learning_experiment``."""
+        """Run declared stages. Status is derived from stage results."""
         self.dataset.verify_integrity()
         records: list[LearningRunRecord] = []
+        rl_results: list[dict[str, Any]] = []
         prefix = experiment_id or self.name
+        previous_artifact: ArtifactRef | None = None
+        model = self.model
         for stage in self.stages:
             backend_key = stage.backend.strip().lower()
+            if backend_key == "art":
+                from oec.learning.backends.art import ARTBackend
+                from oec.learning.environments import MathematicsEnvironment
+
+                env = MathematicsEnvironment()
+                rl = ARTBackend().train(env, ())
+                rl_results.append({"stage": stage.name, **rl.model_dump(mode="json")})
+                continue
             if backend_key not in {item.value for item in FineTuneBackendName}:
                 raise BackendNotAvailableError(
                     (
@@ -76,27 +99,77 @@ class WorkerPipeline(BaseModel):
                 if isinstance(stage.method, TrainingMethod)
                 else TrainingMethod(stage.method)
             )
+            hyperparameters: dict[str, float | int | str] = {}
+            if method is TrainingMethod.SFT:
+                hyperparameters["sft_via_lora"] = "1"
+            if previous_artifact is not None and previous_artifact.path:
+                hyperparameters["adapter_path"] = previous_artifact.path
+                model = ModelRef(
+                    model_id=model.model_id,
+                    family=model.family,
+                    revision=model.revision,
+                    metadata={
+                        **model.metadata,
+                        "adapter_path": previous_artifact.path,
+                    },
+                )
             record = run_learning_experiment(
                 LearningExperiment(
                     experiment_id=f"{prefix}.{stage.name}",
-                    model=self.model,
+                    model=model,
                     dataset=self.dataset,
                     config=TrainingConfig(
                         method=method,
                         backend=FineTuneBackendName(backend_key),
                         seed=self.dataset.seed,
+                        hyperparameters=hyperparameters,
                     ),
                     title=f"{self.name}:{stage.name}",
                 )
             )
             records.append(record)
+            previous_artifact = record.result.artifact
+        evaluation = _evaluate_stages(records, self.reward, self.environment_name)
+        fine_ok = bool(records) and all(item.result.status == "ok" for item in records)
+        rl_ok = all(item.get("status") == "ok" for item in rl_results)
+        if records and fine_ok and (not rl_results or rl_ok):
+            status = "ok"
+        elif records or rl_results:
+            status = "degraded"
+        else:
+            status = "empty"
         return {
             "name": self.name,
-            "status": "ok",
+            "status": status,
             "plan": self.plan(),
             "experiment_id": prefix,
             "records": [record.model_dump(mode="json") for record in records],
+            "rl": rl_results,
+            "evaluation": evaluation,
         }
+
+
+def _evaluate_stages(
+    records: list[LearningRunRecord],
+    spec: RewardSpec,
+    environment_name: str,
+) -> dict[str, Any]:
+    for record in reversed(records):
+        payload = record.result.details.get("execution")
+        if isinstance(payload, dict):
+            scores = execution_result_scores(payload)
+            return {
+                "status": "ok",
+                "environment": environment_name,
+                "scores": scores,
+                "reward": execution_result_reward(payload, spec),
+                "source_run_id": record.run_id,
+            }
+    return {
+        "status": "skipped",
+        "environment": environment_name,
+        "reason": "no verifier scores from stages",
+    }
 
 
 def default_worker_dataset() -> LearningDataset:

@@ -96,6 +96,45 @@ def test_distill_with_torch_and_text_only_dataset_fails_closed() -> None:
         )
 
 
+def _tabular_distill_config(*, alpha: float, seed: int) -> DistillationConfig:
+    from oec.kernel.neural.training import train_mlp
+    from oec.neural.contracts import DatasetSpec, NeuralModelSpec, TrainingSpec
+
+    x = [[float(i)] for i in range(8)]
+    y = [2.0 * i + 1.0 for i in range(8)]
+    teacher = train_mlp(
+        DatasetSpec(x=x, y=y, val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[8]),
+        TrainingSpec(epochs=2, batch_size=8, seed=seed),
+    )
+    return DistillationConfig(
+        alpha=alpha,
+        seed=seed,
+        teacher_checkpoint=teacher.checkpoint,
+        teacher_normalize=teacher.normalize,
+        student_hidden_dims=(4,),
+    )
+
+
+def test_distill_requires_teacher_checkpoint() -> None:
+    try:
+        import torch  # noqa: F401
+    except ImportError:
+        pytest.skip("torch not installed")
+    ds = LearningDataset(
+        name="distill-tabular",
+        kind=DatasetKind.DISTILLATION,
+        records=tuple({"x": [float(i)], "y": 2.0 * i + 1.0} for i in range(8)),
+    )
+    with pytest.raises(LearningError, match="teacher_checkpoint"):
+        distill(
+            teacher=ModelRef(model_id="teacher/base"),
+            student=ModelRef(model_id="student/small"),
+            dataset=ds,
+            config=DistillationConfig(alpha=0.25, seed=7),
+        )
+
+
 def test_distill_with_torch_and_tabular_dataset_returns_real_metrics() -> None:
     try:
         import torch  # noqa: F401
@@ -110,7 +149,7 @@ def test_distill_with_torch_and_tabular_dataset_returns_real_metrics() -> None:
         teacher=ModelRef(model_id="teacher/base"),
         student=ModelRef(model_id="student/small"),
         dataset=ds,
-        config=DistillationConfig(alpha=0.25, seed=7),
+        config=_tabular_distill_config(alpha=0.25, seed=7),
     )
     assert isinstance(result, DistillationResult)
     assert result.status == "ok"

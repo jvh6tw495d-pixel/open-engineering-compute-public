@@ -9,18 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **OEC Learning L1–L15 (closed):** core-safe ``oec.learning`` (ADR 0043).
-  L1–L5 contracts, hashed datasets, reproducible run records, evaluation vs
-  benchmark, and a lazy ``HuggingFaceBackend`` over ``foundation.peft_train``.
-  L6 tabular ``distill()`` executes ``neural.distill_mlp``; text/FM distill
-  fails closed (no invented ``planned`` metrics). L7–L8 Unsloth/Axolotl adapters run when the extra is
-  installed and fail closed otherwise (Unsloth HF fallback only when
-  ``allow_hf_fallback=1``). L9 RL contracts; L10 ART/GRPO adapter; L11
-  deterministic verifier rewards from ExecutionResult-like payloads; L12
-  ``WorkerPipeline.run()``; L13 capability/backend suite (no invented GPU
-  numbers); L14 core-only ``learning-contracts`` CI job; L2/L3 persist +
-  replay with dataset-hash integrity. Unsloth/Axolotl/ART stay out of the
-  core install.
+- **OEC Learning L1–L15 (contracts + core-tested isolation):** core-safe
+  ``oec.learning`` (ADR 0043). L1–L5 contracts, hashed datasets (including
+  provenance), run identity hash, evaluation vs benchmark, and a lazy
+  ``HuggingFaceBackend`` over ``foundation.peft_train``. L6 tabular
+  ``distill()`` requires a teacher checkpoint and calls
+  ``neural.distill_mlp``; text/FM distill fails closed. L7–L8–L10 Unsloth /
+  Axolotl / ART are **external, integration-unverified** adapters
+  (fail-closed; not OEC extras — they would break ``--all-extras``). L9 RL
+  contracts; L11 verifier rewards treat tokens/latency as efficiency scores
+  (higher is better; raw consumption never inflates reward). L12
+  ``WorkerPipeline`` is a **demo** sequential FineTune executor with optional
+  artifact chaining. L13 capability suite does not invent GPU numbers. L14
+  core-only ``learning-contracts`` CI job. Replay returns a ``ReplayReport``
+  (rerun + comparison), not a bit-identical reproduction proof.
 
 ## [3.6.0] - 2026-08-16
 

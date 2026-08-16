@@ -66,6 +66,7 @@ class LearningDataset(BaseModel):
             records=tuple(records),
             split=payload.get("split") or DatasetSplit.TRAIN,
             seed=int(payload.get("seed") or 0),
+            provenance=payload.get("provenance"),
         )
         existing = payload.get("content_hash")
         if existing in (None, ""):
@@ -86,12 +87,21 @@ class LearningDataset(BaseModel):
             records=self.records,
             split=self.split,
             seed=self.seed,
+            provenance=self.provenance,
         )
         if digest != self.content_hash:
             raise DatasetIntegrityError(
                 "dataset records changed after content_hash was bound",
                 details={"expected": self.content_hash, "got": digest},
             )
+
+
+def _provenance_payload(provenance: DatasetProvenance | dict[str, Any] | None) -> dict[str, Any]:
+    if isinstance(provenance, DatasetProvenance):
+        return provenance.model_dump(mode="json")
+    if isinstance(provenance, dict):
+        return DatasetProvenance.model_validate(provenance).model_dump(mode="json")
+    return DatasetProvenance().model_dump(mode="json")
 
 
 def compute_dataset_hash(
@@ -102,6 +112,7 @@ def compute_dataset_hash(
     records: tuple[dict[str, Any], ...] | list[dict[str, Any]],
     split: DatasetSplit | str,
     seed: int,
+    provenance: DatasetProvenance | dict[str, Any] | None = None,
 ) -> str:
     payload = {
         "name": name,
@@ -109,6 +120,7 @@ def compute_dataset_hash(
         "version": version,
         "split": str(split),
         "seed": seed,
+        "provenance": _provenance_payload(provenance),
         "records": list(records),
     }
     try:
@@ -140,16 +152,29 @@ def split_records(
     return train, val
 
 
+SFT_PROMPT_COMPLETION_TEMPLATE = "{prompt}\n{completion}"
+
+
 def texts_from_sft(dataset: LearningDataset) -> list[str]:
+    """Extract SFT texts. Prompt/completion uses a versioned template; no JSON dump."""
     dataset.verify_integrity()
     texts: list[str] = []
-    for row in dataset.records:
-        if "text" in row and isinstance(row["text"], str):
-            texts.append(row["text"])
-        elif "prompt" in row and isinstance(row["prompt"], str):
-            texts.append(str(row.get("completion") or row["prompt"]))
-        else:
-            texts.append(json.dumps(row, sort_keys=True, default=str))
+    for index, row in enumerate(dataset.records):
+        text = row.get("text")
+        if isinstance(text, str) and text:
+            texts.append(text)
+            continue
+        prompt = row.get("prompt")
+        completion = row.get("completion")
+        if isinstance(prompt, str) and isinstance(completion, str) and prompt and completion:
+            texts.append(
+                SFT_PROMPT_COMPLETION_TEMPLATE.format(prompt=prompt, completion=completion)
+            )
+            continue
+        raise DatasetIntegrityError(
+            "SFT record must have 'text' or both 'prompt' and 'completion'",
+            details={"index": index, "keys": sorted(row)},
+        )
     if not texts:
         raise DatasetIntegrityError("SFT dataset produced no texts")
     return texts

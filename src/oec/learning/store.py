@@ -8,15 +8,34 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
+from uuid import uuid4
 
-from oec.learning.contracts import ModelRef, TrainingResult
+from pydantic import BaseModel, ConfigDict, Field
+
+from oec.learning.contracts import ModelFamily, ModelRef, TrainingResult
 from oec.learning.datasets import LearningDataset
 from oec.learning.errors import DatasetIntegrityError
-from oec.learning.experiments import LearningRunRecord, select_backend
+from oec.learning.experiments import (
+    LearningRunRecord,
+    compute_run_identity,
+    select_backend,
+)
+from oec.learning.hardware import capture_code_version, capture_environment, capture_hardware
 
 DATASET_FILENAME = "dataset.json"
 RUN_FILENAME = "record.json"
+
+
+class ReplayReport(BaseModel):
+    """Rerun from a snapshot. This is not a bit-identical reproduction proof."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["0.1.0"] = "0.1.0"
+    source_run_id: str
+    record: LearningRunRecord
+    comparison: dict[str, Any] = Field(default_factory=dict)
 
 
 def save_dataset(dataset: LearningDataset, directory: str | Path) -> Path:
@@ -71,14 +90,21 @@ def load_run(path: str | Path) -> LearningRunRecord:
             "run record dataset_hash does not match snapshot dataset",
             details={"expected": record.dataset.content_hash, "got": record.dataset_hash},
         )
+    if record.identity_hash:
+        expected = compute_run_identity(record)
+        if record.identity_hash != expected:
+            raise DatasetIntegrityError(
+                "run identity_hash does not match canonical inputs",
+                details={"expected": expected, "got": record.identity_hash},
+            )
     return record
 
 
-def replay_learning_experiment(record: LearningRunRecord) -> TrainingResult:
-    """Re-run ``select_backend().finetune`` from a frozen run snapshot.
+def replay_learning_experiment(record: LearningRunRecord) -> ReplayReport:
+    """Re-run ``select_backend().finetune`` from a frozen snapshot.
 
-    Returns the backend ``TrainingResult`` as-is. Missing extras fail closed
-    with ``BackendNotAvailableError``; metrics are never invented here.
+    Returns a new ``LearningRunRecord`` plus a metric comparison. Missing
+    extras fail closed. Metrics are never invented here.
     """
     record.dataset.verify_integrity()
     if record.dataset_hash != record.dataset.content_hash:
@@ -87,11 +113,48 @@ def replay_learning_experiment(record: LearningRunRecord) -> TrainingResult:
             details={"expected": record.dataset.content_hash, "got": record.dataset_hash},
         )
     backend = select_backend(record.config.backend)
-    model = ModelRef(model_id=record.model_id, revision=record.model_revision)
+    family = record.model_family or ModelFamily.TRANSFORMERS
+    model = ModelRef(
+        model_id=record.model_id,
+        revision=record.model_revision,
+        family=family,
+    )
     result = backend.finetune(model, record.dataset, record.config)
     if not isinstance(result, TrainingResult):
         raise TypeError("backend finetune must return TrainingResult")
-    return result
+    rerun = LearningRunRecord(
+        run_id=str(uuid4()),
+        experiment_id=f"{record.experiment_id}.replay",
+        code_version=capture_code_version(),
+        environment=capture_environment(),
+        hardware=capture_hardware(),
+        dataset=record.dataset,
+        dataset_name=record.dataset_name,
+        dataset_version=record.dataset_version,
+        dataset_hash=record.dataset_hash,
+        model_id=record.model_id,
+        model_revision=record.model_revision,
+        model_family=family,
+        backend=record.config.backend,
+        config=record.config,
+        seed=record.seed,
+        result=result,
+        source_run_id=record.run_id,
+    )
+    rerun = rerun.model_copy(update={"identity_hash": compute_run_identity(rerun)})
+    comparison: dict[str, Any] = {
+        "source_run_id": record.run_id,
+        "rerun_id": rerun.run_id,
+        "identity_hash_source": record.identity_hash or compute_run_identity(record),
+        "identity_hash_rerun": rerun.identity_hash,
+    }
+    shared = set(record.result.metrics) & set(result.metrics)
+    if shared:
+        comparison["metric_delta"] = {
+            key: float(result.metrics[key]) - float(record.result.metrics[key])
+            for key in sorted(shared)
+        }
+    return ReplayReport(source_run_id=record.run_id, record=rerun, comparison=comparison)
 
 
 def _as_json_file(path: str | Path, filename: str) -> Path:

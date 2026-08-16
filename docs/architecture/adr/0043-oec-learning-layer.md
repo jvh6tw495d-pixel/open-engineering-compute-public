@@ -22,8 +22,9 @@ the public API.
    imported lazily; missing extra → structured fail-closed error.
 4. Existing ``foundation.peft_train`` / generate / Experiment Engine are
    **reused**, not rewritten.
-5. Waves L7–L10 implement the same protocols as fail-closed adapters:
-   Unsloth, Axolotl, ART/GRPO. Missing extras never enter the core import
+5. Waves L7–L10 implement the same protocols as fail-closed **external**
+   adapters (Unsloth, Axolotl, ART/GRPO). They are integration-unverified
+   and are not OEC extras. Missing packages never enter the core import
    graph.
 6. L11 rewards come only from deterministic verifiers (units, constraints,
    skill status). No LLM judge.

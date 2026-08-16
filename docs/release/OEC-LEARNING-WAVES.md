@@ -2,9 +2,11 @@
 
 **Source:** `OEC Learning — Arquitetura, Política de Backends e Plano de Waves` (2026-08-16)
 **Compared against:** RC `integration/3.6-scientific-ai` @ `014894f` (`oec==3.6.0`, 151 skills / 28 domains / 12 builders)
-**Status:** L1–L15 **closed** on `feat/learning-l1-l5` (ADR 0043, `oec.learning`)
-**Package today:** `oec.learning` is core-safe. HF / Unsloth / Axolotl / ART
-are lazy adapters. Tabular distill is wired to `neural.distill_mlp`.
+**Status:** L1–L15 **contracted** on `feat/learning-l1-l5` (ADR 0043).
+Not a product close. See `LEARNING-L15-CLOSEOUT.md` for per-wave status.
+**Package today:** `oec.learning` is core-safe. HF is the reference extra
+(`oec[foundation]`). Unsloth / Axolotl / ART are external,
+integration-unverified adapters.
 
 Principle (unchanged): **OEC defines scientific contracts. External frameworks are replaceable backends.**
 
@@ -126,7 +128,8 @@ L1 Contracts
 
 - Extend `oec.experiment` or add `oec.learning.experiments` **on top** of ExperimentRecord
 - Capture commit, hardware, backend, dataset version, model revision
-- **Gate:** a finished training run is reproducible from the record alone
+- **Gate:** a finished training run can be **rerun** from the snapshot
+  (`ReplayReport`). Bit-identical reproduction is not claimed.
 
 ### L4 — Evaluation & benchmarking ✅
 
@@ -145,14 +148,14 @@ L1 Contracts
 ### L6 — Distillation workflow ✅
 
 - Teacher → demonstrations → DistillationDataset → student → eval → benchmark
-- Tabular records call `neural.distill_mlp` and return measured train metrics
+- Tabular records call `neural.distill_mlp` **only with a supplied teacher checkpoint**
 - Text/FM distillation fails closed (`LearningError`) — no invented numbers
 - **Gate:** `compare_base_vs_distilled` under one Benchmark protocol
 
-### L7–L8 — Unsloth / Axolotl ✅
+### L7–L8 — Unsloth / Axolotl (integration-unverified)
 
 - Same FineTune contract; `backend="huggingface"|"unsloth"|"axolotl"`
-- Real adapter path when the extra imports; fail-closed otherwise
+- Fail-closed without the **external** package (not an OEC extra)
 - Unsloth may fall back to HF only when `allow_hf_fallback=1`
 - **Gate L7:** swap backend with no contract change
 - **Gate L8:** Axolotl recipe ≡ OEC Experiment (not an opaque script)
@@ -162,12 +165,12 @@ L1 Contracts
 - L9 contracts only; L10 ART adapter + GRPO; L11 OEC verifiers as reward
 - **Gate L11:** reward only from deterministic verifiers (units, constraints, skill status)
 
-### L12–L15 ✅
+### L12–L15 (demo / isolation)
 
-- L12: `WorkerPipeline.plan()` + `.run()` (fail-closed without extras)
-- L13: permanent backend + agentic + capability-probe suite (no invented GPU numbers)
-- L14: CI `learning-contracts` job, persist/replay, integrity, docs
-- L15: programme closeout on this branch
+- L12: `WorkerPipeline` is a **demo** sequential FineTune executor
+- L13: capability-probe suite (no invented GPU numbers)
+- L14: CI `learning-contracts` job, persist/`ReplayReport`, integrity, docs
+- L15: honest status matrix — not a claim that adapters are production-ready
 
 ---
 
