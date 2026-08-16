@@ -59,7 +59,8 @@ from oec.learning.experiments import (
     run_learning_experiment,
     select_backend,
 )
-from oec.learning.pipeline import WorkerPipeline, default_worker_dataset
+from oec.learning.hardware import capture_dependency_versions
+from oec.learning.pipeline import WorkerPipeline, default_worker_dataset, payload_from_execution
 from oec.learning.rl import (
     Action,
     Environment,
@@ -138,6 +139,7 @@ __all__ = [
     "capability_matrix",
     "compare_backend_runs",
     "compare_base_vs_distilled",
+    "capture_dependency_versions",
     "compare_results",
     "compute_dataset_hash",
     "compute_run_identity",
@@ -150,6 +152,7 @@ __all__ = [
     "load_dataset",
     "load_run",
     "measure_capability_suite",
+    "payload_from_execution",
     "probe_optional",
     "replay_learning_experiment",
     "reward_from_execution",

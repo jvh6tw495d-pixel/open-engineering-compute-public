@@ -52,7 +52,15 @@ def measure_capability_suite() -> dict[str, Any]:
             row["wave"]
             for row in rows
             if row.get("status")
-            in {"wired", "adapter", "core-tested", "contract-complete", "demo-only"}
+            in {
+                "wired",
+                "adapter",
+                "core-tested",
+                "contract-complete",
+                "demo-only",
+                "operational",
+                "operational-when-installed",
+            }
         ],
         "available_backends": [row["backend"] for row in rows if row.get("available")],
     }

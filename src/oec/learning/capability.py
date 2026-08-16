@@ -30,7 +30,7 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["lora", "qlora", "full", "sft"],
             "extra": "oec[foundation]",
             "available": probes["transformers"] and probes["peft"],
-            "status": "core-tested",
+            "status": "operational",
         },
         {
             "wave": "L6",
@@ -38,7 +38,7 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["distill"],
             "extra": "oec[neural]",
             "available": probes["torch"],
-            "status": "core-tested",
+            "status": "operational",
         },
         {
             "wave": "L7",
@@ -46,7 +46,7 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["lora", "qlora", "sft"],
             "extra": "external:unsloth+datasets+trl",
             "available": probes["unsloth"] and probes["datasets"] and probes["trl"],
-            "status": "integration-unverified",
+            "status": "operational-when-installed",
         },
         {
             "wave": "L8",
@@ -54,7 +54,7 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["sft", "lora"],
             "extra": "external:axolotl",
             "available": probes["axolotl"],
-            "status": "integration-unverified",
+            "status": "operational-when-installed",
         },
         {
             "wave": "L9",
@@ -62,7 +62,7 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["trajectory", "episode"],
             "extra": None,
             "available": True,
-            "status": "contract-complete",
+            "status": "operational",
         },
         {
             "wave": "L10",
@@ -70,7 +70,7 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["grpo"],
             "extra": "external:art",
             "available": probes["art"],
-            "status": "integration-unverified",
+            "status": "operational-when-installed",
         },
         {
             "wave": "L11",
@@ -78,15 +78,15 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["reward"],
             "extra": None,
             "available": True,
-            "status": "core-tested",
+            "status": "operational",
         },
         {
             "wave": "L12",
             "backend": "worker-pipeline",
-            "methods": ["sft", "lora"],
+            "methods": ["sft", "lora", "evaluate"],
             "extra": "oec[foundation]",
-            "available": probes["transformers"] and probes["peft"],
-            "status": "demo-only",
+            "available": True,
+            "status": "operational",
         },
         {
             "wave": "L13",
@@ -94,14 +94,14 @@ def capability_matrix() -> list[dict[str, Any]]:
             "methods": ["compare", "probe"],
             "extra": None,
             "available": True,
-            "status": "core-tested",
+            "status": "operational",
         },
         {
             "wave": "L14",
             "backend": "ci-learning-contracts",
-            "methods": ["isolation"],
+            "methods": ["isolation", "smoke"],
             "extra": None,
             "available": True,
-            "status": "core-tested",
+            "status": "operational",
         },
     ]

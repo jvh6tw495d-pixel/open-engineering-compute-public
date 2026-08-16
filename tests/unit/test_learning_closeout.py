@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC
+
 import pytest
 
 from oec.learning import (
@@ -162,6 +164,38 @@ def test_sft_prompt_completion_keeps_both_fields() -> None:
         records=({"prompt": "Q?", "completion": "A."},),
     )
     assert texts_from_sft(dataset) == ["Q?\nA."]
+
+
+def test_worker_evaluate_uses_execution_result(monkeypatch: pytest.MonkeyPatch) -> None:
+    from datetime import datetime
+
+    from oec.common import VersionedRef
+    from oec.execution.models import ExecutionResult, ExecutionStatus
+
+    def _finetune(
+        self: object, model: ModelRef, dataset: LearningDataset, config: TrainingConfig
+    ) -> TrainingResult:
+        return _ok_result(model, config)
+
+    monkeypatch.setattr(huggingface_mod.HuggingFaceBackend, "finetune", _finetune)
+    execution = ExecutionResult(
+        status=ExecutionStatus.VALIDATED,
+        skill=VersionedRef(id="physics.demo", version="1.0.0"),
+        method=VersionedRef(id="method.demo", version="1.0.0"),
+        validation={"units_ok": True, "constraints_ok": True},
+        diagnostics={"tokens": 0},
+        duration_ms=12.0,
+        started_at=datetime.now(UTC),
+    )
+    pipe = WorkerPipeline(
+        model=ModelRef(model_id="tinyllama/tiny"),
+        dataset=default_worker_dataset(),
+        evaluations=(execution,),
+    )
+    out = pipe.run(experiment_id="w.eval")
+    assert out["evaluation"]["status"] == "ok"
+    assert out["evaluation"]["source"] == "execution_result"
+    assert out["evaluation"]["scores"]["correct"] == 1.0
 
 
 def test_art_stage_without_episodes_fails_closed() -> None:

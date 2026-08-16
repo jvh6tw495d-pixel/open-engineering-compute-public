@@ -686,7 +686,7 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
             from peft import PeftModel
         except ImportError as exc:
             raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
-        model = PeftModel.from_pretrained(model, str(adapter_dir))  # nosec B615
+        model = PeftModel.from_pretrained(model, str(adapter_dir), is_trainable=True)  # nosec B615
         kind = ArtifactKind.ADAPTER
     elif spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
         try:

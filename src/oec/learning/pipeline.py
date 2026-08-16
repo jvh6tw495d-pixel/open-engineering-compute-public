@@ -6,6 +6,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from oec.execution.models import ExecutionResult
 from oec.learning.contracts import (
     ArtifactRef,
     FineTuneBackendName,
@@ -56,6 +57,7 @@ class WorkerPipeline(BaseModel):
     environment_name: str = "python"
     reward: RewardSpec = Field(default_factory=RewardSpec)
     episodes: tuple[Episode, ...] = ()
+    evaluations: tuple[ExecutionResult | dict[str, Any], ...] = ()
 
     def as_experiment(self, *, experiment_id: str) -> LearningExperiment:
         method = TrainingMethod.LORA
@@ -145,7 +147,12 @@ class WorkerPipeline(BaseModel):
             )
             records.append(record)
             previous_artifact = record.result.artifact
-        evaluation = _evaluate_stages(records, self.reward, self.environment_name)
+        evaluation = _evaluate_stages(
+            records,
+            self.reward,
+            self.environment_name,
+            executions=self.evaluations,
+        )
         fine_ok = bool(records) and all(item.result.status == "ok" for item in records)
         rl_ok = all(item.get("status") == "ok" for item in rl_results)
         if records and fine_ok and (not rl_results or rl_ok):
@@ -165,26 +172,61 @@ class WorkerPipeline(BaseModel):
         }
 
 
+def payload_from_execution(result: Any) -> dict[str, Any]:
+    """Map an OEC ExecutionResult (or dict) to verifier payload. No LLM."""
+    if isinstance(result, dict):
+        return dict(result)
+    status = getattr(result, "status", None)
+    status_value = str(getattr(status, "value", status) or "")
+    validation = getattr(result, "validation", None) or {}
+    diagnostics = getattr(result, "diagnostics", None) or {}
+    payload: dict[str, Any] = {
+        "status": status_value,
+        "duration_ms": getattr(result, "duration_ms", None),
+    }
+    if isinstance(validation, dict):
+        if "units_ok" in validation:
+            payload["units_ok"] = validation["units_ok"]
+        if "constraints_ok" in validation:
+            payload["constraints_ok"] = validation["constraints_ok"]
+        elif "constraint_ok" in validation:
+            payload["constraint_ok"] = validation["constraint_ok"]
+    if isinstance(diagnostics, dict) and "tokens" in diagnostics:
+        payload["tokens"] = diagnostics["tokens"]
+    return payload
+
+
 def _evaluate_stages(
     records: list[LearningRunRecord],
     spec: RewardSpec,
     environment_name: str,
+    executions: tuple[Any, ...] = (),
 ) -> dict[str, Any]:
+    for item in reversed(executions):
+        payload = payload_from_execution(item)
+        scores = execution_result_scores(payload)
+        return {
+            "status": "ok",
+            "environment": environment_name,
+            "scores": scores,
+            "reward": execution_result_reward(payload, spec),
+            "source": "execution_result",
+        }
     for record in reversed(records):
-        payload = record.result.details.get("execution")
-        if isinstance(payload, dict):
-            scores = execution_result_scores(payload)
+        staged = record.result.details.get("execution")
+        if isinstance(staged, dict):
+            scores = execution_result_scores(staged)
             return {
                 "status": "ok",
                 "environment": environment_name,
                 "scores": scores,
-                "reward": execution_result_reward(payload, spec),
+                "reward": execution_result_reward(staged, spec),
                 "source_run_id": record.run_id,
             }
     return {
         "status": "skipped",
         "environment": environment_name,
-        "reason": "no verifier scores from stages",
+        "reason": "no ExecutionResult or verifier scores from stages",
     }
 
 
