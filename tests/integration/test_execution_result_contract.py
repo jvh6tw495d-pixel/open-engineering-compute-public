@@ -890,6 +890,9 @@ _FIXTURES: dict[str, dict[str, Any]] = {
     },
     "neural.evaluate": {
         "checkpoint": {
+            "storage": "json_inline",
+            "checkpoint_format_version": 1,
+            "sha256": "3a2fd8d3bae45c9e53b8e6f784d8a494f3e5a757be69f370f0d5195cb8975f4f",
             "architecture": "mlp",
             "model_spec": {
                 "activation": "relu",
@@ -1006,6 +1009,9 @@ _FIXTURES: dict[str, dict[str, Any]] = {
     },
     "neural.predict": {
         "checkpoint": {
+            "storage": "json_inline",
+            "checkpoint_format_version": 1,
+            "sha256": "3a2fd8d3bae45c9e53b8e6f784d8a494f3e5a757be69f370f0d5195cb8975f4f",
             "architecture": "mlp",
             "model_spec": {
                 "activation": "relu",

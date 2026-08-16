@@ -153,3 +153,5 @@ show_missing = true
 
 [tool.bandit]
 targets = ["src/oec"]
+# Type-narrowing asserts after validation; not security checks.
+skips = ["B101"]

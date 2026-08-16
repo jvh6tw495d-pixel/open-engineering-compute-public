@@ -116,7 +116,11 @@ jobs:
         run: uv python install 3.12
 
       - name: Sync Scientific AI optional extras
-        run: uv sync --extra neural --extra evolutionary --extra foundation --all-groups
+        # mcp/api extras are required at collection time: unmarked MCP/REST
+        # tests import those packages at module import even when deselected.
+        run: >
+          uv sync --extra neural --extra evolutionary --extra foundation
+          --extra mcp --extra api --all-groups
         timeout-minutes: 30
 
       - name: Neural, evolutionary, and foundation marked tests

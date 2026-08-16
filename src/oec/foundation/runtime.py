@@ -163,6 +163,17 @@ def pretrained_load_kwargs(model: FoundationModelSpec) -> dict[str, Any]:
     return kwargs
 
 
+def from_pretrained_governed(factory: Any, model_id: str, load_kwargs: dict[str, Any]) -> Any:
+    """Hub/local load with an explicit ``revision=`` keyword for Bandit B615.
+
+    Remote models always carry a 40-hex revision from
+    :func:`pretrained_load_kwargs`. Local paths may omit it.
+    """
+    revision = load_kwargs.get("revision")
+    other = {key: value for key, value in load_kwargs.items() if key != "revision"}
+    return factory.from_pretrained(model_id, revision=revision, **other)
+
+
 def _validate_image_metadata(image: Any) -> None:
     """Reject oversized or animated inputs before pixel decoding/conversion."""
     width, height = image.size
@@ -285,7 +296,7 @@ def vision_embed(spec: VisionEmbeddingSpec) -> dict[str, Any]:
         raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
     try:
-        config = AutoConfig.from_pretrained(model_id, **load_kwargs)
+        config = from_pretrained_governed(AutoConfig, model_id, load_kwargs)
     except Exception as exc:
         raise UnsupportedVisionModelError(
             "failed to load vision model config",
@@ -306,8 +317,8 @@ def vision_embed(spec: VisionEmbeddingSpec) -> dict[str, Any]:
     images = [load_vision_image(src) for src in spec.images]
 
     try:
-        processor: Any = CLIPProcessor.from_pretrained(model_id, **load_kwargs)
-        model: Any = CLIPModel.from_pretrained(model_id, **load_kwargs)
+        processor: Any = from_pretrained_governed(CLIPProcessor, model_id, load_kwargs)
+        model: Any = from_pretrained_governed(CLIPModel, model_id, load_kwargs)
     except Exception as exc:
         raise UnsupportedVisionModelError(
             "failed to load CLIP model/processor (no text-only fallback)",
@@ -376,7 +387,7 @@ def vlm_generate(spec: VLMGenerationSpec) -> dict[str, Any]:
         raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
     try:
-        config = AutoConfig.from_pretrained(model_id, **load_kwargs)
+        config = from_pretrained_governed(AutoConfig, model_id, load_kwargs)
     except Exception as exc:
         raise UnsupportedVisionModelError(
             "failed to load VLM model config",
@@ -401,10 +412,10 @@ def vlm_generate(spec: VLMGenerationSpec) -> dict[str, Any]:
 
     try:
         processor_factory: Any = AutoProcessor
-        processor: Any = processor_factory.from_pretrained(model_id, **load_kwargs)
+        processor: Any = from_pretrained_governed(processor_factory, model_id, load_kwargs)
         transformers_module: Any = transformers
         vision_model_factory: Any = transformers_module.AutoModelForVision2Seq
-        model: Any = vision_model_factory.from_pretrained(model_id, **load_kwargs)
+        model: Any = from_pretrained_governed(vision_model_factory, model_id, load_kwargs)
     except Exception as exc:
         raise UnsupportedVisionModelError(
             "failed to load Vision2Seq model/processor (no text-only fallback)",
@@ -523,8 +534,8 @@ def embed_texts(spec: EmbeddingSpec) -> dict[str, Any]:
         except ImportError as exc:
             raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
-        tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
-        model = AutoModel.from_pretrained(model_id, **load_kwargs)
+        tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
+        model = from_pretrained_governed(AutoModel, model_id, load_kwargs)
         model.eval()
         tf_vectors: list[list[float]] = []
         with torch.no_grad():
@@ -572,8 +583,8 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
     model_id = spec.model.model_id
     load_kwargs = pretrained_load_kwargs(spec.model)
     set_seed(int(spec.seed))
-    tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
-    model: Any = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
+    tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
+    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
 
     adapter_info: dict[str, Any] | None = None
     if spec.adapter_path:
@@ -584,7 +595,7 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
             from peft import PeftModel
         except ImportError as exc:
             raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
-        model = PeftModel.from_pretrained(model, str(adapter_dir))
+        model = PeftModel.from_pretrained(model, str(adapter_dir))  # nosec B615 — local adapter dir
         adapter_info = {"path": str(adapter_dir.resolve())}
 
     model.eval()
@@ -659,10 +670,10 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
     model_id = spec.model.model_id
     load_kwargs = pretrained_load_kwargs(spec.model)
     set_seed(int(spec.seed))
-    tokenizer = AutoTokenizer.from_pretrained(model_id, **load_kwargs)
+    tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model: Any = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
+    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
 
     kind = ArtifactKind.CHECKPOINT
     if spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
