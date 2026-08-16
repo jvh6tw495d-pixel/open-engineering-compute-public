@@ -7,7 +7,7 @@ import json
 from typing import Any, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from oec.learning.contracts import (
     FineTuneBackendName,
@@ -60,6 +60,24 @@ class LearningRunRecord(BaseModel):
     result: TrainingResult
     identity_hash: str = ""
     source_run_id: str | None = None
+
+    @model_validator(mode="after")
+    def _consistent_snapshot(self) -> LearningRunRecord:
+        if self.dataset_name != self.dataset.name:
+            raise ValueError("dataset_name does not match snapshot dataset")
+        if self.dataset_version != self.dataset.version:
+            raise ValueError("dataset_version does not match snapshot dataset")
+        if self.dataset_hash != self.dataset.content_hash:
+            raise ValueError("dataset_hash does not match snapshot dataset")
+        if self.backend != self.config.backend:
+            raise ValueError("record backend does not match config.backend")
+        if self.seed != self.config.seed:
+            raise ValueError("record seed does not match config.seed")
+        if self.result.backend != self.backend:
+            raise ValueError("result.backend does not match record backend")
+        if self.result.model is not None and self.result.model.model_id != self.model_id:
+            raise ValueError("result.model.model_id does not match record model_id")
+        return self
 
 
 def select_backend(name: FineTuneBackendName) -> Any:
@@ -119,5 +137,5 @@ def compute_run_identity(record: LearningRunRecord) -> str:
         "config": record.config.model_dump(mode="json"),
         "seed": record.seed,
     }
-    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()

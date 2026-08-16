@@ -127,6 +127,21 @@ def test_negative_consumption_is_rejected() -> None:
         execution_result_scores({"status": "ok", "tokens": -1.0})
 
 
+def test_nan_and_infinite_consumption_cannot_smuggle_a_reward() -> None:
+    spec = RewardSpec(correct=0.0, units=0.0, constraints=0.0, tokens=1.0, latency=1.0)
+    with pytest.raises(ValueError):
+        execution_result_reward({"status": "ok", "tokens": float("nan")}, spec)
+    with pytest.raises(ValueError):
+        execution_result_reward({"status": "ok", "latency": float("inf")}, spec)
+    with pytest.raises(ValueError):
+        execution_result_reward({"status": "ok", "tokens": 1.0, "token_budget": float("nan")}, spec)
+
+
+def test_dataset_hash_rejects_nan() -> None:
+    with pytest.raises(DatasetIntegrityError):
+        LearningDataset(name="nan", records=({"y": float("nan")},))
+
+
 def test_texts_from_sft_rejects_unknown_and_partial_rows() -> None:
     with pytest.raises(DatasetIntegrityError):
         texts_from_sft(LearningDataset(name="bad", records=({"foo": 1},)))
