@@ -17,9 +17,10 @@ from oec.experiment.evolutionary import (
     build_hybrid_training_experiment,
     build_nsga2_experiment,
     build_optimize_single_experiment,
+    problem_to_optimize_inputs,
     sphere_problem_2d,
 )
-from oec.experiment.neural import build_mlp_regressor_experiment
+from oec.experiment.neural import build_mlp_regressor_experiment, mlp_regressor_inputs
 from oec.experiment.specs import (
     BindSpec,
     ExperimentSpec,
@@ -408,6 +409,223 @@ def build_distill_then_eval_experiment(
     )
 
 
+_TINY_GPT2 = "sshleifer/tiny-gpt2"
+_TINY_GPT2_REVISION = "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
+
+
+def build_full_stack_learning_experiment(
+    *,
+    experiment_id: str = "learning.full_stack",
+    seed: int = 0,
+    generations: int = 8,
+    population: int = 10,
+    mlp_epochs: int = 20,
+    distill_epochs: int = 8,
+    hybrid_evaluations: int = 3,
+    peft_steps: int = 1,
+    model_id: str = _TINY_GPT2,
+    revision: str = _TINY_GPT2_REVISION,
+) -> ExperimentSpec:
+    """One small experiment: AG + NSGA-II + MLP + distill + hybrid + embed + PEFT.
+
+    Smoke budgets only. Metrics are recorded, not quality claims.
+    ``.train()`` still never auto-installs extras.
+    """
+    x = [[float(i)] for i in range(12)]
+    y = [2.0 * float(i) + 1.0 for i in range(12)]
+    dataset = DatasetSpec(x=x, y=y, val_fraction=0.25)
+    ga = EvolutionaryAlgorithmSpec(
+        algorithm=AlgorithmName.GENETIC_ALGORITHM,
+        budget=BudgetSpec(generations=generations, population=population),
+        seed=seed,
+    )
+    nsga = build_nsga2_experiment(
+        n_var=3,
+        generations=max(4, generations // 2),
+        population=max(8, population),
+        seed=seed,
+        experiment_id=f"{experiment_id}.nsga2",
+    )
+    train_inputs = mlp_regressor_inputs(
+        dataset=dataset,
+        hidden_dims=[8],
+        epochs=mlp_epochs,
+        lr=0.05,
+        seed=seed,
+        device="cpu",
+    )
+    return ExperimentSpec(
+        id=experiment_id,
+        title="Full-stack Learning: AG + neural + foundation LLM tools",
+        description=(
+            "Genetic algorithm on sphere, NSGA-II, MLP teacher, tabular distill, "
+            "hybrid evo+gradient, builtin embed, PEFT LoRA, adapter-reload generate."
+        ),
+        seed=seed,
+        tags=("learning", "evolutionary", "neural", "foundation", "full-stack"),
+        required_extras=("evolutionary", "neural", "foundation"),
+        steps=(
+            ExperimentStep(
+                step_id="ag",
+                skill_id="evolutionary.optimize_single",
+                inputs=problem_to_optimize_inputs(sphere_problem_2d(), ga),
+            ),
+            ExperimentStep(
+                step_id="nsga2",
+                skill_id="evolutionary.nsga2",
+                inputs=dict(nsga.steps[0].inputs),
+            ),
+            ExperimentStep(
+                step_id="train",
+                skill_id="neural.mlp.regressor",
+                inputs=train_inputs,
+            ),
+            ExperimentStep(
+                step_id="distill",
+                skill_id="neural.distill",
+                inputs={
+                    "x": x,
+                    "y": y,
+                    "student_hidden_dims": [4],
+                    "epochs": int(distill_epochs),
+                    "batch_size": 8,
+                    "max_epochs": int(distill_epochs),
+                    "max_batch_size": 16,
+                    "seed": int(seed),
+                },
+                binds_from=(
+                    BindSpec.model_validate(
+                        {
+                            "step_id": "train",
+                            "path": "result.checkpoint",
+                            "as": "teacher_checkpoint",
+                        }
+                    ),
+                    BindSpec.model_validate(
+                        {"step_id": "train", "path": "result.normalize", "as": "teacher_normalize"}
+                    ),
+                ),
+            ),
+            ExperimentStep(
+                step_id="evaluate",
+                skill_id="neural.evaluate",
+                inputs={"x": x, "y": y, "task": "regression"},
+                binds_from=(
+                    BindSpec.model_validate(
+                        {"step_id": "distill", "path": "result.checkpoint", "as": "checkpoint"}
+                    ),
+                    BindSpec.model_validate(
+                        {"step_id": "distill", "path": "result.normalize", "as": "normalize"}
+                    ),
+                ),
+            ),
+            ExperimentStep(
+                step_id="hybrid",
+                skill_id="neural.training.hybrid",
+                inputs={
+                    "x": x,
+                    "y": y,
+                    "seed": int(seed),
+                    "max_evaluations": int(hybrid_evaluations),
+                    "inner_epochs": 3,
+                    "epochs": 6,
+                },
+            ),
+            ExperimentStep(
+                step_id="embed",
+                skill_id="foundation.embed",
+                inputs={
+                    "texts": [
+                        "OEC Learning full-stack experiment",
+                        "genetic algorithm, neural nets, PEFT",
+                    ],
+                    "backend": "builtin_hash",
+                    "dim": 8,
+                    "seed": int(seed),
+                    "normalize": True,
+                },
+            ),
+            ExperimentStep(
+                step_id="peft",
+                skill_id="foundation.peft_train",
+                inputs={
+                    "model_id": model_id,
+                    "revision": revision,
+                    "mode": "peft_lora",
+                    "texts": [
+                        "Open Engineering Compute governs training.",
+                        "Adapters reload from a pinned artifact path.",
+                    ],
+                    "target_modules": ["c_attn"],
+                    "max_steps": int(peft_steps),
+                    "max_seq_len": 32,
+                    "batch_size": 1,
+                    "seed": int(seed),
+                },
+            ),
+            ExperimentStep(
+                step_id="generate",
+                skill_id="foundation.generate",
+                inputs={
+                    "prompt": "OEC",
+                    "model_id": model_id,
+                    "revision": revision,
+                    "max_new_tokens": 8,
+                    "seed": int(seed),
+                },
+                binds_from=(
+                    BindSpec.model_validate(
+                        {"step_id": "peft", "path": "result.artifact.path", "as": "adapter_path"}
+                    ),
+                ),
+            ),
+        ),
+        metrics=(
+            MetricSpec(
+                name="ag_best_objective",
+                path="result.best_objective",
+                step_id="ag",
+                direction=MetricDirection.MINIMIZE,
+            ),
+            MetricSpec(
+                name="nsga2_nondominated",
+                path="result.n_nondominated",
+                step_id="nsga2",
+                direction=MetricDirection.MAXIMIZE,
+            ),
+            MetricSpec(
+                name="mlp_train_r2",
+                path="result.train_metrics.r_squared",
+                step_id="train",
+                direction=MetricDirection.MAXIMIZE,
+            ),
+            MetricSpec(
+                name="student_eval_r2",
+                path="result.metrics.r_squared",
+                step_id="evaluate",
+                direction=MetricDirection.MAXIMIZE,
+            ),
+            MetricSpec(
+                name="embed_dim",
+                path="result.dim",
+                step_id="embed",
+                direction=MetricDirection.TARGET,
+                target=8.0,
+                target_abs_tol=0.0,
+            ),
+            MetricSpec(
+                name="peft_steps",
+                path="result.steps_run",
+                step_id="peft",
+                direction=MetricDirection.TARGET,
+                target=float(peft_steps),
+                target_abs_tol=0.0,
+            ),
+        ),
+        validation=ValidationSpec(),
+    )
+
+
 def build_root_bind_to_distribution_experiment(
     *,
     experiment_id: str = "w7.root_to_pdf",
@@ -510,6 +728,11 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
         "fn": build_distill_then_eval_experiment,
         "domains": ["neural"],
         "extras": ["neural"],
+    },
+    "build_full_stack_learning_experiment": {
+        "fn": build_full_stack_learning_experiment,
+        "domains": ["evolutionary", "neural", "foundation"],
+        "extras": ["evolutionary", "neural", "foundation"],
     },
     "build_root_bind_to_distribution_experiment": {
         "fn": build_root_bind_to_distribution_experiment,

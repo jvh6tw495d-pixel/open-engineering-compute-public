@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ``oec learning bootstrap`` installs extras / ``openpipe-art`` / isolated
   Unsloth (and Axolotl on Linux/WSL) only when the operator asks;
   ``.train()`` still never auto-installs.
+  ``build_full_stack_learning_experiment`` runs AG + NSGA-II + MLP +
+  distill + hybrid + embed + PEFT/generate as one ``ExperimentSpec``.
 
 ### Changed
 
