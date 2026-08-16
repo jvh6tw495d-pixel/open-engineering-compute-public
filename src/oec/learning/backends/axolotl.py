@@ -19,6 +19,7 @@ from oec.learning.contracts import (
 from oec.learning.datasets import DatasetKind, LearningDataset, texts_from_sft
 from oec.learning.errors import BackendNotAvailableError
 from oec.learning.experiments import LearningExperiment
+from oec.learning.install_hints import AXOLOTL_MISSING
 
 _RECIPE_KEYS = frozenset(
     {
@@ -58,8 +59,12 @@ class AxolotlBackend:
             importlib.import_module("axolotl")
         except Exception as exc:
             raise BackendNotAvailableError(
-                "axolotl is not installed; L8 adapter is fail-closed",
-                details={"backend": "axolotl", "error_type": type(exc).__name__},
+                AXOLOTL_MISSING,
+                details={
+                    "backend": "axolotl",
+                    "error_type": type(exc).__name__,
+                    "platform": "linux-or-wsl-only",
+                },
             ) from exc
         jsonl = _materialize_jsonl(dataset)
         try:

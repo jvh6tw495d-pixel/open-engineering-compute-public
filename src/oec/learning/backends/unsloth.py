@@ -7,6 +7,7 @@ import importlib
 from oec.learning.contracts import FineTuneBackendName, ModelRef, TrainingConfig, TrainingResult
 from oec.learning.datasets import LearningDataset, texts_from_sft
 from oec.learning.errors import BackendNotAvailableError
+from oec.learning.install_hints import UNSLOTH_MISSING
 
 _NOT_WIRED = "adapter not wired to this unsloth version"
 
@@ -16,8 +17,13 @@ def _require_module(name: str) -> object:
         return importlib.import_module(name)
     except Exception as exc:
         raise BackendNotAvailableError(
-            f"{name} is required for the Unsloth adapter",
-            details={"backend": "unsloth", "missing": name, "error_type": type(exc).__name__},
+            UNSLOTH_MISSING if name == "unsloth" else f"{name} is required for the Unsloth adapter",
+            details={
+                "backend": "unsloth",
+                "missing": name,
+                "error_type": type(exc).__name__,
+                "isolated_venv": True,
+            },
         ) from exc
 
 

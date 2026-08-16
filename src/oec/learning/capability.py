@@ -5,6 +5,8 @@ from __future__ import annotations
 import importlib.util
 from typing import Any
 
+from oec.learning.install_hints import ART_MISSING, AXOLOTL_MISSING, HF_MISSING, UNSLOTH_MISSING
+
 OPTIONAL_PACKAGES: tuple[str, ...] = (
     "torch",
     "transformers",
@@ -29,6 +31,8 @@ def capability_matrix() -> list[dict[str, Any]]:
             "backend": "huggingface",
             "methods": ["lora", "qlora", "full", "sft"],
             "extra": "oec[foundation]",
+            "auto_install": False,
+            "install": HF_MISSING,
             "available": probes["transformers"] and probes["peft"],
             "status": "operational",
         },
@@ -37,6 +41,8 @@ def capability_matrix() -> list[dict[str, Any]]:
             "backend": "neural.distill",
             "methods": ["distill"],
             "extra": "oec[neural]",
+            "auto_install": False,
+            "install": "Tabular distill requires oec[neural]: uv sync --extra neural",
             "available": probes["torch"],
             "status": "operational",
         },
@@ -44,7 +50,9 @@ def capability_matrix() -> list[dict[str, Any]]:
             "wave": "L7",
             "backend": "unsloth",
             "methods": ["lora", "qlora", "sft"],
-            "extra": "external:unsloth+datasets+trl",
+            "extra": "external:isolated-venv:unsloth",
+            "auto_install": False,
+            "install": UNSLOTH_MISSING,
             "available": probes["unsloth"] and probes["datasets"] and probes["trl"],
             "status": "operational-when-installed",
         },
@@ -52,7 +60,9 @@ def capability_matrix() -> list[dict[str, Any]]:
             "wave": "L8",
             "backend": "axolotl",
             "methods": ["sft", "lora"],
-            "extra": "external:axolotl",
+            "extra": "external:wsl-or-linux:axolotl",
+            "auto_install": False,
+            "install": AXOLOTL_MISSING,
             "available": probes["axolotl"],
             "status": "operational-when-installed",
         },
@@ -68,7 +78,9 @@ def capability_matrix() -> list[dict[str, Any]]:
             "wave": "L10",
             "backend": "art",
             "methods": ["grpo"],
-            "extra": "external:art",
+            "extra": "external:openpipe-art",
+            "auto_install": False,
+            "install": ART_MISSING,
             "available": probes["art"],
             "status": "operational-when-installed",
         },

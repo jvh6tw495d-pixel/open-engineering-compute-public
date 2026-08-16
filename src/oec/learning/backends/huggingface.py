@@ -14,6 +14,7 @@ from oec.learning.contracts import (
 )
 from oec.learning.datasets import LearningDataset, texts_from_sft
 from oec.learning.errors import BackendNotAvailableError
+from oec.learning.install_hints import HF_MISSING
 
 _LLAMA_TARGETS = ("q_proj", "v_proj")
 _GPT2_TARGETS = ("c_attn", "c_proj")
@@ -139,7 +140,7 @@ class HuggingFaceBackend:
             BitsAndBytesNotAvailableError,
         ) as exc:
             raise BackendNotAvailableError(
-                str(exc),
+                f"{exc} {HF_MISSING}",
                 details={"backend": "huggingface", "error_type": type(exc).__name__},
             ) from exc
 

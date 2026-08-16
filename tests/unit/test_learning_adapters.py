@@ -33,7 +33,7 @@ def test_unsloth_operational_or_fail_closed() -> None:
     try:
         import unsloth  # noqa: F401
     except ImportError:
-        with pytest.raises(BackendNotAvailableError):
+        with pytest.raises(BackendNotAvailableError, match="isolated"):
             backend.finetune(
                 ModelRef(model_id="m"),
                 _dataset(),
@@ -57,7 +57,7 @@ def test_axolotl_operational_or_fail_closed() -> None:
     try:
         import axolotl  # noqa: F401
     except ImportError:
-        with pytest.raises(BackendNotAvailableError):
+        with pytest.raises(BackendNotAvailableError, match="WSL"):
             backend.finetune(
                 ModelRef(model_id="m"),
                 _dataset(),
@@ -81,7 +81,7 @@ def test_art_operational_or_fail_closed() -> None:
     try:
         import art  # noqa: F401
     except ImportError:
-        with pytest.raises(BackendNotAvailableError):
+        with pytest.raises(BackendNotAvailableError, match="openpipe-art"):
             backend.train(MathematicsEnvironment(), ())
         return
     try:

@@ -12,7 +12,7 @@ class LearningError(OECError):
 
 
 class BackendNotAvailableError(LearningError):
-    """Raised when a named backend extra is not installed."""
+    """Raised when a named backend is missing. OEC never auto-installs it."""
 
     default_code = "learning_backend_not_available"
 

@@ -40,7 +40,7 @@ def test_art_fails_closed_when_not_installed(monkeypatch: pytest.MonkeyPatch) ->
         raise ImportError()
 
     monkeypatch.setattr(art_module.importlib, "import_module", missing_art)
-    with pytest.raises(BackendNotAvailableError):
+    with pytest.raises(BackendNotAvailableError, match="openpipe-art"):
         ARTBackend().train(MathematicsEnvironment(), ())
 
 

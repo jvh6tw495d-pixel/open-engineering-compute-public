@@ -1,34 +1,79 @@
-# OEC Learning — operational surface
+# OEC Learning — how optional backends are installed
 
-**Branch:** `feat/learning-l1-l5`
-**Meaning of operational:** a caller can run the path without monkeypatch and
-without invented metrics. Missing extras fail closed.
+**Rule:** calling Unsloth, Axolotl, or ART **never downloads or pip-installs
+anything**. A missing package raises `BackendNotAvailableError` with the
+exact install command. A core `pip install oec` only has contracts.
 
-## Operational now (reference path)
+The PyPI package `art` is the **wrong** package (ASCII-art). ART is
+`openpipe-art`. Unsloth must not share the OEC venv. Axolotl is Linux/WSL
+only.
 
-| Path | Extra | How to run |
-|------|--------|------------|
-| Contracts, persist, replay, rewards | none (core) | `pytest tests/unit/test_learning_*.py` |
-| Hugging Face LoRA / adapter chain | `oec[foundation]` | `pytest -m learning_smoke` |
-| Tabular distill (`teacher_checkpoint`) | `oec[neural]` | `pytest -m learning_smoke` |
-| Worker FineTune sequence + `ExecutionResult` evaluate | foundation for live train | `WorkerPipeline.run()` |
+Foundation-model distillation is **out of this cut** (owner decision pending).
 
-## Operational when the external package is installed
+## What you get with a core install
 
-These are **not** default CI extras (`--all-extras` is an explicit list of
-api/mcp/optimization/neural/evolutionary/foundation only).
+```text
+import oec.learning          # always works
+ARTBackend().train(...)      # BackendNotAvailableError — does not pip install
+UnslothBackend().finetune()  # same
+AxolotlBackend().finetune()  # same
+```
 
-| Adapter | Install | Test |
-|---------|---------|------|
-| Unsloth | `pip install unsloth` | `pytest -m learning_adapter` |
-| Axolotl | `pip install axolotl` | `pytest -m learning_adapter` |
-| ART | the GRPO `art` package that exposes `train_grpo` | `pytest -m learning_adapter` |
+## Reference path (same venv as OEC)
 
-Absent package → `BackendNotAvailableError`. Present but API mismatch → same error.
+```bash
+uv sync --extra foundation    # Hugging Face LoRA / PEFT
+uv sync --extra neural        # tabular neural.distill_mlp only
+```
 
-## Not in this operational cut
+## ART / GRPO — OpenPipe ART, not PyPI `art`
 
-- Kronos / temporal FMs
-- POST-OEC harness
-- Foundation-model (text) distillation
-- Declaring Unsloth/Axolotl/ART better than HF without a measured suite
+The import name is `art`. The **PyPI name is `openpipe-art`**.
+
+```bash
+uv pip install "openpipe-art==0.5.18"
+```
+
+```bash
+# WRONG — ASCII-art library, same import name, no train_grpo
+pip install art
+```
+
+If you already installed the wrong package:
+
+```bash
+uv pip uninstall art
+uv pip install "openpipe-art==0.5.18"
+```
+
+## Unsloth — isolated venv (never the OEC project venv)
+
+Unsloth resolves on Windows but **downgrades torch 2.13→2.11 and
+transformers 5.15→5.5**. That breaks `oec[neural]` / `oec[foundation]`.
+
+```powershell
+$py = "$env:LOCALAPPDATA\oec-learning-envs\unsloth\Scripts\python.exe"
+uv venv "$env:LOCALAPPDATA\oec-learning-envs\unsloth" --python 3.12
+uv pip install --python $py "unsloth==2026.8.18"
+# Run Learning Unsloth calls with that interpreter. OEC does not
+# auto-switch interpreters and does not read an env var for this.
+```
+
+## Axolotl — Linux or WSL only
+
+Native Windows cannot install Axolotl (`triton` has no `win_amd64` wheel).
+Do not use `pip install axolotl --no-deps`.
+
+```bash
+# inside WSL/Ubuntu
+uv venv ~/.local/share/oec-learning-envs/axolotl --python 3.12
+uv pip install --python ~/.local/share/oec-learning-envs/axolotl/bin/python axolotl
+```
+
+## Tests
+
+```bash
+uv run pytest tests/unit/test_learning_l1_l5.py tests/unit/test_learning_store.py
+uv run pytest -m learning_smoke -o addopts= --no-cov    # needs foundation+neural
+uv run pytest -m learning_adapter -o addopts= --no-cov  # fail-closed unless extras exist
+```

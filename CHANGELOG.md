@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   core-only ``learning-contracts`` CI job. Replay returns a ``ReplayReport``
   (rerun + comparison), not a bit-identical reproduction proof.
 
+### Changed
+
+- **Learning install UX:** calling Unsloth, Axolotl, or ART never
+  auto-installs a package. Errors name the exact command
+  (``openpipe-art``, isolated Unsloth venv, Axolotl on WSL only). See
+  ``docs/release/LEARNING-OPERATIONAL.md``.
+
 ## [3.6.0] - 2026-08-16
 
 **Tag:** `v3.6.0-scientific-ai`

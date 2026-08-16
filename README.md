@@ -176,10 +176,25 @@ export (clean history) may still use a new directory — see:
 
 Layout map: [docs/development/codebase-map.md](docs/development/codebase-map.md).
 
+## Learning backends (optional)
+
+OEC **never auto-installs** Unsloth, Axolotl, or ART. Calling those
+functions without the package raises `BackendNotAvailableError` with the
+exact command. See [LEARNING-OPERATIONAL.md](docs/release/LEARNING-OPERATIONAL.md).
+
+```bash
+# ART/GRPO — PyPI name is openpipe-art (import name: art)
+uv pip install "openpipe-art==0.5.18"
+# WRONG: pip install art   # ASCII-art library, no train_grpo
+
+# Unsloth — isolated venv only (downgrades torch if mixed with OEC)
+# Axolotl — Linux/WSL only (no Windows wheel for triton)
+```
+
 ## Development
 
 ```bash
-uv sync --all-extras
+uv sync --extra api --extra mcp --extra optimization --extra neural --extra evolutionary --extra foundation
 uv run pytest
 uv run ruff check .
 uv run mypy

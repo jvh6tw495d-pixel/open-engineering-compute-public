@@ -6,6 +6,7 @@ import importlib
 from typing import Any
 
 from oec.learning.errors import BackendNotAvailableError
+from oec.learning.install_hints import ART_MISSING, ART_PYPI, ART_WRONG_PACKAGE
 from oec.learning.rl import Environment, Episode, Policy, RLConfig, RLResult, Trajectory
 
 
@@ -29,15 +30,25 @@ class ARTBackend:
             art: Any = importlib.import_module("art")
         except Exception as exc:
             raise BackendNotAvailableError(
-                "ART backend requires the optional 'art' package",
-                details={"backend": self.name, "algorithm": self.algorithm},
+                ART_MISSING,
+                details={
+                    "backend": self.name,
+                    "algorithm": self.algorithm,
+                    "pypi": ART_PYPI,
+                    "wrong_pypi": "art",
+                },
             ) from exc
 
         train_grpo = getattr(art, "train_grpo", None)
         if not callable(train_grpo):
             raise BackendNotAvailableError(
-                "installed 'art' package does not expose train_grpo",
-                details={"backend": self.name, "algorithm": self.algorithm},
+                ART_WRONG_PACKAGE,
+                details={
+                    "backend": self.name,
+                    "algorithm": self.algorithm,
+                    "pypi": ART_PYPI,
+                    "wrong_pypi": "art",
+                },
             )
         episode_items: tuple[Episode, ...]
         if isinstance(episodes, Trajectory):

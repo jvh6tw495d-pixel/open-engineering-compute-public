@@ -46,6 +46,9 @@ foundation = [
     "peft>=0.11",
     "pillow>=10.0",  # S5 (ADR 0040 D3) — bounded image decode only, no download
 ]
+# Unsloth / Axolotl / ART are NEVER extras:
+# Unsloth downgrades torch/transformers; Axolotl has no win_amd64 wheel;
+# ART PyPI name is openpipe-art (import art). Calling them never auto-installs.
 
 [project.scripts]
 oec = "oec.cli.main:app"

@@ -60,6 +60,15 @@ from oec.learning.experiments import (
     select_backend,
 )
 from oec.learning.hardware import capture_dependency_versions
+from oec.learning.install_hints import (
+    ART_MISSING,
+    ART_PYPI,
+    ART_WRONG_PACKAGE,
+    AXOLOTL_MISSING,
+    HF_MISSING,
+    UNSLOTH_MISSING,
+    hint_for,
+)
 from oec.learning.pipeline import WorkerPipeline, default_worker_dataset, payload_from_execution
 from oec.learning.rl import (
     Action,
@@ -134,6 +143,13 @@ __all__ = [
     "ToolUseEnvironment",
     "Trajectory",
     "WorkerPipeline",
+    "ART_MISSING",
+    "ART_PYPI",
+    "ART_WRONG_PACKAGE",
+    "AXOLOTL_MISSING",
+    "HF_MISSING",
+    "UNSLOTH_MISSING",
+    "hint_for",
     "agentic_benchmark",
     "backend_benchmark",
     "capability_matrix",

@@ -15,12 +15,18 @@ upstream SciPy/NumPy entry points. See
 ## Development setup
 
 ```bash
-uv sync --all-extras
+uv sync --extra api --extra mcp --extra optimization --extra neural --extra evolutionary --extra foundation
 uv run pre-commit install
 uv run pytest
 uv run ruff check .
 uv run mypy
 ```
+
+Do **not** `uv sync --all-extras` as a habit for Learning work: Unsloth
+and Axolotl are **not** extras (they must never land in the OEC venv).
+ART is the PyPI package `openpipe-art`, not `art`. Calling those
+backends never auto-installs them — see
+[docs/release/LEARNING-OPERATIONAL.md](docs/release/LEARNING-OPERATIONAL.md).
 
 ## Skill contributions
 
