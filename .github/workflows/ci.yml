@@ -88,13 +88,64 @@ jobs:
           uv run pytest tests/unit/test_learning_*.py
           -o addopts= --no-cov -q
 
+  learning-smoke:
+    # Neural/foundation extras only — never unsloth/axolotl/art.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync learning smoke extras
+        run: >
+          uv sync --extra neural --extra foundation --extra mcp --extra api
+          --all-groups
+
+      - name: Learning smoke tests
+        run: >
+          uv run pytest tests/integration/test_learning_smoke.py
+          -m learning_smoke -o addopts= --no-cov -q
+
+  learning-adapters:
+    # Core-only: prove fail-closed adapters without installing unsloth.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Fresh core-only sync
+        run: >
+          uv sync --all-groups
+          --no-extra api --no-extra mcp --no-extra optimization
+          --no-extra neural --no-extra evolutionary --no-extra foundation
+
+      - name: Fail-closed adapter tests
+        run: >
+          uv run pytest tests/unit/test_learning_adapters.py
+          tests/unit/test_learning_l6_l8.py
+          tests/unit/test_learning_l9_l11.py
+          -o addopts= --no-cov -q
+
   lint-type-test:
-    # Default gate: uv sync --all-extras installs torch/pymoo/deap/nevergrad
-    # when available, but pyproject.toml addopts deselects markers
-    # `neural` and `evolutionary` so the PR job stays fast and
-    # independent of heavy optional stacks. Strong goldens live under
-    # tests/golden/test_neural_evolutionary_strong.py and skill-level
-    # tests marked @pytest.mark.neural / @pytest.mark.evolutionary —
+    # Default gate: explicit extras only (never --all-extras) so future
+    # adapter extras cannot leak in. addopts deselects neural/evolutionary/
+    # foundation/learning_smoke/learning_adapter so this job stays fast.
+    # Strong goldens live under tests/golden/test_neural_evolutionary_strong.py
+    # and skill-level tests marked @pytest.mark.neural / evolutionary —
     # they run in the optional-extras job below on every push/PR, nightly,
     # and workflow dispatch, or locally:
     #   uv run pytest -m "neural or evolutionary" -o addopts= --import-mode=importlib
@@ -111,7 +162,9 @@ jobs:
         run: uv python install 3.12
 
       - name: Sync dependencies
-        run: uv sync --all-extras --all-groups
+        run: >
+          uv sync --extra api --extra mcp --extra optimization
+          --extra neural --extra evolutionary --extra foundation --all-groups
 
       - name: Ruff lint
         run: uv run ruff check .
@@ -203,7 +256,9 @@ jobs:
         run: uv python install 3.12
 
       - name: Sync dependencies
-        run: uv sync --all-extras --all-groups
+        run: >
+          uv sync --extra api --extra mcp --extra optimization
+          --extra neural --extra evolutionary --extra foundation --all-groups
 
       - name: Installation smoke test
         run: uv run pytest -m slow --no-cov

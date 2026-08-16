@@ -135,12 +135,14 @@ testpaths = [
   "agents",
 ]
 pythonpath = ["."]
-addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml -m \"not slow and not neural and not evolutionary and not foundation\""
+addopts = "--import-mode=importlib --cov=oec --cov-report=term-missing --cov-report=xml -m \"not slow and not neural and not evolutionary and not foundation and not learning_smoke and not learning_adapter\""
 markers = [
   "slow: builds/installs a real wheel into a throwaway venv (deselected by default; run with `uv run pytest -m slow --no-cov`)",
   "neural: requires oec[neural] / torch (deselected unless installed; run with `uv run pytest -m neural`)",
   "evolutionary: requires oec[evolutionary] / pymoo (deselected unless installed; run with `uv run pytest -m evolutionary`)",
   "foundation: requires oec[foundation] / transformers (deselected unless installed; run with `uv run pytest -m foundation`)",
+  "learning_smoke: optional learning smoke requiring neural/foundation extras (deselected by default)",
+  "learning_adapter: fail-closed learning adapter tests (deselected by default)",
 ]
 
 [tool.coverage.run]
