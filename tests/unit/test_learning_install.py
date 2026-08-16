@@ -114,6 +114,16 @@ def test_axolotl_missing_is_wsl_or_linux(monkeypatch: pytest.MonkeyPatch) -> Non
     assert caught.value.details["platform"] == "linux-or-wsl-only"
 
 
+def test_probe_does_not_treat_ascii_art_as_openpipe(monkeypatch: pytest.MonkeyPatch) -> None:
+    import oec.learning.capability as capability
+
+    monkeypatch.setattr(capability.importlib.util, "find_spec", lambda _name: object())
+    monkeypatch.setattr(
+        capability.importlib, "import_module", lambda _name: SimpleNamespace(text2art=lambda _: "")
+    )
+    assert capability.probe_optional()["art"] is False
+
+
 def test_capability_matrix_never_auto_installs_adapters() -> None:
     rows = {row["backend"]: row for row in capability_matrix()}
     assert rows["art"]["extra"] == "external:openpipe-art"

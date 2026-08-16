@@ -11,6 +11,16 @@ from typing import Any
 from oec.experiment.record import ExperimentRecord, ProducedArtifact
 
 
+def _safe_segment(raw: str) -> str:
+    """Keep experiment ids from escaping the artifact root (Windows drive paths)."""
+    if ".." in raw.replace("\\", "/"):
+        raise ValueError(f"unsafe artifact path segment: {raw!r}")
+    text = raw.replace("\\", "_").replace("/", "_").replace(":", "_")
+    if not text or text in {".", ".."}:
+        raise ValueError(f"unsafe artifact path segment: {raw!r}")
+    return text
+
+
 def default_artifact_root() -> Path:
     """``OEC_ARTIFACT_ROOT`` env or ``./.oec/artifacts`` under cwd."""
     env = os.environ.get("OEC_ARTIFACT_ROOT")
@@ -43,7 +53,7 @@ def persist_experiment_record(
     Returns ``(record_with_artifacts, produced)``.
     """
     root = Path(artifact_root) if artifact_root is not None else default_artifact_root()
-    run_dir = root / record.spec.id / record.run_id
+    run_dir = root / _safe_segment(record.spec.id) / record.run_id
     run_dir.mkdir(parents=True, exist_ok=True)
 
     produced: list[ProducedArtifact] = []

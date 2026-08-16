@@ -39,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   match OEC graded status. A failed ExecutionResult is not hidden by a
   later success. Adapter chaining requires ``sha256``. Persist uses a
   unique temp file. Run records reject revision/family drift.
+- **Scientific honesty follow-up:** ``peft_qlora`` no longer pretends to
+  be 4-bit LoRA (fails closed). S1 PEFT builder pins the tiny-gpt2
+  revision. ``probe_optional()`` does not treat PyPI ``art`` as OpenPipe
+  ART. PEFT/experiment artifact paths cannot jump to ``C:\\...``.
 
 ### Changed
 

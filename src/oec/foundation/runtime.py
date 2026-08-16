@@ -698,6 +698,11 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
                 import bitsandbytes  # type: ignore[import-not-found]  # noqa: F401
             except ImportError as exc:
                 raise BitsAndBytesNotAvailableError(details={"reason": str(exc)}) from exc
+            raise FoundationError(
+                "QLoRA 4-bit load is not implemented. "
+                "Refusing to silently train full-precision LoRA. Use mode=peft_lora.",
+                details={"method": "qlora"},
+            )
         lora_config = LoraConfig(
             r=spec.r,
             lora_alpha=spec.lora_alpha,
@@ -735,7 +740,11 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         step += 1
 
     root = Path(artifact_root) if artifact_root is not None else _default_peft_artifact_root()
-    run_dir = root / f"{model_id.replace('/', '_')}_{spec.method.value}_{spec.seed}_s{step}"
+    slug = model_id.replace("\\", "/").rstrip("/")
+    slug = slug.split("/")[-1]
+    for char in (":", "*", "?", '"', "<", ">", "|"):
+        slug = slug.replace(char, "_")
+    run_dir = root / f"{slug}_{spec.method.value}_{spec.seed}_s{step}"
     run_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(run_dir)
 

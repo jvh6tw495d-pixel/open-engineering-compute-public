@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
 from typing import Any
 
@@ -19,8 +20,21 @@ OPTIONAL_PACKAGES: tuple[str, ...] = (
 )
 
 
+def _art_is_openpipe() -> bool:
+    """True only when the imported ``art`` module is OpenPipe ART, not ASCII-art."""
+    if importlib.util.find_spec("art") is None:
+        return False
+    try:
+        module = importlib.import_module("art")
+    except Exception:
+        return False
+    return callable(getattr(module, "train_grpo", None))
+
+
 def probe_optional() -> dict[str, bool]:
-    return {name: importlib.util.find_spec(name) is not None for name in OPTIONAL_PACKAGES}
+    probes = {name: importlib.util.find_spec(name) is not None for name in OPTIONAL_PACKAGES}
+    probes["art"] = _art_is_openpipe()
+    return probes
 
 
 def capability_matrix() -> list[dict[str, Any]]:

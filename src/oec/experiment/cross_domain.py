@@ -31,6 +31,9 @@ from oec.experiment.specs import (
 )
 from oec.neural.contracts import DatasetSpec
 
+_TINY_GPT2 = "sshleifer/tiny-gpt2"
+_TINY_GPT2_REVISION = "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
+
 
 def build_physics_kinematics_experiment(
     *,
@@ -270,7 +273,8 @@ def build_peft_train_then_generate_experiment(
     *,
     experiment_id: str = "s1.peft_train_then_generate",
     seed: int = 0,
-    model_id: str = "sshleifer/tiny-gpt2",
+    model_id: str = _TINY_GPT2,
+    revision: str = _TINY_GPT2_REVISION,
     texts: list[str] | None = None,
     mode: str = "peft_lora",
     max_steps: int = 2,
@@ -297,6 +301,7 @@ def build_peft_train_then_generate_experiment(
                 skill_id="foundation.peft_train",
                 inputs={
                     "model_id": model_id,
+                    "revision": revision,
                     "mode": mode,
                     "texts": texts,
                     "target_modules": ["c_attn"],
@@ -312,6 +317,7 @@ def build_peft_train_then_generate_experiment(
                 inputs={
                     "prompt": prompt,
                     "model_id": model_id,
+                    "revision": revision,
                     "max_new_tokens": int(max_new_tokens),
                     "seed": int(seed),
                 },
@@ -407,10 +413,6 @@ def build_distill_then_eval_experiment(
         ),
         validation=ValidationSpec(),
     )
-
-
-_TINY_GPT2 = "sshleifer/tiny-gpt2"
-_TINY_GPT2_REVISION = "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
 
 
 def build_full_stack_learning_experiment(

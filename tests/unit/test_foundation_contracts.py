@@ -18,6 +18,7 @@ from oec.foundation.contracts import (
 from oec.foundation.errors import (
     AdapterNotFoundError,
     BitsAndBytesNotAvailableError,
+    FoundationError,
     PeftNotAvailableError,
     TransformersNotAvailableError,
 )
@@ -155,5 +156,31 @@ def test_peft_qlora_without_bitsandbytes_or_peft_fails_closed() -> None:
         model=_model(),
         dataset=TrainingDatasetSpec(texts=("hello world",)),
     )
-    with pytest.raises((PeftNotAvailableError, BitsAndBytesNotAvailableError)):
+    with pytest.raises((PeftNotAvailableError, BitsAndBytesNotAvailableError, FoundationError)):
         peft_train(spec)
+
+
+def test_peft_qlora_does_not_silently_train_full_precision_lora(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import sys
+    from types import ModuleType
+
+    import oec.foundation.runtime as runtime
+
+    avail, _, _ = probe_transformers()
+    if not avail:
+        pytest.skip("transformers missing")
+    try:
+        import peft  # noqa: F401
+    except ImportError:
+        pytest.skip("peft missing")
+    fake = ModuleType("bitsandbytes")
+    monkeypatch.setitem(sys.modules, "bitsandbytes", fake)
+    spec = PEFTSpec(
+        method=PEFTMethod.QLORA,
+        model=_model(),
+        dataset=TrainingDatasetSpec(texts=("hello world",)),
+    )
+    with pytest.raises(FoundationError, match="4-bit"):
+        runtime.peft_train(spec)
