@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   default CI extra list. L13 capability suite does not invent GPU numbers. L14
   core-only ``learning-contracts`` CI job. Replay returns a ``ReplayReport``
   (rerun + comparison), not a bit-identical reproduction proof.
+  ``oec learning bootstrap`` installs extras / ``openpipe-art`` / isolated
+  Unsloth (and Axolotl on Linux/WSL) only when the operator asks;
+  ``.train()`` still never auto-installs.
 
 ### Changed
 

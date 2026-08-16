@@ -5,6 +5,13 @@ Core-safe: importing this package does not import torch / transformers.
 
 from __future__ import annotations
 
+from oec.learning.bootstrap import (
+    BootstrapReport,
+    bootstrap_status,
+    learning_envs_root,
+    plan_bootstrap,
+    run_bootstrap,
+)
 from oec.learning.capability import capability_matrix, probe_optional
 from oec.learning.contracts import (
     ArtifactRef,
@@ -147,9 +154,14 @@ __all__ = [
     "ART_PYPI",
     "ART_WRONG_PACKAGE",
     "AXOLOTL_MISSING",
+    "BootstrapReport",
     "HF_MISSING",
     "UNSLOTH_MISSING",
+    "bootstrap_status",
     "hint_for",
+    "learning_envs_root",
+    "plan_bootstrap",
+    "run_bootstrap",
     "agentic_benchmark",
     "backend_benchmark",
     "capability_matrix",

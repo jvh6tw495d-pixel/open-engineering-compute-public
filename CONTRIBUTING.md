@@ -25,7 +25,9 @@ uv run mypy
 Do **not** `uv sync --all-extras` as a habit for Learning work: Unsloth
 and Axolotl are **not** extras (they must never land in the OEC venv).
 ART is the PyPI package `openpipe-art`, not `art`. Calling those
-backends never auto-installs them — see
+backends never auto-installs them. Operators who want the packages run
+`oec learning bootstrap --all` (or a single `--art` / `--unsloth` /
+`--axolotl` / `--extras` flag). See
 [docs/release/LEARNING-OPERATIONAL.md](docs/release/LEARNING-OPERATIONAL.md).
 
 ## Skill contributions

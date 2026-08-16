@@ -4,6 +4,23 @@
 anything**. A missing package raises `BackendNotAvailableError` with the
 exact install command. A core `pip install oec` only has contracts.
 
+If you **want** the packages, run the explicit bootstrap (it does not
+run from `.train()` / `.finetune()`):
+
+```bash
+oec learning status
+oec learning bootstrap --all --dry-run   # show the plan
+oec learning bootstrap --all             # extras + ART + isolated Unsloth
+oec learning bootstrap --art             # openpipe-art in this venv
+oec learning bootstrap --unsloth         # isolated venv only
+oec learning bootstrap --axolotl         # Linux/WSL isolated venv only
+oec learning bootstrap --extras          # oec[foundation] + oec[neural]
+```
+
+`--all` on native Windows skips Axolotl (no triton wheel). `--axolotl`
+alone on Windows exits non-zero. Unsloth is never installed into the OEC
+project venv.
+
 The PyPI package `art` is the **wrong** package (ASCII-art). ART is
 `openpipe-art`. Unsloth must not share the OEC venv. Axolotl is Linux/WSL
 only.

@@ -54,6 +54,8 @@ server_app = typer.Typer(no_args_is_help=True)
 app.add_typer(server_app, name="server")
 experiment_app = typer.Typer(no_args_is_help=True)
 app.add_typer(experiment_app, name="experiment")
+learning_app = typer.Typer(no_args_is_help=True)
+app.add_typer(learning_app, name="learning")
 
 console = Console()
 error_console = Console(stderr=True)
@@ -510,6 +512,109 @@ def server_mcp(skills_root: SkillsRootOption = Path("skills")) -> None:
         raise typer.Exit(code=1) from exc
 
     run_stdio_server(skills_root=skills_root)
+
+
+@learning_app.command("status")
+def learning_status(as_json: JsonOption = False) -> None:
+    """Show which Learning backends are installed. Never downloads anything."""
+    from oec.learning.bootstrap import bootstrap_status
+
+    payload = bootstrap_status()
+    if as_json:
+        console.print_json(data=payload)
+        return
+    isolated = payload["isolated"]
+    console.print("Learning backends are never auto-installed.")
+    console.print(f"Explicit install: {payload['bootstrap']}")
+    console.print(f"Isolated envs: {payload['envs_root']}")
+    table = Table(title="Optional packages")
+    table.add_column("package")
+    table.add_column("available")
+    probes = payload["probes"]
+    if isinstance(probes, dict):
+        for name, available in probes.items():
+            table.add_row(str(name), "yes" if available else "no")
+    console.print(table)
+    if isinstance(isolated, dict):
+        for name, info in isolated.items():
+            if not isinstance(info, dict):
+                continue
+            exists = "ready" if info.get("exists") else "missing"
+            console.print(f"{name} isolated python ({exists}): {info.get('python')}")
+
+
+@learning_app.command("bootstrap")
+def learning_bootstrap(
+    all_targets: Annotated[
+        bool,
+        typer.Option("--all", help="Install every Learning target this platform allows."),
+    ] = False,
+    extras: Annotated[
+        bool,
+        typer.Option("--extras", help="Install oec[foundation] and oec[neural] into this venv."),
+    ] = False,
+    art: Annotated[
+        bool,
+        typer.Option(
+            "--art", help="Install openpipe-art into this venv (not the ASCII-art package)."
+        ),
+    ] = False,
+    unsloth: Annotated[
+        bool,
+        typer.Option("--unsloth", help="Create an isolated venv and install Unsloth there."),
+    ] = False,
+    axolotl: Annotated[
+        bool,
+        typer.Option("--axolotl", help="Create an isolated Axolotl venv (Linux/WSL only)."),
+    ] = False,
+    dry_run: Annotated[
+        bool,
+        typer.Option("--dry-run", help="Print the plan without downloading anything."),
+    ] = False,
+    as_json: JsonOption = False,
+) -> None:
+    """Install optional Learning backends only because the operator asked.
+
+    Training calls never reach this command. Unsloth/Axolotl never enter the
+    OEC project venv.
+    """
+    from oec.learning.bootstrap import plan_bootstrap, run_bootstrap
+    from oec.learning.errors import LearningError
+
+    try:
+        steps = plan_bootstrap(
+            extras=extras,
+            art=art,
+            unsloth=unsloth,
+            axolotl=axolotl,
+            all_targets=all_targets,
+        )
+    except LearningError as exc:
+        error_console.print(f"[bold red]error[/bold red]: {exc}")
+        raise typer.Exit(code=1) from exc
+
+    report = run_bootstrap(steps, dry_run=dry_run)
+    if as_json:
+        console.print_json(data=report.to_dict())
+    else:
+        table = Table(title="Learning bootstrap" + (" (dry-run)" if dry_run else ""))
+        table.add_column("target")
+        table.add_column("status")
+        table.add_column("into")
+        table.add_column("message")
+        for step in report.steps:
+            table.add_row(step.name, step.status, step.into, step.message)
+            for command in step.commands:
+                console.print("$ " + " ".join(command))
+        console.print(table)
+        console.print("Training calls still never auto-install packages.")
+    if not report.ok:
+        raise typer.Exit(code=1)
+    requested_explicit = axolotl and not all_targets
+    if requested_explicit and any(
+        step.name == "axolotl" and step.status == "skipped" for step in report.steps
+    ):
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

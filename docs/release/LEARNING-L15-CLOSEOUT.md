@@ -9,7 +9,7 @@ See also `LEARNING-OPERATIONAL.md`.
 | L1–L4 | operational (core) |
 | L5 HF | operational with `oec[foundation]` + `learning_smoke` |
 | L6 tabular distill | operational with `oec[neural]` |
-| L7–L8–L10 | operational-when-installed (never auto-installed; see LEARNING-OPERATIONAL.md) |
+| L7–L8–L10 | operational-when-installed (never auto-installed; `oec learning bootstrap`) |
 | L9 / L11 | operational |
 | L12 Worker | operational FineTune sequence + ExecutionResult evaluate |
 | L13–L14 | operational (suite + CI isolation/smoke) |
