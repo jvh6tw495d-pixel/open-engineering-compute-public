@@ -188,7 +188,7 @@ def load_state_dict_from_checkpoint(checkpoint: dict[str, Any]) -> dict[str, Any
             raise ValueError(f"checkpoint file not found: {path}")
 
         actual = hashlib.sha256(path.read_bytes()).hexdigest()
-        if actual != digest:
+        if not hmac.compare_digest(actual, digest):
             raise ValueError(f"checkpoint sha256 digest mismatch: expected {digest}, got {actual}")
 
         try:

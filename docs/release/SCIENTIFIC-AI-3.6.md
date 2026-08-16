@@ -64,7 +64,7 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | Experiment PEFT→gen | **Done (S1)** | Builder | **S1 done** | `build_peft_train_then_generate_experiment` |
 | Experiment distill→eval | **Done (S2)** | Builder | **S2 done** | catalog allow-list |
 | MCP demos | foundation embed + PEFT | VLM raw + agent discovery | **S5 done** | `agent.foundation` demos `vision_embed` / `vlm_generate`; raw S5 skills discoverable |
-| CI extras job | core-minimal gate + scheduled/manual optional gate | **S6 local gate done; remote evidence pending** | core-only plus neural + evolutionary + foundation |
+| CI extras job | core-minimal + PR/push optional and wheel-install gates | **S6 local gate done; remote evidence pending** | core-only plus neural + evolutionary + foundation |
 
 ---
 
@@ -78,7 +78,7 @@ All AI skills ship as `experimental` until S3/S6 promotion.
 | **S3** ✅ | Neural industrial | versioned checkpoint normalization/reload; SHA-checked and cache-confined file checkpoints; bounded S2 teacher/student MLPs; promotion criteria documented (skills remain experimental) |
 | **S4** ✅ | Evo industrial | no NEAT; hybrid/neuroevolution builders hardened |
 | **S5** ✅ | VLM MVP | bounded vision embedding + Vision2Seq generation, immutable HF commit pins, no URL fetch, and MCP raw/agent discovery |
-| **S6** | Release gate / CI | version and public surfaces updated; scheduled/manual optional-extras CI added; verification evidence and any owner tag/push remain pending |
+| **S6** | Release gate / CI | version and public surfaces updated; core-minimal plus PR/push optional-extras and wheel-install CI added; verification evidence and any owner tag/push remain pending |
 
 ### Recommended execution if capacity is tight
 

@@ -92,10 +92,9 @@ jobs:
         run: uv build
 
   scientific-ai-optional-extras:
-    # Scientific AI optional-extras quality bar (OEC 3.6). Not on every PR:
-    # torch + pymoo + transformers/PEFT/Pillow and their focused suites are
-    # heavier than the core gate. Nightly + manual dispatch only. The core
-    # package remains free of these optional dependencies.
+    # Scientific AI optional-extras quality bar (OEC 3.6). Runs on every
+    # PR and main push, plus nightly/manual dispatch, so a release candidate
+    # cannot merge without the neural/evolutionary/foundation matrix.
     # Runs the full @neural/@evolutionary/@foundation skill matrix (not only
     # tests/golden/test_neural_evolutionary_strong.py). Strong goldens
     # are a subset of that marker set.
@@ -104,7 +103,6 @@ jobs:
     # basenames from colliding during collection.
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 
@@ -133,13 +131,9 @@ jobs:
     # Deselected from the default `pytest -q` gate (pyproject.toml's
     # addopts sets `-m "not slow"`) because it builds a real wheel and
     # installs it into a throwaway venv on every run -- too slow for
-    # every push/PR. Runs nightly (and on manual dispatch) instead of
-    # never, so a packaging regression (a botched [project.scripts]
-    # entry point, a runtime dep declared in the wrong group, a
-    # hatchling misconfig) is caught here, not by a real user running
-    # `pip install oec` (independent review of Sprint 06, Finding 2).
+    # every push/PR. It builds a real wheel and installs it into a throwaway
+    # venv, catching packaging regressions before a release candidate merges.
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 
