@@ -8,8 +8,8 @@
 
 # Open Engineering Compute (OEC)
 
-> **Status:** **`oec==3.5.0` scientific framework cut (W0–W8)**.
-> Skill catalog: **147** skills / **28** domains (extras optional).
+> **Status:** **`oec==3.6.0` Scientific AI Completion code baseline** (S0–S5 complete; S6 release gate/CI pending).
+> Skill catalog: **151** skills / **28** domains, including **6 foundation** skills (extras optional).
 > Framework notes: [FRAMEWORK-3.5.0.md](docs/release/FRAMEWORK-3.5.0.md).
 > Scientific AI completion (3.6): [SCIENTIFIC-AI-3.6.md](docs/release/SCIENTIFIC-AI-3.6.md).
 > Prior neural/evo incubation: [v3.4-closeout.md](docs/implementation/v3.4-closeout.md).
@@ -64,7 +64,7 @@ uv sync --extra mcp           # MCP:   oec server mcp --skills-root skills
 uv sync --extra optimization  # HiGHS: optimization.lp / optimization.milp
 uv sync --extra neural        # PyTorch: neural.* families / training (ADR 0031)
 uv sync --extra evolutionary  # pymoo/DEAP/Nevergrad: evolutionary.* (ADR 0031/0033)
-uv sync --extra foundation    # transformers: foundation.embed / generate (W6)
+uv sync --extra foundation    # transformers + Pillow: foundation.embed / generate / vision / VLM
 ```
 
 ## Interfaces
@@ -111,9 +111,12 @@ LP/MILP use **OPS v0.1** (`docs/contracts/ops.md`). Numerical merit: SciPy / Num
 
 ## Status / release
 
-**Current: `oec==3.5.0`**, scientific framework cut, **147** skills across **28** domains
-(see [skill-inventory.md](docs/implementation/skill-inventory.md) and
-[FRAMEWORK-3.5.0.md](docs/release/FRAMEWORK-3.5.0.md)).
+**Current code baseline: `oec==3.6.0`**, Scientific AI Completion S0–S5, **151** skills
+across **28** domains, including **6** optional foundation skills (see
+[skill-inventory.md](docs/implementation/skill-inventory.md),
+[SCIENTIFIC-AI-3.6.md](docs/release/SCIENTIFIC-AI-3.6.md), and the
+[3.6 closeout](docs/release/3.6.0-CLOSEOUT.md)). S6 is the release-gate/CI closeout;
+this repository state does not claim a tag, push, or published package.
 
 **3.5.0 theme (W0–W8):** Experiment Engine (`Engine.run_experiment`), applied-sciences
 foundations (waves/optics/EM/statistical physics/…), neural + evolutionary experiment
@@ -121,6 +124,11 @@ builders, optional **Foundation** models (`oec[foundation]`), cross-domain build
 and hardened MCP/CLI surfaces (`agent.foundation`, `experiment.list_builders` /
 `experiment.run` with fail-closed builder catalog). Core install remains free of torch /
 pymoo / transformers.
+
+**3.6 S0–S5:** ADR freeze; governed PEFT/full fine-tune artifacts; tabular
+distillation and checkpoint hardening; fail-closed evolutionary/hybrid experiment
+builders (with NEAT excluded); and bounded, pinned, optional vision/VLM skills.
+The core install remains free of torch, pymoo, Transformers, PEFT, and Pillow.
 
 **3.4.x baseline:** optional **Neural** / **Evolutionary** extras under ADR 0031–0033
 ([waves](docs/implementation/OEC_NEURAL_EVOLUTIONARY_WAVES.md),

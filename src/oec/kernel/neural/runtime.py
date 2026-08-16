@@ -8,6 +8,7 @@ file storage.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
 import time
@@ -88,12 +89,21 @@ def maybe_clip_grads(torch: Any, module: Any, grad_clip: float | None) -> None:
         torch.nn.utils.clip_grad_norm_(module.parameters(), grad_clip)
 
 
-def checkpoint_cache_dir(run_id: str | None = None) -> Path:
+def checkpoint_cache_root() -> Path:
     base = os.environ.get("OEC_CACHE_DIR")
-    root = Path(base) if base else Path.home() / ".cache" / "oec" / "checkpoints"
+    return Path(base) if base else Path.home() / ".cache" / "oec" / "checkpoints"
+
+
+def checkpoint_cache_dir(run_id: str | None = None) -> Path:
+    root = checkpoint_cache_root()
     path = root / run_id if run_id else root / "anonymous"
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def _canonical_json_inline_state_dict(state_dict: dict[str, Any]) -> bytes:
+    """Return the exact JSON representation covered by inline checkpoint SHA-256."""
+    return json.dumps(state_dict, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
 def save_checkpoint(
@@ -111,12 +121,16 @@ def save_checkpoint(
     """
     torch = require_torch()
     if storage == "json_inline":
+        json_state_dict = state_dict_to_jsonable(state_dict)
+        canonical = _canonical_json_inline_state_dict(json_state_dict)
         payload = {
             **meta,
-            "state_dict": state_dict_to_jsonable(state_dict),
+            "checkpoint_format_version": 1,
+            "state_dict": json_state_dict,
+            "sha256": hashlib.sha256(canonical).hexdigest(),
             "storage": "json_inline",
         }
-        ref = CheckpointRef(storage="json_inline", format_version=1)
+        ref = CheckpointRef(storage="json_inline", sha256=payload["sha256"], format_version=1)
         return payload, ref
 
     if storage != "file":
@@ -129,6 +143,7 @@ def save_checkpoint(
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     payload = {
         **meta,
+        "checkpoint_format_version": 1,
         "storage": "file",
         "path": str(path),
         "sha256": digest,
@@ -143,31 +158,74 @@ def save_checkpoint(
 
 
 def load_state_dict_from_checkpoint(checkpoint: dict[str, Any]) -> dict[str, Any]:
-    """Load state_dict from json_inline or file checkpoint payload."""
+    """Load state_dict from json_inline or file checkpoint payload.
+
+    File checkpoints are untrusted public input: a sha256 digest is
+    mandatory and verified against the on-disk bytes, the resolved path
+    must be confined to the OEC checkpoint cache root, and the file is
+    loaded with ``weights_only=True`` -- there is no unsafe fallback.
+    """
     from oec.kernel.neural.seeding import state_dict_from_jsonable
 
     storage = checkpoint.get("storage", "json_inline")
     if storage == "file":
         torch = require_torch()
-        path = checkpoint.get("path")
-        if not path:
+        raw_path = checkpoint.get("path")
+        if not raw_path:
             raise ValueError("file checkpoint missing path")
-        # weights_only=False: we store a dict with meta + state_dict (trusted local cache)
-        try:
-            blob = torch.load(path, map_location="cpu", weights_only=False)
-        except TypeError:
-            blob = torch.load(path, map_location="cpu")
-        if isinstance(blob, dict) and "state_dict" in blob:
-            sd = blob["state_dict"]
-            if isinstance(sd, dict):
-                return sd
-        if isinstance(blob, dict):
-            return dict(blob)
-        raise ValueError("unrecognized checkpoint file format")
+        digest = checkpoint.get("sha256")
+        if not isinstance(digest, str) or len(digest) != 64:
+            raise ValueError("file checkpoint missing required sha256 digest")
 
-    # json_inline and legacy checkpoints (no storage key, embedded state_dict)
+        path = Path(raw_path).resolve()
+        root = checkpoint_cache_root().resolve()
+        if not path.is_relative_to(root):
+            raise ValueError(
+                f"checkpoint path {path} is outside the OEC checkpoint cache root "
+                f"{root}; refusing to load an unconfined file path"
+            )
+        if not path.is_file():
+            raise ValueError(f"checkpoint file not found: {path}")
+
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        if not hmac.compare_digest(actual, digest):
+            raise ValueError(f"checkpoint sha256 digest mismatch: expected {digest}, got {actual}")
+
+        try:
+            blob = torch.load(path, map_location="cpu", weights_only=True)
+        except TypeError as exc:
+            raise ValueError(
+                "installed torch version does not support weights_only=True safe "
+                "loading; upgrade torch to load file checkpoints"
+            ) from exc
+        if isinstance(blob, dict) and "state_dict" in blob and isinstance(blob["state_dict"], dict):
+            return blob["state_dict"]
+        raise ValueError("unrecognized/malformed checkpoint file: missing state_dict envelope")
+
+    # Inline checkpoints are public artifacts and must be versioned with a
+    # self-consistency digest.  Accepting an unversioned shape would let a
+    # caller strip the version fields from a tampered artifact and bypass the
+    # mandatory verification below.
     if "state_dict" in checkpoint:
-        return state_dict_from_jsonable(checkpoint["state_dict"])
+        state_dict = checkpoint["state_dict"]
+        if not isinstance(state_dict, dict):
+            raise ValueError("json_inline checkpoint state_dict must be a mapping")
+        if "storage" not in checkpoint or "checkpoint_format_version" not in checkpoint:
+            raise ValueError(
+                "json_inline checkpoint requires versioned storage, "
+                "checkpoint_format_version=1, and sha256 digest"
+            )
+        if checkpoint.get("storage") != "json_inline":
+            raise ValueError("checkpoint storage must be json_inline or file")
+        if checkpoint.get("checkpoint_format_version") != 1:
+            raise ValueError("json_inline checkpoint requires checkpoint_format_version=1")
+        expected = checkpoint.get("sha256")
+        if not isinstance(expected, str) or len(expected) != 64:
+            raise ValueError("json_inline checkpoint missing required sha256 digest")
+        actual = hashlib.sha256(_canonical_json_inline_state_dict(state_dict)).hexdigest()
+        if not hmac.compare_digest(actual, expected):
+            raise ValueError("json_inline checkpoint sha256 digest mismatch")
+        return state_dict_from_jsonable(state_dict)
     raise ValueError("checkpoint has neither state_dict nor file path")
 
 

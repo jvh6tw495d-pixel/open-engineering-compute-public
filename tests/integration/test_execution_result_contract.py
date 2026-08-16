@@ -12,6 +12,30 @@ from oec.skills.registry.registry import SkillRegistry
 
 _SKILLS = Path("skills")
 
+# Committed examples shared by the OEC 3.6 neural training/search skills.
+_NEURAL_TRAINING_EXAMPLE: dict[str, Any] = {
+    "x": [[float(value)] for value in range(12)],
+    "y": [float(2 * value + 1) for value in range(12)],
+    "seed": 0,
+    "max_evaluations": 6,
+    "inner_epochs": 10,
+    "epochs": 20,
+}
+_NEURAL_GRADIENT_EXAMPLE: dict[str, Any] = {
+    "x": [[float(value)] for value in range(12)],
+    "y": [float(2 * value + 1) for value in range(12)],
+    "seed": 0,
+    "epochs": 20,
+    "device": "cpu",
+}
+_NEURAL_NEUROEVOLUTION_EXAMPLE: dict[str, Any] = {
+    "x": [[float(value)] for value in range(12)],
+    "y": [float(2 * value + 1) for value in range(12)],
+    "seed": 0,
+    "max_evaluations": 6,
+    "device": "cpu",
+}
+
 # Minimal valid inputs per skill (canonical units where needed).
 _FIXTURES: dict[str, dict[str, Any]] = {
     "mathematics.solve_root": {"expression": "x**2 - 2", "bracket": [0, 2]},
@@ -835,8 +859,40 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         ],
         "y": [1, 2, 3, 4],
     },
+    "neural.distill": {
+        "x": [[0.0], [1.0], [2.0]],
+        "y": [0.0, 1.0, 2.0],
+        "teacher_checkpoint": {
+            "storage": "json_inline",
+            "checkpoint_format_version": 1,
+            "model_spec": {
+                "architecture": "mlp",
+                "input_dim": 1,
+                "output_dim": 1,
+                "hidden_dims": [1],
+                "activation": "relu",
+                "dropout": 0.0,
+            },
+            "state_dict": {
+                "0.weight": [[1.0]],
+                "0.bias": [0.0],
+                "2.weight": [[1.0]],
+                "2.bias": [0.0],
+            },
+            "sha256": "f1d0446468d5e77719bf50ed71d748c6291190450d918b9115640d176ca563a4",
+        },
+        "student_hidden_dims": [1],
+        "epochs": 2,
+        "batch_size": 3,
+        "max_epochs": 2,
+        "max_batch_size": 3,
+        "seed": 0,
+    },
     "neural.evaluate": {
         "checkpoint": {
+            "storage": "json_inline",
+            "checkpoint_format_version": 1,
+            "sha256": "3a2fd8d3bae45c9e53b8e6f784d8a494f3e5a757be69f370f0d5195cb8975f4f",
             "architecture": "mlp",
             "model_spec": {
                 "activation": "relu",
@@ -953,6 +1009,9 @@ _FIXTURES: dict[str, dict[str, Any]] = {
     },
     "neural.predict": {
         "checkpoint": {
+            "storage": "json_inline",
+            "checkpoint_format_version": 1,
+            "sha256": "3a2fd8d3bae45c9e53b8e6f784d8a494f3e5a757be69f370f0d5195cb8975f4f",
             "architecture": "mlp",
             "model_spec": {
                 "activation": "relu",
@@ -1041,6 +1100,142 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         "x": [[[0], [1], [2]], [[1], [2], [3]], [[2], [3], [4]], [[3], [4], [5]]],
         "y": [1, 2, 3, 4],
     },
+    # OEC 3.6 core/no-AI-extra additions; inputs mirror committed skill examples.
+    "chemistry.hess_enthalpy": {
+        "steps": [
+            {"delta_h_j_per_mol": -285800.0, "coefficient": 1.0},
+            {"delta_h_j_per_mol": -393500.0, "coefficient": -1.0},
+        ]
+    },
+    "chemistry.vanthoff": {
+        "k1": 1.0,
+        "t1_k": 298.15,
+        "t2_k": 310.15,
+        "delta_h_j_per_mol": 50000.0,
+    },
+    "em.coulomb": {
+        "charge1": {"value": 1e-06, "unit": "C"},
+        "charge2": {"value": 1e-06, "unit": "C"},
+        "separation": {"value": 0.1, "unit": "m"},
+    },
+    "em.parallel_plate_capacitor": {
+        "area": {"value": 0.01, "unit": "m**2"},
+        "gap": {"value": 0.001, "unit": "m"},
+        "relative_permittivity": 1.0,
+        "voltage": {"value": 10.0, "unit": "V"},
+    },
+    "foundation.capabilities": {},
+    "foundation.embed": {
+        "texts": ["hello engineering", "hello science"],
+        "backend": "builtin_hash",
+        "dim": 16,
+        "seed": 0,
+        "normalize": True,
+    },
+    "foundation.generate": {
+        "prompt": "Hello",
+        "model_id": "sshleifer/tiny-gpt2",
+        "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+        "max_new_tokens": 8,
+        "temperature": 0,
+        "seed": 0,
+    },
+    "foundation.peft_train": {
+        "model_id": "sshleifer/tiny-gpt2",
+        "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+        "mode": "peft_lora",
+        "texts": ["open engineering compute", "scientific skills for agents"],
+        "r": 4,
+        "lora_alpha": 8,
+        "target_modules": ["c_attn"],
+        "max_steps": 2,
+        "max_seq_len": 32,
+        "batch_size": 2,
+        "seed": 0,
+    },
+    "foundation.vision_embed": {
+        "images": [
+            {
+                "image_base64": (
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/"
+                    "AAX+Av4N70a4AAAAAElFTkSuQmCC"
+                )
+            }
+        ],
+        "model_id": "openai/clip-vit-base-patch32",
+        "revision": "5812e510083bb2d23fa43778a39ac065d205ed4d",
+        "dim": 512,
+        "normalize": True,
+        "seed": 0,
+    },
+    "foundation.vlm_generate": {
+        "prompt": "describe this image",
+        "image": {
+            "image_base64": (
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/"
+                "AAX+Av4N70a4AAAAAElFTkSuQmCC"
+            )
+        },
+        "model_id": "Salesforce/blip-image-captioning-base",
+        "revision": "82a37760796d32b1411fe092ab5d4e227313294b",
+        "max_new_tokens": 8,
+        "temperature": 0,
+        "seed": 0,
+    },
+    "mathematics.jacobian": {
+        "expressions": ["x**2 + y", "x*y"],
+        "variables": ["x", "y"],
+        "at": [1.0, 2.0],
+        "method": "central",
+    },
+    "mechanics.kinematics_1d": {
+        "v0": {"value": 0.0, "unit": "m/s"},
+        "a": {"value": 9.81, "unit": "m/s**2"},
+        "t": {"value": 2.0, "unit": "s"},
+        "x0": {"value": 0.0, "unit": "m"},
+    },
+    "neural.benchmark.training_strategy": dict(_NEURAL_TRAINING_EXAMPLE),
+    "neural.search.architecture": dict(_NEURAL_TRAINING_EXAMPLE),
+    "neural.search.features": dict(_NEURAL_TRAINING_EXAMPLE),
+    "neural.search.hyperparameters": dict(_NEURAL_TRAINING_EXAMPLE),
+    "neural.search.loss_weights": dict(_NEURAL_TRAINING_EXAMPLE),
+    "neural.search.policy": dict(_NEURAL_TRAINING_EXAMPLE),
+    "neural.training.gradient": dict(_NEURAL_GRADIENT_EXAMPLE),
+    "neural.training.hybrid": dict(_NEURAL_TRAINING_EXAMPLE),
+    "neural.training.neuroevolution": dict(_NEURAL_NEUROEVOLUTION_EXAMPLE),
+    "neural.training.supervised": dict(_NEURAL_GRADIENT_EXAMPLE),
+    "numerical.pde_1d_heat": {
+        "mode": "steady",
+        "length": 1.0,
+        "n_intervals": 10,
+        "left_value": 0.0,
+        "right_value": 1.0,
+        "source": 0.0,
+    },
+    "optics.snell": {"n1": 1.0, "n2": 1.5, "theta1_rad": 0.5},
+    "optics.thin_lens": {"focal_length_m": 0.1, "object_distance_m": 0.2},
+    "statistical_physics.ideal_gas": {
+        "amount_mol": 1.0,
+        "temperature": {"value": 273.15, "unit": "K"},
+        "volume": {"value": 0.0224, "unit": "m**3"},
+        "molar_mass_kg_per_mol": 0.028,
+    },
+    "statistics.distribution_eval": {
+        "distribution": "norm",
+        "operation": "pdf",
+        "params": {"loc": 0.0, "scale": 1.0},
+        "x": 0.0,
+    },
+    "statistics.hypothesis_test": {
+        "test": "t_one_sample",
+        "sample": [0.1, -0.2, 0.05, 0.0, -0.1, 0.15, -0.05, 0.02],
+        "popmean": 0.0,
+        "alternative": "two-sided",
+    },
+    "waves.phase_speed": {
+        "frequency": {"value": 50.0, "unit": "Hz"},
+        "wavelength": {"value": 6.0, "unit": "m"},
+    },
     "scientific.method_select": {
         "budget_seconds": 30,
         "problem_class": "soo_box",
@@ -1102,7 +1297,11 @@ def test_all_registered_skills_share_execution_result_contract() -> None:
 
     for manifest in manifests:
         skill_id = manifest.id
-        if skill_id.startswith("optimization.") and highspy is None:
+        # HiGHS backs optimization.* and the composed energy sizing skill.
+        # Do not execute either without the optional oec[optimization] extra.
+        if (
+            skill_id.startswith("optimization.") or skill_id == "energy.min_storage_capacity"
+        ) and highspy is None:
             continue
         # OEC 3.4 optional extras — skip execute when backend not installed
         if skill_id.startswith(("neural.", "hybrid.")) and torch is None:

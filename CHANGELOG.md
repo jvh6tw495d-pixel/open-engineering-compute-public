@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-08-16
+
+**Tag:** `v3.6.0-scientific-ai`
+**Theme:** Scientific AI Completion (S0–S6) — PEFT, distillation, industrial
+checkpoints, evo catalog, VLM MVP, release gates.
+
 ### Added
 
 - **Scientific AI Completion (S0):** ADR 0040–0042 and
@@ -23,6 +29,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   base-model swap) if the path is missing or `peft` isn't installed.
   `build_peft_train_then_generate_experiment` added to the cross-domain
   builder catalog; `agent.foundation` gets a `peft_train` demo (ADR 0041).
+- **Scientific AI Completion (S2–S3):** `neural.distill` adds governed,
+  tabular teacher/student distillation and a catalogued experiment builder.
+  Checkpoint normalization/reload is versioned, SHA-verified, cache-confined,
+  and fail-closed; promotion criteria are documented, while all skills remain
+  experimental.
+- **Scientific AI Completion (S4):** the public, fail-closed cross-domain
+  builder catalog now includes optimize-single, NSGA-II, and hybrid-training
+  builders with declared optional-extra requirements. NEAT/HyperNEAT remain
+  explicitly excluded by ADR 0042.
+- **Scientific AI Completion (S5):** optional `foundation.vision_embed` and
+  `foundation.vlm_generate` skills, governed image loading, immutable 40-hex
+  Hugging Face revisions for remote models, no URL image fetch, bounded decode,
+  and raw/agent MCP discovery.
+
+### Changed
+
+- **Scientific AI Completion (S6 local gates):** package metadata and public
+  surfaces identify the 3.6.0 code baseline (151 skills / 28 domains / 6
+  foundation skills). Core-minimal, Scientific AI optional-extras, and real
+  wheel-install smoke gates run on every push/PR to `main` and remain scheduled
+  nightly/manual; the core package remains free of those extras. Tagged
+  `v3.6.0-scientific-ai` after remote CI (core-minimal, Scientific AI extras,
+  installation-smoke) on PR #1.
 
 ## [3.5.0] - 2026-08-11
 

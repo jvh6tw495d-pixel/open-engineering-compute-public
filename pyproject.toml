@@ -1,6 +1,6 @@
 [project]
 name = "oec"
-version = "3.5.0"
+version = "3.6.0"
 description = "Open Engineering Compute — an open framework for executable, versioned and auditable engineering skills."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -44,6 +44,7 @@ foundation = [
     "transformers>=4.40",
     "accelerate>=0.30",
     "peft>=0.11",
+    "pillow>=10.0",  # S5 (ADR 0040 D3) — bounded image decode only, no download
 ]
 
 [project.scripts]
@@ -110,6 +111,8 @@ module = [
   "peft.*",
   "sympy",
   "sympy.*",
+  "PIL",
+  "PIL.*",
 ]
 ignore_missing_imports = true
 
@@ -150,3 +153,6 @@ show_missing = true
 
 [tool.bandit]
 targets = ["src/oec"]
+# B101: type-narrowing asserts after validation (not security checks).
+# B311: stdlib random used as scientific/evolutionary RNG, not cryptography.
+skips = ["B101", "B311"]

@@ -38,7 +38,10 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
 
     spec = PEFTSpec(
         method=method,
-        model=FoundationModelSpec(model_id=str(inputs.get("model_id", "sshleifer/tiny-gpt2"))),
+        model=FoundationModelSpec(
+            model_id=str(inputs.get("model_id", "sshleifer/tiny-gpt2")),
+            revision=str(inputs["revision"]) if inputs.get("revision") else None,
+        ),
         dataset=TrainingDatasetSpec(**dataset_kwargs),
         budget=TrainingBudgetSpec(
             max_steps=int(inputs.get("max_steps", 5)),

@@ -43,9 +43,7 @@ def test_valid_lp_is_ok() -> None:
             {"name": "x", "kind": "continuous", "lower": 0, "upper": 1},
             {"name": "y", "kind": "continuous", "lower": 0, "upper": 1},
         ],
-        "constraints": [
-            {"name": "cover", "coeffs": {"x": 1, "y": 1}, "sense": ">=", "rhs": 1}
-        ],
+        "constraints": [{"name": "cover", "coeffs": {"x": 1, "y": 1}, "sense": ">=", "rhs": 1}],
         "objective": {"coeffs": {"x": 1, "y": 1}},
     }
     assert not _errors({"ops": ops})

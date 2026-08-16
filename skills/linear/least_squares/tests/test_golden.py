@@ -54,7 +54,5 @@ def test_overdetermined_inconsistent_system_yields_zero_residual_sum() -> None:
 
 
 def test_residual_vector_is_zero_for_exact_fit() -> None:
-    out = implementation.execute(
-        {"A": [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0]], "b": [1.0, 3.0, 5.0]}
-    )
+    out = implementation.execute({"A": [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0]], "b": [1.0, 3.0, 5.0]})
     assert max(abs(r) for r in out["result"]["residuals"]) < 1e-9

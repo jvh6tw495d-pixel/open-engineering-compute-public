@@ -3,7 +3,7 @@
 **Date:** 2026-07-30 (JSON `generated_at` reads `2026-07-31T00:54:45+00:00` — that's the same instant in UTC; the run happened the night of 2026-07-30 local time (America/Sao_Paulo, UTC-3), which is the date used everywhere else in this session's artifacts)
 **Kind:** reliability / robustness run — not an accuracy leaderboard
 **Driver model:** `nemotron-3-nano:4b-64k` via Ollama native tool calling (`http://127.0.0.1:11434`)
-**Server under test:** OEC MCP stdio server launched with the real Hermes shape
+**Server under test:** OEC MCP stdio server launched with the real host runtime shape
 **Harness:** [scripts/ollama_agent_stress_test.py](C:\Users\joaop\OneDrive\Anexos de email\Documentos\OEC\scripts\ollama_agent_stress_test.py)
 **Raw data:** [docs/implementation/OLLAMA_AGENT_STRESS_TEST_RESULTS.json](C:\Users\joaop\OneDrive\Anexos de email\Documentos\OEC\docs\implementation\OLLAMA_AGENT_STRESS_TEST_RESULTS.json)
 
@@ -23,7 +23,7 @@ This rerun completed successfully end-to-end.
 - every tool-side error came back in OEC's structured JSON error shape;
 - no `ModuleNotFoundError: No module named 'agents'` surfaced.
 
-That means the runtime patch for agent importability is holding under the real Hermes-style launch condition.
+That means the runtime patch for agent importability is holding under the real host runtime-style launch condition.
 
 ## Launch shape used
 

@@ -1,7 +1,7 @@
 # ARCHITECTURE — OEC
 
 > Standing decision: framework layers freeze (W0) · ADR 0034 / ADR 0035
-> **Open source:** este repositório **não** deve citar AELE / Apollo / Horizon / Orion / Argos / clientes / PI.
+> **Open source:** este repositório não deve conter referências a marcas privadas, clientes ou propriedade intelectual não pública.
 
 ---
 

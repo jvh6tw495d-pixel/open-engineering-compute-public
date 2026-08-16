@@ -2,6 +2,7 @@
   "description": "Tiny LoRA smoke train (requires oec[foundation] + model weights)",
   "input": {
     "model_id": "sshleifer/tiny-gpt2",
+    "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
     "mode": "peft_lora",
     "texts": ["open engineering compute", "scientific skills for agents"],
     "r": 4,

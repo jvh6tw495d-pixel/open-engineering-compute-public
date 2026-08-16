@@ -26,7 +26,7 @@ from agents.scientific_reviewer.reviewer import ScientificReviewer  # noqa: E402
 
 from oec.execution.models import ExecutionResult  # noqa: E402
 
-_NUMBER = re.compile(r"(?<![A-Za-z_])[-+]?(?:\d+\.\d+|\d+)(?:[eE][-+]?\d+)?")
+_NUMBER = re.compile(r"(?<![A-Za-z_])[-+]?(?:\d+\.\d+|\d+)(?:[eE][-+]?\d+)?(?![A-Za-z_])")
 
 
 @dataclass

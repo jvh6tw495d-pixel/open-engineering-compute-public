@@ -23,9 +23,7 @@ class IntervalsValidator:
                 ValidationOutcome(
                     layer=self.layer,
                     severity=Severity.ERROR,
-                    messages=[
-                        "known_variance was removed; use population_standard_deviation"
-                    ],
+                    messages=["known_variance was removed; use population_standard_deviation"],
                 )
             ]
         samples = normalized_inputs.get("samples")
@@ -37,7 +35,7 @@ class IntervalsValidator:
                     messages=["samples must be a non-empty 1D list"],
                 )
             ]
-        if any(not isinstance(x, (int, float)) or not math.isfinite(float(x)) for x in samples):
+        if any(not isinstance(x, int | float) or not math.isfinite(float(x)) for x in samples):
             return [
                 ValidationOutcome(
                     layer=self.layer,
@@ -47,7 +45,7 @@ class IntervalsValidator:
             ]
         sigma = normalized_inputs.get("population_standard_deviation")
         if sigma is not None:
-            if not isinstance(sigma, (int, float)) or not math.isfinite(float(sigma)):
+            if not isinstance(sigma, int | float) or not math.isfinite(float(sigma)):
                 return [
                     ValidationOutcome(
                         layer=self.layer,
@@ -69,8 +67,7 @@ class IntervalsValidator:
                     layer=self.layer,
                     severity=Severity.ERROR,
                     messages=[
-                        "Student-t CI requires n >= 2 "
-                        "(or supply population_standard_deviation)"
+                        "Student-t CI requires n >= 2 (or supply population_standard_deviation)"
                     ],
                 )
             ]

@@ -1,0 +1,40 @@
+id: neural.distill
+version: 0.1.0
+status: experimental
+domain: neural
+title: Governed Tabular Neural Distillation
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: torch_tabular_teacher_student_distillation
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 300
+  network_access: false
+  filesystem_access: true
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "ADR 0041 PEFT, Fine-Tune & Distillation Contracts"
+  - "ADR 0031 Neural and Evolutionary Compute"
+
+tags:
+  - neural
+  - distillation
+  - experimental

@@ -27,7 +27,7 @@ class LagFeaturesValidator:
                     messages=["values must be a non-empty 1D list"],
                 )
             ]
-        if any(not isinstance(x, (int, float)) for x in values):
+        if any(not isinstance(x, int | float) for x in values):
             return [
                 ValidationOutcome(
                     layer=self.layer,

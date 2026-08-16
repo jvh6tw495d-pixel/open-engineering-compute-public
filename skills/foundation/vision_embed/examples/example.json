@@ -1,0 +1,13 @@
+{
+  "description": "CLIP image embedding for a tiny inline PNG (requires oec[foundation] + model weights)",
+  "input": {
+    "images": [
+      { "image_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC" }
+    ],
+    "model_id": "openai/clip-vit-base-patch32",
+    "revision": "5812e510083bb2d23fa43778a39ac065d205ed4d",
+    "dim": 512,
+    "normalize": true,
+    "seed": 0
+  }
+}

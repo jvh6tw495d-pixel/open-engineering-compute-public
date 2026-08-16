@@ -12,6 +12,7 @@ from oec.experiment.artifacts import (
     persist_experiment_record,
 )
 from oec.experiment.cross_domain import (
+    build_distill_then_eval_experiment,
     build_evo_sphere_experiment,
     build_foundation_embed_then_stats_experiment,
     build_monte_carlo_then_describe_experiment,
@@ -80,6 +81,7 @@ __all__ = [
     "TrainingSpec",
     "ValidationSpec",
     "ValidationSummary",
+    "build_distill_then_eval_experiment",
     "build_evo_sphere_experiment",
     "build_evo_then_describe_experiment",
     "build_foundation_embed_then_stats_experiment",

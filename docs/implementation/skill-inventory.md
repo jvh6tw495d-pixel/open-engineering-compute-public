@@ -1,8 +1,8 @@
 # Skill inventory
 
-**Updated:** 2026-08-10 (`oec==3.5.0` framework W0–W8)
+**Updated:** 2026-08-14 (3.6 S0–S5 implemented; S6 release gate pending)
 **Registry root:** `skills/`
-**Live load:** **147** skills, **0** contract-audit errors
+**Live load:** **151** skills across **28** domains, **0** contract-audit errors
 
 ## Summary
 
@@ -32,8 +32,8 @@
 | **evolutionary** | **15** | pymoo/DEAP/Nevergrad |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
-| foundation | 3 | W6 embed / generate / capabilities |
-| **Total** | **147** | all `experimental` in this inventory |
+| foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT / vision / VLM |
+| **Total** | **151** | all `experimental` in this inventory |
 
 ## W1-MVP scientific core (no AI)
 
@@ -58,16 +58,26 @@
 
 ## W4/W5 experiment builders (no new skills)
 
-| Builder | Module | Maps to |
-|---------|--------|---------|
-| `build_mlp_regressor_experiment` | `oec.experiment.neural` | `neural.mlp.regressor` |
-| `build_neural_training_mode_experiment` | `oec.experiment.neural` | `neural.training.*` |
-| `build_optimize_single_experiment` | `oec.experiment.evolutionary` | `evolutionary.optimize_single` |
-| `build_nsga2_experiment` | `oec.experiment.evolutionary` | `evolutionary.nsga2` |
-| `build_hybrid_training_experiment` | `oec.experiment.evolutionary` | `neural.training.hybrid` |
+| Builder | Module | Maps to | MCP catalog (S4) |
+|---------|--------|---------|------------------|
+| `build_mlp_regressor_experiment` | `oec.experiment.neural` | `neural.mlp.regressor` | no (helper / S3 neural path) |
+| `build_neural_training_mode_experiment` | `oec.experiment.neural` | `neural.training.*` | no (mode factory) |
+| `build_optimize_single_experiment` | `oec.experiment.evolutionary` | `evolutionary.optimize_single` | **yes** |
+| `build_nsga2_experiment` | `oec.experiment.evolutionary` | `evolutionary.nsga2` | **yes** |
+| `build_hybrid_training_experiment` | `oec.experiment.evolutionary` | `neural.training.hybrid` | **yes** |
+| `build_evo_sphere_experiment` | `oec.experiment.cross_domain` | sphere optimize gate | **yes** (W7) |
+
+S4 industrial closure: the three public declarative evolutionary/hybrid builders
+above are on the fail-closed cross-domain catalog
+(`experiment.list_builders` / `experiment.run`). Helpers
+(`sphere_problem_2d`, `problem_to_optimize_inputs`) stay uncatalogued.
 
 See ADR 0037 · `docs/contracts/neural-evolutionary-experiments.md`.
-**Deferred:** NEAT / HyperNEAT.
+**Excluded from 3.6 DoD:** NEAT / HyperNEAT (ADR 0042 — not deferred silently).
+
+**3.6 closeout state:** S0–S5 are implemented; S6 is release CI/evidence and has not
+created a tag, remote push, or published package. See
+[`docs/release/3.6.0-CLOSEOUT.md`](../release/3.6.0-CLOSEOUT.md).
 
 ## Neural (3.4 + ADR 0033)
 

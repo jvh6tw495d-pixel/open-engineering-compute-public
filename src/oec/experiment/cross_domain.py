@@ -14,6 +14,8 @@ from oec.evolutionary.contracts import (
     EvolutionaryAlgorithmSpec,
 )
 from oec.experiment.evolutionary import (
+    build_hybrid_training_experiment,
+    build_nsga2_experiment,
     build_optimize_single_experiment,
     sphere_problem_2d,
 )
@@ -341,6 +343,71 @@ def build_peft_train_then_generate_experiment(
     )
 
 
+def build_distill_then_eval_experiment(
+    *,
+    teacher_checkpoint: dict[str, Any],
+    teacher_normalize: dict[str, list[float]] | None = None,
+    experiment_id: str = "s2.distill_then_eval",
+    seed: int = 0,
+    x: list[list[float]] | None = None,
+    y: list[float] | None = None,
+    student_hidden_dims: list[int] | None = None,
+    epochs: int = 80,
+) -> ExperimentSpec:
+    """S2 tabular distillation followed by evaluation of the student artifact."""
+    x = x or [[float(i)] for i in range(12)]
+    y = y or [2.0 * float(i) + 1.0 for i in range(12)]
+    distill_inputs: dict[str, Any] = {
+        "x": x,
+        "y": y,
+        "teacher_checkpoint": teacher_checkpoint,
+        "student_hidden_dims": student_hidden_dims or [8],
+        "epochs": int(epochs),
+        "batch_size": min(16, len(x)),
+        "max_epochs": max(int(epochs), 1),
+        "max_batch_size": min(128, max(len(x), 1)),
+        "seed": int(seed),
+    }
+    if teacher_normalize is not None:
+        distill_inputs["teacher_normalize"] = teacher_normalize
+    return ExperimentSpec(
+        id=experiment_id,
+        title="S2: tabular distill then student evaluation",
+        seed=seed,
+        tags=("s2", "neural", "distillation"),
+        required_extras=("neural",),
+        steps=(
+            ExperimentStep(
+                step_id="distill",
+                skill_id="neural.distill",
+                inputs=distill_inputs,
+            ),
+            ExperimentStep(
+                step_id="evaluate",
+                skill_id="neural.evaluate",
+                inputs={"x": x, "y": y, "task": "regression"},
+                binds_from=(
+                    BindSpec.model_validate(
+                        {
+                            "step_id": "distill",
+                            "path": "result.checkpoint",
+                            "as": "checkpoint",
+                        }
+                    ),
+                    BindSpec.model_validate(
+                        {
+                            "step_id": "distill",
+                            "path": "result.normalize",
+                            "as": "normalize",
+                        }
+                    ),
+                ),
+            ),
+        ),
+        validation=ValidationSpec(),
+    )
+
+
 def build_root_bind_to_distribution_experiment(
     *,
     experiment_id: str = "w7.root_to_pdf",
@@ -382,9 +449,11 @@ def build_root_bind_to_distribution_experiment(
     )
 
 
-# Single source of truth for W7 public builders (name → fn, domains, extras).
-# Imported helpers (build_optimize_single_experiment, build_mlp_regressor_*)
-# must NOT appear here — MCP/CLI only expose this catalog.
+# Single source of truth for public builders (name → fn, domains, extras).
+# MCP/CLI only expose this catalog (fail-closed). Helpers such as
+# sphere_problem_2d / problem_to_optimize_inputs / build_mlp_regressor_* stay out.
+# S4: public W5 evolutionary + hybrid experiment builders are catalogued here;
+# NEAT / HyperNEAT remain excluded (ADR 0042).
 _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
     "build_physics_kinematics_experiment": {
         "fn": build_physics_kinematics_experiment,
@@ -406,6 +475,22 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
         "domains": ["evolutionary"],
         "extras": ["evolutionary"],
     },
+    # S4 — public declarative evolutionary / hybrid builders (W5).
+    "build_optimize_single_experiment": {
+        "fn": build_optimize_single_experiment,
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
+    "build_nsga2_experiment": {
+        "fn": build_nsga2_experiment,
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
+    "build_hybrid_training_experiment": {
+        "fn": build_hybrid_training_experiment,
+        "domains": ["neural", "evolutionary"],
+        "extras": ["neural", "evolutionary"],
+    },
     "build_physics_to_neural_surrogate_experiment": {
         "fn": build_physics_to_neural_surrogate_experiment,
         "domains": ["neural"],
@@ -420,6 +505,11 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
         "fn": build_peft_train_then_generate_experiment,
         "domains": ["foundation"],
         "extras": ["foundation"],
+    },
+    "build_distill_then_eval_experiment": {
+        "fn": build_distill_then_eval_experiment,
+        "domains": ["neural"],
+        "extras": ["neural"],
     },
     "build_root_bind_to_distribution_experiment": {
         "fn": build_root_bind_to_distribution_experiment,

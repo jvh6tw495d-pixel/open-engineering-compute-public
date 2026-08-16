@@ -6,13 +6,52 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # Nightly, catches a packaging regression (pip install oec broken)
-    # that the fast gate below can't see -- see the "installation-smoke"
-    # job's own comment for why this can't just run on every push.
+    # Nightly repeats the full PR gates to catch environment and resolver drift.
     - cron: "0 6 * * *"
   workflow_dispatch: {}
 
 jobs:
+  core-minimal:
+    # Release gate: core plus dev test tools only. Keep every optional extra
+    # explicitly excluded so this job cannot silently become an all-extras run.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Fresh core-only sync
+        run: >
+          uv sync --all-groups
+          --no-extra api --no-extra mcp --no-extra optimization
+          --no-extra neural --no-extra evolutionary --no-extra foundation
+
+      - name: Assert optional stacks are absent
+        run: >
+          uv run python -c "import importlib.util;
+          optional = (
+              'fastapi', 'uvicorn', 'mcp', 'highspy', 'torch', 'pymoo', 'deap',
+              'nevergrad', 'transformers', 'accelerate', 'peft', 'PIL',
+          );
+          installed = [name for name in optional if importlib.util.find_spec(name) is not None];
+          assert not installed, f'optional dependencies installed: {installed}'"
+
+      - name: Core contract and fail-closed tests
+        run: >
+          uv run pytest
+          tests/integration/test_execution_result_contract.py::test_all_registered_skills_share_execution_result_contract
+          tests/unit/test_s5_vlm_contracts.py::test_vlm_generate_fail_closed_without_transformers
+          -o addopts= --no-cov -q
+
+      - name: Core CLI smoke
+        run: uv run oec --help
+
   lint-type-test:
     # Default gate: uv sync --all-extras installs torch/pymoo/deap/nevergrad
     # when available, but pyproject.toml addopts deselects markers
@@ -20,8 +59,8 @@ jobs:
     # independent of heavy optional stacks. Strong goldens live under
     # tests/golden/test_neural_evolutionary_strong.py and skill-level
     # tests marked @pytest.mark.neural / @pytest.mark.evolutionary —
-    # they run in the extras-neural-evolutionary job below (nightly /
-    # workflow_dispatch), or locally:
+    # they run in the optional-extras job below on every push/PR, nightly,
+    # and workflow dispatch, or locally:
     #   uv run pytest -m "neural or evolutionary" -o addopts= --import-mode=importlib
     runs-on: ubuntu-latest
     steps:
@@ -53,17 +92,18 @@ jobs:
       - name: Build package
         run: uv build
 
-  extras-neural-evolutionary:
-    # Optional-extras quality bar (OEC 3.4). Not on every PR: torch +
-    # pymoo install and full neural/evo goldens are heavier than the
-    # core gate. Nightly + manual dispatch only.
-    # Runs the full @neural/@evolutionary skill matrix (not only
+  scientific-ai-optional-extras:
+    # Scientific AI optional-extras quality bar (OEC 3.6). Runs on every
+    # PR and main push, plus nightly/manual dispatch, so a release candidate
+    # cannot merge without the neural/evolutionary/foundation matrix.
+    # Runs the full @neural/@evolutionary/@foundation skill matrix (not only
     # tests/golden/test_neural_evolutionary_strong.py). Strong goldens
     # are a subset of that marker set.
-    # Markers: pyproject [tool.pytest.ini_options] neural / evolutionary.
+    # Markers: pyproject [tool.pytest.ini_options] neural / evolutionary /
+    # foundation. `--import-mode=importlib` prevents duplicate skill-test
+    # basenames from colliding during collection.
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 
@@ -75,30 +115,28 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Sync with neural + evolutionary extras
-        run: uv sync --extra neural --extra evolutionary --all-groups
+      - name: Sync Scientific AI optional extras
+        # mcp/api extras are required at collection time: unmarked MCP/REST
+        # tests import those packages at module import even when deselected.
+        run: >
+          uv sync --extra neural --extra evolutionary --extra foundation
+          --extra mcp --extra api --all-groups
         timeout-minutes: 30
 
-      - name: Neural and evolutionary marked tests
+      - name: Neural, evolutionary, and foundation marked tests
         timeout-minutes: 60
         run: >
-          uv run pytest -m "neural or evolutionary"
+          uv run pytest -m "neural or evolutionary or foundation"
           --import-mode=importlib
           -o addopts=
           --no-cov
           -q
 
   installation-smoke:
-    # Deselected from the default `pytest -q` gate (pyproject.toml's
-    # addopts sets `-m "not slow"`) because it builds a real wheel and
-    # installs it into a throwaway venv on every run -- too slow for
-    # every push/PR. Runs nightly (and on manual dispatch) instead of
-    # never, so a packaging regression (a botched [project.scripts]
-    # entry point, a runtime dep declared in the wrong group, a
-    # hatchling misconfig) is caught here, not by a real user running
-    # `pip install oec` (independent review of Sprint 06, Finding 2).
+    # Excluded from the default `pytest -q` gate because pyproject.toml sets
+    # `-m "not slow"`. This dedicated job still runs on every push/PR, builds
+    # a real wheel, and installs it into a throwaway venv before release merge.
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 

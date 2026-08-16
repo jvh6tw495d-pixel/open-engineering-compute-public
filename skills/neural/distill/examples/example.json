@@ -1,0 +1,23 @@
+{
+  "x": [[0.0], [1.0], [2.0], [3.0]],
+  "y": [1.0, 3.0, 5.0, 7.0],
+  "teacher_checkpoint": {
+    "model_spec": {
+      "architecture": "mlp",
+      "input_dim": 1,
+      "output_dim": 1,
+      "hidden_dims": [4],
+      "activation": "relu",
+      "dropout": 0.0
+    }
+  },
+  "student_hidden_dims": [4],
+  "epochs": 20,
+  "batch_size": 4,
+  "max_epochs": 20,
+  "max_batch_size": 4,
+  "temperature": 1.0,
+  "loss_mix": "soft_and_target",
+  "soft_weight": 0.5,
+  "seed": 0
+}

@@ -19,15 +19,11 @@ def _errors(inputs: dict) -> list[str]:
 
 
 def test_seasonal_naive_without_period_is_an_error() -> None:
-    assert _errors(
-        {"series": [1.0, 2.0, 3.0, 4.0], "steps_ahead": 2, "method": "seasonal_naive"}
-    )
+    assert _errors({"series": [1.0, 2.0, 3.0, 4.0], "steps_ahead": 2, "method": "seasonal_naive"})
 
 
 def test_seasonal_naive_short_series_is_an_error() -> None:
-    assert _errors(
-        {"series": [1.0], "steps_ahead": 2, "method": "seasonal_naive", "period": 2}
-    )
+    assert _errors({"series": [1.0], "steps_ahead": 2, "method": "seasonal_naive", "period": 2})
 
 
 def test_invalid_steps_ahead_is_an_error() -> None:

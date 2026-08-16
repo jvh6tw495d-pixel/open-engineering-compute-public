@@ -26,7 +26,7 @@ class ForecastSimpleValidator:
                     messages=["series must be a non-empty 1D list"],
                 )
             ]
-        if any(not isinstance(x, (int, float)) for x in series):
+        if any(not isinstance(x, int | float) for x in series):
             return [
                 ValidationOutcome(
                     layer=self.layer,

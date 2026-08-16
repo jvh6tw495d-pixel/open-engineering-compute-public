@@ -58,11 +58,7 @@ def pid_discrete(
         integral_candidate = integral + float(e[k]) * dt
         derivative = (float(e[k]) - e_prev) / dt if k > 0 else 0.0
         # Provisional command with candidate integral
-        uk_unsat = (
-            float(kp) * float(e[k])
-            + float(ki) * integral_candidate
-            + float(kd) * derivative
-        )
+        uk_unsat = float(kp) * float(e[k]) + float(ki) * integral_candidate + float(kd) * derivative
         saturated = False
         uk = uk_unsat
         if u_min is not None and uk < u_min:

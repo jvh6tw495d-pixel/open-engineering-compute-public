@@ -103,6 +103,12 @@ class ResultDimensionalValidator:
     are still parsed, so invalid quantity DTOs cannot be emitted as otherwise
     valid results.  Other output structures are left untouched for backwards
     compatibility with non-physical skills.
+
+    A field whose JSON Schema ``type`` is ``array`` is a different contract:
+    a bare numeric series sharing one canonical unit (declared once on the
+    array, per :mod:`scripts.audit_physical_units`), not a single
+    QuantityValue. Each item must be a plain number instead of a
+    ``{value, unit}`` mapping.
     """
 
     layer: ClassVar[str] = "dimensional"
@@ -144,6 +150,9 @@ class ResultDimensionalValidator:
                     for variant in variants
                 ):
                     continue
+            if isinstance(field_schema, dict) and field_schema.get("type") == "array":
+                outcomes.extend(self._validate_declared_array_quantity(field, result[field]))
+                continue
             outcomes.extend(self._validate_declared_quantity(field, result[field], expected_unit))
 
         # An exact DTO shape is an unambiguous declaration of a quantity even
@@ -177,6 +186,23 @@ class ResultDimensionalValidator:
 
         outcomes = self._validate_quantity(field, raw, expected_unit=expected_unit)
         return outcomes
+
+    def _validate_declared_array_quantity(self, field: str, raw: Any) -> list[ValidationOutcome]:
+        if not isinstance(raw, list) or not all(
+            isinstance(item, int | float) and not isinstance(item, bool) for item in raw
+        ):
+            return [
+                ValidationOutcome(
+                    layer=self.layer,
+                    severity=Severity.ERROR,
+                    messages=[
+                        f"field {field!r}: declared physical series must be a plain array "
+                        "of numbers"
+                    ],
+                    details={"field": field, "reason": "malformed_quantity_series_output"},
+                )
+            ]
+        return []
 
     def _validate_quantity(
         self, field: str, raw: dict[str, Any], *, expected_unit: str | None = None

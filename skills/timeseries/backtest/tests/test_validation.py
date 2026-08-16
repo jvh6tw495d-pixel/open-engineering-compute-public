@@ -33,9 +33,7 @@ def test_n_evaluations_eq_len_is_an_error() -> None:
 
 
 def test_seasonal_without_period_is_an_error() -> None:
-    assert _errors(
-        {"series": [1.0, 2.0, 3.0], "steps_ahead": 1, "method": "seasonal_naive"}
-    )
+    assert _errors({"series": [1.0, 2.0, 3.0], "steps_ahead": 1, "method": "seasonal_naive"})
 
 
 def test_valid_is_ok() -> None:

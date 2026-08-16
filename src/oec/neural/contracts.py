@@ -105,6 +105,25 @@ class OptimizerSpec(BaseModel):
     momentum: float = Field(default=0.0, ge=0.0, lt=1.0)
 
 
+class DistillationLossMix(StrEnum):
+    """Closed loss policies for governed tabular teacher→student distillation."""
+
+    SOFT_ONLY = "soft_only"
+    SOFT_AND_TARGET = "soft_and_target"
+
+
+class DistillationSpec(BaseModel):
+    """Bounded tabular MLP distillation policy (ADR 0041 S2)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    temperature: float = Field(default=1.0, gt=0.0, le=10.0)
+    loss_mix: DistillationLossMix = DistillationLossMix.SOFT_AND_TARGET
+    soft_weight: float = Field(default=0.5, ge=0.0, le=1.0)
+    max_epochs: int = Field(default=100, ge=1, le=1_000)
+    max_batch_size: int = Field(default=128, ge=1, le=1_024)
+
+
 class TrainingSpec(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 

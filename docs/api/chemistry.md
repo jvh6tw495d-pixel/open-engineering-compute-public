@@ -6,15 +6,26 @@ Library: `oec.chemistry`. Skills are thin adapters.
 
 ```python
 from oec.chemistry import (
-    Species, Composition, Mixture, Reaction,
-    parse_formula, parse_reaction, molar_mass_g_per_mol,
+    Species,
+    Composition,
+    Mixture,
+    Reaction,
+    parse_formula,
+    parse_reaction,
+    molar_mass_g_per_mol,
     water_formation_reaction,
-    fick_flux_1d, two_node_diffusion_step,
-    evaluate_equilibrium, extent_to_equilibrium_binary,
-    equilibrium_constant_from_delta_g, kp_from_kc,
+    fick_flux_1d,
+    two_node_diffusion_step,
+    evaluate_equilibrium,
+    extent_to_equilibrium_binary,
+    equilibrium_constant_from_delta_g,
+    kp_from_kc,
     reaction_quotient_mole_fraction,
-    arrhenius_rate_constant, batch_extent_euler_step, batch_extent_trajectory,
-    nernst_potential, nernst_potential_from_concentrations,
+    arrhenius_rate_constant,
+    batch_extent_euler_step,
+    batch_extent_trajectory,
+    nernst_potential,
+    nernst_potential_from_concentrations,
 )
 ```
 

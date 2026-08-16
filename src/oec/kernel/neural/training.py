@@ -266,6 +266,8 @@ def train_mlp(
         "task": training.task.value,
         "n_params": n_params,
         "capacity": capacity,
+        "normalize": norm_params,
+        "normalize_x": training.normalize_x,
     }
     ckpt_payload, ckpt_ref = save_checkpoint(
         storage=rt.checkpoint_storage,
@@ -322,23 +324,59 @@ def _metrics_for_task(
     return classification_metrics(y_true.astype(int), labels, n_classes=output_dim)
 
 
+class _Unset:
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "<UNSET>"
+
+
+NORMALIZE_UNSET: Any = _Unset()
+
+
+def _resolve_normalize(checkpoint: dict[str, Any], normalize: Any) -> dict[str, list[float]] | None:
+    """Resolve the effective normalize state for predict/evaluate.
+
+    A checkpoint artifact is the source of truth for the normalize state used
+    at training time; an explicit ``normalize`` argument overrides it. If the
+    checkpoint declares ``normalize_x=True`` but carries no ``normalize``
+    state (and none was supplied explicitly), predictions would be silently
+    wrong, so this fails clearly instead.
+    """
+    if normalize is NORMALIZE_UNSET:
+        if "normalize" in checkpoint:
+            return checkpoint["normalize"]  # type: ignore[no-any-return]
+        if checkpoint.get("normalize_x"):
+            raise ValueError(
+                "checkpoint requires normalize state (normalize_x=True) but none is "
+                "present on the checkpoint artifact; pass normalize explicitly"
+            )
+        return None
+    if normalize is None and checkpoint.get("normalize_x") and "normalize" not in checkpoint:
+        raise ValueError(
+            "checkpoint requires normalize state (normalize_x=True) but none was provided"
+        )
+    return normalize  # type: ignore[no-any-return]
+
+
 def predict_mlp(
     x: list[list[float]],
     checkpoint: dict[str, Any],
-    normalize: dict[str, list[float]] | None = None,
+    normalize: dict[str, list[float]] | None | Any = NORMALIZE_UNSET,
     device: str = "cpu",
 ) -> list[float] | list[list[float]]:
     torch = require_torch()
     from oec.kernel.neural.seeding import configure_torch_seeds
 
+    resolved_normalize = _resolve_normalize(checkpoint, normalize)
     resolved, _ = configure_torch_seeds(0, device)
     spec = NeuralModelSpec.model_validate(checkpoint["model_spec"])
     model = build_mlp(spec).to(resolved)
     model.load_state_dict(load_state_dict_from_checkpoint(checkpoint))
     model.eval()
     arr = np.asarray(x, dtype=np.float64)
-    if normalize is not None:
-        arr = _normalize_apply(arr, normalize)
+    if resolved_normalize is not None:
+        arr = _normalize_apply(arr, resolved_normalize)
     with torch.no_grad():
         out = model(torch.tensor(arr, dtype=torch.float32, device=resolved)).cpu().numpy()
     if out.shape[1] == 1:
@@ -351,7 +389,7 @@ def evaluate_mlp(
     y: list[float],
     checkpoint: dict[str, Any],
     task: NeuralTask,
-    normalize: dict[str, list[float]] | None = None,
+    normalize: dict[str, list[float]] | None | Any = NORMALIZE_UNSET,
     device: str = "cpu",
 ) -> NeuralEvaluationResult:
     preds = predict_mlp(x, checkpoint, normalize=normalize, device=device)

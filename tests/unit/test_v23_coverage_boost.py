@@ -38,16 +38,12 @@ def test_propagate_matrix_jacobian() -> None:
 
 def test_state_space_rejects_bad_dt() -> None:
     with pytest.raises(ValueError, match="dt"):
-        simulate_state_space(
-            [[1.0]], [[1.0]], [[1.0]], [[0.0]], [[1.0]], [0.0], dt=0.0
-        )
+        simulate_state_space([[1.0]], [[1.0]], [[1.0]], [[0.0]], [[1.0]], [0.0], dt=0.0)
 
 
 def test_state_space_rejects_nonsquare_a() -> None:
     with pytest.raises(ValueError, match="square"):
-        simulate_state_space(
-            [[1.0, 0.0]], [[1.0]], [[1.0]], [[0.0]], [[1.0]], [0.0], dt=1.0
-        )
+        simulate_state_space([[1.0, 0.0]], [[1.0]], [[1.0]], [[0.0]], [[1.0]], [0.0], dt=1.0)
 
 
 def test_kalman_with_input_matrix() -> None:
@@ -88,9 +84,7 @@ def test_pid_rejects_bad_anti_windup() -> None:
 def test_forecast_seasonal_and_mean() -> None:
     out_m = forecast_simple([1.0, 2.0, 3.0], steps_ahead=2, method="mean")
     assert out_m["forecast"] == [2.0, 2.0]
-    out_s = forecast_simple(
-        [1.0, 2.0, 1.0, 2.0], steps_ahead=2, method="seasonal_naive", period=2
-    )
+    out_s = forecast_simple([1.0, 2.0, 1.0, 2.0], steps_ahead=2, method="seasonal_naive", period=2)
     assert out_s["forecast"] == [1.0, 2.0]
 
 
@@ -182,7 +176,7 @@ def test_finance_simple_returns() -> None:
     from oec.kernel.finance.metrics import simple_returns
 
     out = simple_returns([100.0, 110.0, 99.0])
-    assert isinstance(out, (dict, list))
+    assert isinstance(out, dict | list)
 
 
 def test_backend_capabilities() -> None:

@@ -40,9 +40,7 @@ def test_valid_lp_is_ok() -> None:
         "problem_class": "lp",
         "sense": "min",
         "variables": [{"name": "x", "kind": "continuous", "lower": 0}],
-        "constraints": [
-            {"name": "use", "coeffs": {"x": 1}, "sense": ">=", "rhs": 0}
-        ],
+        "constraints": [{"name": "use", "coeffs": {"x": 1}, "sense": ">=", "rhs": 0}],
         "objective": {"coeffs": {"x": 1}},
     }
     assert not _errors({"ops": ops})

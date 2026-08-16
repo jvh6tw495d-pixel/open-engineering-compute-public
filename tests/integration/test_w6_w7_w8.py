@@ -18,8 +18,8 @@ from oec.experiment.cross_domain import (
 from oec.sdk import Engine
 
 
-def test_version_is_3_5() -> None:
-    assert __version__.startswith("3.5")
+def test_version_is_3_6() -> None:
+    assert __version__.startswith("3.6")
 
 
 def test_w6_foundation_embed_skill() -> None:

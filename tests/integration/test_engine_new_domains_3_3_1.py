@@ -16,7 +16,7 @@ _ROOT = Path(__file__).resolve().parents[2]
 def engine() -> Engine:
     eng = Engine(skills_root=_ROOT / "skills")
     assert eng.registration_failures == []
-    assert len(eng.registry.list_skills()) == 87
+    assert len(eng.registry.list_skills()) == 151
     return eng
 
 
@@ -107,5 +107,5 @@ def test_engine_run_new_domain_skills(engine: Engine, skill_id: str, inputs: dic
 
 def test_catalog_count_matches_filesystem(engine: Engine) -> None:
     yaml_count = len(list((_ROOT / "skills").rglob("skill.yaml")))
-    assert yaml_count == 87
+    assert yaml_count == 151
     assert len(engine.registry.list_skills()) == yaml_count

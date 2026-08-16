@@ -91,20 +91,20 @@ run another agent first and pass its result's `execution` back in.
 | `agent.control_dynamics` | Domain wrapper over public `control.*` and `dynamics.*` skills. |
 | `agent.finance_uncertainty` | Domain wrapper over public `finance.*` and `uncertainty.*` skills. |
 | `agent.neural` | Neural & evolutionary specialist: public `neural.*` and `evolutionary.*` skills (ADR 0031 / ADR 0033). |
-| `agent.foundation` | Foundation models: `foundation.embed` (builtin_hash offline or transformers), `foundation.generate` (`oec[foundation]`, optional `adapter_path` reload), `foundation.peft_train` (`oec[foundation]`; LoRA/QLoRA/full — S1 ADR 0041), `foundation.capabilities`. |
+| `agent.foundation` | Foundation models: `foundation.embed`, `foundation.generate`, `foundation.peft_train`, `foundation.vision_embed`, `foundation.vlm_generate`, `foundation.capabilities`. Vision/VLM require `oec[foundation]`, a local image or base64 raster, and a pinned 40-hex HF commit for remote models. |
 | `experiment.list_builders` | List cross-domain experiment builder names (domains + required extras). |
 | `experiment.run` | Multi-step `ExperimentSpec` runner (W2–W7, S1). Pass `spec` **or** `builder` + optional `builder_kwargs`. Returns `ExperimentRecord`. |
 | `list_agents` | Specialist-agent catalog. Preferred discovery entrypoint for hosts. |
-| `list_skills` | Raw skill catalog (~148 skills including foundation/W3). |
+| `list_skills` | Raw skill catalog (151 skills / 28 domains, including 6 foundation skills). |
 | `<skill_id>` | Run a specific low-level skill directly. `inputSchema` is the skill's own `input.schema.json`. Result is the full `ExecutionResult` JSON. |
 
-### What’s new (3.5.0 / W6–W8 on MCP)
+### What’s new (3.5.0 W6–W8 baseline + 3.6 S0–S5)
 
 1. **`agent.foundation`** + raw tools `foundation.embed`, `foundation.generate`, `foundation.capabilities` (demos: `embed`, `capabilities`, `generate`)
 2. **`experiment.list_builders`** + `experiment.run` with named W7 builders only (fail-closed catalog; not arbitrary module callables)
 3. **W3 physics skills** as raw tools (`waves.*`, `optics.*`, `em.*`, `statistical_physics.*`, …) routed via `agent.energy` / skill prefixes
-4. **Full skill catalog** auto-listed (147 skills at 3.5.0) — no hard-coded subset
-5. Package **OEC 3.5.0** — restart MCP process to pick up the new catalog
+4. **Full skill catalog** auto-listed (151 skills / 28 domains with S5) — no hard-coded subset
+5. The 3.5.0 framework baseline established this MCP surface; restart MCP after upgrades to pick up the catalog.
 
 ### S1 (Scientific AI Completion, post-3.5.0)
 
@@ -112,7 +112,27 @@ run another agent first and pass its result's `execution` back in.
 7. **`foundation.generate`** gains optional `adapter_path` to reload a `foundation.peft_train` artifact with provenance (fail-closed if missing/unloadable).
 8. **`build_peft_train_then_generate_experiment`** added to the cross-domain builder catalog — train then reload-and-generate in one `ExperimentSpec`.
 
-## Recommended host behavior
+### S4 (evolutionary / hybrid industrial closure)
+
+9. **Public W5 builders on the fail-closed catalog:** `build_optimize_single_experiment`,
+   `build_nsga2_experiment`, `build_hybrid_training_experiment` (domains + required
+   extras accurate). Helpers and non-catalog factories remain rejected by
+   `experiment.run`.
+10. **NEAT / HyperNEAT** stay **excluded** (ADR 0042) — no `evolutionary.neat` skill
+    or builder stubs.
+
+### S5 (VLM MVP, delivered)
+
+11. **`foundation.vision_embed`** and **`foundation.vlm_generate`** are exposed as raw MCP tools and as `agent.foundation` demos (`vision_embed`, `vlm_generate`). They remain optional (`oec[foundation]`): discovery does not import or download Transformers/Pillow model dependencies. Remote model requests require a 40-hex Hugging Face commit SHA; branches/tags (including `main`) are rejected. Images accept exactly one local path or base64 source, reject URLs, and are bounded before full decode by compressed bytes, dimensions, pixels, and frames.
+
+### S6 release-gate status
+
+The code baseline is `3.6.0`: S0–S5 are implemented and the catalog is **151 skills /
+28 domains / 6 foundation skills**. S6 adds a scheduled/manual optional-extras CI gate for
+neural, evolutionary, and foundation markers. This is local release-readiness work only:
+no tag, remote push, or published package is claimed.
+
+### Recommended host behavior
 
 1. Consult `list_agents` first.
 2. Use `agent.default` by default.

@@ -24,7 +24,10 @@ def test_list_builders_nonempty() -> None:
 
 
 def test_builder_catalog_matches_module_defined_builders() -> None:
-    """Catalog must equal build_*_experiment defined in this module (not imports)."""
+    """Catalog = builders defined in this module ∪ S4 public evo/hybrid builders.
+
+    Helpers and non-catalog neural factories must not appear (MCP fail-closed).
+    """
     catalog_names = {r["name"] for r in list_cross_domain_builders()}
     defined_here = {
         name
@@ -36,10 +39,17 @@ def test_builder_catalog_matches_module_defined_builders() -> None:
             and getattr(obj, "__module__", None) == cd.__name__
         )
     }
-    assert catalog_names == defined_here
-    # Imported helpers must stay out of the public W7 MCP/CLI catalog.
-    assert "build_optimize_single_experiment" not in catalog_names
+    s4_public_evo = {
+        "build_optimize_single_experiment",
+        "build_nsga2_experiment",
+        "build_hybrid_training_experiment",
+    }
+    assert catalog_names == defined_here | s4_public_evo
+    # Helpers / non-S4 factories stay out of the public MCP/CLI catalog.
+    assert "sphere_problem_2d" not in catalog_names
+    assert "problem_to_optimize_inputs" not in catalog_names
     assert "build_mlp_regressor_experiment" not in catalog_names
+    assert "build_evo_then_describe_experiment" not in catalog_names
 
 
 def test_get_cross_domain_builder_fail_closed() -> None:

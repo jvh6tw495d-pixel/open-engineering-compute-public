@@ -41,15 +41,15 @@ def test_physics_public_package_imports() -> None:
 def test_physics_import_graph_has_no_forbidden_or_upward_layers() -> None:
     for path in PHYSICS_ROOT.glob("*.py"):
         for imported in _imports(path):
-            assert not imported.startswith(
-                DENIED_PREFIXES
-            ), f"{path.name} imports forbidden dependency {imported}"
+            assert not imported.startswith(DENIED_PREFIXES), (
+                f"{path.name} imports forbidden dependency {imported}"
+            )
             if imported.startswith("oec."):
                 layer = imported.split(".", maxsplit=2)[1]
                 if layer in ARCHITECTURAL_LAYERS and layer != "physics":
-                    assert (
-                        layer in ALLOWED_LOWER_LAYERS
-                    ), f"{path.name} imports non-allowed OEC layer {imported}"
+                    assert layer in ALLOWED_LOWER_LAYERS, (
+                        f"{path.name} imports non-allowed OEC layer {imported}"
+                    )
 
 
 def test_layering_guard_detects_an_oec_mcp_import(tmp_path: Path) -> None:

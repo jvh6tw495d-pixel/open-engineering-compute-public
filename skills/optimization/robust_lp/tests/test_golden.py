@@ -34,9 +34,7 @@ def test_robust_rhs_tightens_and_solves() -> None:
             "rhs_uncertainty": {"cover": 0.2},
         }
     )["result"]
-    if out["solver_status"] == "other" and "not installed" in str(
-        out["feasibility_issues"]
-    ):
+    if out["solver_status"] == "other" and "not installed" in str(out["feasibility_issues"]):
         pytest.skip("highspy not installed")
     assert out["rhs_adjusted"]["cover"]["rhs_robust"] == pytest.approx(1.2)
     if out["converged"]:

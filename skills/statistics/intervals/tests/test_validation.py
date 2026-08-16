@@ -28,9 +28,7 @@ def test_single_sample_without_sigma_is_an_error() -> None:
 
 
 def test_single_sample_with_population_sigma_is_ok() -> None:
-    assert not _errors(
-        {"samples": [1.0], "population_standard_deviation": 0.5}
-    )
+    assert not _errors({"samples": [1.0], "population_standard_deviation": 0.5})
 
 
 def test_known_variance_removed() -> None:

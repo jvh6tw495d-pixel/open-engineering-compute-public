@@ -152,7 +152,7 @@ documentação prometem: um payload pronto para a chamada seguinte.
 
 ## Correção C — qualidade do harness de stress (P2)
 
-`scripts/ollama_agent_stress_test.py` reproduz bem o ambiente Hermes, mas
+`scripts/ollama_agent_stress_test.py` reproduz bem o ambiente host runtime, mas
 ainda possui dois avisos Ruff e um erro mypy locais ao incluí-lo na checagem.
 
 Correções pequenas:

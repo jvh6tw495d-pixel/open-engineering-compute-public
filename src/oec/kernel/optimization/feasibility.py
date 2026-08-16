@@ -75,9 +75,7 @@ def check_feasibility(ops_document: dict[str, Any]) -> dict[str, Any]:
     if solved.status is SolverStatus.INFEASIBLE:
         msg_issues.append("HiGHS reported the problem as infeasible")
     elif solved.status is SolverStatus.UNBOUNDED:
-        msg_issues.append(
-            "HiGHS reported the problem as unbounded under zero objective"
-        )
+        msg_issues.append("HiGHS reported the problem as unbounded under zero objective")
     elif not feasible:
         msg_issues.append(f"HiGHS status: {solved.status.value} ({solved.message})")
 
@@ -188,9 +186,7 @@ def _apply_path(ops: dict[str, Any], path: str, value: float) -> None:
         coeffs = ops.setdefault("objective", {}).setdefault("coeffs", {})
         coeffs[var] = value
         return
-    if path.startswith("variable:") and (
-        path.endswith(".lower") or path.endswith(".upper")
-    ):
+    if path.startswith("variable:") and (path.endswith(".lower") or path.endswith(".upper")):
         body = path[len("variable:") :]
         name, _, bound = body.rpartition(".")
         for v in ops.get("variables") or []:
@@ -302,8 +298,7 @@ def explain_infeasibility(
             "status": "time_limit",
             "tier": "time_limit",
             "explanation": (
-                "baseline feasibility solve hit the time limit; "
-                "infeasibility is not certified."
+                "baseline feasibility solve hit the time limit; infeasibility is not certified."
             ),
             **base_fields,
             "backend": "highs",
@@ -315,8 +310,7 @@ def explain_infeasibility(
             "status": "unknown",
             "tier": "unknown",
             "explanation": (
-                f"baseline solve returned {baseline.status.value}; "
-                "cannot classify infeasibility."
+                f"baseline solve returned {baseline.status.value}; cannot classify infeasibility."
             ),
             **base_fields,
             "backend": "highs",

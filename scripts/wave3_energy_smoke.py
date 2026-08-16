@@ -11,7 +11,7 @@ energy-rich skills shipped in Waves 1–2:
 
 Numeric truth for every OEC arm is read from the MCP envelope via
 ``scripts/_oec_authority.py`` (``read_authority`` / ``authority_values``).
-Host prose is recorded only for the optional weak/strong Hermes legs and is
+Host prose is recorded only for the optional weak/strong host runtime legs and is
 never used as the score source.
 
 Exercise classes (plan §7 / D4)::
@@ -301,7 +301,7 @@ def run_aa_exercise(
         verdicts = authority.three_verdicts(
             payload,
             expect_authority=True,
-            # AA probe has no host claim — host leg is optional Hermes section.
+            # AA probe has no host claim — host leg is optional host runtime section.
             host_claim=None,
             claim_compare=None,
         )
@@ -411,7 +411,7 @@ def run_all_aa(engine: Engine) -> list[ExerciseResult]:
 
 
 # ---------------------------------------------------------------------------
-# Optional host arms (Hermes weak / strong) — host_corruption demo
+# Optional host arms (host runtime weak / strong) — host_corruption demo
 # ---------------------------------------------------------------------------
 
 
@@ -691,7 +691,7 @@ def write_report(
         f"**{'Met / see host arms' if host_results else 'AA proven; host arms skipped'}** |",
         f"| ≥1 grid-zero feasibility via physics skill | "
         f"**{'Met' if grid_zero_met else 'FAIL'}** |",
-        f"| ≥1 min capacity via optimization.lp | " f"**{'Met' if min_cap_met else 'FAIL'}** |",
+        f"| ≥1 min capacity via optimization.lp | **{'Met' if min_cap_met else 'FAIL'}** |",
         "| Classification transport / OEC / host / physics / optimization | **Met** |",
         "| Report versioned; no `.stress-tmp/` | **Met** — this file |",
         "",
@@ -778,7 +778,7 @@ def write_report(
         "|---|---|---|",
         "| `physics_assertion` | Deterministic physics skill; no HiGHS | "
         "hybrid_6period, soc_trajectory, grid_zero_feasibility |",
-        "| `optimization` | Composes `optimization.lp` (HiGHS) | " "min_storage_capacity_lp |",
+        "| `optimization` | Composes `optimization.lp` (HiGHS) | min_storage_capacity_lp |",
         "| `transport_failure` | Host/CLI/timeout before authority | host arms |",
         "| `oec_execution_failure` | OEC ran without AA | AA legs if broken |",
         "| `host_corruption` | Host prose ≠ AA values | host arms when host JSON diverges |",
@@ -813,7 +813,7 @@ def write_report(
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="v2.6.1 Wave 3 energy systems smoke")
-    ap.add_argument("--skip-hosts", action="store_true", help="Skip Hermes weak/strong arms")
+    ap.add_argument("--skip-hosts", action="store_true", help="Skip host runtime weak/strong arms")
     ap.add_argument(
         "--weak-model",
         default=os.environ.get("OEC_W3_WEAK_MODEL", "granite4:7b-a1b-h-64k"),
@@ -830,7 +830,7 @@ def main() -> int:
         "--strong-provider",
         default=os.environ.get("OEC_W3_STRONG_PROVIDER", "nvidia"),
     )
-    ap.add_argument("--timeout", type=int, default=240, help="Hermes timeout seconds")
+    ap.add_argument("--timeout", type=int, default=240, help="host runtime timeout seconds")
     ap.add_argument("--json-out", type=Path, default=DEFAULT_JSON)
     ap.add_argument("--md-out", type=Path, default=DEFAULT_MD)
     args = ap.parse_args()
@@ -851,7 +851,7 @@ def main() -> int:
 
     host_results: list[HostArmResult] = []
     if not args.skip_hosts:
-        print("--- Host arms (Hermes with_oec_agent) ---", flush=True)
+        print("--- Host arms (host runtime with_oec_agent) ---", flush=True)
         # Authority probe for grid-zero (shared by both host roles).
         probe_ex = run_aa_exercise(
             engine,

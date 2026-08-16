@@ -12,9 +12,7 @@ from oec.testing import load_skill_module
 
 _SKILL_DIR = Path(__file__).resolve().parent.parent
 implementation = load_skill_module(_SKILL_DIR, "implementation")
-_OUTPUT_SCHEMA = json.loads(
-    (_SKILL_DIR / "output.schema.json").read_text(encoding="utf-8")
-)
+_OUTPUT_SCHEMA = json.loads((_SKILL_DIR / "output.schema.json").read_text(encoding="utf-8"))
 _validator = Draft202012Validator(_OUTPUT_SCHEMA)
 
 
