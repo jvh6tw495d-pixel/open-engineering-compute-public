@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from enum import StrEnum
 from typing import Literal
 
@@ -71,6 +72,8 @@ class RewardSpec(Environment):
             is_valid = isinstance(value, (int, float)) and not isinstance(value, bool)
             if not is_valid or value < 0.0:
                 raise ValueError(f"verifier score {name!r} must be a non-negative number")
+            if not math.isfinite(float(value)):
+                raise ValueError(f"verifier score {name!r} must be finite")
         weights = {
             "correct": self.correct,
             "units": self.units,

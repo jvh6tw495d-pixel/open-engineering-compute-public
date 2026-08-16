@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC
+from pathlib import Path
 
 import pytest
 
@@ -196,6 +197,46 @@ def test_worker_evaluate_uses_execution_result(monkeypatch: pytest.MonkeyPatch) 
     assert out["evaluation"]["status"] == "ok"
     assert out["evaluation"]["source"] == "execution_result"
     assert out["evaluation"]["scores"]["correct"] == 1.0
+    assert out["status"] == "ok"
+
+
+def test_missing_verifier_flags_do_not_invent_success() -> None:
+    scores = execution_result_scores({"status": "ok"})
+    assert scores["units"] == 0.0
+    assert scores["constraints"] == 0.0
+    failed = execution_result_scores({"status": "FAILED"})
+    assert failed["correct"] == 0.0
+    assert failed["constraints"] == 0.0
+    with pytest.raises(ValueError, match="boolean"):
+        execution_result_scores({"status": "ok", "units_ok": "false"})
+
+
+def test_failed_execution_result_degrades_worker(monkeypatch: pytest.MonkeyPatch) -> None:
+    from datetime import datetime
+
+    from oec.common import VersionedRef
+    from oec.execution.models import ExecutionResult, ExecutionStatus
+
+    def _finetune(
+        self: object, model: ModelRef, dataset: LearningDataset, config: TrainingConfig
+    ) -> TrainingResult:
+        return _ok_result(model, config)
+
+    monkeypatch.setattr(huggingface_mod.HuggingFaceBackend, "finetune", _finetune)
+    execution = ExecutionResult(
+        status=ExecutionStatus.FAILED,
+        skill=VersionedRef(id="physics.demo", version="1.0.0"),
+        method=VersionedRef(id="method.demo", version="1.0.0"),
+        started_at=datetime.now(UTC),
+    )
+    pipe = WorkerPipeline(
+        model=ModelRef(model_id="tinyllama/tiny"),
+        dataset=default_worker_dataset(),
+        evaluations=(execution,),
+    )
+    out = pipe.run(experiment_id="w.fail")
+    assert out["evaluation"]["status"] == "failed"
+    assert out["status"] == "degraded"
 
 
 def test_art_stage_without_episodes_fails_closed() -> None:
@@ -234,9 +275,11 @@ def test_huggingface_unknown_family_requires_target_modules() -> None:
         )
 
 
-def test_huggingface_forwards_adapter_path(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_huggingface_forwards_adapter_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     from oec.learning.backends import huggingface as hf_mod
 
+    adapter = tmp_path / "prev-adapter"
+    adapter.mkdir()
     captured: dict[str, object] = {}
 
     def _fake_peft_train(spec: object, **_kwargs: object) -> dict[str, object]:
@@ -255,10 +298,10 @@ def test_huggingface_forwards_adapter_path(monkeypatch: pytest.MonkeyPatch) -> N
         default_worker_dataset(),
         TrainingConfig(
             method=TrainingMethod.LORA,
-            hyperparameters={"adapter_path": "/tmp/prev-adapter"},
+            hyperparameters={"adapter_path": str(adapter)},
         ),
     )
-    assert captured["adapter_path"] == "/tmp/prev-adapter"
+    assert captured["adapter_path"] == str(adapter)
     assert result.details["continued_from_adapter"] is True
 
 

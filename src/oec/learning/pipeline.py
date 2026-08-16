@@ -57,7 +57,7 @@ class WorkerPipeline(BaseModel):
     environment_name: str = "python"
     reward: RewardSpec = Field(default_factory=RewardSpec)
     episodes: tuple[Episode, ...] = ()
-    evaluations: tuple[ExecutionResult | dict[str, Any], ...] = ()
+    evaluations: tuple[ExecutionResult, ...] = ()
 
     def as_experiment(self, *, experiment_id: str) -> LearningExperiment:
         method = TrainingMethod.LORA
@@ -122,6 +122,8 @@ class WorkerPipeline(BaseModel):
                 hyperparameters["sft_via_lora"] = "1"
             if previous_artifact is not None and previous_artifact.path:
                 hyperparameters["adapter_path"] = previous_artifact.path
+                if previous_artifact.sha256:
+                    hyperparameters["adapter_sha256"] = previous_artifact.sha256
                 model = ModelRef(
                     model_id=model.model_id,
                     family=model.family,
@@ -146,6 +148,9 @@ class WorkerPipeline(BaseModel):
                 )
             )
             records.append(record)
+            if record.result.status != "ok":
+                previous_artifact = None
+                break
             previous_artifact = record.result.artifact
         evaluation = _evaluate_stages(
             records,
@@ -155,9 +160,11 @@ class WorkerPipeline(BaseModel):
         )
         fine_ok = bool(records) and all(item.result.status == "ok" for item in records)
         rl_ok = all(item.get("status") == "ok" for item in rl_results)
-        if records and fine_ok and (not rl_results or rl_ok):
+        eval_status = str(evaluation.get("status") or "skipped")
+        eval_ok = eval_status == "ok" if self.evaluations else True
+        if records and fine_ok and (not rl_results or rl_ok) and eval_ok:
             status = "ok"
-        elif records or rl_results:
+        elif records or rl_results or self.evaluations:
             status = "degraded"
         else:
             status = "empty"
@@ -173,9 +180,9 @@ class WorkerPipeline(BaseModel):
 
 
 def payload_from_execution(result: Any) -> dict[str, Any]:
-    """Map an OEC ExecutionResult (or dict) to verifier payload. No LLM."""
-    if isinstance(result, dict):
-        return dict(result)
+    """Map a validated OEC ExecutionResult to verifier payload. No LLM."""
+    if not isinstance(result, ExecutionResult):
+        raise TypeError("evaluations must be oec.execution.models.ExecutionResult")
     status = getattr(result, "status", None)
     status_value = str(getattr(status, "value", status) or "")
     validation = getattr(result, "validation", None) or {}
@@ -202,11 +209,16 @@ def _evaluate_stages(
     environment_name: str,
     executions: tuple[Any, ...] = (),
 ) -> dict[str, Any]:
-    for item in reversed(executions):
+    if executions:
+        item = executions[-1]
         payload = payload_from_execution(item)
         scores = execution_result_scores(payload)
+        raw_status = str(payload.get("status") or "").upper()
+        eval_status = (
+            "ok" if raw_status in {"VALIDATED", "VERIFIED", "COMPLETED", "OK"} else "failed"
+        )
         return {
-            "status": "ok",
+            "status": eval_status,
             "environment": environment_name,
             "scores": scores,
             "reward": execution_result_reward(payload, spec),

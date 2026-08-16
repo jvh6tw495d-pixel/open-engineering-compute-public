@@ -104,7 +104,10 @@ class UnslothBackend:
                 fallback = config.model_copy(
                     update={"backend": FineTuneBackendName.HUGGINGFACE, "hyperparameters": extras}
                 )
-                return HuggingFaceBackend().finetune(model, dataset, fallback)
+                result = HuggingFaceBackend().finetune(model, dataset, fallback)
+                details = dict(result.details)
+                details["fell_back_from"] = "unsloth"
+                return result.model_copy(update={"details": details})
             raise BackendNotAvailableError(
                 _NOT_WIRED,
                 details={"backend": "unsloth", "error_type": type(exc).__name__},

@@ -124,7 +124,7 @@ def compute_dataset_hash(
         "records": list(records),
     }
     try:
-        blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
     except (TypeError, ValueError) as exc:
         raise DatasetIntegrityError(
             "dataset hash payload must contain canonical JSON values",

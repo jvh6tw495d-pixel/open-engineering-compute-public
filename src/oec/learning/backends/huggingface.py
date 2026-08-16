@@ -97,6 +97,25 @@ class HuggingFaceBackend:
         texts = texts_from_sft(dataset)
         adapter_path = config.hyperparameters.get("adapter_path")
         adapter = adapter_path if isinstance(adapter_path, str) and adapter_path else None
+        if adapter:
+            from pathlib import Path as AdapterPath
+
+            adapter_dir = AdapterPath(adapter)
+            if not adapter_dir.is_dir():
+                raise BackendNotAvailableError(
+                    "adapter_path is not a local directory",
+                    details={"adapter_path": adapter},
+                )
+            expected = config.hyperparameters.get("adapter_sha256")
+            if isinstance(expected, str) and expected:
+                from oec.foundation.runtime import _sha256_dir
+
+                actual = _sha256_dir(adapter_dir)
+                if actual != expected:
+                    raise BackendNotAvailableError(
+                        "adapter sha256 does not match chained artifact",
+                        details={"expected": expected, "got": actual},
+                    )
         targets = _target_modules(model, config)
         spec = PEFTSpec(
             method=method_map_value,
