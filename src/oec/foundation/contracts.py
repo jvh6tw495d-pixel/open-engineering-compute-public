@@ -147,6 +147,8 @@ class PEFTSpec(BaseModel):
     lora_dropout: float = Field(default=0.05, ge=0.0, lt=1.0)
     target_modules: tuple[str, ...] = ("q_proj", "v_proj")
     seed: int = 0
+    # Continue training from a local adapter directory. Missing path fails closed.
+    adapter_path: str | None = Field(default=None, min_length=1)
 
     @field_validator("target_modules")
     @classmethod

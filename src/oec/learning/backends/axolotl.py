@@ -62,6 +62,17 @@ class AxolotlBackend:
                 details={"backend": "axolotl", "error_type": type(exc).__name__},
             ) from exc
         jsonl = _materialize_jsonl(dataset)
+        try:
+            return self._train_recipe(model, config, jsonl)
+        finally:
+            jsonl.unlink(missing_ok=True)
+
+    def _train_recipe(
+        self,
+        model: ModelRef,
+        config: TrainingConfig,
+        jsonl: Path,
+    ) -> TrainingResult:
         recipe: dict[str, Any] = {
             "base_model": model.model_id,
             "model_type": "AutoModelForCausalLM",

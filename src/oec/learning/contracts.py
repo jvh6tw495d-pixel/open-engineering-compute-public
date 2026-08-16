@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Any, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Literal, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from oec.learning.datasets import LearningDataset
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -97,6 +100,6 @@ class FineTuneBackend(Protocol):
     def finetune(
         self,
         model: ModelRef,
-        dataset: Any,
+        dataset: LearningDataset,
         config: TrainingConfig,
     ) -> TrainingResult: ...

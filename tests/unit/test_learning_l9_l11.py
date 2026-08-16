@@ -81,7 +81,7 @@ def test_execution_result_verifier_bridge_is_closed_and_deterministic() -> None:
         "correct": 1.0,
         "units": 1.0,
         "constraints": 0.0,
-        "tokens": 1.0,
-        "latency": 1.0,
+        "tokens": 0.0,
+        "latency": 0.0,
     }
     assert execution_result_reward(result, spec) == pytest.approx(2.5)

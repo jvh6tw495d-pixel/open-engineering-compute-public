@@ -99,7 +99,10 @@ def test_huggingface_backend_wraps_foundation_extra_errors(
         experiment_id="learn.l5.wrap",
         model=ModelRef(model_id="local/demo"),
         dataset=LearningDataset(name="sft-tiny", records=({"text": "alpha"},)),
-        config=TrainingConfig(method=TrainingMethod.LORA),
+        config=TrainingConfig(
+            method=TrainingMethod.LORA,
+            hyperparameters={"target_modules": "q_proj,v_proj"},
+        ),
     )
     with pytest.raises(BackendNotAvailableError) as exc_info:
         run_learning_experiment(experiment)

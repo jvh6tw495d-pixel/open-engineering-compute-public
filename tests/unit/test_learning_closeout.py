@@ -146,8 +146,10 @@ def test_reward_tokens_and_latency_are_monotonic_efficiency() -> None:
     }
     assert execution_result_reward(cheap, spec) > execution_result_reward(expensive, spec)
     no_budget = {"status": "ok", "tokens": 50.0, "latency": 10.0}
-    unused = {"status": "ok"}
-    assert execution_result_scores(unused)["tokens"] == 1.0
+    missing = {"status": "ok"}
+    measured_zero = {"status": "ok", "tokens": 0.0, "latency": 0.0}
+    assert execution_result_scores(missing)["tokens"] == 0.0
+    assert execution_result_scores(measured_zero)["tokens"] == 1.0
     assert execution_result_scores(no_budget)["tokens"] == 0.0
 
 
@@ -184,6 +186,46 @@ def test_axolotl_materializes_jsonl_not_inline_list() -> None:
         assert path.suffix == ".jsonl"
     finally:
         path.unlink(missing_ok=True)
+
+
+def test_huggingface_unknown_family_requires_target_modules() -> None:
+    from oec.learning.backends.huggingface import HuggingFaceBackend
+
+    backend = HuggingFaceBackend()
+    with pytest.raises(BackendNotAvailableError, match="target_modules"):
+        backend.finetune(
+            ModelRef(model_id="some-org/mystery-model"),
+            default_worker_dataset(),
+            TrainingConfig(method=TrainingMethod.LORA),
+        )
+
+
+def test_huggingface_forwards_adapter_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    from oec.learning.backends import huggingface as hf_mod
+
+    captured: dict[str, object] = {}
+
+    def _fake_peft_train(spec: object, **_kwargs: object) -> dict[str, object]:
+        captured["adapter_path"] = getattr(spec, "adapter_path", None)
+        return {
+            "status": "ok",
+            "final_loss": 0.1,
+            "artifact": {"kind": "adapter", "path": "/tmp/out", "sha256": "a" * 64},
+        }
+
+    import oec.foundation.runtime as foundation_runtime
+
+    monkeypatch.setattr(foundation_runtime, "peft_train", _fake_peft_train)
+    result = hf_mod.HuggingFaceBackend().finetune(
+        ModelRef(model_id="tinyllama/tiny"),
+        default_worker_dataset(),
+        TrainingConfig(
+            method=TrainingMethod.LORA,
+            hyperparameters={"adapter_path": "/tmp/prev-adapter"},
+        ),
+    )
+    assert captured["adapter_path"] == "/tmp/prev-adapter"
+    assert result.details["continued_from_adapter"] is True
 
 
 def test_huggingface_sft_requires_explicit_lora_mapping() -> None:

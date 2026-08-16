@@ -19,8 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (fail-closed; not OEC extras — they would break ``--all-extras``). L9 RL
   contracts; L11 verifier rewards treat tokens/latency as efficiency scores
   (higher is better; raw consumption never inflates reward). L12
-  ``WorkerPipeline`` is a **demo** sequential FineTune executor with optional
-  artifact chaining. L13 capability suite does not invent GPU numbers. L14
+  ``WorkerPipeline`` is a **demo** sequential FineTune executor; later HF
+  stages pass ``adapter_path`` into ``PEFTSpec`` so training continues from
+  the previous adapter. Missing token/latency telemetry scores 0, not 1. L13 capability suite does not invent GPU numbers. L14
   core-only ``learning-contracts`` CI job. Replay returns a ``ReplayReport``
   (rerun + comparison), not a bit-identical reproduction proof.
 

@@ -18,6 +18,7 @@ from oec.learning.errors import BackendNotAvailableError
 _LLAMA_TARGETS = ("q_proj", "v_proj")
 _GPT2_TARGETS = ("c_attn", "c_proj")
 _OK_RUNTIME = frozenset({"ok", "success", "completed"})
+_LLAMA_MARKERS = ("llama", "mistral", "qwen", "phi", "gemma", "tinyllama")
 
 
 def _target_modules(model: ModelRef, config: TrainingConfig) -> tuple[str, ...]:
@@ -29,7 +30,12 @@ def _target_modules(model: ModelRef, config: TrainingConfig) -> tuple[str, ...]:
     model_id = model.model_id.lower()
     if "gpt2" in model_id or "gpt-2" in model_id:
         return _GPT2_TARGETS
-    return _LLAMA_TARGETS
+    if any(marker in model_id for marker in _LLAMA_MARKERS):
+        return _LLAMA_TARGETS
+    raise BackendNotAvailableError(
+        "huggingface target_modules must be set for unknown model families",
+        details={"model_id": model.model_id},
+    )
 
 
 class HuggingFaceBackend:
@@ -72,6 +78,7 @@ class HuggingFaceBackend:
                 TrainingDatasetSpec,
             )
             from oec.foundation.errors import (
+                AdapterNotFoundError,
                 BitsAndBytesNotAvailableError,
                 PeftNotAvailableError,
                 TransformersNotAvailableError,
@@ -89,6 +96,7 @@ class HuggingFaceBackend:
         method_map_value = method_map[method]
         texts = texts_from_sft(dataset)
         adapter_path = config.hyperparameters.get("adapter_path")
+        adapter = adapter_path if isinstance(adapter_path, str) and adapter_path else None
         targets = _target_modules(model, config)
         spec = PEFTSpec(
             method=method_map_value,
@@ -101,10 +109,12 @@ class HuggingFaceBackend:
             ),
             target_modules=targets,
             seed=config.seed,
+            adapter_path=adapter,
         )
         try:
             raw: dict[str, Any] = peft_train(spec)
         except (
+            AdapterNotFoundError,
             TransformersNotAvailableError,
             PeftNotAvailableError,
             BitsAndBytesNotAvailableError,
@@ -149,8 +159,9 @@ class HuggingFaceBackend:
         }
         if mapped_from is not None:
             details["method_mapped_from"] = mapped_from
-        if isinstance(adapter_path, str) and adapter_path:
-            details["base_adapter_path"] = adapter_path
+        if adapter:
+            details["base_adapter_path"] = adapter
+            details["continued_from_adapter"] = True
         return TrainingResult(
             status=status,
             backend=FineTuneBackendName.HUGGINGFACE,

@@ -145,10 +145,10 @@ L1 Contracts
 - Optional extra still `oec[foundation]`
 - **Gate:** no HF types leaked on public surfaces
 
-### L6 — Distillation workflow ✅
+### L6 — Distillation workflow (tabular, core-tested)
 
-- Teacher → demonstrations → DistillationDataset → student → eval → benchmark
-- Tabular records call `neural.distill_mlp` **only with a supplied teacher checkpoint**
+- Tabular teacher checkpoint → `neural.distill_mlp` → student metrics
+- Not a full FM demo/SFT/eval product pipeline
 - Text/FM distillation fails closed (`LearningError`) — no invented numbers
 - **Gate:** `compare_base_vs_distilled` under one Benchmark protocol
 
@@ -157,8 +157,7 @@ L1 Contracts
 - Same FineTune contract; `backend="huggingface"|"unsloth"|"axolotl"`
 - Fail-closed without the **external** package (not an OEC extra)
 - Unsloth may fall back to HF only when `allow_hf_fallback=1`
-- **Gate L7:** swap backend with no contract change
-- **Gate L8:** Axolotl recipe ≡ OEC Experiment (not an opaque script)
+- Live backend-swap and Axolotl train-entry gates remain unverified
 
 ### L9–L11 — RL ✅
 

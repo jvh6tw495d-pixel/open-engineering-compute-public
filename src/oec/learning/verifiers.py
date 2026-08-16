@@ -9,8 +9,10 @@ from oec.learning.environments import RewardSpec, VerifierScores, compute_reward
 _OK_STATUSES = frozenset({"validated", "verified", "completed", "ok"})
 
 
-def _efficiency_score(observed: float, budget: float | None) -> float:
-    """Higher is better. Raw consumption must never increase the score."""
+def _efficiency_score(observed: float | None, budget: float | None) -> float:
+    """Higher is better. Missing telemetry must not look like perfect efficiency."""
+    if observed is None:
+        return 0.0
     if observed < 0.0:
         raise ValueError("observed consumption must be non-negative")
     if observed == 0.0:
@@ -34,8 +36,10 @@ def execution_result_scores(payload: dict[str, Any]) -> dict[str, float]:
     units = (1.0 if correct else 0.0) if units_ok is None else (1.0 if units_ok else 0.0)
     constraints_ok = payload.get("constraints_ok", payload.get("constraint_ok", True))
     constraints = 1.0 if constraints_ok else 0.0
-    tokens_raw = float(payload.get("tokens") or 0.0)
-    latency_raw = float(payload.get("latency") or payload.get("duration_ms") or 0.0)
+    tokens_raw = payload.get("tokens")
+    latency_raw = payload.get(
+        "latency", payload.get("duration_ms") if "duration_ms" in payload else None
+    )
     token_budget = payload.get("token_budget")
     latency_budget = payload.get("latency_budget", payload.get("duration_budget"))
     return {
@@ -43,10 +47,12 @@ def execution_result_scores(payload: dict[str, Any]) -> dict[str, float]:
         "units": units,
         "constraints": constraints,
         "tokens": _efficiency_score(
-            tokens_raw, float(token_budget) if token_budget is not None else None
+            None if tokens_raw is None else float(tokens_raw),
+            float(token_budget) if token_budget is not None else None,
         ),
         "latency": _efficiency_score(
-            latency_raw, float(latency_budget) if latency_budget is not None else None
+            None if latency_raw is None else float(latency_raw),
+            float(latency_budget) if latency_budget is not None else None,
         ),
     }
 

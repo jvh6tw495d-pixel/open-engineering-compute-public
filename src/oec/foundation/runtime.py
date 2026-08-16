@@ -676,7 +676,19 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
     model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
 
     kind = ArtifactKind.CHECKPOINT
-    if spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
+    if spec.adapter_path:
+        if spec.method is PEFTMethod.NONE:
+            raise ValueError("adapter_path cannot be combined with full fine-tune")
+        adapter_dir = Path(spec.adapter_path)
+        if not adapter_dir.is_dir():
+            raise AdapterNotFoundError(details={"adapter_path": str(adapter_dir)})
+        try:
+            from peft import PeftModel
+        except ImportError as exc:
+            raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
+        model = PeftModel.from_pretrained(model, str(adapter_dir))  # nosec B615
+        kind = ArtifactKind.ADAPTER
+    elif spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
         try:
             from peft import LoraConfig, get_peft_model
         except ImportError as exc:
