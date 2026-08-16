@@ -75,8 +75,13 @@ class LearningRunRecord(BaseModel):
             raise ValueError("record seed does not match config.seed")
         if self.result.backend != self.backend:
             raise ValueError("result.backend does not match record backend")
-        if self.result.model is not None and self.result.model.model_id != self.model_id:
-            raise ValueError("result.model.model_id does not match record model_id")
+        if self.result.model is not None:
+            if self.result.model.model_id != self.model_id:
+                raise ValueError("result.model.model_id does not match record model_id")
+            if self.result.model.revision != self.model_revision:
+                raise ValueError("result.model.revision does not match record model_revision")
+            if self.model_family is not None and self.result.model.family != self.model_family:
+                raise ValueError("result.model.family does not match record model_family")
         return self
 
 

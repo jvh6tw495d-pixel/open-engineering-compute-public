@@ -32,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ``build_full_stack_learning_experiment`` runs AG + NSGA-II + MLP +
   distill + hybrid + embed + PEFT/generate as one ``ExperimentSpec``.
 
+### Fixed
+
+- **Learning pipeline honesty:** ART-only worker runs can be ``ok`` (not
+  always degraded). ``CONVERGED_WITH_WARNINGS`` / ``APPROXIMATE`` evals
+  match OEC graded status. A failed ExecutionResult is not hidden by a
+  later success. Adapter chaining requires ``sha256``. Persist uses a
+  unique temp file. Run records reject revision/family drift.
+
 ### Changed
 
 - **Learning install UX:** calling Unsloth, Axolotl, or ART never

@@ -61,11 +61,22 @@ class WorkerPipeline(BaseModel):
 
     def as_experiment(self, *, experiment_id: str) -> LearningExperiment:
         method = TrainingMethod.LORA
+        backend = FineTuneBackendName.HUGGINGFACE
+        for stage in self.stages:
+            key = stage.backend.strip().lower()
+            if key in {item.value for item in FineTuneBackendName}:
+                method = (
+                    stage.method
+                    if isinstance(stage.method, TrainingMethod)
+                    else TrainingMethod(stage.method)
+                )
+                backend = FineTuneBackendName(key)
+                break
         return LearningExperiment(
             experiment_id=experiment_id,
             model=self.model,
             dataset=self.dataset,
-            config=TrainingConfig(method=method, seed=self.dataset.seed),
+            config=TrainingConfig(method=method, backend=backend, seed=self.dataset.seed),
             title=self.name,
         )
 
@@ -121,9 +132,13 @@ class WorkerPipeline(BaseModel):
             if method is TrainingMethod.SFT:
                 hyperparameters["sft_via_lora"] = "1"
             if previous_artifact is not None and previous_artifact.path:
+                if not previous_artifact.sha256:
+                    raise LearningError(
+                        "cannot chain FineTune stages without adapter sha256",
+                        details={"stage": stage.name, "adapter_path": previous_artifact.path},
+                    )
                 hyperparameters["adapter_path"] = previous_artifact.path
-                if previous_artifact.sha256:
-                    hyperparameters["adapter_sha256"] = previous_artifact.sha256
+                hyperparameters["adapter_sha256"] = previous_artifact.sha256
                 model = ModelRef(
                     model_id=model.model_id,
                     family=model.family,
@@ -158,13 +173,14 @@ class WorkerPipeline(BaseModel):
             self.environment_name,
             executions=self.evaluations,
         )
-        fine_ok = bool(records) and all(item.result.status == "ok" for item in records)
-        rl_ok = all(item.get("status") == "ok" for item in rl_results)
+        fine_ok = all(item.result.status == "ok" for item in records) if records else True
+        rl_ok = all(item.get("status") == "ok" for item in rl_results) if rl_results else True
         eval_status = str(evaluation.get("status") or "skipped")
-        eval_ok = eval_status == "ok" if self.evaluations else True
-        if records and fine_ok and (not rl_results or rl_ok) and eval_ok:
+        eval_ok = eval_status in {"ok", "skipped"} if not self.evaluations else eval_status == "ok"
+        has_work = bool(records or rl_results or self.evaluations)
+        if has_work and fine_ok and rl_ok and eval_ok:
             status = "ok"
-        elif records or rl_results or self.evaluations:
+        elif has_work:
             status = "degraded"
         else:
             status = "empty"
@@ -198,9 +214,17 @@ def payload_from_execution(result: Any) -> dict[str, Any]:
             payload["constraints_ok"] = validation["constraints_ok"]
         elif "constraint_ok" in validation:
             payload["constraint_ok"] = validation["constraint_ok"]
-    if isinstance(diagnostics, dict) and "tokens" in diagnostics:
-        payload["tokens"] = diagnostics["tokens"]
+    if isinstance(diagnostics, dict):
+        for key in ("tokens", "token_budget", "latency", "latency_budget", "duration_budget"):
+            if key in diagnostics:
+                payload[key] = diagnostics[key]
     return payload
+
+
+_ACCEPTABLE_EXECUTION = frozenset(
+    {"VALIDATED", "VERIFIED", "COMPLETED", "OK", "CONVERGED_WITH_WARNINGS", "APPROXIMATE"}
+)
+_FAILED_EXECUTION = frozenset({"FAILED", "INVALID"})
 
 
 def _evaluate_stages(
@@ -210,26 +234,32 @@ def _evaluate_stages(
     executions: tuple[Any, ...] = (),
 ) -> dict[str, Any]:
     if executions:
-        item = executions[-1]
-        payload = payload_from_execution(item)
-        scores = execution_result_scores(payload)
-        raw_status = str(payload.get("status") or "").upper()
-        eval_status = (
-            "ok" if raw_status in {"VALIDATED", "VERIFIED", "COMPLETED", "OK"} else "failed"
-        )
+        payloads = [payload_from_execution(item) for item in executions]
+        last = payloads[-1]
+        scores = execution_result_scores(last)
+        labels = [str(item.get("status") or "").upper() for item in payloads]
+        if any(label in _FAILED_EXECUTION for label in labels):
+            eval_status = "failed"
+        elif labels[-1] in _ACCEPTABLE_EXECUTION:
+            eval_status = "ok"
+        else:
+            eval_status = "failed"
         return {
             "status": eval_status,
             "environment": environment_name,
             "scores": scores,
-            "reward": execution_result_reward(payload, spec),
+            "reward": execution_result_reward(last, spec),
             "source": "execution_result",
+            "n_executions": len(payloads),
         }
     for record in reversed(records):
         staged = record.result.details.get("execution")
         if isinstance(staged, dict):
             scores = execution_result_scores(staged)
+            raw_status = str(staged.get("status") or "").upper()
+            eval_status = "ok" if raw_status in _ACCEPTABLE_EXECUTION else "failed"
             return {
-                "status": "ok",
+                "status": eval_status,
                 "environment": environment_name,
                 "scores": scores,
                 "reward": execution_result_reward(staged, spec),

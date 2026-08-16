@@ -293,12 +293,13 @@ def test_huggingface_forwards_adapter_path(monkeypatch: pytest.MonkeyPatch, tmp_
     import oec.foundation.runtime as foundation_runtime
 
     monkeypatch.setattr(foundation_runtime, "peft_train", _fake_peft_train)
+    monkeypatch.setattr(foundation_runtime, "_sha256_dir", lambda _path: "ab" * 32)
     result = hf_mod.HuggingFaceBackend().finetune(
         ModelRef(model_id="tinyllama/tiny"),
         default_worker_dataset(),
         TrainingConfig(
             method=TrainingMethod.LORA,
-            hyperparameters={"adapter_path": str(adapter)},
+            hyperparameters={"adapter_path": str(adapter), "adapter_sha256": "ab" * 32},
         ),
     )
     assert captured["adapter_path"] == str(adapter)

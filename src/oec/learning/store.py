@@ -7,6 +7,8 @@ Core-safe: this module uses Pydantic + stdlib only. Backends stay lazy via
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
@@ -177,10 +179,16 @@ def _as_json_file(path: str | Path, filename: str) -> Path:
 
 
 def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
-    """Write JSON via a sibling temporary file, then atomically replace it."""
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    temporary.replace(path)
+    """Write JSON via a unique sibling temporary file, then atomically replace it."""
+    handle, name = tempfile.mkstemp(prefix=f"{path.name}.", suffix=".tmp", dir=path.parent)
+    os.close(handle)
+    temporary = Path(name)
+    try:
+        temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        temporary.replace(path)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
 
 
 def _read_json_object(path: Path) -> dict[str, Any]:

@@ -108,15 +108,19 @@ class HuggingFaceBackend:
                     details={"adapter_path": adapter},
                 )
             expected = config.hyperparameters.get("adapter_sha256")
-            if isinstance(expected, str) and expected:
-                from oec.foundation.runtime import _sha256_dir
+            if not isinstance(expected, str) or not expected:
+                raise BackendNotAvailableError(
+                    "adapter_path requires hyperparameters adapter_sha256 (no unpinned continue)",
+                    details={"adapter_path": adapter},
+                )
+            from oec.foundation.runtime import _sha256_dir
 
-                actual = _sha256_dir(adapter_dir)
-                if actual != expected:
-                    raise BackendNotAvailableError(
-                        "adapter sha256 does not match chained artifact",
-                        details={"expected": expected, "got": actual},
-                    )
+            actual = _sha256_dir(adapter_dir)
+            if actual != expected:
+                raise BackendNotAvailableError(
+                    "adapter sha256 does not match chained artifact",
+                    details={"expected": expected, "got": actual},
+                )
         targets = _target_modules(model, config)
         spec = PEFTSpec(
             method=method_map_value,

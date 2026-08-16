@@ -76,7 +76,12 @@ def test_huggingface_lora_can_continue_from_saved_adapter(
     assert stage1.artifact.path is not None
 
     continued_config = config.model_copy(
-        update={"hyperparameters": {"adapter_path": stage1.artifact.path}}
+        update={
+            "hyperparameters": {
+                "adapter_path": stage1.artifact.path,
+                "adapter_sha256": stage1.artifact.sha256 or "",
+            }
+        }
     )
     try:
         stage2 = backend.finetune(model, dataset, continued_config)
