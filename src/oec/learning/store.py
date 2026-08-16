@@ -69,6 +69,8 @@ def save_run(record: LearningRunRecord, path: str | Path) -> Path:
     record.dataset.verify_integrity()
     dest = _as_json_file(path, RUN_FILENAME)
     dest.parent.mkdir(parents=True, exist_ok=True)
+    if not record.identity_hash:
+        record = record.model_copy(update={"identity_hash": compute_run_identity(record)})
     dest.write_text(
         json.dumps(record.model_dump(mode="json"), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -134,7 +136,7 @@ def replay_learning_experiment(record: LearningRunRecord) -> ReplayReport:
         dataset_hash=record.dataset_hash,
         model_id=record.model_id,
         model_revision=record.model_revision,
-        model_family=family,
+        model_family=record.model_family,
         backend=record.config.backend,
         config=record.config,
         seed=record.seed,
@@ -142,11 +144,13 @@ def replay_learning_experiment(record: LearningRunRecord) -> ReplayReport:
         source_run_id=record.run_id,
     )
     rerun = rerun.model_copy(update={"identity_hash": compute_run_identity(rerun)})
+    source_identity = record.identity_hash or compute_run_identity(record)
     comparison: dict[str, Any] = {
         "source_run_id": record.run_id,
         "rerun_id": rerun.run_id,
-        "identity_hash_source": record.identity_hash or compute_run_identity(record),
+        "identity_hash_source": source_identity,
         "identity_hash_rerun": rerun.identity_hash,
+        "identity_match": source_identity == rerun.identity_hash,
     }
     shared = set(record.result.metrics) & set(result.metrics)
     if shared:

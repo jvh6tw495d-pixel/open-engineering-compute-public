@@ -19,6 +19,7 @@ from oec.learning import (
     TrainingConfig,
     TrainingResult,
 )
+from oec.learning.experiments import compute_run_identity
 from oec.learning.store import (
     load_dataset,
     load_run,
@@ -44,7 +45,7 @@ def _record(
     ds = dataset or _dataset()
     model = ModelRef(model_id="local/demo", revision="abc")
     config = TrainingConfig(backend=backend, max_steps=2, seed=9)
-    return LearningRunRecord(
+    record = LearningRunRecord(
         run_id="run-1",
         experiment_id="learn.store",
         code_version={"git_commit": "deadbeef"},
@@ -66,6 +67,7 @@ def _record(
             model=model,
         ),
     )
+    return record.model_copy(update={"identity_hash": compute_run_identity(record)})
 
 
 def test_store_import_does_not_load_ml_packages() -> None:
@@ -182,6 +184,7 @@ def test_replay_returns_backend_result_without_inventing_metrics(
     monkeypatch.setattr("oec.learning.store.select_backend", lambda name: _Backend())
     report = replay_learning_experiment(record)
     assert report.source_run_id == record.run_id
+    assert report.comparison["identity_match"] is True
     assert report.record.result.metrics == {"loss": 0.42}
     assert report.record.source_run_id == record.run_id
     assert captured["dataset"] is record.dataset

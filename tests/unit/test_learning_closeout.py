@@ -8,6 +8,7 @@ from oec.learning import (
     BackendNotAvailableError,
     FineTuneBackendName,
     LearningDataset,
+    LearningError,
     ModelRef,
     TrainingConfig,
     TrainingMethod,
@@ -77,6 +78,21 @@ def test_unsloth_hf_fallback_is_explicit(monkeypatch: pytest.MonkeyPatch) -> Non
 
     fake.FastLanguageModel = FastLanguageModel  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "unsloth", fake)
+    datasets_mod = types.ModuleType("datasets")
+
+    class Dataset:
+        @staticmethod
+        def from_list(rows: object) -> object:
+            return rows
+
+    datasets_mod.Dataset = Dataset  # type: ignore[attr-defined]
+    transformers_mod = types.ModuleType("transformers")
+    transformers_mod.TrainingArguments = lambda **_kwargs: object()  # type: ignore[attr-defined]
+    trl_mod = types.ModuleType("trl")
+    trl_mod.SFTTrainer = object  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "datasets", datasets_mod)
+    monkeypatch.setitem(sys.modules, "transformers", transformers_mod)
+    monkeypatch.setitem(sys.modules, "trl", trl_mod)
 
     ds = LearningDataset(name="x", kind=DatasetKind.SFT, records=({"text": "a"}, {"text": "b"}))
     model = ModelRef(model_id="m")
@@ -144,6 +160,30 @@ def test_sft_prompt_completion_keeps_both_fields() -> None:
         records=({"prompt": "Q?", "completion": "A."},),
     )
     assert texts_from_sft(dataset) == ["Q?\nA."]
+
+
+def test_art_stage_without_episodes_fails_closed() -> None:
+    from oec.learning.pipeline import WorkerStage
+
+    pipe = WorkerPipeline(
+        model=ModelRef(model_id="tiny"),
+        dataset=default_worker_dataset(),
+        stages=(WorkerStage(name="rl", method=TrainingMethod.SFT, backend="art"),),
+    )
+    with pytest.raises(LearningError, match="episodes"):
+        pipe.run(experiment_id="w.art")
+
+
+def test_axolotl_materializes_jsonl_not_inline_list() -> None:
+    from oec.learning.backends.axolotl import _materialize_jsonl
+
+    path = _materialize_jsonl(default_worker_dataset())
+    try:
+        first = path.read_text(encoding="utf-8").splitlines()[0]
+        assert "solve x**2-2" in first
+        assert path.suffix == ".jsonl"
+    finally:
+        path.unlink(missing_ok=True)
 
 
 def test_huggingface_sft_requires_explicit_lora_mapping() -> None:

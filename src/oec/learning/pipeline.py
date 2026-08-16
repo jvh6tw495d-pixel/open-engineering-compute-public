@@ -14,9 +14,16 @@ from oec.learning.contracts import (
     TrainingMethod,
 )
 from oec.learning.datasets import DatasetKind, LearningDataset
-from oec.learning.environments import RewardSpec
-from oec.learning.errors import BackendNotAvailableError
+from oec.learning.environments import (
+    ElectricalEngineeringEnvironment,
+    MathematicsEnvironment,
+    PhysicsEnvironment,
+    RewardSpec,
+    ToolUseEnvironment,
+)
+from oec.learning.errors import BackendNotAvailableError, LearningError
 from oec.learning.experiments import LearningExperiment, LearningRunRecord, run_learning_experiment
+from oec.learning.rl import Environment, Episode
 from oec.learning.verifiers import execution_result_reward, execution_result_scores
 
 
@@ -48,6 +55,7 @@ class WorkerPipeline(BaseModel):
     )
     environment_name: str = "python"
     reward: RewardSpec = Field(default_factory=RewardSpec)
+    episodes: tuple[Episode, ...] = ()
 
     def as_experiment(self, *, experiment_id: str) -> LearningExperiment:
         method = TrainingMethod.LORA
@@ -80,10 +88,18 @@ class WorkerPipeline(BaseModel):
             backend_key = stage.backend.strip().lower()
             if backend_key == "art":
                 from oec.learning.backends.art import ARTBackend
-                from oec.learning.environments import MathematicsEnvironment
 
-                env = MathematicsEnvironment()
-                rl = ARTBackend().train(env, ())
+                if not self.episodes:
+                    raise LearningError(
+                        "ART worker stage requires pipeline.episodes; empty train is not implied",
+                        details={"stage": stage.name},
+                    )
+                env = _environment_for(self.environment_name)
+                typed = tuple(
+                    item if isinstance(item, Episode) else Episode.model_validate(item)
+                    for item in self.episodes
+                )
+                rl = ARTBackend().train(env, typed)
                 rl_results.append({"stage": stage.name, **rl.model_dump(mode="json")})
                 continue
             if backend_key not in {item.value for item in FineTuneBackendName}:
@@ -170,6 +186,17 @@ def _evaluate_stages(
         "environment": environment_name,
         "reason": "no verifier scores from stages",
     }
+
+
+def _environment_for(name: str) -> Environment:
+    key = name.strip().lower()
+    if key in {"physics"}:
+        return PhysicsEnvironment()
+    if key in {"electrical_engineering", "ee"}:
+        return ElectricalEngineeringEnvironment()
+    if key in {"tool_use", "python", "tools"}:
+        return ToolUseEnvironment()
+    return MathematicsEnvironment()
 
 
 def default_worker_dataset() -> LearningDataset:

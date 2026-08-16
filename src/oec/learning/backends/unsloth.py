@@ -1,14 +1,24 @@
-"""L7 optional Unsloth SFT/LoRA adapter."""
+"""L7 optional Unsloth SFT/LoRA adapter (integration-unverified)."""
 
 from __future__ import annotations
 
 import importlib
 
 from oec.learning.contracts import FineTuneBackendName, ModelRef, TrainingConfig, TrainingResult
-from oec.learning.datasets import LearningDataset
+from oec.learning.datasets import LearningDataset, texts_from_sft
 from oec.learning.errors import BackendNotAvailableError
 
 _NOT_WIRED = "adapter not wired to this unsloth version"
+
+
+def _require_module(name: str) -> object:
+    try:
+        return importlib.import_module(name)
+    except Exception as exc:
+        raise BackendNotAvailableError(
+            f"{name} is required for the Unsloth adapter",
+            details={"backend": "unsloth", "missing": name, "error_type": type(exc).__name__},
+        ) from exc
 
 
 class UnslothBackend:
@@ -17,22 +27,23 @@ class UnslothBackend:
     def finetune(
         self, model: ModelRef, dataset: LearningDataset, config: TrainingConfig
     ) -> TrainingResult:
-        try:
-            unsloth = importlib.import_module("unsloth")
-        except Exception as exc:
+        unsloth = _require_module("unsloth")
+        fast_language_model = getattr(unsloth, "FastLanguageModel", None)
+        if fast_language_model is None:
             raise BackendNotAvailableError(
-                "unsloth is not installed; L7 adapter is fail-closed",
-                details={"backend": "unsloth", "error_type": type(exc).__name__},
-            ) from exc
+                _NOT_WIRED,
+                details={"backend": "unsloth", "missing": "FastLanguageModel"},
+            )
+        _require_module("datasets")
+        _require_module("transformers")
+        _require_module("trl")
 
-        # Public FastLanguageModel SFT/LoRA example path.  No version-specific
-        # private APIs are guessed; the HF route is an explicit escape hatch.
         try:
-            fast_language_model = vars(unsloth)["FastLanguageModel"]
             from datasets import Dataset
             from transformers import TrainingArguments
             from trl import SFTTrainer
 
+            texts = texts_from_sft(dataset)
             loaded_model, tokenizer = fast_language_model.from_pretrained(
                 model_name=model.model_id,
                 max_seq_length=config.max_seq_len,
@@ -59,7 +70,7 @@ class UnslothBackend:
             trainer = SFTTrainer(
                 model=lora_model,
                 tokenizer=tokenizer,
-                train_dataset=Dataset.from_list(list(dataset.records)),
+                train_dataset=Dataset.from_list([{"text": text} for text in texts]),
                 dataset_text_field="text",
                 max_seq_length=config.max_seq_len,
                 args=TrainingArguments(
@@ -79,13 +90,21 @@ class UnslothBackend:
                 model=model,
                 metrics={"loss": float(loss)} if isinstance(loss, (int, float)) else {},
                 message="unsloth FastLanguageModel SFT/LoRA",
-                details={"adapter": "FastLanguageModel", "dataset_records": len(dataset.records)},
+                details={"adapter": "FastLanguageModel", "dataset_records": len(texts)},
             )
+        except BackendNotAvailableError:
+            raise
         except Exception as exc:
             if config.hyperparameters.get("allow_hf_fallback") == "1":
                 from oec.learning.backends.huggingface import HuggingFaceBackend
 
-                return HuggingFaceBackend().finetune(model, dataset, config)
+                extras = dict(config.hyperparameters)
+                if config.method.value == "sft":
+                    extras["sft_via_lora"] = "1"
+                fallback = config.model_copy(
+                    update={"backend": FineTuneBackendName.HUGGINGFACE, "hyperparameters": extras}
+                )
+                return HuggingFaceBackend().finetune(model, dataset, fallback)
             raise BackendNotAvailableError(
                 _NOT_WIRED,
                 details={"backend": "unsloth", "error_type": type(exc).__name__},

@@ -15,17 +15,21 @@ from oec.learning.contracts import (
 from oec.learning.datasets import LearningDataset, texts_from_sft
 from oec.learning.errors import BackendNotAvailableError
 
-_DEFAULT_TARGETS = ("c_attn", "c_proj")
+_LLAMA_TARGETS = ("q_proj", "v_proj")
+_GPT2_TARGETS = ("c_attn", "c_proj")
 _OK_RUNTIME = frozenset({"ok", "success", "completed"})
 
 
-def _target_modules(config: TrainingConfig) -> tuple[str, ...]:
+def _target_modules(model: ModelRef, config: TrainingConfig) -> tuple[str, ...]:
     raw = config.hyperparameters.get("target_modules")
     if isinstance(raw, str) and raw.strip():
         parts = tuple(item.strip() for item in raw.split(",") if item.strip())
         if parts:
             return parts
-    return _DEFAULT_TARGETS
+    model_id = model.model_id.lower()
+    if "gpt2" in model_id or "gpt-2" in model_id:
+        return _GPT2_TARGETS
+    return _LLAMA_TARGETS
 
 
 class HuggingFaceBackend:
@@ -85,7 +89,7 @@ class HuggingFaceBackend:
         method_map_value = method_map[method]
         texts = texts_from_sft(dataset)
         adapter_path = config.hyperparameters.get("adapter_path")
-        targets = _target_modules(config)
+        targets = _target_modules(model, config)
         spec = PEFTSpec(
             method=method_map_value,
             model=FoundationModelSpec(model_id=model.model_id, revision=model.revision),

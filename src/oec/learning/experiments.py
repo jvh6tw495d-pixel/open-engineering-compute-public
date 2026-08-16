@@ -102,9 +102,8 @@ def run_learning_experiment(experiment: LearningExperiment) -> LearningRunRecord
 
 
 def compute_run_identity(record: LearningRunRecord) -> str:
-    """Hash of the reproducible inputs — not the live metrics."""
+    """Hash of reproducible inputs only (not run_id, experiment label, or metrics)."""
     payload = {
-        "experiment_id": record.experiment_id,
         "dataset_hash": record.dataset_hash,
         "model_id": record.model_id,
         "model_revision": record.model_revision,
@@ -112,7 +111,6 @@ def compute_run_identity(record: LearningRunRecord) -> str:
         "backend": str(record.backend),
         "config": record.config.model_dump(mode="json"),
         "seed": record.seed,
-        "code_version": record.code_version,
     }
     blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
