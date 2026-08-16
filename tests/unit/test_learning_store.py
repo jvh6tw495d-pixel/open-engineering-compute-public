@@ -193,3 +193,45 @@ def test_replay_returns_backend_result_without_inventing_metrics(
     assert isinstance(model, ModelRef)
     assert model.model_id == record.model_id
     assert model.revision == record.model_revision
+
+
+def test_replay_comparable_when_dependency_versions_match(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    versions = {
+        "torch": "2.4.0",
+        "transformers": "4.44.0",
+        "peft": "0.12.0",
+        "unsloth": None,
+        "axolotl": None,
+        "art": None,
+    }
+
+    class _Backend:
+        def finetune(
+            self,
+            model: ModelRef,
+            dataset: LearningDataset,
+            config: TrainingConfig,
+        ) -> TrainingResult:
+            return TrainingResult(
+                status="ok",
+                backend=config.backend,
+                method=config.method,
+                model=model,
+            )
+
+    monkeypatch.setattr("oec.learning.store.select_backend", lambda name: _Backend())
+    monkeypatch.setattr("oec.learning.store.capture_dependency_versions", lambda: dict(versions))
+
+    matching = _record().model_copy(update={"dependency_versions": dict(versions)})
+    matched = replay_learning_experiment(matching)
+    assert matched.comparison["identity_match"] is True
+    assert matched.comparison["comparable"] is True
+
+    differing = _record().model_copy(
+        update={"dependency_versions": {**versions, "torch": "1.13.0"}}
+    )
+    mismatched = replay_learning_experiment(differing)
+    assert mismatched.comparison["identity_match"] is True
+    assert mismatched.comparison["comparable"] is False

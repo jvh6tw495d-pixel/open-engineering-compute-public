@@ -18,7 +18,12 @@ from oec.learning.contracts import (
 )
 from oec.learning.datasets import LearningDataset
 from oec.learning.errors import BackendNotAvailableError
-from oec.learning.hardware import capture_code_version, capture_environment, capture_hardware
+from oec.learning.hardware import (
+    capture_code_version,
+    capture_dependency_versions,
+    capture_environment,
+    capture_hardware,
+)
 
 
 class LearningExperiment(BaseModel):
@@ -41,6 +46,7 @@ class LearningRunRecord(BaseModel):
     code_version: dict[str, str | None]
     environment: dict[str, Any]
     hardware: dict[str, Any]
+    dependency_versions: dict[str, str | None] = Field(default_factory=dict)
     dataset: LearningDataset
     dataset_name: str
     dataset_version: str
@@ -86,6 +92,7 @@ def run_learning_experiment(experiment: LearningExperiment) -> LearningRunRecord
         code_version=capture_code_version(),
         environment=capture_environment(),
         hardware=capture_hardware(),
+        dependency_versions=capture_dependency_versions(),
         dataset=experiment.dataset,
         dataset_name=experiment.dataset.name,
         dataset_version=experiment.dataset.version,

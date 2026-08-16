@@ -21,7 +21,12 @@ from oec.learning.experiments import (
     compute_run_identity,
     select_backend,
 )
-from oec.learning.hardware import capture_code_version, capture_environment, capture_hardware
+from oec.learning.hardware import (
+    capture_code_version,
+    capture_dependency_versions,
+    capture_environment,
+    capture_hardware,
+)
 
 DATASET_FILENAME = "dataset.json"
 RUN_FILENAME = "record.json"
@@ -130,6 +135,7 @@ def replay_learning_experiment(record: LearningRunRecord) -> ReplayReport:
         code_version=capture_code_version(),
         environment=capture_environment(),
         hardware=capture_hardware(),
+        dependency_versions=capture_dependency_versions(),
         dataset=record.dataset,
         dataset_name=record.dataset_name,
         dataset_version=record.dataset_version,
@@ -145,12 +151,17 @@ def replay_learning_experiment(record: LearningRunRecord) -> ReplayReport:
     )
     rerun = rerun.model_copy(update={"identity_hash": compute_run_identity(rerun)})
     source_identity = record.identity_hash or compute_run_identity(record)
+    identity_match = source_identity == rerun.identity_hash
+    versions_ok = (
+        not record.dependency_versions or record.dependency_versions == rerun.dependency_versions
+    )
     comparison: dict[str, Any] = {
         "source_run_id": record.run_id,
         "rerun_id": rerun.run_id,
         "identity_hash_source": source_identity,
         "identity_hash_rerun": rerun.identity_hash,
-        "identity_match": source_identity == rerun.identity_hash,
+        "identity_match": identity_match,
+        "comparable": identity_match and versions_ok,
     }
     shared = set(record.result.metrics) & set(result.metrics)
     if shared:

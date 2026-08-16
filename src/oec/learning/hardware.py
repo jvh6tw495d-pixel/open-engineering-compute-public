@@ -34,6 +34,29 @@ def capture_code_version() -> dict[str, str | None]:
     return {"git_commit": commit}
 
 
+_DEPENDENCY_PACKAGES: tuple[str, ...] = (
+    "torch",
+    "transformers",
+    "peft",
+    "unsloth",
+    "axolotl",
+    "art",
+)
+
+
+def capture_dependency_versions() -> dict[str, str | None]:
+    """Installed versions of optional Learning backends. Does not import them."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    versions: dict[str, str | None] = {}
+    for name in _DEPENDENCY_PACKAGES:
+        try:
+            versions[name] = version(name)
+        except PackageNotFoundError:
+            versions[name] = None
+    return versions
+
+
 def capture_hardware() -> dict[str, Any]:
     """Optional CUDA probe — fail open to CPU metadata if torch absent."""
     info: dict[str, Any] = {"accelerator": "cpu", "cuda_available": False}
