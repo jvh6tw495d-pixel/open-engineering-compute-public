@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import importlib
+import subprocess
 import sys
 
 import pytest
@@ -31,11 +31,15 @@ from oec.learning import (
 
 
 def test_import_learning_does_not_load_transformers() -> None:
-    sys.modules.pop("transformers", None)
-    importlib.reload(importlib.import_module("oec.learning"))
-    assert "transformers" not in sys.modules
-    assert "unsloth" not in sys.modules
-    assert "axolotl" not in sys.modules
+    code = (
+        "import sys; import oec.learning; "
+        "print(','.join(sorted(name for name in sys.modules "
+        "if name.split('.', 1)[0] in {'torch', 'transformers', 'unsloth', 'axolotl', 'art'})))"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", code], check=True, capture_output=True, text=True
+    )
+    assert completed.stdout.strip() == ""
 
 
 def test_dataset_hash_is_stable_and_verified() -> None:
@@ -60,6 +64,25 @@ def test_dataset_hash_is_stable_and_verified() -> None:
             version="1.0.0",
             content_hash="0" * 64,
         )
+
+
+def test_dataset_integrity_is_rechecked_at_consumption_boundary() -> None:
+    ds = LearningDataset(name="demo", records=({"text": "original"},))
+    ds.records[0]["text"] = "tampered"
+    with pytest.raises(DatasetIntegrityError, match="changed after"):
+        run_learning_experiment(
+            LearningExperiment(
+                experiment_id="learn.integrity",
+                model=ModelRef(model_id="local/demo"),
+                dataset=ds,
+                config=TrainingConfig(),
+            )
+        )
+
+
+def test_dataset_hash_rejects_non_canonical_values() -> None:
+    with pytest.raises(DatasetIntegrityError, match="canonical JSON"):
+        LearningDataset(name="demo", records=({"opaque": object()},))
 
 
 def test_split_records_deterministic() -> None:

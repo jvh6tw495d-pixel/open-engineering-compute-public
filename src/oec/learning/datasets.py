@@ -77,6 +77,22 @@ class LearningDataset(BaseModel):
             )
         return payload
 
+    def verify_integrity(self) -> None:
+        """Reject records changed after construction before they reach a backend."""
+        digest = compute_dataset_hash(
+            name=self.name,
+            kind=self.kind,
+            version=self.version,
+            records=self.records,
+            split=self.split,
+            seed=self.seed,
+        )
+        if digest != self.content_hash:
+            raise DatasetIntegrityError(
+                "dataset records changed after content_hash was bound",
+                details={"expected": self.content_hash, "got": digest},
+            )
+
 
 def compute_dataset_hash(
     *,
@@ -95,7 +111,13 @@ def compute_dataset_hash(
         "seed": seed,
         "records": list(records),
     }
-    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    try:
+        blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    except (TypeError, ValueError) as exc:
+        raise DatasetIntegrityError(
+            "dataset hash payload must contain canonical JSON values",
+            details={"reason": str(exc)},
+        ) from exc
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
@@ -119,6 +141,7 @@ def split_records(
 
 
 def texts_from_sft(dataset: LearningDataset) -> list[str]:
+    dataset.verify_integrity()
     texts: list[str] = []
     for row in dataset.records:
         if "text" in row and isinstance(row["text"], str):

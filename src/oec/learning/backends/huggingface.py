@@ -35,6 +35,11 @@ class HuggingFaceBackend:
                 TrainingBudgetSpec,
                 TrainingDatasetSpec,
             )
+            from oec.foundation.errors import (
+                BitsAndBytesNotAvailableError,
+                PeftNotAvailableError,
+                TransformersNotAvailableError,
+            )
             from oec.foundation.runtime import peft_train
         except Exception as exc:  # pragma: no cover - import graph always present
             raise BackendNotAvailableError(str(exc)) from exc
@@ -65,14 +70,15 @@ class HuggingFaceBackend:
         )
         try:
             raw: dict[str, Any] = peft_train(spec)
-        except Exception as exc:
-            name = type(exc).__name__
-            if "NotAvailable" in name or "Transformers" in name or "Peft" in name:
-                raise BackendNotAvailableError(
-                    str(exc),
-                    details={"backend": "huggingface", "error_type": name},
-                ) from exc
-            raise
+        except (
+            TransformersNotAvailableError,
+            PeftNotAvailableError,
+            BitsAndBytesNotAvailableError,
+        ) as exc:
+            raise BackendNotAvailableError(
+                str(exc),
+                details={"backend": "huggingface", "error_type": type(exc).__name__},
+            ) from exc
 
         raw_artifact = raw.get("artifact")
         artifact: dict[str, Any] = raw_artifact if isinstance(raw_artifact, dict) else {}

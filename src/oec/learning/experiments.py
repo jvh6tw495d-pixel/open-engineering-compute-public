@@ -14,7 +14,7 @@ from oec.learning.contracts import (
     TrainingResult,
 )
 from oec.learning.datasets import LearningDataset
-from oec.learning.errors import BackendNotAvailableError, DatasetIntegrityError
+from oec.learning.errors import BackendNotAvailableError
 from oec.learning.hardware import capture_code_version, capture_environment, capture_hardware
 
 
@@ -38,12 +38,14 @@ class LearningRunRecord(BaseModel):
     code_version: dict[str, str | None]
     environment: dict[str, Any]
     hardware: dict[str, Any]
+    dataset: LearningDataset
     dataset_name: str
     dataset_version: str
     dataset_hash: str
     model_id: str
     model_revision: str | None
     backend: FineTuneBackendName
+    config: TrainingConfig
     seed: int
     result: TrainingResult
 
@@ -61,8 +63,7 @@ def select_backend(name: FineTuneBackendName) -> Any:
 
 def run_learning_experiment(experiment: LearningExperiment) -> LearningRunRecord:
     """Execute a Learning experiment and freeze a reproducible record."""
-    if not experiment.dataset.content_hash:
-        raise DatasetIntegrityError("dataset missing content_hash")
+    experiment.dataset.verify_integrity()
     backend = select_backend(experiment.config.backend)
     result = backend.finetune(experiment.model, experiment.dataset, experiment.config)
     return LearningRunRecord(
@@ -71,12 +72,14 @@ def run_learning_experiment(experiment: LearningExperiment) -> LearningRunRecord
         code_version=capture_code_version(),
         environment=capture_environment(),
         hardware=capture_hardware(),
+        dataset=experiment.dataset,
         dataset_name=experiment.dataset.name,
         dataset_version=experiment.dataset.version,
         dataset_hash=experiment.dataset.content_hash,
         model_id=experiment.model.model_id,
         model_revision=experiment.model.revision,
         backend=experiment.config.backend,
+        config=experiment.config,
         seed=experiment.config.seed,
         result=result,
     )
