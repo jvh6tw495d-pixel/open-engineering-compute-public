@@ -52,6 +52,42 @@ jobs:
       - name: Core CLI smoke
         run: uv run oec --help
 
+  learning-contracts:
+    # Core-only gate for oec.learning unit contracts. Keep neural/foundation
+    # extras explicitly excluded so this job cannot silently become an
+    # all-extras run. Heavy ML backends must stay absent.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Fresh core-only sync
+        run: >
+          uv sync --all-groups
+          --no-extra api --no-extra mcp --no-extra optimization
+          --no-extra neural --no-extra evolutionary --no-extra foundation
+
+      - name: Assert optional ML stacks are absent
+        run: >
+          uv run python -c "import importlib.util;
+          optional = (
+              'torch', 'transformers', 'unsloth', 'axolotl', 'art',
+          );
+          installed = [name for name in optional if importlib.util.find_spec(name) is not None];
+          assert not installed, f'optional dependencies installed: {installed}'"
+
+      - name: Learning unit contracts
+        run: >
+          uv run pytest tests/unit/test_learning_*.py
+          -o addopts= --no-cov -q
+
   lint-type-test:
     # Default gate: uv sync --all-extras installs torch/pymoo/deap/nevergrad
     # when available, but pyproject.toml addopts deselects markers
