@@ -56,7 +56,7 @@ def save_dataset(dataset: LearningDataset, directory: str | Path) -> Path:
         "records": dumped["records"],
         "content_hash": dumped["content_hash"],
     }
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_json_atomic(path, payload)
     return path
 
 
@@ -76,10 +76,7 @@ def save_run(record: LearningRunRecord, path: str | Path) -> Path:
     dest.parent.mkdir(parents=True, exist_ok=True)
     if not record.identity_hash:
         record = record.model_copy(update={"identity_hash": compute_run_identity(record)})
-    dest.write_text(
-        json.dumps(record.model_dump(mode="json"), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    _write_json_atomic(dest, record.model_dump(mode="json"))
     return dest
 
 
@@ -152,8 +149,8 @@ def replay_learning_experiment(record: LearningRunRecord) -> ReplayReport:
     rerun = rerun.model_copy(update={"identity_hash": compute_run_identity(rerun)})
     source_identity = record.identity_hash or compute_run_identity(record)
     identity_match = source_identity == rerun.identity_hash
-    versions_ok = (
-        not record.dependency_versions or record.dependency_versions == rerun.dependency_versions
+    versions_ok = bool(record.dependency_versions) and (
+        record.dependency_versions == rerun.dependency_versions
     )
     comparison: dict[str, Any] = {
         "source_run_id": record.run_id,
@@ -177,6 +174,13 @@ def _as_json_file(path: str | Path, filename: str) -> Path:
     if dest.suffix.lower() == ".json":
         return dest
     return dest / filename
+
+
+def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
+    """Write JSON via a sibling temporary file, then atomically replace it."""
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.replace(path)
 
 
 def _read_json_object(path: Path) -> dict[str, Any]:

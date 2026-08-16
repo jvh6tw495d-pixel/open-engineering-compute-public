@@ -235,3 +235,32 @@ def test_replay_comparable_when_dependency_versions_match(
     mismatched = replay_learning_experiment(differing)
     assert mismatched.comparison["identity_match"] is True
     assert mismatched.comparison["comparable"] is False
+
+
+def test_replay_not_comparable_when_source_dependency_versions_are_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Backend:
+        def finetune(
+            self,
+            model: ModelRef,
+            dataset: LearningDataset,
+            config: TrainingConfig,
+        ) -> TrainingResult:
+            return TrainingResult(
+                status="ok",
+                backend=config.backend,
+                method=config.method,
+                model=model,
+            )
+
+    monkeypatch.setattr("oec.learning.store.select_backend", lambda name: _Backend())
+    monkeypatch.setattr(
+        "oec.learning.store.capture_dependency_versions",
+        lambda: {"torch": "2.4.0"},
+    )
+
+    report = replay_learning_experiment(_record())
+
+    assert report.comparison["identity_match"] is True
+    assert report.comparison["comparable"] is False
