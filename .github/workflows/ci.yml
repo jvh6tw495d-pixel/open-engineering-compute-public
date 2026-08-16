@@ -129,11 +129,9 @@ jobs:
           -q
 
   installation-smoke:
-    # Deselected from the default `pytest -q` gate (pyproject.toml's
-    # addopts sets `-m "not slow"`) because it builds a real wheel and
-    # installs it into a throwaway venv on every run -- too slow for
-    # every push/PR. It builds a real wheel and installs it into a throwaway
-    # venv, catching packaging regressions before a release candidate merges.
+    # Excluded from the default `pytest -q` gate because pyproject.toml sets
+    # `-m "not slow"`. This dedicated job still runs on every push/PR, builds
+    # a real wheel, and installs it into a throwaway venv before release merge.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
