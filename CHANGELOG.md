@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-08-16
+
+**Tag:** `v3.6.0-scientific-ai`
+**Theme:** Scientific AI Completion (S0–S6) — PEFT, distillation, industrial
+checkpoints, evo catalog, VLM MVP, release gates.
+
 ### Added
 
 - **Scientific AI Completion (S0):** ADR 0040–0042 and
@@ -43,8 +49,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   surfaces identify the 3.6.0 code baseline (151 skills / 28 domains / 6
   foundation skills). Core-minimal, Scientific AI optional-extras, and real
   wheel-install smoke gates run on every push/PR to `main` and remain scheduled
-  nightly/manual; the core package remains free of those extras. This Unreleased
-  section does **not** claim a tag, push, remote CI result, or published release.
+  nightly/manual; the core package remains free of those extras. Tagged
+  `v3.6.0-scientific-ai` after remote CI (core-minimal, Scientific AI extras,
+  installation-smoke) on PR #1.
 
 ## [3.5.0] - 2026-08-11
 

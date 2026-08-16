@@ -153,5 +153,6 @@ show_missing = true
 
 [tool.bandit]
 targets = ["src/oec"]
-# Type-narrowing asserts after validation; not security checks.
-skips = ["B101"]
+# B101: type-narrowing asserts after validation (not security checks).
+# B311: stdlib random used as scientific/evolutionary RNG, not cryptography.
+skips = ["B101", "B311"]
