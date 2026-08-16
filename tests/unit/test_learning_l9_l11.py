@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 from oec.learning.backends.art import ARTBackend
 from oec.learning.environments import MathematicsEnvironment, RewardSpec
 from oec.learning.errors import BackendNotAvailableError
-from oec.learning.rl import Action, Episode, State, Trajectory
+from oec.learning.rl import Action, Episode, RLResult, State, Trajectory
+from oec.learning.verifiers import execution_result_reward, execution_result_scores
 
 
 def test_trajectory_checks_transition_shape() -> None:
@@ -39,3 +42,25 @@ def test_art_fails_closed_when_not_installed(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(art_module.importlib, "import_module", missing_art)
     with pytest.raises(BackendNotAvailableError):
         ARTBackend().train(MathematicsEnvironment(), ())
+
+
+def test_art_delegates_to_imported_train_grpo(monkeypatch: pytest.MonkeyPatch) -> None:
+    import oec.learning.backends.art as art_module
+
+    expected = RLResult(status="ok", backend="art", message="mock")
+    module = SimpleNamespace(train_grpo=lambda **_kwargs: expected)
+    monkeypatch.setattr(art_module.importlib, "import_module", lambda _name: module)
+    assert ARTBackend().train(MathematicsEnvironment(), ()) is expected
+
+
+def test_execution_result_verifier_bridge_is_closed_and_deterministic() -> None:
+    spec = RewardSpec(correct=2.0, units=0.5, constraints=1.0)
+    result = {"status": "ok", "units_ok": True, "constraint_ok": False}
+    assert execution_result_scores(result) == {
+        "correct": 1.0,
+        "units": 1.0,
+        "constraints": 0.0,
+        "tokens": 0.0,
+        "latency": 0.0,
+    }
+    assert execution_result_reward(result, spec) == pytest.approx(2.5)

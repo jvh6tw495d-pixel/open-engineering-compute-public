@@ -75,6 +75,7 @@ from oec.learning.suite import (
     compare_backend_runs,
     declared_backends,
 )
+from oec.learning.verifiers import execution_result_reward, execution_result_scores
 
 __all__ = [
     "ArtifactRef",
@@ -127,6 +128,8 @@ __all__ = [
     "default_worker_dataset",
     "distill",
     "evaluate_metrics",
+    "execution_result_reward",
+    "execution_result_scores",
     "probe_optional",
     "run_learning_experiment",
     "select_backend",
