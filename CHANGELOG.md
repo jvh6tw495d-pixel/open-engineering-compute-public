@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **OEC Learning L1–L5:** core-safe ``oec.learning`` contracts (ADR 0043),
+  versioned datasets with provenance hash, reproducible learning-run records
+  (environment/hardware/commit), evaluation vs benchmark ``compare_results``,
+  and a lazy fail-closed ``HuggingFaceBackend`` that reuses ``foundation.peft_train``.
+  Unsloth/Axolotl/ART remain unimplemented on purpose (L7+).
+
 ## [3.6.0] - 2026-08-16
 
 **Tag:** `v3.6.0-scientific-ai`

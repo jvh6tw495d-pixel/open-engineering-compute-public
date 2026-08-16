@@ -2,8 +2,8 @@
 
 **Source:** `OEC Learning — Arquitetura, Política de Backends e Plano de Waves` (2026-08-16)
 **Compared against:** RC `integration/3.6-scientific-ai` @ `014894f` (`oec==3.6.0`, 151 skills / 28 domains / 12 builders)
-**Status:** planning (post–Scientific AI 3.6)
-**Package today:** there is **no** `oec.learning` — neural / foundation / experiment are separate families.
+**Status:** L1–L5 implemented on `feat/learning-l1-l5` (ADR 0043, `oec.learning`)
+**Package today:** `oec.learning` exists (core-safe). HF is a lazy backend only.
 
 Principle (unchanged): **OEC defines scientific contracts. External frameworks are replaceable backends.**
 
@@ -106,7 +106,7 @@ L1 Contracts
 
 ## 5. Wave cards (implementation)
 
-### L1 — Learning contracts
+### L1 — Learning contracts ✅
 
 - New package `oec.learning` (core-safe: pydantic only)
 - Closed enums; no `nn.Module` / free Python from agents
@@ -114,26 +114,26 @@ L1 Contracts
 - ADR 0043 (proposed): OEC Learning layer
 - **Gate:** core install has zero HF/Unsloth/Axolotl/ART imports
 
-### L2 — Dataset foundation
+### L2 — Dataset foundation ✅
 
 - `Dataset` + schema, loader, transform, split, seed, version, provenance, lineage
 - Types: supervised, scientific, SFT, preference, distillation, tool-use, trajectory
 - **Gate:** reconstruct + identify a dataset by version + provenance hash
 
-### L3 — Learning experiment engine
+### L3 — Learning experiment engine ✅
 
 - Extend `oec.experiment` or add `oec.learning.experiments` **on top** of ExperimentRecord
 - Capture commit, hardware, backend, dataset version, model revision
 - **Gate:** a finished training run is reproducible from the record alone
 
-### L4 — Evaluation & benchmarking
+### L4 — Evaluation & benchmarking ✅
 
 - Metric / Evaluator / Verifier / EvaluationSuite / Benchmark
 - Golden sets as versioned artifacts
 - `compare(run_ids)`
 - **Gate:** two checkpoints compared under one frozen protocol
 
-### L5 — Hugging Face reference backend
+### L5 — Hugging Face reference backend ✅
 
 - Move current Transformers/PEFT runtime behind `HuggingFaceBackend`
 - Public API stays OEC contracts
