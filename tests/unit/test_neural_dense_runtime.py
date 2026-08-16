@@ -151,6 +151,24 @@ def test_versioned_json_inline_checkpoint_rejects_missing_digest() -> None:
         load_state_dict_from_checkpoint(checkpoint)
 
 
+def test_json_inline_checkpoint_rejects_stripped_version_fields() -> None:
+    result = train_mlp(
+        DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),
+        NeuralModelSpec(input_dim=1, hidden_dims=[2], output_dim=1),
+        TrainingSpec(epochs=2, seed=2, early_stopping_patience=None),
+        runtime=TrainingRuntimeSpec(seed=2, epochs=2, checkpoint_storage="json_inline"),
+    )
+    checkpoint = dict(result.checkpoint)
+    checkpoint.pop("storage")
+    checkpoint.pop("checkpoint_format_version")
+    first_key = next(iter(checkpoint["state_dict"]))
+    checkpoint["state_dict"] = dict(checkpoint["state_dict"])
+    checkpoint["state_dict"][first_key][0][0] += 1.0
+
+    with pytest.raises(ValueError, match="requires versioned storage"):
+        predict_mlp([[0.0]], checkpoint)
+
+
 def test_explicit_json_inline_checkpoint_rejects_missing_format_version() -> None:
     result = train_mlp(
         DatasetSpec(x=[[0.0], [1.0]], y=[0.0, 1.0], val_fraction=0.0),

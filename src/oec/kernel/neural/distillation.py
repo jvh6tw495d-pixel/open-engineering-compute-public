@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 from typing import Any
 
@@ -65,7 +66,7 @@ def _validate_governed_teacher_checkpoint(checkpoint: dict[str, Any]) -> None:
         raise ValueError("S2 teacher_checkpoint requires a sha256 identity digest")
     canonical = json.dumps(state_dict, sort_keys=True, separators=(",", ":")).encode("utf-8")
     actual = hashlib.sha256(canonical).hexdigest()
-    if actual != expected:
+    if not hmac.compare_digest(actual, expected):
         raise ValueError("S2 teacher_checkpoint sha256 integrity digest mismatch")
     try:
         teacher_model = NeuralModelSpec.model_validate(checkpoint["model_spec"])

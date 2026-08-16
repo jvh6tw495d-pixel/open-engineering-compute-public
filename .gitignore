@@ -34,5 +34,6 @@ OEC_PLANO_MESTRE_CLAUDE_CODE_GRAPHIFY_SPRINTS_v2.md
 
 # Benchmark/stress leftovers (should never be versioned)
 .stress-tmp/
+.oec/
 _*HERMES_SUPERTEST*.*
 *.mcp_server_stderr.log

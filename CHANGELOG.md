@@ -39,12 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- **Scientific AI Completion (S6 in progress):** package metadata and public
-  surfaces now identify the 3.6.0 code baseline (151 skills / 28 domains / 6
-  foundation skills). Scheduled/manual CI covers neural, evolutionary, and
-  foundation marker suites with their optional extras; the core package remains
-  free of those extras. This Unreleased section does **not** claim a tag, push,
-  or published release.
+- **Scientific AI Completion (S6 local gates):** package metadata and public
+  surfaces identify the 3.6.0 code baseline (151 skills / 28 domains / 6
+  foundation skills). Core-minimal, Scientific AI optional-extras, and real
+  wheel-install smoke gates run on every push/PR to `main` and remain scheduled
+  nightly/manual; the core package remains free of those extras. This Unreleased
+  section does **not** claim a tag, push, remote CI result, or published release.
 
 ## [3.5.0] - 2026-08-11
 

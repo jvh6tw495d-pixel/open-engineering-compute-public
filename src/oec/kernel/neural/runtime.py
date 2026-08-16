@@ -174,7 +174,7 @@ def load_state_dict_from_checkpoint(checkpoint: dict[str, Any]) -> dict[str, Any
         if not raw_path:
             raise ValueError("file checkpoint missing path")
         digest = checkpoint.get("sha256")
-        if not digest:
+        if not isinstance(digest, str) or len(digest) != 64:
             raise ValueError("file checkpoint missing required sha256 digest")
 
         path = Path(raw_path).resolve()
@@ -202,24 +202,29 @@ def load_state_dict_from_checkpoint(checkpoint: dict[str, Any]) -> dict[str, Any
             return blob["state_dict"]
         raise ValueError("unrecognized/malformed checkpoint file: missing state_dict envelope")
 
-    # Versioned inline checkpoints are public artifacts with a mandatory,
-    # self-consistency digest.  The pre-versioned contract had no ``storage``
-    # or ``checkpoint_format_version`` fields, so retain only that unambiguous
-    # shape as a legacy compatibility path.
+    # Inline checkpoints are public artifacts and must be versioned with a
+    # self-consistency digest.  Accepting an unversioned shape would let a
+    # caller strip the version fields from a tampered artifact and bypass the
+    # mandatory verification below.
     if "state_dict" in checkpoint:
         state_dict = checkpoint["state_dict"]
         if not isinstance(state_dict, dict):
             raise ValueError("json_inline checkpoint state_dict must be a mapping")
-        is_versioned_inline = "storage" in checkpoint or "checkpoint_format_version" in checkpoint
-        if is_versioned_inline:
-            if checkpoint.get("checkpoint_format_version") != 1:
-                raise ValueError("json_inline checkpoint requires checkpoint_format_version=1")
-            expected = checkpoint.get("sha256")
-            if not isinstance(expected, str) or len(expected) != 64:
-                raise ValueError("json_inline checkpoint missing required sha256 digest")
-            actual = hashlib.sha256(_canonical_json_inline_state_dict(state_dict)).hexdigest()
-            if not hmac.compare_digest(actual, expected):
-                raise ValueError("json_inline checkpoint sha256 digest mismatch")
+        if "storage" not in checkpoint or "checkpoint_format_version" not in checkpoint:
+            raise ValueError(
+                "json_inline checkpoint requires versioned storage, "
+                "checkpoint_format_version=1, and sha256 digest"
+            )
+        if checkpoint.get("storage") != "json_inline":
+            raise ValueError("checkpoint storage must be json_inline or file")
+        if checkpoint.get("checkpoint_format_version") != 1:
+            raise ValueError("json_inline checkpoint requires checkpoint_format_version=1")
+        expected = checkpoint.get("sha256")
+        if not isinstance(expected, str) or len(expected) != 64:
+            raise ValueError("json_inline checkpoint missing required sha256 digest")
+        actual = hashlib.sha256(_canonical_json_inline_state_dict(state_dict)).hexdigest()
+        if not hmac.compare_digest(actual, expected):
+            raise ValueError("json_inline checkpoint sha256 digest mismatch")
         return state_dict_from_jsonable(state_dict)
     raise ValueError("checkpoint has neither state_dict nor file path")
 

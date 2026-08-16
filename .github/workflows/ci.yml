@@ -6,9 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # Nightly, catches a packaging regression (pip install oec broken)
-    # that the fast gate below can't see -- see the "installation-smoke"
-    # job's own comment for why this can't just run on every push.
+    # Nightly repeats the full PR gates to catch environment and resolver drift.
     - cron: "0 6 * * *"
   workflow_dispatch: {}
 
@@ -37,7 +35,10 @@ jobs:
       - name: Assert optional stacks are absent
         run: >
           uv run python -c "import importlib.util;
-          optional = ('fastapi', 'highspy', 'mcp', 'torch', 'transformers');
+          optional = (
+              'fastapi', 'uvicorn', 'mcp', 'highspy', 'torch', 'pymoo', 'deap',
+              'nevergrad', 'transformers', 'accelerate', 'peft', 'PIL',
+          );
           installed = [name for name in optional if importlib.util.find_spec(name) is not None];
           assert not installed, f'optional dependencies installed: {installed}'"
 
@@ -58,8 +59,8 @@ jobs:
     # independent of heavy optional stacks. Strong goldens live under
     # tests/golden/test_neural_evolutionary_strong.py and skill-level
     # tests marked @pytest.mark.neural / @pytest.mark.evolutionary —
-    # they run in the extras-neural-evolutionary job below (nightly /
-    # workflow_dispatch), or locally:
+    # they run in the optional-extras job below on every push/PR, nightly,
+    # and workflow dispatch, or locally:
     #   uv run pytest -m "neural or evolutionary" -o addopts= --import-mode=importlib
     runs-on: ubuntu-latest
     steps:
