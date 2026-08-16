@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (environment/hardware/commit), evaluation vs benchmark ``compare_results``,
   and a lazy fail-closed ``HuggingFaceBackend`` that reuses ``foundation.peft_train``.
   Unsloth/Axolotl/ART remain unimplemented on purpose (L7+).
+- **OEC Learning L6–L15:** distillation workflow + compare_base_vs_distilled;
+  fail-closed Unsloth/Axolotl/ART adapters; RL contracts and verifier rewards;
+  worker pipeline plan; backend comparison suite; capability matrix.
 
 ## [3.6.0] - 2026-08-16
 

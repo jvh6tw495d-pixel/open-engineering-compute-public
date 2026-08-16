@@ -116,11 +116,17 @@ def test_compare_two_results_under_one_benchmark() -> None:
     assert out["comparisons"][0]["winner"] == "b"
 
 
-def test_unsloth_and_axolotl_not_in_l1_l5() -> None:
+def test_unsloth_and_axolotl_fail_closed_until_wired() -> None:
+    backend = select_backend(FineTuneBackendName.UNSLOTH)
+    ds = LearningDataset(name="x", records=({"text": "a"}, {"text": "b"}))
     with pytest.raises(BackendNotAvailableError):
-        select_backend(FineTuneBackendName.UNSLOTH)
+        backend.finetune(
+            ModelRef(model_id="m"), ds, TrainingConfig(backend=FineTuneBackendName.UNSLOTH)
+        )
     with pytest.raises(BackendNotAvailableError):
-        select_backend(FineTuneBackendName.AXOLOTL)
+        select_backend(FineTuneBackendName.AXOLOTL).finetune(
+            ModelRef(model_id="m"), ds, TrainingConfig(backend=FineTuneBackendName.AXOLOTL)
+        )
 
 
 def test_huggingface_backend_fail_closed_without_transformers() -> None:

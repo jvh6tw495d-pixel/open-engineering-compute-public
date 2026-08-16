@@ -55,8 +55,16 @@ def select_backend(name: FineTuneBackendName) -> Any:
         from oec.learning.backends.huggingface import HuggingFaceBackend
 
         return HuggingFaceBackend()
+    if name is FineTuneBackendName.UNSLOTH:
+        from oec.learning.backends.unsloth import UnslothBackend
+
+        return UnslothBackend()
+    if name is FineTuneBackendName.AXOLOTL:
+        from oec.learning.backends.axolotl import AxolotlBackend
+
+        return AxolotlBackend()
     raise BackendNotAvailableError(
-        f"backend {name.value!r} is not implemented in L1–L5",
+        f"backend {name.value!r} is not implemented",
         details={"backend": name.value},
     )
 

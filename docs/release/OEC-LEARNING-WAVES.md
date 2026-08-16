@@ -96,6 +96,7 @@ L1 Contracts
  → L12 Worker training pipeline
  → L13 Backend benchmark suite
  → L14 Production hardening
+ → L15 Learning programme closeout
 ```
 
 **Do not** implement Unsloth/Axolotl/ART before L1–L5. Adapters without contracts violate the source spec.
