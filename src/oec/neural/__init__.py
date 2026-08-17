@@ -27,6 +27,13 @@ from oec.neural.runtime import (
     resolve_knobs_with_capacity,
     resolve_mlp_hidden_dims,
 )
+from oec.neural.vision import (
+    VisionBackboneName,
+    VisionBackboneWeights,
+    VisionLabeledImage,
+    VisionTransferMode,
+    VisionTransferSpec,
+)
 
 __all__ = [
     "ActivationName",
@@ -43,6 +50,11 @@ __all__ = [
     "OptimizerSpec",
     "TrainingRuntimeSpec",
     "TrainingSpec",
+    "VisionBackboneName",
+    "VisionBackboneWeights",
+    "VisionLabeledImage",
+    "VisionTransferMode",
+    "VisionTransferSpec",
     "estimate_mlp_param_count",
     "resolve_capacity",
     "resolve_knobs_with_capacity",

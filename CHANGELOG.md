@@ -54,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Learning ``TrainingConfig`` caps match the PEFT budget.
   ``peft_qlora`` now loads the base model in 4-bit NF4 (BitsAndBytes +
   CUDA). Missing CUDA/bitsandbytes still fails closed.
+  ``neural.vision.transfer`` plus ``build_vision_head_vs_backbone_experiment``
+  compare an OEC MLP on frozen ResNet/CLIP features against a fine-tuned
+  head — the backbone stays a backend.
 
 ### Changed
 

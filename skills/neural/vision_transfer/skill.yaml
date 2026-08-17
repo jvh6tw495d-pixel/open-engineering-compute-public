@@ -1,0 +1,41 @@
+id: neural.vision.transfer
+version: 0.1.0
+status: experimental
+domain: neural
+title: Vision transfer (pinned backbone + OEC head)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: vision_transfer_backbone_head
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 600
+  network_access: false
+  filesystem_access: true
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "ADR 0031 Neural and Evolutionary Compute"
+  - "torchvision ResNet / Transformers CLIP as backends; OEC owns the head and comparison"
+
+tags:
+  - neural
+  - vision
+  - transfer
+  - experimental

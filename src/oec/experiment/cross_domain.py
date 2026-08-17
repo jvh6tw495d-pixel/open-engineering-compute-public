@@ -647,6 +647,78 @@ def build_full_stack_learning_experiment(
     )
 
 
+def build_vision_head_vs_backbone_experiment(
+    *,
+    examples: list[dict[str, object]],
+    n_classes: int,
+    experiment_id: str = "vision.head_vs_backbone",
+    seed: int = 0,
+    epochs: int = 8,
+    backbone: str = "resnet18",
+    backbone_weights: str = "none",
+    hidden_dims: list[int] | None = None,
+    clip_revision: str | None = None,
+) -> ExperimentSpec:
+    """Compare MLP-on-frozen-features vs fine-tuned head on the same local images.
+
+    This is the application pattern: the backbone is a backend; OEC owns the
+    head and the comparison. Default weights=none so CI does not download ImageNet.
+    """
+    hidden = hidden_dims or [64, 64]
+    shared: dict[str, object] = {
+        "examples": examples,
+        "n_classes": int(n_classes),
+        "backbone": backbone,
+        "backbone_weights": backbone_weights,
+        "hidden_dims": hidden,
+        "epochs": int(epochs),
+        "seed": int(seed),
+        "device": "cpu",
+        "val_fraction": 0.25,
+    }
+    if clip_revision is not None:
+        shared["clip_revision"] = clip_revision
+    extras = ("neural",) if backbone == "resnet18" else ("neural", "foundation")
+    return ExperimentSpec(
+        id=experiment_id,
+        title="Vision transfer: frozen-feature MLP vs fine-tuned head",
+        description=(
+            "Same local images. frozen_features trains an OEC MLP on backbone "
+            "vectors; finetune_head freezes the backbone and trains a new head."
+        ),
+        seed=seed,
+        tags=("vision", "neural", "transfer"),
+        required_extras=extras,
+        steps=(
+            ExperimentStep(
+                step_id="frozen_head",
+                skill_id="neural.vision.transfer",
+                inputs={**shared, "mode": "frozen_features"},
+            ),
+            ExperimentStep(
+                step_id="finetune_head",
+                skill_id="neural.vision.transfer",
+                inputs={**shared, "mode": "finetune_head"},
+            ),
+        ),
+        metrics=(
+            MetricSpec(
+                name="frozen_train_acc",
+                path="result.train_metrics.accuracy",
+                step_id="frozen_head",
+                direction=MetricDirection.MAXIMIZE,
+            ),
+            MetricSpec(
+                name="finetune_train_acc",
+                path="result.train_metrics.accuracy",
+                step_id="finetune_head",
+                direction=MetricDirection.MAXIMIZE,
+            ),
+        ),
+        validation=ValidationSpec(),
+    )
+
+
 def build_root_bind_to_distribution_experiment(
     *,
     experiment_id: str = "w7.root_to_pdf",
@@ -754,6 +826,11 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
         "fn": build_full_stack_learning_experiment,
         "domains": ["evolutionary", "neural", "foundation"],
         "extras": ["evolutionary", "neural", "foundation"],
+    },
+    "build_vision_head_vs_backbone_experiment": {
+        "fn": build_vision_head_vs_backbone_experiment,
+        "domains": ["neural", "vision"],
+        "extras": ["neural"],
     },
     "build_root_bind_to_distribution_experiment": {
         "fn": build_root_bind_to_distribution_experiment,

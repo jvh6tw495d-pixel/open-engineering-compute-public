@@ -118,6 +118,8 @@ module = [
   "PIL.*",
   "datasets",
   "datasets.*",
+  "torchvision",
+  "torchvision.*",
   "unsloth",
   "unsloth.*",
   "axolotl",
