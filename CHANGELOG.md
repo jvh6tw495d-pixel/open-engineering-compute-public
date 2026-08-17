@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **OEC Learning L1–L15 (contracts + core-tested isolation):** core-safe
+  ``oec.learning`` (ADR 0043). L1–L5 contracts, hashed datasets (including
+  provenance), run identity hash, evaluation vs benchmark, and a lazy
+  ``HuggingFaceBackend`` over ``foundation.peft_train``. L6 tabular
+  ``distill()`` requires a teacher checkpoint and calls
+  ``neural.distill_mlp``; text/FM distill fails closed. L7–L8–L10 Unsloth /
+  Axolotl / ART are **external, integration-unverified** adapters
+  (fail-closed; not OEC extras — they would break ``--all-extras``). L9 RL
+  contracts; L11 verifier rewards treat tokens/latency as efficiency scores
+  (higher is better; raw consumption never inflates reward). L12
+  ``WorkerPipeline`` evaluates with OEC ``ExecutionResult`` and continues HF
+  stages from the previous adapter. Live smokes: ``pytest -m learning_smoke``.
+  Replay records ``dependency_versions`` and a ``comparable`` flag. Missing
+  token/latency telemetry scores 0, not 1. Adapter extras stay out of the
+  default CI extra list. L13 capability suite does not invent GPU numbers. L14
+  core-only ``learning-contracts`` CI job. Replay returns a ``ReplayReport``
+  (rerun + comparison), not a bit-identical reproduction proof.
+  ``oec learning bootstrap`` installs extras / ``openpipe-art`` / isolated
+  Unsloth (and Axolotl on Linux/WSL) only when the operator asks;
+  ``.train()`` still never auto-installs.
+  ``build_full_stack_learning_experiment`` runs AG + NSGA-II + MLP +
+  distill + hybrid + embed + PEFT/generate as one ``ExperimentSpec``.
+
+### Fixed
+
+- **Learning pipeline honesty:** ART-only worker runs can be ``ok`` (not
+  always degraded). ``CONVERGED_WITH_WARNINGS`` / ``APPROXIMATE`` evals
+  match OEC graded status. A failed ExecutionResult is not hidden by a
+  later success. Adapter chaining requires ``sha256``. Persist uses a
+  unique temp file. Run records reject revision/family drift.
+- **Scientific honesty follow-up:** ``peft_qlora`` no longer pretends to
+  be 4-bit LoRA (fails closed). S1 PEFT builder pins the tiny-gpt2
+  revision. ``probe_optional()`` does not treat PyPI ``art`` as OpenPipe
+  ART. PEFT/experiment artifact paths cannot jump to ``C:\\...``.
+  PEFT run dirs are unique (no stage-2 overwrite). Constant-target R²
+  is 0 unless predictions match. Distill keeps the student checkpoint.
+  TARGET ties are ties. Unsloth/Axolotl no longer claim ``ok`` without
+  an artifact. Full PEFT→generate is rejected (cannot reload as adapter).
+  Hybrid no longer treats failed candidates as fitness ``1e6``. Generate
+  and PEFT continue require ``adapter_sha256``. Experiment ``record.json``
+  hash matches the file bytes. ``result.error`` aborts the experiment.
+  Release/security CI use explicit extras. Unsloth rejects ``FULL``.
+  Learning ``TrainingConfig`` caps match the PEFT budget.
+  ``peft_qlora`` now loads the base model in 4-bit NF4 (BitsAndBytes +
+  CUDA). Missing CUDA/bitsandbytes still fails closed.
+
+### Changed
+
+- **Learning install UX:** calling Unsloth, Axolotl, or ART never
+  auto-installs a package. Errors name the exact command
+  (``openpipe-art``, isolated Unsloth venv, Axolotl on WSL only). See
+  ``docs/release/LEARNING-OPERATIONAL.md``.
+
 ## [3.6.0] - 2026-08-16
 
 **Tag:** `v3.6.0-scientific-ai`

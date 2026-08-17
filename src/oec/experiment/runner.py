@@ -149,6 +149,15 @@ def run_experiment(
                 )
             )
             status_val = execution.status.value
+            result_payload = execution.result if isinstance(execution.result, dict) else {}
+            if "error" in result_payload and spec.validation.abort_on_failed:
+                infra_failed = True
+                notes.append(
+                    f"aborted after step {step.step_id!r}: result.error "
+                    f"({result_payload.get('error')})"
+                )
+                aborted = True
+                break
             if should_abort_on_status(spec, status_val):
                 notes.append(f"aborted after step {step.step_id!r} with status {status_val}")
                 aborted = True

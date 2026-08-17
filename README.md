@@ -176,10 +176,26 @@ export (clean history) may still use a new directory — see:
 
 Layout map: [docs/development/codebase-map.md](docs/development/codebase-map.md).
 
+## Learning backends (optional)
+
+OEC **never auto-installs** Unsloth, Axolotl, or ART when you call a
+function. If you want them, ask explicitly:
+
+```bash
+oec learning bootstrap --all --dry-run
+oec learning bootstrap --all
+# or one target: --art / --unsloth / --axolotl / --extras
+```
+
+`--art` installs `openpipe-art` (not the ASCII-art package `art`).
+`--unsloth` uses an isolated venv (it downgrades torch if mixed with OEC).
+`--axolotl` is Linux/WSL only. See
+[LEARNING-OPERATIONAL.md](docs/release/LEARNING-OPERATIONAL.md).
+
 ## Development
 
 ```bash
-uv sync --all-extras
+uv sync --extra api --extra mcp --extra optimization --extra neural --extra evolutionary --extra foundation
 uv run pytest
 uv run ruff check .
 uv run mypy

@@ -52,8 +52,9 @@ def _device(device: str) -> DeviceSpec:
     from typing import Literal, cast
 
     allowed: set[str] = {"cpu", "cuda", "auto"}
-    d = device if device in allowed else "cpu"
-    return DeviceSpec(device=cast(Literal["cpu", "cuda", "auto"], d))
+    if device not in allowed:
+        raise ValueError(f"device must be one of {sorted(allowed)}, got {device!r}")
+    return DeviceSpec(device=cast(Literal["cpu", "cuda", "auto"], device))
 
 
 def _split_xy(
@@ -101,7 +102,7 @@ def _train_candidate(
     """Inner gradient training for one evolutionary candidate."""
     x_use = _apply_feature_mask(x, feature_mask) if feature_mask is not None else x
     if feature_mask is not None and not any(feature_mask):
-        return {"score": 1e6, "error": "empty_feature_mask"}
+        return {"error": "empty_feature_mask"}
 
     # Weighted loss: mix MSE/MAE via LossName only (closed); lambdas recorded
     lw = loss_weights or {"mse": 1.0}
@@ -135,10 +136,12 @@ def _train_candidate(
     except TorchNotAvailableError:
         raise
     except Exception as exc:  # noqa: BLE001
-        return {"score": 1e6, "error": str(exc)}
+        return {"error": str(exc)}
 
     metrics = result.val_metrics or result.train_metrics
-    rmse = float(metrics.get("rmse", 1e3))
+    if "rmse" not in metrics:
+        return {"error": "inner train produced no rmse"}
+    rmse = float(metrics["rmse"])
     r2 = float(metrics.get("r_squared", -1.0))
     mae = float(metrics.get("mae", rmse))
     # Combined score with optional loss weights (lower is better)
@@ -260,14 +263,21 @@ def hybrid_evolutionary_train(
 
     instrum = ng.p.Dict(**params)
     opt = ng.optimizers.OnePlusOne(parametrization=instrum, budget=budget)
-    with __import__("contextlib").suppress(Exception):
+    seed_applied = False
+    try:
         opt.parametrization.random_state.seed(seed)
+        seed_applied = True
+    except Exception:
+        seed_applied = False
 
     trials: list[dict[str, Any]] = []
+    timed_out = False
 
     def _score(p: dict[str, Any]) -> float:
+        nonlocal timed_out
         if max_wall_time_s is not None and (time.perf_counter() - t0) >= max_wall_time_s:
-            return 1e6
+            timed_out = True
+            return float("inf")
         cap = capacity_choices[int(p["cap"])]
         knobs = resolve_capacity("mlp", cap)  # type: ignore[arg-type]
         hidden = list(knobs["hidden_dims"])
@@ -319,13 +329,16 @@ def hybrid_evolutionary_train(
         out["capacity"] = cap
         if "policy" in p:
             out["policy"] = policy_choices[int(p["policy"])]
+        if "error" in out:
+            return float("inf")
         trials.append(out)
         return float(out["score"])
 
     recommendation = opt.minimize(_score)
-    best = min(trials, key=lambda t: t["score"]) if trials else None
-    # Pareto (loss, n_params) among trials
-    pareto = _pareto_front(trials)
+    valid = [trial for trial in trials if "error" not in trial and "score" in trial]
+    best = min(valid, key=lambda t: t["score"]) if valid else None
+    # Pareto (loss, n_params) among successful trials only
+    pareto = _pareto_front(valid)
 
     return {
         "mode": "hybrid",
@@ -344,8 +357,11 @@ def hybrid_evolutionary_train(
         },
         "facets": facets,
         "best_config": best,
-        "n_trials": len(trials),
-        "trials": trials[-min(15, len(trials)) :],
+        "n_trials": len(valid),
+        "n_failed_trials": len(trials) - len(valid),
+        "timed_out": timed_out,
+        "seed_applied": seed_applied,
+        "trials": valid[-min(15, len(valid)) :],
         "pareto_front": pareto,
         "elapsed_seconds": time.perf_counter() - t0,
         "backends": {"outer": "nevergrad", "inner": "torch"},
@@ -353,7 +369,7 @@ def hybrid_evolutionary_train(
             {"n": len(x), "d": n_feat, "budget": budget, "seed": seed, "facets": facets}
         ),
         "recommendation_raw": dict(recommendation.value) if recommendation is not None else {},
-        "message": "ok",
+        "message": "ok" if best is not None else "no valid hybrid trials",
         "policy": (
             "Hybrid evolutionary neural training (ADR 0033): outer Nevergrad explores "
             "closed config space; PyTorch optimizes weights per candidate. "

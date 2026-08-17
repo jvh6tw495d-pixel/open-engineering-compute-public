@@ -34,6 +34,13 @@
       "type": "string",
       "minLength": 1,
       "description": "Optional trained adapter/checkpoint directory (from foundation.peft_train) to reload onto model_id before generating. Missing/unloadable path fails closed."
+    },
+    "adapter_sha256": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-fA-F]{64}$",
+      "description": "Required when adapter_path is set. Pin of the adapter directory."
     }
   }
 }

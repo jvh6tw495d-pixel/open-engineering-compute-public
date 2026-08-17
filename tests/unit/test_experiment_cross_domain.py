@@ -5,6 +5,7 @@ from __future__ import annotations
 import oec.experiment.cross_domain as cd
 from oec.experiment.cross_domain import (
     build_foundation_embed_then_stats_experiment,
+    build_full_stack_learning_experiment,
     build_monte_carlo_then_describe_experiment,
     build_peft_train_then_generate_experiment,
     build_physics_kinematics_experiment,
@@ -79,4 +80,22 @@ def test_builder_shapes() -> None:
     assert peft.steps[1].binds_from
     assert peft.steps[1].binds_from[0].path == "result.artifact.path"
     assert peft.steps[1].binds_from[0].as_key == "adapter_path"
+    assert peft.steps[1].binds_from[1].as_key == "adapter_sha256"
     assert peft.required_extras == ("foundation",)
+    assert peft.steps[0].inputs["revision"] == "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
+    assert peft.steps[1].inputs["revision"] == peft.steps[0].inputs["revision"]
+    full = build_full_stack_learning_experiment()
+    assert [step.step_id for step in full.steps] == [
+        "ag",
+        "nsga2",
+        "train",
+        "distill",
+        "evaluate",
+        "hybrid",
+        "embed",
+        "peft",
+        "generate",
+    ]
+    assert full.steps[0].inputs["algorithm"] == "genetic_algorithm"
+    assert full.required_extras == ("evolutionary", "neural", "foundation")
+    assert full.steps[-1].binds_from[0].as_key == "adapter_path"

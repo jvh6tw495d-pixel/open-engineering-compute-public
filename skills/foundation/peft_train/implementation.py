@@ -53,6 +53,8 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         lora_dropout=float(inputs.get("lora_dropout", 0.05)),
         target_modules=tuple(inputs.get("target_modules", ["q_proj", "v_proj"])),
         seed=int(inputs.get("seed", 0)),
+        adapter_path=str(inputs["adapter_path"]) if inputs.get("adapter_path") else None,
+        adapter_sha256=str(inputs["adapter_sha256"]) if inputs.get("adapter_sha256") else None,
     )
 
     try:

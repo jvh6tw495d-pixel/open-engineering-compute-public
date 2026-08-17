@@ -17,6 +17,7 @@ import io
 import math
 import os
 import struct
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -581,22 +582,25 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
         raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
     model_id = spec.model.model_id
-    load_kwargs = pretrained_load_kwargs(spec.model)
-    set_seed(int(spec.seed))
-    tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
-    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
-
     adapter_info: dict[str, Any] | None = None
     if spec.adapter_path:
         adapter_dir = Path(spec.adapter_path)
         if not adapter_dir.is_dir():
             raise AdapterNotFoundError(details={"adapter_path": str(adapter_dir)})
+        digest = _require_adapter_sha256(adapter_dir, spec.adapter_sha256)
+        adapter_info = {"path": str(adapter_dir.resolve()), "sha256": digest}
+
+    load_kwargs = pretrained_load_kwargs(spec.model)
+    set_seed(int(spec.seed))
+    tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
+    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
+
+    if spec.adapter_path:
         try:
             from peft import PeftModel
         except ImportError as exc:
             raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
         model = PeftModel.from_pretrained(model, str(adapter_dir))  # nosec B615 — local adapter dir
-        adapter_info = {"path": str(adapter_dir.resolve())}
 
     model.eval()
     inputs = tokenizer(spec.prompt, return_tensors="pt")
@@ -649,6 +653,50 @@ def _sha256_dir(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _require_adapter_sha256(adapter_dir: Path, expected: str | None) -> str:
+    """Refuse unpinned adapter reload. Returns the directory digest."""
+    if not isinstance(expected, str) or not expected:
+        raise FoundationError(
+            "adapter_path requires adapter_sha256 (no unpinned reload)",
+            details={"adapter_path": str(adapter_dir)},
+        )
+    actual = _sha256_dir(adapter_dir)
+    if actual != expected:
+        raise FoundationError(
+            "adapter sha256 does not match pinned digest",
+            details={"expected": expected, "got": actual, "adapter_path": str(adapter_dir)},
+        )
+    return actual
+
+
+def _with_qlora_quantization(load_kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Attach a real 4-bit BitsAndBytes config. Never a silent full-precision LoRA."""
+    try:
+        import bitsandbytes  # type: ignore[import-not-found]  # noqa: F401
+    except ImportError as exc:
+        raise BitsAndBytesNotAvailableError(details={"reason": str(exc)}) from exc
+    try:
+        import torch
+        from transformers import BitsAndBytesConfig
+    except ImportError as exc:
+        raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
+    if not torch.cuda.is_available():
+        raise BitsAndBytesNotAvailableError(
+            "QLoRA requires CUDA. CPU 4-bit is not supported. Use mode=peft_lora.",
+            details={"cuda": False},
+        )
+    quant = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.float16,
+    )
+    kwargs = dict(load_kwargs)
+    kwargs["quantization_config"] = quant
+    kwargs["device_map"] = {"": 0}
+    return kwargs
+
+
 def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> dict[str, Any]:
     """Train a LoRA/QLoRA adapter or run a full fine-tune (ADR 0041 S1).
 
@@ -669,23 +717,44 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
     texts = _prepare_training_texts(spec.dataset)
     model_id = spec.model.model_id
     load_kwargs = pretrained_load_kwargs(spec.model)
+    qlora = spec.method is PEFTMethod.QLORA
+    if qlora:
+        load_kwargs = _with_qlora_quantization(load_kwargs)
     set_seed(int(spec.seed))
     tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
+    try:
+        model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
+    except Exception as exc:
+        if qlora:
+            raise BitsAndBytesNotAvailableError(
+                f"QLoRA 4-bit load failed: {exc}",
+                details={"reason": str(exc)},
+            ) from exc
+        raise
 
     kind = ArtifactKind.CHECKPOINT
-    if spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
+    if spec.adapter_path:
+        if spec.method is PEFTMethod.NONE:
+            raise ValueError("adapter_path cannot be combined with full fine-tune")
+        adapter_dir = Path(spec.adapter_path)
+        if not adapter_dir.is_dir():
+            raise AdapterNotFoundError(details={"adapter_path": str(adapter_dir)})
+        _require_adapter_sha256(adapter_dir, spec.adapter_sha256)
         try:
-            from peft import LoraConfig, get_peft_model
+            from peft import PeftModel
         except ImportError as exc:
             raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
-        if spec.method == PEFTMethod.QLORA:
-            try:
-                import bitsandbytes  # type: ignore[import-not-found]  # noqa: F401
-            except ImportError as exc:
-                raise BitsAndBytesNotAvailableError(details={"reason": str(exc)}) from exc
+        model = PeftModel.from_pretrained(model, str(adapter_dir), is_trainable=True)  # nosec B615
+        kind = ArtifactKind.ADAPTER
+    elif spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
+        try:
+            from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+        except ImportError as exc:
+            raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
+        if qlora:
+            model = prepare_model_for_kbit_training(model)
         lora_config = LoraConfig(
             r=spec.r,
             lora_alpha=spec.lora_alpha,
@@ -697,6 +766,10 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         kind = ArtifactKind.ADAPTER
 
     model.train()
+    try:
+        model_device = next(model.parameters()).device
+    except StopIteration:
+        model_device = torch.device("cpu")
     optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=5e-4)
     batch_size = spec.budget.batch_size
     max_seq_len = spec.budget.max_seq_len
@@ -712,6 +785,7 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
             truncation=True,
             max_length=max_seq_len,
         )
+        encoded = {key: value.to(model_device) for key, value in encoded.items()}
         labels = encoded["input_ids"].clone()
         labels[encoded["attention_mask"] == 0] = -100
         outputs = model(**encoded, labels=labels)
@@ -723,7 +797,11 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         step += 1
 
     root = Path(artifact_root) if artifact_root is not None else _default_peft_artifact_root()
-    run_dir = root / f"{model_id.replace('/', '_')}_{spec.method.value}_{spec.seed}_s{step}"
+    slug = model_id.replace("\\", "/").rstrip("/")
+    slug = slug.split("/")[-1]
+    for char in (":", "*", "?", '"', "<", ">", "|"):
+        slug = slug.replace(char, "_")
+    run_dir = root / f"{slug}_{spec.method.value}_{spec.seed}_s{step}_{uuid.uuid4().hex[:8]}"
     run_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(run_dir)
 
@@ -745,8 +823,19 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         "loss_history": losses,
         "seed": spec.seed,
         "merit_owner": "peft" if kind == ArtifactKind.ADAPTER else "transformers",
+        "quantization": (
+            {
+                "load_in_4bit": True,
+                "bnb_4bit_quant_type": "nf4",
+                "bnb_4bit_use_double_quant": True,
+            }
+            if qlora
+            else None
+        ),
         "message": (
-            "LoRA/QLoRA adapter trained"
+            "QLoRA 4-bit adapter trained"
+            if qlora
+            else "LoRA adapter trained"
             if kind == ArtifactKind.ADAPTER
             else "full fine-tune checkpoint saved"
         ),

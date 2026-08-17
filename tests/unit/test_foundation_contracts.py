@@ -18,6 +18,7 @@ from oec.foundation.contracts import (
 from oec.foundation.errors import (
     AdapterNotFoundError,
     BitsAndBytesNotAvailableError,
+    FoundationError,
     PeftNotAvailableError,
     TransformersNotAvailableError,
 )
@@ -155,5 +156,31 @@ def test_peft_qlora_without_bitsandbytes_or_peft_fails_closed() -> None:
         model=_model(),
         dataset=TrainingDatasetSpec(texts=("hello world",)),
     )
-    with pytest.raises((PeftNotAvailableError, BitsAndBytesNotAvailableError)):
+    with pytest.raises((PeftNotAvailableError, BitsAndBytesNotAvailableError, FoundationError)):
         peft_train(spec)
+
+
+def test_qlora_quantization_kwargs_are_real_4bit(monkeypatch: pytest.MonkeyPatch) -> None:
+    import torch
+
+    import oec.foundation.runtime as runtime
+
+    pytest.importorskip("bitsandbytes")
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    kwargs = runtime._with_qlora_quantization({"trust_remote_code": False, "revision": "abc"})
+    quant = kwargs["quantization_config"]
+    assert getattr(quant, "load_in_4bit", None) is True
+    assert getattr(quant, "bnb_4bit_quant_type", None) == "nf4"
+    assert kwargs["device_map"] == {"": 0}
+    assert kwargs["trust_remote_code"] is False
+
+
+def test_qlora_without_cuda_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    import torch
+
+    import oec.foundation.runtime as runtime
+
+    pytest.importorskip("bitsandbytes")
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    with pytest.raises(BitsAndBytesNotAvailableError, match="CUDA"):
+        runtime._with_qlora_quantization({})

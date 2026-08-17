@@ -37,6 +37,21 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             "result": {"error": {"message": msg}},
             "diagnostics": {"converged": False, "backend": "hybrid", "message": msg},
         }
+    converged = result.get("best_config") is not None and result.get("message") == "ok"
+    if not converged:
+        return {
+            "result": {
+                **result,
+                "error": {"message": str(result.get("message") or "no valid hybrid trials")},
+            },
+            "diagnostics": {
+                "converged": False,
+                "backend": "hybrid",
+                "seed": result.get("seed"),
+                "n_trials": result.get("n_trials"),
+                "message": result.get("message"),
+            },
+        }
     return {
         "result": result,
         "diagnostics": {
