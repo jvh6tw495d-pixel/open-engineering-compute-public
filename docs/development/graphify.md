@@ -402,6 +402,72 @@ visualization limit). Baseline commit is still `129dcc0` (Wave 3b); this,
 like several prior entries, is **uncommitted** in the working tree at
 rebuild time. `graphify-out/` remains local and gitignored (ADR 0010).
 
+### v3.3.1 recovery rebuild
+
+Rebuilt on **2026-08-07** (tool now `graphifyy` v0.9.35, previously v0.9.32
+— command surface unchanged) after the 3.3.1 catalog/quality-gate recovery
+pass and the Phase 4 documentation reconciliation pass (README, technical
+debt, skill inventory, codebase map, V3 implementation plan, v3.0/v3.1
+release docs marked superseded). **12736 nodes, 18987 edges, 1013
+communities** — well above the 5000-node visualization limit;
+`graph.html` is the aggregated community view (1013 community nodes, 1161
+cross-community edges); use `graph.json` + `GRAPH_REPORT.md` for
+node-level detail. `GRAPH_REPORT.md` records baseline commit `ea43dae6`
+(the 3.3.1 recovery commit itself — this rebuild reflects committed state,
+not an in-progress working tree, unlike most prior entries in this log).
+The previous rebuild (2026-08-03, v2.5.3-era, 9587 nodes) was over four
+months of repo time and ~68 package versions stale; the jump to 12736 nodes
+reflects everything shipped since then: physics/multiphysics coupling
+(2.6–2.7), the chemistry foundation + Scientific IR + Model Registry
+(2.8–2.9), the v3.0.0 Option C cut (later withdrawn), chemistry completion +
+THD + sequential chemistry network (3.1–3.3.0), and this recovery's own
+fixes (`ResultDimensionalValidator` array-quantity handling, 19 backfilled
+contract-test fixtures, the Windows CLI UTF-8 stdout fix, `StrEnum`
+migration, formatting drift cleanup). `graphify-out/` remains **gitignored**
+(ADR 0010); the pre-rebuild graph was backed up to `graphify-out/2026-08-07/`
+by the tool itself before overwriting the curated top-level copy.
+
+`graphify update .` again could not scan `.pytest-tmp/` (Windows
+`Acesso negado` / access-denied on a stale, permission-locked local temp
+directory — not part of the committed source tree; see the residuals
+section of `3.3.1-phase0-3-execution-report.md`).
+
+### v3.5.0 + Scientific AI S0/S1 rebuild
+
+Rebuilt on **2026-08-16** (tool now `graphifyy` **v0.9.44**, previously v0.9.35)
+after W0–W8 (`oec==3.5.0`), MCP catalog hardening, ADR 0040–0042 (S0), and
+S1 `foundation.peft_train`. Command:
+
+```bash
+uv tool run --from graphifyy graphify update .
+```
+
+**Rebuild result:** **17225 nodes**, **26098 edges**, **1389 communities**
+(1161 shown, 228 thin omitted). Extraction: 91% EXTRACTED / 9% INFERRED
+(2219 inferred edges, avg confidence 0.55). `graph.html` is the aggregated
+community view (1389 community nodes, 1468 cross-community edges) — still
+above the 5000-node visualization limit; use `graph.json` + `GRAPH_REPORT.md`
+for node-level detail. Baseline commit in `GRAPH_REPORT.md`: **`4fc24a74`**
+(`feat(foundation): S1 PEFT train skill and experiment builder`) — matches
+`HEAD` at rebuild time. Pre-rebuild graph backed up to
+`graphify-out/2026-08-16/` by the tool.
+
+Delta vs the 2026-08-07 / `ea43dae` snapshot (~12736 nodes): **+4489 nodes**,
+**+7111 edges**, **+376 communities** (~31 commits). New structure now in
+the graph includes Experiment Engine (`experiment/__init__.py` appears as a
+community hub), neural/evolutionary/foundation packages, W3 applied skills,
+and S1 PEFT. Community labels are stale relative to the new set (1013 saved
+labels vs 1389 communities); run `graphify label` with a local LLM if
+semantic names are needed.
+
+Known scan residuals (unchanged policy):
+
+- `.pytest-tmp/` — Windows access-denied; not source.
+- 334 files produced zero nodes (mostly JSON/results/smoke dumps).
+- `tests/fixtures/_fixtures_3_4_snippet.py` — syntax error, partial extract.
+
+`graphify-out/` remains **gitignored** (ADR 0010).
+
 ## Known limitations observed
 
 `GRAPH_REPORT.md` flagged 33 weakly-connected nodes (mostly Markdown
