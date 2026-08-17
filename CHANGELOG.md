@@ -52,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   hash matches the file bytes. ``result.error`` aborts the experiment.
   Release/security CI use explicit extras. Unsloth rejects ``FULL``.
   Learning ``TrainingConfig`` caps match the PEFT budget.
+  ``peft_qlora`` now loads the base model in 4-bit NF4 (BitsAndBytes +
+  CUDA). Missing CUDA/bitsandbytes still fails closed.
 
 ### Changed
 

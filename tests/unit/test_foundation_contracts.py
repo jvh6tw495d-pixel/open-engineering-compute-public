@@ -160,27 +160,27 @@ def test_peft_qlora_without_bitsandbytes_or_peft_fails_closed() -> None:
         peft_train(spec)
 
 
-def test_peft_qlora_does_not_silently_train_full_precision_lora(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import sys
-    from types import ModuleType
+def test_qlora_quantization_kwargs_are_real_4bit(monkeypatch: pytest.MonkeyPatch) -> None:
+    import torch
 
     import oec.foundation.runtime as runtime
 
-    avail, _, _ = probe_transformers()
-    if not avail:
-        pytest.skip("transformers missing")
-    try:
-        import peft  # noqa: F401
-    except ImportError:
-        pytest.skip("peft missing")
-    fake = ModuleType("bitsandbytes")
-    monkeypatch.setitem(sys.modules, "bitsandbytes", fake)
-    spec = PEFTSpec(
-        method=PEFTMethod.QLORA,
-        model=_model(),
-        dataset=TrainingDatasetSpec(texts=("hello world",)),
-    )
-    with pytest.raises(FoundationError, match="4-bit"):
-        runtime.peft_train(spec)
+    pytest.importorskip("bitsandbytes")
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    kwargs = runtime._with_qlora_quantization({"trust_remote_code": False, "revision": "abc"})
+    quant = kwargs["quantization_config"]
+    assert getattr(quant, "load_in_4bit", None) is True
+    assert getattr(quant, "bnb_4bit_quant_type", None) == "nf4"
+    assert kwargs["device_map"] == {"": 0}
+    assert kwargs["trust_remote_code"] is False
+
+
+def test_qlora_without_cuda_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    import torch
+
+    import oec.foundation.runtime as runtime
+
+    pytest.importorskip("bitsandbytes")
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    with pytest.raises(BitsAndBytesNotAvailableError, match="CUDA"):
+        runtime._with_qlora_quantization({})

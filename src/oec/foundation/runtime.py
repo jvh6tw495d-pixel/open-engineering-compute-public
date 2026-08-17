@@ -669,6 +669,34 @@ def _require_adapter_sha256(adapter_dir: Path, expected: str | None) -> str:
     return actual
 
 
+def _with_qlora_quantization(load_kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Attach a real 4-bit BitsAndBytes config. Never a silent full-precision LoRA."""
+    try:
+        import bitsandbytes  # type: ignore[import-not-found]  # noqa: F401
+    except ImportError as exc:
+        raise BitsAndBytesNotAvailableError(details={"reason": str(exc)}) from exc
+    try:
+        import torch
+        from transformers import BitsAndBytesConfig
+    except ImportError as exc:
+        raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
+    if not torch.cuda.is_available():
+        raise BitsAndBytesNotAvailableError(
+            "QLoRA requires CUDA. CPU 4-bit is not supported. Use mode=peft_lora.",
+            details={"cuda": False},
+        )
+    quant = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.float16,
+    )
+    kwargs = dict(load_kwargs)
+    kwargs["quantization_config"] = quant
+    kwargs["device_map"] = {"": 0}
+    return kwargs
+
+
 def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> dict[str, Any]:
     """Train a LoRA/QLoRA adapter or run a full fine-tune (ADR 0041 S1).
 
@@ -689,11 +717,22 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
     texts = _prepare_training_texts(spec.dataset)
     model_id = spec.model.model_id
     load_kwargs = pretrained_load_kwargs(spec.model)
+    qlora = spec.method is PEFTMethod.QLORA
+    if qlora:
+        load_kwargs = _with_qlora_quantization(load_kwargs)
     set_seed(int(spec.seed))
     tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
+    try:
+        model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
+    except Exception as exc:
+        if qlora:
+            raise BitsAndBytesNotAvailableError(
+                f"QLoRA 4-bit load failed: {exc}",
+                details={"reason": str(exc)},
+            ) from exc
+        raise
 
     kind = ArtifactKind.CHECKPOINT
     if spec.adapter_path:
@@ -711,19 +750,11 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         kind = ArtifactKind.ADAPTER
     elif spec.method in (PEFTMethod.LORA, PEFTMethod.QLORA):
         try:
-            from peft import LoraConfig, get_peft_model
+            from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
         except ImportError as exc:
             raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
-        if spec.method == PEFTMethod.QLORA:
-            try:
-                import bitsandbytes  # type: ignore[import-not-found]  # noqa: F401
-            except ImportError as exc:
-                raise BitsAndBytesNotAvailableError(details={"reason": str(exc)}) from exc
-            raise FoundationError(
-                "QLoRA 4-bit load is not implemented. "
-                "Refusing to silently train full-precision LoRA. Use mode=peft_lora.",
-                details={"method": "qlora"},
-            )
+        if qlora:
+            model = prepare_model_for_kbit_training(model)
         lora_config = LoraConfig(
             r=spec.r,
             lora_alpha=spec.lora_alpha,
@@ -735,6 +766,10 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         kind = ArtifactKind.ADAPTER
 
     model.train()
+    try:
+        model_device = next(model.parameters()).device
+    except StopIteration:
+        model_device = torch.device("cpu")
     optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=5e-4)
     batch_size = spec.budget.batch_size
     max_seq_len = spec.budget.max_seq_len
@@ -750,6 +785,7 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
             truncation=True,
             max_length=max_seq_len,
         )
+        encoded = {key: value.to(model_device) for key, value in encoded.items()}
         labels = encoded["input_ids"].clone()
         labels[encoded["attention_mask"] == 0] = -100
         outputs = model(**encoded, labels=labels)
@@ -787,8 +823,19 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         "loss_history": losses,
         "seed": spec.seed,
         "merit_owner": "peft" if kind == ArtifactKind.ADAPTER else "transformers",
+        "quantization": (
+            {
+                "load_in_4bit": True,
+                "bnb_4bit_quant_type": "nf4",
+                "bnb_4bit_use_double_quant": True,
+            }
+            if qlora
+            else None
+        ),
         "message": (
-            "LoRA/QLoRA adapter trained"
+            "QLoRA 4-bit adapter trained"
+            if qlora
+            else "LoRA adapter trained"
             if kind == ArtifactKind.ADAPTER
             else "full fine-tune checkpoint saved"
         ),
