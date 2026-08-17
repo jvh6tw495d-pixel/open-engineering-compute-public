@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.vision.transfer input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["examples", "n_classes"],
+  "properties": {
+    "examples": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "label"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "label": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "n_classes": { "type": "integer", "minimum": 2 },
+    "backbone": { "type": "string", "enum": ["resnet18", "clip"], "default": "resnet18" },
+    "mode": {
+      "type": "string",
+      "enum": ["frozen_features", "finetune_head", "finetune_last"],
+      "default": "frozen_features"
+    },
+    "backbone_weights": { "type": "string", "enum": ["imagenet", "none"], "default": "imagenet" },
+    "clip_model_id": { "type": "string", "default": "openai/clip-vit-base-patch32" },
+    "clip_revision": { "type": ["string", "null"], "minLength": 40, "maxLength": 40 },
+    "hidden_dims": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1 },
+      "default": [64, 64]
+    },
+    "epochs": { "type": "integer", "minimum": 1, "maximum": 500, "default": 20 },
+    "batch_size": { "type": "integer", "minimum": 1, "maximum": 64, "default": 8 },
+    "lr": { "type": "number", "exclusiveMinimum": 0, "default": 0.001 },
+    "val_fraction": { "type": "number", "minimum": 0, "exclusiveMaximum": 1, "default": 0.25 },
+    "seed": { "type": "integer", "default": 0 },
+    "device": { "type": "string", "enum": ["cpu", "cuda", "auto"], "default": "cpu" }
+  }
+}

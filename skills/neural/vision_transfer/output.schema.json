@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.vision.transfer output",
+  "type": "object",
+  "properties": {
+    "mode": { "type": "string" },
+    "backbone": { "type": "string" },
+    "backend": { "type": "string" },
+    "train_metrics": { "type": "object" },
+    "n_params": { "type": ["integer", "null"] }
+  },
+  "required": ["mode", "backbone", "backend", "train_metrics"],
+  "additionalProperties": true
+}

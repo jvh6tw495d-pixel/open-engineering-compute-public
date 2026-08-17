@@ -1,0 +1,12 @@
+{
+  "examples": [
+    { "path": "./cat.png", "label": 1 },
+    { "path": "./other.png", "label": 0 }
+  ],
+  "n_classes": 2,
+  "backbone": "resnet18",
+  "mode": "frozen_features",
+  "backbone_weights": "none",
+  "epochs": 2,
+  "seed": 0
+}
