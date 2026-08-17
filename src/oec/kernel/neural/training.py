@@ -392,6 +392,8 @@ def evaluate_mlp(
     normalize: dict[str, list[float]] | None | Any = NORMALIZE_UNSET,
     device: str = "cpu",
 ) -> NeuralEvaluationResult:
+    if len(x) != len(y):
+        raise ValueError("evaluate_mlp requires len(x) == len(y)")
     preds = predict_mlp(x, checkpoint, normalize=normalize, device=device)
     pred_arr = np.asarray(preds, dtype=float)
     y_arr = np.asarray(y, dtype=float)

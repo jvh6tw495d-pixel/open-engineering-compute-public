@@ -41,6 +41,8 @@ class DistillationResult(BaseModel):
     metrics: dict[str, float] = Field(default_factory=dict)
     message: str = ""
     details: dict[str, Any] = Field(default_factory=dict)
+    student_checkpoint: dict[str, Any] | None = None
+    student_normalize: dict[str, Any] | None = None
 
 
 def _tabular_xy(dataset: LearningDataset) -> tuple[list[list[float]], list[float]] | None:
@@ -160,6 +162,8 @@ def distill(
             "student_hidden_dims": list(cfg.student_hidden_dims),
             "teacher_retrained": False,
         },
+        student_checkpoint=student_out.checkpoint,
+        student_normalize=student_out.normalize,
     )
 
 

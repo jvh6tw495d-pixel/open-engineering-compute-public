@@ -109,7 +109,7 @@ class AxolotlBackend:
             ) from exc
         metrics = raw if isinstance(raw, dict) else {}
         return TrainingResult(
-            status="ok",
+            status="incomplete",
             backend=self.name,
             method=config.method,
             model=model,
@@ -118,8 +118,8 @@ class AxolotlBackend:
                 for key, value in metrics.items()
                 if isinstance(value, (int, float))
             },
-            message="axolotl.cli.train.train",
-            details={"recipe_path": str(jsonl), "dataset_file": str(jsonl)},
+            message="axolotl.cli.train.train returned no durable artifact",
+            details={"dataset_file_deleted": True},
         )
 
 

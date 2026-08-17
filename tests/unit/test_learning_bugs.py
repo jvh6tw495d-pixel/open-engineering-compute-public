@@ -198,6 +198,39 @@ def test_pipeline_refuses_to_chain_adapter_without_sha256(
     assert calls == 1
 
 
+def test_target_metric_equal_distance_is_a_tie() -> None:
+    from oec.learning.contracts import MetricDirection, MetricSpec
+    from oec.learning.evaluation import Benchmark, compare_results
+
+    out = compare_results(
+        Benchmark(
+            name="t",
+            metrics=(MetricSpec(name="x", direction=MetricDirection.TARGET, target=0.0),),
+        ),
+        {"x": 1.0},
+        {"x": 1.0},
+    )
+    assert out["comparisons"][0]["winner"] == "tie"
+
+
+def test_constant_target_wrong_prediction_is_not_perfect_r2() -> None:
+    import numpy as np
+
+    from oec.kernel.neural.metrics import regression_metrics
+
+    perfect = regression_metrics(np.array([5.0, 5.0, 5.0]), np.array([5.0, 5.0, 5.0]))
+    wrong = regression_metrics(np.array([5.0, 5.0, 5.0]), np.array([0.0, 0.0, 0.0]))
+    assert perfect["r_squared"] == pytest.approx(1.0)
+    assert wrong["r_squared"] == pytest.approx(0.0)
+
+
+def test_peft_builder_rejects_full_checkpoint_reload() -> None:
+    from oec.experiment.cross_domain import build_peft_train_then_generate_experiment
+
+    with pytest.raises(ValueError, match="full"):
+        build_peft_train_then_generate_experiment(mode="full")
+
+
 def test_payload_forwards_token_budget_from_diagnostics() -> None:
     payload = payload_from_execution(_execution(ExecutionStatus.VALIDATED))
     assert payload["tokens"] == 2.0

@@ -17,6 +17,7 @@ import io
 import math
 import os
 import struct
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -744,7 +745,7 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
     slug = slug.split("/")[-1]
     for char in (":", "*", "?", '"', "<", ">", "|"):
         slug = slug.replace(char, "_")
-    run_dir = root / f"{slug}_{spec.method.value}_{spec.seed}_s{step}"
+    run_dir = root / f"{slug}_{spec.method.value}_{spec.seed}_s{step}_{uuid.uuid4().hex[:8]}"
     run_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(run_dir)
 

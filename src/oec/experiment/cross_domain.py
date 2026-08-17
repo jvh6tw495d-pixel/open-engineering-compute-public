@@ -289,6 +289,11 @@ def build_peft_train_then_generate_experiment(
     both steps fail closed without it (ADR 0041).
     """
     texts = texts or ["open engineering compute", "scientific skills for agents"]
+    if mode == "full":
+        raise ValueError(
+            "build_peft_train_then_generate_experiment cannot reload a full "
+            "checkpoint via adapter_path; use mode='peft_lora'"
+        )
     return ExperimentSpec(
         id=experiment_id,
         title="S1: PEFT train then adapter-reload generate",

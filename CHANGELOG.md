@@ -43,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   be 4-bit LoRA (fails closed). S1 PEFT builder pins the tiny-gpt2
   revision. ``probe_optional()`` does not treat PyPI ``art`` as OpenPipe
   ART. PEFT/experiment artifact paths cannot jump to ``C:\\...``.
+  PEFT run dirs are unique (no stage-2 overwrite). Constant-target R²
+  is 0 unless predictions match. Distill keeps the student checkpoint.
+  TARGET ties are ties. Unsloth/Axolotl no longer claim ``ok`` without
+  an artifact. Full PEFT→generate is rejected (cannot reload as adapter).
 
 ### Changed
 

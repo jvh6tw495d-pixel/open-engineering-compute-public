@@ -90,12 +90,12 @@ class UnslothBackend:
             outcome = trainer.train()
             loss = getattr(outcome, "training_loss", None)
             return TrainingResult(
-                status="ok",
+                status="incomplete",
                 backend=self.name,
                 method=config.method,
                 model=model,
                 metrics={"loss": float(loss)} if isinstance(loss, (int, float)) else {},
-                message="unsloth FastLanguageModel SFT/LoRA",
+                message="unsloth trained in-memory; no artifact was saved",
                 details={"adapter": "FastLanguageModel", "dataset_records": len(texts)},
             )
         except BackendNotAvailableError:

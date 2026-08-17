@@ -15,7 +15,7 @@ def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, floa
     rmse = float(np.sqrt(np.mean(err**2)))
     ss_res = float(np.sum(err**2))
     ss_tot = float(np.sum((y_true - np.mean(y_true)) ** 2))
-    r2 = 1.0 if ss_tot == 0.0 else 1.0 - ss_res / ss_tot
+    r2 = (1.0 if ss_res == 0.0 else 0.0) if ss_tot == 0.0 else 1.0 - ss_res / ss_tot
     if not math.isfinite(r2):
         r2 = 0.0
     return {"mae": mae, "rmse": rmse, "r_squared": r2}

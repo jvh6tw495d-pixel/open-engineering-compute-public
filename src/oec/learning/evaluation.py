@@ -67,7 +67,14 @@ def compare_results(
             winner = left_id if lv > rv else right_id if rv > lv else "tie"
         else:
             target = 0.0 if spec.target is None else float(spec.target)
-            winner = left_id if abs(lv - target) < abs(rv - target) else right_id
+            left_err = abs(lv - target)
+            right_err = abs(rv - target)
+            if left_err < right_err:
+                winner = left_id
+            elif right_err < left_err:
+                winner = right_id
+            else:
+                winner = "tie"
         rows.append(
             {
                 "metric": spec.name,
