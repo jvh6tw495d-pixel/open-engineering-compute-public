@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import importlib
 
-from oec.learning.contracts import FineTuneBackendName, ModelRef, TrainingConfig, TrainingResult
+from oec.learning.contracts import (
+    FineTuneBackendName,
+    ModelRef,
+    TrainingConfig,
+    TrainingMethod,
+    TrainingResult,
+)
 from oec.learning.datasets import LearningDataset, texts_from_sft
 from oec.learning.errors import BackendNotAvailableError
 from oec.learning.install_hints import UNSLOTH_MISSING
@@ -43,6 +49,11 @@ class UnslothBackend:
         _require_module("datasets")
         _require_module("transformers")
         _require_module("trl")
+        if config.method is TrainingMethod.FULL:
+            raise BackendNotAvailableError(
+                "Unsloth adapter does not implement full fine-tune; use lora or qlora",
+                details={"backend": "unsloth", "method": config.method.value},
+            )
 
         try:
             from datasets import Dataset

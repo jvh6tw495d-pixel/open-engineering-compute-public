@@ -582,22 +582,25 @@ def generate_text(spec: GenerationSpec) -> dict[str, Any]:
         raise TransformersNotAvailableError(details={"reason": str(exc)}) from exc
 
     model_id = spec.model.model_id
-    load_kwargs = pretrained_load_kwargs(spec.model)
-    set_seed(int(spec.seed))
-    tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
-    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
-
     adapter_info: dict[str, Any] | None = None
     if spec.adapter_path:
         adapter_dir = Path(spec.adapter_path)
         if not adapter_dir.is_dir():
             raise AdapterNotFoundError(details={"adapter_path": str(adapter_dir)})
+        digest = _require_adapter_sha256(adapter_dir, spec.adapter_sha256)
+        adapter_info = {"path": str(adapter_dir.resolve()), "sha256": digest}
+
+    load_kwargs = pretrained_load_kwargs(spec.model)
+    set_seed(int(spec.seed))
+    tokenizer = from_pretrained_governed(AutoTokenizer, model_id, load_kwargs)
+    model: Any = from_pretrained_governed(AutoModelForCausalLM, model_id, load_kwargs)
+
+    if spec.adapter_path:
         try:
             from peft import PeftModel
         except ImportError as exc:
             raise PeftNotAvailableError(details={"reason": str(exc)}) from exc
         model = PeftModel.from_pretrained(model, str(adapter_dir))  # nosec B615 — local adapter dir
-        adapter_info = {"path": str(adapter_dir.resolve())}
 
     model.eval()
     inputs = tokenizer(spec.prompt, return_tensors="pt")
@@ -650,6 +653,22 @@ def _sha256_dir(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _require_adapter_sha256(adapter_dir: Path, expected: str | None) -> str:
+    """Refuse unpinned adapter reload. Returns the directory digest."""
+    if not isinstance(expected, str) or not expected:
+        raise FoundationError(
+            "adapter_path requires adapter_sha256 (no unpinned reload)",
+            details={"adapter_path": str(adapter_dir)},
+        )
+    actual = _sha256_dir(adapter_dir)
+    if actual != expected:
+        raise FoundationError(
+            "adapter sha256 does not match pinned digest",
+            details={"expected": expected, "got": actual, "adapter_path": str(adapter_dir)},
+        )
+    return actual
+
+
 def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> dict[str, Any]:
     """Train a LoRA/QLoRA adapter or run a full fine-tune (ADR 0041 S1).
 
@@ -683,6 +702,7 @@ def peft_train(spec: PEFTSpec, *, artifact_root: str | Path | None = None) -> di
         adapter_dir = Path(spec.adapter_path)
         if not adapter_dir.is_dir():
             raise AdapterNotFoundError(details={"adapter_path": str(adapter_dir)})
+        _require_adapter_sha256(adapter_dir, spec.adapter_sha256)
         try:
             from peft import PeftModel
         except ImportError as exc:

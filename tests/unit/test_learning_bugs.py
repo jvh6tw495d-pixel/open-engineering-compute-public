@@ -224,6 +224,50 @@ def test_constant_target_wrong_prediction_is_not_perfect_r2() -> None:
     assert wrong["r_squared"] == pytest.approx(0.0)
 
 
+def test_generate_refuses_unpinned_adapter(tmp_path: Path) -> None:
+    from oec.foundation.contracts import FoundationModelSpec, GenerationSpec
+    from oec.foundation.errors import FoundationError
+    from oec.foundation.runtime import generate_text, probe_transformers
+
+    avail, _, _ = probe_transformers()
+    if not avail:
+        pytest.skip("transformers missing")
+    adapter = tmp_path / "adapter"
+    adapter.mkdir()
+    (adapter / "dummy.txt").write_text("x", encoding="utf-8")
+    with pytest.raises(FoundationError, match="adapter_sha256"):
+        generate_text(
+            GenerationSpec(
+                prompt="hi",
+                model=FoundationModelSpec(
+                    model_id="sshleifer/tiny-gpt2",
+                    revision="5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+                ),
+                adapter_path=str(adapter),
+            )
+        )
+
+
+def test_experiment_record_hash_matches_bytes_on_disk(tmp_path: Path) -> None:
+    import hashlib
+
+    from oec.experiment.artifacts import persist_experiment_record
+    from oec.experiment.record import ExperimentRecord, ExperimentStatus
+    from oec.experiment.specs import ExperimentSpec, ExperimentStep
+
+    spec = ExperimentSpec(
+        id="hash-check",
+        steps=(ExperimentStep(step_id="noop", skill_id="mathematics.identity", inputs={"x": 1}),),
+    )
+    record = ExperimentRecord(status=ExperimentStatus.COMPLETED, spec=spec, seed=0)
+    final, produced = persist_experiment_record(record, artifact_root=tmp_path)
+    rec_art = next(item for item in produced if item.name == "record")
+    raw = Path(rec_art.path).read_bytes()
+    assert rec_art.content_hash == hashlib.sha256(raw).hexdigest()
+    disk = __import__("json").loads(raw)
+    assert all(item.get("name") != "record" for item in disk.get("artifacts_produced", []))
+
+
 def test_peft_builder_rejects_full_checkpoint_reload() -> None:
     from oec.experiment.cross_domain import build_peft_train_then_generate_experiment
 

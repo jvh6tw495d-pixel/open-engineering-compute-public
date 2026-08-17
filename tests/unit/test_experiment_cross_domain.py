@@ -80,6 +80,7 @@ def test_builder_shapes() -> None:
     assert peft.steps[1].binds_from
     assert peft.steps[1].binds_from[0].path == "result.artifact.path"
     assert peft.steps[1].binds_from[0].as_key == "adapter_path"
+    assert peft.steps[1].binds_from[1].as_key == "adapter_sha256"
     assert peft.required_extras == ("foundation",)
     assert peft.steps[0].inputs["revision"] == "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
     assert peft.steps[1].inputs["revision"] == peft.steps[0].inputs["revision"]

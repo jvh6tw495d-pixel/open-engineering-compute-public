@@ -7,6 +7,7 @@ from typing import Any
 from oec.foundation.contracts import FoundationModelSpec, GenerationSpec
 from oec.foundation.errors import (
     AdapterNotFoundError,
+    FoundationError,
     PeftNotAvailableError,
     TransformersNotAvailableError,
 )
@@ -34,10 +35,16 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         temperature=float(inputs.get("temperature", 0.0)),
         seed=int(inputs.get("seed", 0)),
         adapter_path=str(adapter_path) if adapter_path else None,
+        adapter_sha256=str(inputs["adapter_sha256"]) if inputs.get("adapter_sha256") else None,
     )
     try:
         out = generate_text(spec)
-    except (TransformersNotAvailableError, PeftNotAvailableError, AdapterNotFoundError) as exc:
+    except (
+        TransformersNotAvailableError,
+        PeftNotAvailableError,
+        AdapterNotFoundError,
+        FoundationError,
+    ) as exc:
         return {
             "result": {"error": exc.to_dict()},
             "diagnostics": {

@@ -60,9 +60,9 @@ class TrainingConfig(_Frozen):
     method: TrainingMethod = TrainingMethod.LORA
     backend: FineTuneBackendName = FineTuneBackendName.HUGGINGFACE
     seed: int = 0
-    max_steps: int = Field(default=8, ge=1, le=10_000)
-    max_seq_len: int = Field(default=64, ge=8, le=4096)
-    batch_size: int = Field(default=1, ge=1, le=64)
+    max_steps: int = Field(default=8, ge=1, le=500)
+    max_seq_len: int = Field(default=64, ge=8, le=1024)
+    batch_size: int = Field(default=1, ge=1, le=32)
     hyperparameters: dict[str, float | int | str] = Field(default_factory=dict)
 
 

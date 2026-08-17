@@ -330,6 +330,13 @@ def build_peft_train_then_generate_experiment(
                     BindSpec.model_validate(
                         {"step_id": "train", "path": "result.artifact.path", "as": "adapter_path"}
                     ),
+                    BindSpec.model_validate(
+                        {
+                            "step_id": "train",
+                            "path": "result.artifact.sha256",
+                            "as": "adapter_sha256",
+                        }
+                    ),
                 ),
             ),
         ),
@@ -583,6 +590,13 @@ def build_full_stack_learning_experiment(
                 binds_from=(
                     BindSpec.model_validate(
                         {"step_id": "peft", "path": "result.artifact.path", "as": "adapter_path"}
+                    ),
+                    BindSpec.model_validate(
+                        {
+                            "step_id": "peft",
+                            "path": "result.artifact.sha256",
+                            "as": "adapter_sha256",
+                        }
                     ),
                 ),
             ),

@@ -127,13 +127,14 @@ class HuggingFaceBackend:
             model=FoundationModelSpec(model_id=model.model_id, revision=model.revision),
             dataset=TrainingDatasetSpec(texts=texts),
             budget=TrainingBudgetSpec(
-                max_steps=min(config.max_steps, 500),
-                max_seq_len=min(config.max_seq_len, 1024),
-                batch_size=min(config.batch_size, 32),
+                max_steps=config.max_steps,
+                max_seq_len=config.max_seq_len,
+                batch_size=config.batch_size,
             ),
             target_modules=targets,
             seed=config.seed,
             adapter_path=adapter,
+            adapter_sha256=expected if adapter else None,
         )
         try:
             raw: dict[str, Any] = peft_train(spec)

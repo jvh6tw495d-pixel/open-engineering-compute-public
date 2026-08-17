@@ -80,12 +80,12 @@ def persist_experiment_record(
                 )
             )
 
-    # Provisional record without artifacts, then rewrite with produced list
+    # Write the record without embedding its own content hash. Rewriting the
+    # file after hashing would make the stored digest stale.
     record_path = run_dir / "record.json"
-    interim = record.model_copy(update={"artifacts_produced": tuple(produced)})
-    # Include record path in artifacts after write
+    payload_record = record.model_copy(update={"artifacts_produced": tuple(produced)})
     record_path.write_text(
-        json.dumps(interim.to_dict(), indent=2, default=str) + "\n", encoding="utf-8"
+        json.dumps(payload_record.to_dict(), indent=2, default=str) + "\n", encoding="utf-8"
     )
     record_art = ProducedArtifact(
         name="record",
@@ -95,20 +95,6 @@ def persist_experiment_record(
         media_type="application/json",
     )
     all_produced = (record_art, *produced)
-    final = record.model_copy(update={"artifacts_produced": all_produced})
-    # Rewrite record with final artifacts_produced
-    record_path.write_text(
-        json.dumps(final.to_dict(), indent=2, default=str) + "\n", encoding="utf-8"
-    )
-    # Update hash of record after rewrite
-    final_record_art = ProducedArtifact(
-        name="record",
-        kind="json",
-        path=str(record_path.resolve()),
-        content_hash=_sha256_file(record_path),
-        media_type="application/json",
-    )
-    all_produced = (final_record_art, *produced)
     final = record.model_copy(update={"artifacts_produced": all_produced})
     return final, all_produced
 

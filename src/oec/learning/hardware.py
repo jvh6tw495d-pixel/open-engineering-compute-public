@@ -50,6 +50,12 @@ def capture_dependency_versions() -> dict[str, str | None]:
 
     versions: dict[str, str | None] = {}
     for name in _DEPENDENCY_PACKAGES:
+        if name == "art":
+            try:
+                versions["art"] = version("openpipe-art")
+            except PackageNotFoundError:
+                versions["art"] = None
+            continue
         try:
             versions[name] = version(name)
         except PackageNotFoundError:

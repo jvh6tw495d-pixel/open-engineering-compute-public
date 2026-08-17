@@ -99,6 +99,7 @@ class GenerationSpec(BaseModel):
     # S1 (ADR 0041 §3.2): optional adapter/checkpoint reload. A path that is
     # missing or unloadable fails closed — never a silent base-model swap.
     adapter_path: str | None = Field(default=None, min_length=1)
+    adapter_sha256: str | None = Field(default=None, min_length=64, max_length=64)
 
 
 class TrainingDatasetSpec(BaseModel):
@@ -149,6 +150,7 @@ class PEFTSpec(BaseModel):
     seed: int = 0
     # Continue training from a local adapter directory. Missing path fails closed.
     adapter_path: str | None = Field(default=None, min_length=1)
+    adapter_sha256: str | None = Field(default=None, min_length=64, max_length=64)
 
     @field_validator("target_modules")
     @classmethod

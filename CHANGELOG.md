@@ -47,6 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   is 0 unless predictions match. Distill keeps the student checkpoint.
   TARGET ties are ties. Unsloth/Axolotl no longer claim ``ok`` without
   an artifact. Full PEFT→generate is rejected (cannot reload as adapter).
+  Hybrid no longer treats failed candidates as fitness ``1e6``. Generate
+  and PEFT continue require ``adapter_sha256``. Experiment ``record.json``
+  hash matches the file bytes. ``result.error`` aborts the experiment.
+  Release/security CI use explicit extras. Unsloth rejects ``FULL``.
+  Learning ``TrainingConfig`` caps match the PEFT budget.
 
 ### Changed
 
