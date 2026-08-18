@@ -1,7 +1,7 @@
 ---
 id: foundation.vision_embed
-version: 0.1.0
-status: experimental
+version: 0.1.1
+status: validated
 domain: foundation
 title: Vision Embeddings (CLIP family, transformers)
 ---
@@ -41,4 +41,8 @@ model card — this skill claims no embedding-quality merit of its own.
 
 # Changelog
 
+- 0.1.1: validated — golden cases split into a fail-closed no-extra case
+  (monkeypatched `probe_transformers`, structured error, no invented
+  vectors) and a real-payload `oec[foundation]` case gated on the pinned
+  CLIP revision being cached locally.
 - 0.1.0: S5 initial (ADR 0040 D3).

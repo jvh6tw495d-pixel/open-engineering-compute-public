@@ -1,7 +1,7 @@
 ---
 id: foundation.vlm_generate
-version: 0.1.0
-status: experimental
+version: 0.1.1
+status: validated
 domain: foundation
 title: Vision-Language Generation (Vision2Seq, transformers)
 ---
@@ -43,4 +43,8 @@ card — this skill claims no generation-quality merit of its own.
 
 # Changelog
 
+- 0.1.1: validated — golden cases split into a fail-closed no-extra case
+  (monkeypatched `probe_transformers`, structured error, no invented text)
+  and a real-payload `oec[foundation]` case gated on the pinned VLM
+  revision being cached locally.
 - 0.1.0: S5 initial (ADR 0040 D3).

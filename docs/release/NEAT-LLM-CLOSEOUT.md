@@ -1,12 +1,13 @@
 # NEAT + HF LLM reference path — closeout
 
 **Date:** 2026-08-17
-**Scope:** promote five existing skills from `experimental` to `validated`.
-This is **not** a new engine — NEAT (ADR 0044) and the Hugging Face
-foundation surface (W6/S1, ADR 0038/0040/0041) already existed. "Close"
-means an honest validated lifecycle, goldens that do not accept
-`"error" OR "success"` as a pass, and a written record of what is — and is
-not — covered.
+**Scope:** promote seven existing skills from `experimental` to `validated`
+(five in the original pass, plus `foundation.vision_embed` /
+`foundation.vlm_generate` in a follow-up VLM closeout). This is **not** a
+new engine — NEAT (ADR 0044) and the Hugging Face foundation surface
+(W6/S1/S5, ADR 0038/0040/0041) already existed. "Close" means an honest
+validated lifecycle, goldens that do not accept `"error" OR "success"` as
+a pass, and a written record of what is — and is not — covered.
 
 ## Promoted (`experimental` → `validated`, patch version bump)
 
@@ -17,14 +18,16 @@ not — covered.
 | `foundation.peft_train` | 0.1.0 → 0.1.1 | `transformers_peft_train` (unchanged) |
 | `foundation.embed` | 0.1.0 → 0.1.1 | `foundation_embed` (unchanged) |
 | `foundation.capabilities` | 0.1.0 → 0.1.1 | `foundation_capabilities_probe` (unchanged) |
+| `foundation.vision_embed` | 0.1.0 → 0.1.1 | `foundation_vision_embed` (unchanged) |
+| `foundation.vlm_generate` | 0.1.0 → 0.1.1 | `foundation_vlm_generate` (unchanged) |
 
 `skill.yaml` and `skill.md` front matter carry the same `status`/`version`
-for all five (the loader cross-checks the two and rejects disagreement).
+for all seven (the loader cross-checks the two and rejects disagreement).
 Method ids are unchanged — this is a lifecycle promotion, not a rewrite.
 
-**Not promoted** (stay `experimental`): `foundation.vision_embed`,
-`foundation.vlm_generate`, every other evolutionary skill (pymoo/DEAP/
-Nevergrad/GP/blackbox), and HyperNEAT (never implemented — see below).
+**Not promoted** (stay `experimental`): every other evolutionary skill
+(pymoo/DEAP/Nevergrad/GP/blackbox), and HyperNEAT (never implemented —
+see below).
 
 ## NEAT (`evolutionary.neat`)
 
@@ -127,6 +130,41 @@ transformers/PEFT.
   is no fail-closed/real-payload split to make; the existing golden already
   asserts the real report shape unconditionally.
 
+### `foundation.vision_embed` and `foundation.vlm_generate` (VLM closeout)
+
+- Closed CLIP-family image embedding (`oec.foundation.runtime.vision_embed`)
+  and closed Vision2Seq captioning (`oec.foundation.runtime.vlm_generate`).
+  Both keep every S5 guarantee unchanged: `AutoConfig.model_type` allow-lists
+  (no text-only fallback), mandatory 40-hex `revision` on remote Hub
+  `model_id`s, `trust_remote_code` hard-pinned `False`, and bounded raster
+  images (allow-listed extension, size/pixel/frame caps, Pillow
+  decompression-bomb guard, no URL fetch).
+- **No vLLM.** Both skills remain a plain Transformers call —
+  `AutoModelForVision2Seq.from_pretrained(...).generate(...)` /
+  `CLIPModel.from_pretrained(...).get_image_features(...)`. No alternate
+  inference backend was added.
+- Goldens (`skills/foundation/vision_embed/tests/test_golden.py`,
+  `skills/foundation/vlm_generate/tests/test_golden.py`) no longer pass on
+  `"vectors" in result or "error" in result` / `"text" in result or "error"
+  in result`. Each now splits into `test_missing_extra_fails_closed`
+  (monkeypatches `oec.foundation.runtime.probe_transformers`, always runs,
+  asserts a structured `{code, message}` error and no invented
+  vectors/text) and `test_real_payload_with_extra` (`-m foundation`,
+  `pytest.importorskip("transformers")` and `pytest.importorskip("PIL")`).
+  The existing `test_missing_revision_on_remote_model_raises` and
+  `test_image_source_conflict_raises` cases are unchanged in behavior,
+  rewritten to use `pytest.raises` instead of bare `try`/`except`.
+- The real-payload case checks the pinned model weights are already in the
+  local Hugging Face cache (`huggingface_hub.try_to_load_from_cache`) before
+  running and calls `pytest.skip` otherwise — it never downloads a model
+  and never invents an embedding or a caption. In this environment the
+  pinned CLIP revision (`openai/clip-vit-base-patch32@5812e51…`) was fully
+  cached, so `vision_embed`'s real-payload test ran a live embedding;
+  the pinned BLIP revision
+  (`Salesforce/blip-image-captioning-base@82a37760…`) had only
+  config/tokenizer files cached, no weight file, so `vlm_generate`'s
+  real-payload test skipped rather than downloading ~1 GB of weights.
+
 ## Fail-closed contract summary
 
 | Missing dependency | Error | Code |
@@ -148,10 +186,6 @@ transformers/PEFT.
   text/FM distillation still fails closed (see
   `docs(learning): drop Kronos from the Learning programme`).
 - **Kronos** — dropped from the Learning programme prior to this closeout.
-- **VLM promotion** — `foundation.vision_embed` and `foundation.vlm_generate`
-  stay `experimental`. They are correct and fail-closed (closed model-type
-  allow-lists, pinned revisions, Pillow decompression-bomb guards) but were
-  not in scope for this closeout and were not re-reviewed here.
 
 ## Tests run
 
@@ -160,9 +194,14 @@ uv run pytest tests/unit/test_neat_governed.py tests/unit/test_s4_evo_builder_ca
 uv run pytest tests/unit/test_neat_runtime.py skills/evolutionary/neat/tests/test_golden.py -q --no-cov -m evolutionary
 uv run pytest skills/foundation/generate/tests skills/foundation/peft_train/tests skills/foundation/embed/tests skills/foundation/capabilities/tests -q --no-cov
 uv run pytest skills/foundation/generate/tests skills/foundation/peft_train/tests skills/foundation/embed/tests skills/foundation/capabilities/tests -q --no-cov -m foundation
+uv run pytest skills/foundation/vision_embed/tests skills/foundation/vlm_generate/tests tests/unit/test_s5_vlm_contracts.py -q --no-cov
+uv run pytest skills/foundation/vision_embed/tests skills/foundation/vlm_generate/tests -q --no-cov -m foundation
 ```
 
 All pass in this environment (`neat-python`, `transformers`, `peft`
 installed; `bitsandbytes` not installed — QLoRA success path untested here,
-its fail-closed path is). See the CHANGELOG `Unreleased` entry and
-`docs/implementation/skill-inventory.md` for the catalog-level record.
+its fail-closed path is). The VLM real-payload run passed one live case
+(`vision_embed`, CLIP weights cached) and skipped one (`vlm_generate`, BLIP
+weights not cached — no download attempted). See the CHANGELOG
+`Unreleased` entry and `docs/implementation/skill-inventory.md` for the
+catalog-level record.

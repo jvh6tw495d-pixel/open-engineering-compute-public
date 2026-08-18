@@ -33,15 +33,15 @@
 | **evolutionary** | **16** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044, **validated**); HyperNEAT excluded |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
-| foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT (**validated**) / vision / VLM (experimental) |
-| **Total** | **153** | `experimental` except the 5 skills validated below |
+| foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT / vision embed / VLM generate — **all 6 validated** |
+| **Total** | **153** | `experimental` except the 7 skills validated below |
 
 ### Validated skills (lifecycle: `experimental` → `validated`)
 
-Five skills only — this is not a catalog-wide claim. Everything else in
-this inventory, including `foundation.vision_embed` / `foundation.vlm_generate`
-and every non-NEAT evolutionary skill, stays `experimental`. Details,
-fail-closed contracts, and goldens: [NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md).
+Seven skills only — this is not a catalog-wide claim. Everything else in
+this inventory, including every non-NEAT evolutionary skill, stays
+`experimental`. Details, fail-closed contracts, and goldens:
+[NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md).
 
 | Skill id | Version |
 |---|---|
@@ -50,6 +50,8 @@ fail-closed contracts, and goldens: [NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-C
 | `foundation.peft_train` | 0.1.1 |
 | `foundation.embed` | 0.1.1 |
 | `foundation.capabilities` | 0.1.1 |
+| `foundation.vision_embed` | 0.1.1 |
+| `foundation.vlm_generate` | 0.1.1 |
 
 ## W1-MVP scientific core (no AI)
 

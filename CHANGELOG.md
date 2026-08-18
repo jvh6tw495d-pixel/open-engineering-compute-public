@@ -51,9 +51,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   vectors). NEAT's golden already required a real genotype when
   ``neat-python`` is present; a fail-closed unit case
   (``NeatNotAvailableError``) already existed and is unchanged. Not
-  promoted: ``foundation.vision_embed``, ``foundation.vlm_generate``, every
-  other evolutionary skill, HyperNEAT (still unimplemented). Out of scope:
-  vLLM/llama.cpp/SGLang, FM text distillation. See
+  promoted: every other evolutionary skill, HyperNEAT (still
+  unimplemented). Out of scope: vLLM/llama.cpp/SGLang, FM text
+  distillation. See
+  [``docs/release/NEAT-LLM-CLOSEOUT.md``](docs/release/NEAT-LLM-CLOSEOUT.md).
+- **VLM promoted (`experimental` → `validated`):** ``foundation.vision_embed``
+  and ``foundation.vlm_generate`` (0.1.0 → 0.1.1 each; ``foundation_vision_embed``
+  / ``foundation_vlm_generate`` method ids unchanged) close the remaining HF
+  LLM reference surface. Still no vLLM/llama.cpp/SGLang backend — both stay
+  a plain Transformers call. Goldens no longer pass on ``"vectors" in
+  result or "error" in result`` / ``"text" in result or "error" in
+  result``; each now has a fail-closed case (monkeypatched
+  ``probe_transformers``, structured error, no invented payload) and a
+  real-payload case (``-m foundation``) that skips rather than downloads
+  when the pinned model weights are not already cached locally. See
   [``docs/release/NEAT-LLM-CLOSEOUT.md``](docs/release/NEAT-LLM-CLOSEOUT.md).
 
 ### Fixed
