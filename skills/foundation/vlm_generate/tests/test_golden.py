@@ -1,40 +1,78 @@
 import json
 from pathlib import Path
 
+import pytest
+from pydantic import ValidationError
+
 from oec.testing import load_skill_module
 
 _SKILL_DIR = Path(__file__).resolve().parent.parent
 implementation = load_skill_module(_SKILL_DIR, "implementation")
 
 
-def test_example_runs_or_reports_missing_extra() -> None:
+def _example_input() -> dict:
     data = json.loads((_SKILL_DIR / "examples" / "example.json").read_text(encoding="utf-8"))
-    out = implementation.execute(data["input"])
-    assert "result" in out
-    # Either generated text or a structured missing-extra / runtime error
-    assert "text" in out["result"] or "error" in out["result"]
+    return data["input"]
+
+
+def _weights_cached(model_id: str, revision: str) -> bool:
+    """True only if a real weight file for this pinned revision is on disk.
+
+    Never triggers a download — a cache miss here means the live test skips.
+    """
+    from huggingface_hub import try_to_load_from_cache
+
+    for filename in ("pytorch_model.bin", "model.safetensors"):
+        hit = try_to_load_from_cache(model_id, filename, revision=revision)
+        if isinstance(hit, str):
+            return True
+    return False
+
+
+def test_missing_extra_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No transformers installed -> structured fail-closed error, no invented text."""
+    from oec.foundation import runtime
+
+    monkeypatch.setattr(
+        runtime, "probe_transformers", lambda: (False, None, "No module named 'transformers'")
+    )
+    out = implementation.execute(_example_input())
+    result = out["result"]
+    assert "text" not in result
+    error = result["error"]
+    assert error["code"] == "transformers_not_available"
+    assert "message" in error
+    assert out["diagnostics"]["converged"] is False
+
+
+@pytest.mark.foundation
+def test_real_payload_with_extra() -> None:
+    pytest.importorskip("transformers")
+    pytest.importorskip("PIL")
+    data = _example_input()
+    if not _weights_cached(data["model_id"], data["revision"]):
+        pytest.skip(f"{data['model_id']}@{data['revision']} weights not cached locally")
+    out = implementation.execute(data)
+    result = out["result"]
+    assert "error" not in result
+    assert result["backend"] == "transformers"
+    assert result["model_id"] == data["model_id"]
+    assert isinstance(result["text"], str) and result["text"]
+    assert out["diagnostics"]["converged"] is True
 
 
 def test_missing_revision_on_remote_model_raises() -> None:
-    data = json.loads((_SKILL_DIR / "examples" / "example.json").read_text(encoding="utf-8"))
-    inputs = dict(data["input"])
+    inputs = dict(_example_input())
     del inputs["revision"]
-    try:
+    with pytest.raises(ValidationError):
         implementation.execute(inputs)
-    except Exception:
-        return
-    raise AssertionError("expected an exception for a remote model_id without revision")
 
 
 def test_image_source_conflict_raises() -> None:
-    data = json.loads((_SKILL_DIR / "examples" / "example.json").read_text(encoding="utf-8"))
-    inputs = dict(data["input"])
+    inputs = dict(_example_input())
     inputs["image"] = {
         "image_base64": inputs["image"]["image_base64"],
         "image_path": "sample.png",
     }
-    try:
+    with pytest.raises(ValidationError):
         implementation.execute(inputs)
-    except Exception:
-        return
-    raise AssertionError("expected an exception for both image_base64 and image_path set")
