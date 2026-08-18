@@ -33,6 +33,8 @@ def run_vllm_generate(spec: VllmGenerateSpec) -> dict[str, Any]:
         "max_tokens": int(spec.max_new_tokens),
         "temperature": float(spec.temperature),
     }
+    if spec.seed is not None:
+        body["seed"] = int(spec.seed)
     request = urllib.request.Request(
         url,
         data=json.dumps(body).encode("utf-8"),
