@@ -1,7 +1,7 @@
 ---
 id: foundation.generate
-version: 0.2.0
-status: experimental
+version: 0.2.1
+status: validated
 domain: foundation
 title: Causal LM Text Generation (transformers)
 ---
@@ -22,5 +22,8 @@ Method id: `transformers_generate`. Merit owner: Transformers / model card.
 
 # Changelog
 
+- 0.2.1: validated — `filesystem_access: true` (the manifest now matches the
+  `adapter_path` reload added in 0.2.0); golden cases split into a
+  fail-closed no-extra case and a real-payload `oec[foundation]` case.
 - 0.2.0: S1 — optional `adapter_path` reload (ADR 0041).
 - 0.1.0: W6 initial.

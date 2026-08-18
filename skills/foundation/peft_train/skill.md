@@ -1,7 +1,7 @@
 ---
 id: foundation.peft_train
-version: 0.1.0
-status: experimental
+version: 0.1.1
+status: validated
 domain: foundation
 title: PEFT / Full Fine-Tune Training (transformers + peft)
 ---
@@ -35,4 +35,7 @@ Method id: `transformers_peft_train`. Merit owner: PEFT / Transformers.
 
 # Changelog
 
+- 0.1.1: validated — golden cases split into a fail-closed no-extra case and
+  a real-artifact `oec[foundation]` case; QLoRA fails closed without
+  `bitsandbytes`/CUDA.
 - 0.1.0: S1 initial (ADR 0040/0041).

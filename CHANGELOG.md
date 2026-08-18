@@ -37,6 +37,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ``neat-python`` on ``oec[evolutionary]`` (fail-closed). Result carries an
   OEC-owned genotype IR. HyperNEAT stays excluded. NSGA-II/NSGA-III/MOEA/D
   accept an explicit ``hv_reference`` so hypervolume is comparable.
+- **NEAT and the HF LLM reference path are closed (`experimental` →
+  `validated`):** ``evolutionary.neat``, ``foundation.generate``,
+  ``foundation.peft_train``, ``foundation.embed``, and
+  ``foundation.capabilities`` are promoted with a patch version bump each
+  (method ids unchanged). ``foundation.generate``'s manifest now declares
+  ``filesystem_access: true``, matching its existing ``adapter_path`` disk
+  reload. Goldens for ``generate``/``peft_train``/``embed`` no longer pass
+  on ``"text" in result or "error" in result`` — each backend now has a
+  fail-closed case (structured ``code``/``message``, no invented payload)
+  and, gated on the real extra, a real-payload case (generated text, a
+  written LoRA adapter with a real sha256, real transformers embedding
+  vectors). NEAT's golden already required a real genotype when
+  ``neat-python`` is present; a fail-closed unit case
+  (``NeatNotAvailableError``) already existed and is unchanged. Not
+  promoted: ``foundation.vision_embed``, ``foundation.vlm_generate``, every
+  other evolutionary skill, HyperNEAT (still unimplemented). Out of scope:
+  vLLM/llama.cpp/SGLang, FM text distillation. See
+  [``docs/release/NEAT-LLM-CLOSEOUT.md``](docs/release/NEAT-LLM-CLOSEOUT.md).
 
 ### Fixed
 
