@@ -94,5 +94,9 @@ are **not** MCP builder names.
   (`xor` / tabular regression / classification); genotype IR in the result;
   backend `neat-python` via `oec[evolutionary]`. 3.6 DoD itself excluded NEAT
   (ADR 0042).
-- **HyperNEAT** — still excluded. Needs a future ADR.
+- **HyperNEAT** — **available post-3.6** (ADR 0045): skill `evolutionary.hyperneat`,
+  kernel `run_hyperneat()`, catalog builder `build_hyperneat_experiment`.
+  Closed `layered_1d` substrate; same fitness catalog as NEAT. **ES-HyperNEAT**
+  still excluded.
+
 - Foundation models / HF — W6 / Scientific AI S1+

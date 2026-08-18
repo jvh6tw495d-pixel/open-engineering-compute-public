@@ -134,3 +134,55 @@ class NeatResult(BaseModel):
     problem_fingerprint: str
     message: str = "ok"
     runtime: dict[str, Any] | None = None
+
+
+class HyperNeatSubstrateNodeIR(BaseModel):
+    """One neuron on a fixed HyperNEAT substrate."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    id: int
+    kind: Literal["input", "hidden", "output"]
+    x: float
+    y: float
+
+
+class HyperNeatSubstrateIR(BaseModel):
+    """OEC-owned substrate after CPPN expression (ADR 0045)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    name: str
+    nodes: tuple[HyperNeatSubstrateNodeIR, ...]
+    connections: tuple[NeatConnectionIR, ...]
+    n_inputs: int
+    n_outputs: int
+    hidden_layers: int
+    hidden_width: int
+    weight_threshold: float
+
+
+class HyperNeatResult(BaseModel):
+    """HyperNEAT run: CPPN genotype + expressed substrate."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    backend: str = "neat-python"
+    backend_version: str | None = None
+    algorithm: str = "hyperneat"
+    seed: int
+    deterministic_status: Literal["strict", "practical", "best_effort"] = "practical"
+    fitness: str
+    sense: Literal["max"] = "max"
+    best_fitness: float
+    cppn: NeatGenotypeIR
+    substrate: HyperNeatSubstrateIR
+    n_cppn_nodes: int
+    n_substrate_connections: int
+    n_species: int = 0
+    n_evaluations: int = 0
+    n_generations: int = 0
+    history_best: list[float] = Field(default_factory=list)
+    problem_fingerprint: str
+    message: str = "ok"
+    runtime: dict[str, Any] | None = None

@@ -1,0 +1,8 @@
+{
+  "fitness": "xor",
+  "generations": 8,
+  "population": 12,
+  "seed": 0,
+  "hidden_layers": 1,
+  "hidden_width": 3
+}

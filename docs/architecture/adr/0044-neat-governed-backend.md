@@ -4,7 +4,7 @@
 - **Date:** 2026-08-17
 - **Phase:** post-3.6 (Scientific AI follow-on)
 - **Related:** ADR 0031, 0033, 0037, 0040, 0042
-- **Supersedes (partially):** ADR 0042 — re-opens **NEAT only**. HyperNEAT stays excluded.
+- **Supersedes (partially):** ADR 0042 — re-opens **NEAT**. HyperNEAT: ADR 0045.
 
 ## Context
 
@@ -33,8 +33,8 @@ NEAT-class systems need:
    - `tabular_classification` — accuracy; `y` non-negative integer labels.
 4. **Genotype IR** is OEC-owned (`NeatGenotypeIR`: nodes, connections, enabled
    flags, optional innovation ids). Callers never receive a `neat.DefaultGenome`.
-5. **No free Python fitness, no stubs, no HyperNEAT.** Re-opening HyperNEAT
-   needs another ADR.
+5. **No free Python fitness, no stubs.** HyperNEAT is re-opened by ADR 0045
+   (fixed substrate only; ES-HyperNEAT remains excluded).
 6. Algorithm knobs are a closed subset (population, generations, seed,
    compatibility, add/delete rates, initial hidden, feed-forward, elitism).
    Other neat-python keys stay at documented defaults (`no_fitness_termination`,
@@ -54,6 +54,6 @@ NEAT-class systems need:
 
 - Documentation and capability matrices list NEAT as **available** (optional
   extra), HyperNEAT as **excluded**.
-- D-AI-05 is closed for NEAT; HyperNEAT remains residual.
+- D-AI-05 is closed for NEAT; HyperNEAT is ADR 0045.
 - 3.6 historical ADRs/docs stay accurate: 3.6 DoD excluded NEAT; 0044 re-opens
   it after that freeze.

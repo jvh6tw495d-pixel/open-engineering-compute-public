@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+### Fixed
+
+### Changed
+
+## [3.6.1] - 2026-08-17
+
+**Tag:** `v3.6.1`
+**Theme:** Learning operational cut, governed NEAT/HyperNEAT, QLoRA honesty, vision + VLM close.
+
+### Added
+
 - **OEC Learning L1–L15 (contracts + core-tested isolation):** core-safe
   ``oec.learning`` (ADR 0043). L1–L5 contracts, hashed datasets (including
   provenance), run identity hash, evaluation vs benchmark, and a lazy
@@ -35,8 +46,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ``build_neat_experiment`` evolve topology under a closed fitness catalog
   (``xor`` / ``tabular_regression`` / ``tabular_classification``). Backend is
   ``neat-python`` on ``oec[evolutionary]`` (fail-closed). Result carries an
-  OEC-owned genotype IR. HyperNEAT stays excluded. NSGA-II/NSGA-III/MOEA/D
-  accept an explicit ``hv_reference`` so hypervolume is comparable.
+  OEC-owned genotype IR. NSGA-II/NSGA-III/MOEA/D accept an explicit
+  ``hv_reference`` so hypervolume is comparable.
+- **Governed HyperNEAT (ADR 0045):** ``evolutionary.hyperneat`` +
+  ``run_hyperneat()`` + ``build_hyperneat_experiment`` evolve a CPPN that
+  queries a closed ``layered_1d`` substrate. Same fitness catalog as NEAT.
+  Result carries CPPN IR + expressed substrate. ES-HyperNEAT stays excluded.
 - **NEAT and the HF LLM reference path are closed (`experimental` →
   `validated`):** ``evolutionary.neat``, ``foundation.generate``,
   ``foundation.peft_train``, ``foundation.embed``, and
@@ -51,9 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   vectors). NEAT's golden already required a real genotype when
   ``neat-python`` is present; a fail-closed unit case
   (``NeatNotAvailableError``) already existed and is unchanged. Not
-  promoted: every other evolutionary skill, HyperNEAT (still
-  unimplemented). Out of scope: vLLM/llama.cpp/SGLang, FM text
-  distillation. See
+  promoted at that step: every other evolutionary skill. HyperNEAT
+  shipped separately in this same release (ADR 0045). Out of scope:
+  vLLM/llama.cpp/SGLang, FM text distillation. See
   [``docs/release/NEAT-LLM-CLOSEOUT.md``](docs/release/NEAT-LLM-CLOSEOUT.md).
 - **VLM promoted (`experimental` → `validated`):** ``foundation.vision_embed``
   and ``foundation.vlm_generate`` (0.1.0 → 0.1.1 each; ``foundation_vision_embed``

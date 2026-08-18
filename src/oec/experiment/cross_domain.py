@@ -15,6 +15,7 @@ from oec.evolutionary.contracts import (
 )
 from oec.experiment.evolutionary import (
     build_hybrid_training_experiment,
+    build_hyperneat_experiment,
     build_neat_experiment,
     build_nsga2_experiment,
     build_optimize_single_experiment,
@@ -800,6 +801,11 @@ _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
     },
     "build_neat_experiment": {
         "fn": build_neat_experiment,
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
+    "build_hyperneat_experiment": {
+        "fn": build_hyperneat_experiment,
         "domains": ["evolutionary"],
         "extras": ["evolutionary"],
     },

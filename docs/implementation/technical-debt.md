@@ -28,7 +28,7 @@ closure below cites the commit/file that actually did it.
 | D-AI-02 | P1 | Knowledge distillation skill missing | **3.6 S2** — `neural.distill` + builder; ADR 0041 |
 | D-AI-03 | P2 | VLM / multimodal foundation path missing | **3.6 S5** — ADR 0040 D3 |
 | D-AI-04 | P2 | vLLM / llama.cpp / SGLang adapters not planned for 3.6 | **Debt only** — HF Transformers is the 3.6 inference backend; ADR 0040 D2 |
-| D-AI-05 | P3 | NEAT / HyperNEAT productization | **NEAT closed 2026-08-17** — ADR 0044 (`evolutionary.neat`, closed fitness, genotype IR, `neat-python` extra). **HyperNEAT remains excluded.** |
+| D-AI-05 | P3 | NEAT / HyperNEAT productization | **Closed 2026-08-17** — NEAT ADR 0044; HyperNEAT ADR 0045 (`evolutionary.hyperneat`, fixed `layered_1d` substrate). **ES-HyperNEAT remains excluded.** |
 | D-AI-06 | P2 | Neural checkpoint/file reload + industrial status promotion incomplete | **3.6 S3** — SCIENTIFIC-AI-3.6 |
 | D-AI-07 | P2 | Optional CI job for `neural`/`evolutionary`/`foundation` extras | **3.6 S6** |
 | D-CUR-02 | P1 | Default five-second skill timeout can be consumed by a cold SciPy import on Windows | Still open — measure and decide import/warmup versus timeout policy before public distribution |
@@ -56,7 +56,8 @@ closure below cites the commit/file that actually did it.
 |---|---|---|
 | D-AI-01 | 2026-08-12 | PEFT / full fine-tune train skill shipped: `PEFTSpec` v0.2.0 (`TrainingDatasetSpec`/`TrainingBudgetSpec`, closed target-module allow-list) + `foundation.peft_train` skill (lora/qlora/full via closed `mode`) + adapter/checkpoint artifact descriptor (`sha256`, `base_model_id`); `foundation.generate` reloads via optional `adapter_path` (fail-closed on missing/unloadable adapter). `build_peft_train_then_generate_experiment` added to the cross-domain catalog. S1, ADR 0041 |
 | — | 2026-08-13 | **S4 evo/hybrid industrial closure (not a debt item):** public declarative builders `build_optimize_single_experiment`, `build_nsga2_experiment`, `build_hybrid_training_experiment` on the fail-closed cross-domain catalog with accurate domains/extras; MCP list/run proven; helpers rejected. NEAT later re-opened by ADR 0044. |
-| D-AI-05 (NEAT only) | 2026-08-17 | Governed NEAT: ADR 0044, `evolutionary.neat`, `run_neat()`, `build_neat_experiment`, closed fitness catalog, OEC genotype IR, `neat-python` on `oec[evolutionary]`. HyperNEAT still excluded. |
+| D-AI-05 (NEAT only) | 2026-08-17 | Governed NEAT: ADR 0044, `evolutionary.neat`, `run_neat()`, `build_neat_experiment`, closed fitness catalog, OEC genotype IR, `neat-python` on `oec[evolutionary]`. HyperNEAT later ADR 0045. |
+| D-AI-05 (HyperNEAT) | 2026-08-17 | Governed HyperNEAT: ADR 0045, `evolutionary.hyperneat`, `run_hyperneat()`, `build_hyperneat_experiment`, fixed `layered_1d` substrate, CPPN + substrate IR. ES-HyperNEAT excluded. |
 | D-CUR-01 | 2026-07-27 | core independence probe now runs in a fresh interpreter; full suite 810 passed |
 | D-CUR-03 | 2026-07-27 | V3 gap map reconciled with shipped `oec.core` and `ScientificResult` |
 | D-CUR-04 | 2026-07-27 | Graphify rebuilt from `6e271496` before work; rebuild again at handoff |
