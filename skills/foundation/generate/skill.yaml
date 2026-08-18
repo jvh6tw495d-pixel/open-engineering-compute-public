@@ -1,6 +1,6 @@
 id: foundation.generate
-version: 0.2.0
-status: experimental
+version: 0.2.1
+status: validated
 domain: foundation
 title: Causal LM Text Generation (transformers)
 
@@ -21,7 +21,7 @@ execution:
   deterministic: false
   timeout_seconds: 300
   network_access: false
-  filesystem_access: false
+  filesystem_access: true
 
 validation:
   schema: true

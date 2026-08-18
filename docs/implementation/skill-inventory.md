@@ -1,6 +1,7 @@
 # Skill inventory
 
-**Updated:** 2026-08-17 (post-3.6 NEAT / ADR 0044; S6 release gate pending)
+**Updated:** 2026-08-17 (NEAT + HF LLM reference path closed — see
+[NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md); S6 release gate pending)
 **Registry root:** `skills/`
 **Live load:** **153** skills across **28** domains, **0** contract-audit errors
 
@@ -29,11 +30,26 @@
 | waves / optics / em / statistical_physics | 6 | W3 foundations |
 | multiphysics | 2 | |
 | **neural** | **26** | ADR 0031/0032 + **0033 training/search** |
-| **evolutionary** | **16** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044) |
+| **evolutionary** | **16** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044, **validated**); HyperNEAT excluded |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
-| foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT / vision / VLM |
-| **Total** | **153** | all `experimental` in this inventory |
+| foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT (**validated**) / vision / VLM (experimental) |
+| **Total** | **153** | `experimental` except the 5 skills validated below |
+
+### Validated skills (lifecycle: `experimental` → `validated`)
+
+Five skills only — this is not a catalog-wide claim. Everything else in
+this inventory, including `foundation.vision_embed` / `foundation.vlm_generate`
+and every non-NEAT evolutionary skill, stays `experimental`. Details,
+fail-closed contracts, and goldens: [NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md).
+
+| Skill id | Version |
+|---|---|
+| `evolutionary.neat` | 0.1.1 |
+| `foundation.generate` | 0.2.1 |
+| `foundation.peft_train` | 0.1.1 |
+| `foundation.embed` | 0.1.1 |
+| `foundation.capabilities` | 0.1.1 |
 
 ## W1-MVP scientific core (no AI)
 
@@ -75,7 +91,8 @@ above are on the fail-closed cross-domain catalog
 
 See ADR 0037 · `docs/contracts/neural-evolutionary-experiments.md`.
 **3.6 DoD excluded NEAT / HyperNEAT** (ADR 0042). **Post-3.6:** NEAT is available
-(`evolutionary.neat`, ADR 0044). HyperNEAT remains excluded.
+and **validated** (`evolutionary.neat`, ADR 0044). HyperNEAT remains excluded
+and unimplemented.
 
 **3.6 closeout state:** S0–S5 are implemented; S6 is release CI/evidence and has not
 created a tag, remote push, or published package. See
