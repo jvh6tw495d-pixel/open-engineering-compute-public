@@ -245,3 +245,18 @@ class NeatAlgorithmSpec(BaseModel):
     num_hidden: int = Field(default=0, ge=0, le=16)
     elitism: int = Field(default=2, ge=0, le=20)
     feed_forward: bool = True
+
+
+class HyperNeatSubstrateName(StrEnum):
+    """Closed HyperNEAT substrate catalog (ADR 0045)."""
+
+    LAYERED_1D = "layered_1d"
+
+
+class HyperNeatAlgorithmSpec(NeatAlgorithmSpec):
+    """NEAT knobs plus a fixed substrate and expression threshold."""
+
+    substrate: HyperNeatSubstrateName = HyperNeatSubstrateName.LAYERED_1D
+    hidden_layers: int = Field(default=1, ge=0, le=2)
+    hidden_width: int = Field(default=3, ge=1, le=16)
+    weight_threshold: float = Field(default=0.2, ge=0.0, le=1.0)

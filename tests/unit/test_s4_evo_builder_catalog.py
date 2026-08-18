@@ -30,6 +30,10 @@ _S4_PUBLIC_EVO_BUILDERS: dict[str, dict[str, list[str]]] = {
         "domains": ["evolutionary"],
         "extras": ["evolutionary"],
     },
+    "build_hyperneat_experiment": {
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
     "build_hybrid_training_experiment": {
         "domains": ["neural", "evolutionary"],
         "extras": ["neural", "evolutionary"],
@@ -92,6 +96,15 @@ def test_s4_get_builder_resolves_neat() -> None:
     assert isinstance(spec, ExperimentSpec)
     assert spec.required_extras == ("evolutionary",)
     assert spec.steps[0].skill_id == "evolutionary.neat"
+
+
+def test_s4_get_builder_resolves_hyperneat() -> None:
+    fn = get_cross_domain_builder("build_hyperneat_experiment")
+    assert callable(fn)
+    spec = fn(fitness="xor", generations=5, population=8, seed=1)
+    assert isinstance(spec, ExperimentSpec)
+    assert spec.required_extras == ("evolutionary",)
+    assert spec.steps[0].skill_id == "evolutionary.hyperneat"
 
 
 def test_s4_get_builder_resolves_hybrid_training() -> None:

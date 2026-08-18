@@ -18,6 +18,7 @@ from oec.evolutionary.contracts import (
     BuiltInProblemName,
     EvolutionaryAlgorithmSpec,
     EvolutionaryProblemSpec,
+    HyperNeatSubstrateName,
     MultiObjectiveAlgorithmName,
     MultiObjectiveAlgorithmSpec,
     MultiObjectiveProblemSpec,
@@ -329,6 +330,65 @@ def build_neat_experiment(
         metrics=metrics,
         validation=validation,
         steps=(ExperimentStep(step_id="neat", skill_id="evolutionary.neat", inputs=inputs),),
+    )
+
+
+def build_hyperneat_experiment(
+    *,
+    fitness: NeatFitnessName | str = NeatFitnessName.XOR,
+    x: list[list[float]] | None = None,
+    y: list[float] | None = None,
+    generations: int = 20,
+    population: int = 30,
+    seed: int = 0,
+    hidden_layers: int = 1,
+    hidden_width: int = 3,
+    weight_threshold: float = 0.2,
+    experiment_id: str = "evolutionary.hyperneat",
+    title: str | None = None,
+    min_fitness: float | None = None,
+) -> ExperimentSpec:
+    """Governed HyperNEAT experiment (fixed substrate, ADR 0045)."""
+    fit = fitness if isinstance(fitness, NeatFitnessName) else NeatFitnessName(str(fitness))
+    inputs: dict[str, Any] = {
+        "fitness": fit.value,
+        "generations": int(generations),
+        "population": int(population),
+        "seed": int(seed),
+        "substrate": HyperNeatSubstrateName.LAYERED_1D.value,
+        "hidden_layers": int(hidden_layers),
+        "hidden_width": int(hidden_width),
+        "weight_threshold": float(weight_threshold),
+    }
+    if x is not None:
+        inputs["x"] = x
+    if y is not None:
+        inputs["y"] = y
+    metrics = (
+        MetricSpec(
+            name="best_fitness",
+            path="result.best_fitness",
+            step_id="hyperneat",
+            direction=MetricDirection.MAXIMIZE,
+        ),
+    )
+    validation = ValidationSpec()
+    if min_fitness is not None:
+        validation = ValidationSpec(metric_min={"best_fitness": float(min_fitness)})
+    return ExperimentSpec(
+        id=experiment_id,
+        title=title or "HyperNEAT CPPN + layered substrate (ADR 0045)",
+        seed=seed,
+        required_extras=("evolutionary",),
+        metrics=metrics,
+        validation=validation,
+        steps=(
+            ExperimentStep(
+                step_id="hyperneat",
+                skill_id="evolutionary.hyperneat",
+                inputs=inputs,
+            ),
+        ),
     )
 
 

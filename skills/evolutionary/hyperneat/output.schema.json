@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "evolutionary.hyperneat output",
+  "type": "object",
+  "properties": {
+    "backend": { "type": "string" },
+    "algorithm": { "type": "string" },
+    "seed": { "type": "integer" },
+    "fitness": { "type": "string" },
+    "best_fitness": { "type": "number" },
+    "cppn": { "type": "object" },
+    "substrate": { "type": "object" },
+    "n_cppn_nodes": { "type": "integer" },
+    "n_substrate_connections": { "type": "integer" },
+    "n_evaluations": { "type": "integer" },
+    "n_generations": { "type": "integer" },
+    "history_best": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "problem_fingerprint": { "type": "string" }
+  },
+  "required": ["backend", "algorithm", "best_fitness", "cppn", "substrate", "seed"],
+  "additionalProperties": true
+}

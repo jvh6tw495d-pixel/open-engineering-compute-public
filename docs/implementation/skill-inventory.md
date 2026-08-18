@@ -1,9 +1,9 @@
 # Skill inventory
 
-**Updated:** 2026-08-17 (NEAT + HF LLM reference path closed — see
-[NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md); S6 release gate pending)
+**Updated:** 2026-08-17 (HyperNEAT ADR 0045 + `v3.6.1` — see
+[NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md))
 **Registry root:** `skills/`
-**Live load:** **153** skills across **28** domains, **0** contract-audit errors
+**Live load:** **154** skills across **28** domains, **0** contract-audit errors
 
 ## Summary
 
@@ -30,22 +30,22 @@
 | waves / optics / em / statistical_physics | 6 | W3 foundations |
 | multiphysics | 2 | |
 | **neural** | **26** | ADR 0031/0032 + **0033 training/search** |
-| **evolutionary** | **16** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044, **validated**); HyperNEAT excluded |
+| **evolutionary** | **17** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044) + HyperNEAT (ADR 0045), both **validated** |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
 | foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT / vision embed / VLM generate — **all 6 validated** |
-| **Total** | **153** | `experimental` except the 7 skills validated below |
+| **Total** | **154** | `experimental` except the 8 skills validated below |
 
 ### Validated skills (lifecycle: `experimental` → `validated`)
 
-Seven skills only — this is not a catalog-wide claim. Everything else in
-this inventory, including every non-NEAT evolutionary skill, stays
-`experimental`. Details, fail-closed contracts, and goldens:
+Eight skills only — this is not a catalog-wide claim. Everything else in
+this inventory stays `experimental`. Details:
 [NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md).
 
 | Skill id | Version |
 |---|---|
 | `evolutionary.neat` | 0.1.1 |
+| `evolutionary.hyperneat` | 0.1.0 |
 | `foundation.generate` | 0.2.1 |
 | `foundation.peft_train` | 0.1.1 |
 | `foundation.embed` | 0.1.1 |
@@ -83,6 +83,7 @@ this inventory, including every non-NEAT evolutionary skill, stays
 | `build_optimize_single_experiment` | `oec.experiment.evolutionary` | `evolutionary.optimize_single` | **yes** |
 | `build_nsga2_experiment` | `oec.experiment.evolutionary` | `evolutionary.nsga2` | **yes** |
 | `build_neat_experiment` | `oec.experiment.evolutionary` | `evolutionary.neat` | **yes** (ADR 0044) |
+| `build_hyperneat_experiment` | `oec.experiment.evolutionary` | `evolutionary.hyperneat` | **yes** (ADR 0045) |
 | `build_hybrid_training_experiment` | `oec.experiment.evolutionary` | `neural.training.hybrid` | **yes** |
 | `build_evo_sphere_experiment` | `oec.experiment.cross_domain` | sphere optimize gate | **yes** (W7) |
 
@@ -92,9 +93,9 @@ above are on the fail-closed cross-domain catalog
 (`sphere_problem_2d`, `problem_to_optimize_inputs`) stay uncatalogued.
 
 See ADR 0037 · `docs/contracts/neural-evolutionary-experiments.md`.
-**3.6 DoD excluded NEAT / HyperNEAT** (ADR 0042). **Post-3.6:** NEAT is available
-and **validated** (`evolutionary.neat`, ADR 0044). HyperNEAT remains excluded
-and unimplemented.
+**3.6 DoD excluded NEAT / HyperNEAT** (ADR 0042). **Post-3.6:** NEAT (ADR 0044)
+and HyperNEAT (ADR 0045, fixed `layered_1d` substrate) are **validated**.
+ES-HyperNEAT remains excluded.
 
 **3.6 closeout state:** S0–S5 are implemented; S6 is release CI/evidence and has not
 created a tag, remote push, or published package. See
