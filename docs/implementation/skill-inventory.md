@@ -1,8 +1,8 @@
 # Skill inventory
 
-**Updated:** 2026-08-14 (3.6 S0–S5 implemented; S6 release gate pending)
+**Updated:** 2026-08-17 (post-3.6 NEAT / ADR 0044; S6 release gate pending)
 **Registry root:** `skills/`
-**Live load:** **151** skills across **28** domains, **0** contract-audit errors
+**Live load:** **153** skills across **28** domains, **0** contract-audit errors
 
 ## Summary
 
@@ -29,11 +29,11 @@
 | waves / optics / em / statistical_physics | 6 | W3 foundations |
 | multiphysics | 2 | |
 | **neural** | **26** | ADR 0031/0032 + **0033 training/search** |
-| **evolutionary** | **15** | pymoo/DEAP/Nevergrad |
+| **evolutionary** | **16** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044) |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
 | foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT / vision / VLM |
-| **Total** | **151** | all `experimental` in this inventory |
+| **Total** | **153** | all `experimental` in this inventory |
 
 ## W1-MVP scientific core (no AI)
 
@@ -64,6 +64,7 @@
 | `build_neural_training_mode_experiment` | `oec.experiment.neural` | `neural.training.*` | no (mode factory) |
 | `build_optimize_single_experiment` | `oec.experiment.evolutionary` | `evolutionary.optimize_single` | **yes** |
 | `build_nsga2_experiment` | `oec.experiment.evolutionary` | `evolutionary.nsga2` | **yes** |
+| `build_neat_experiment` | `oec.experiment.evolutionary` | `evolutionary.neat` | **yes** (ADR 0044) |
 | `build_hybrid_training_experiment` | `oec.experiment.evolutionary` | `neural.training.hybrid` | **yes** |
 | `build_evo_sphere_experiment` | `oec.experiment.cross_domain` | sphere optimize gate | **yes** (W7) |
 
@@ -73,7 +74,8 @@ above are on the fail-closed cross-domain catalog
 (`sphere_problem_2d`, `problem_to_optimize_inputs`) stay uncatalogued.
 
 See ADR 0037 · `docs/contracts/neural-evolutionary-experiments.md`.
-**Excluded from 3.6 DoD:** NEAT / HyperNEAT (ADR 0042 — not deferred silently).
+**3.6 DoD excluded NEAT / HyperNEAT** (ADR 0042). **Post-3.6:** NEAT is available
+(`evolutionary.neat`, ADR 0044). HyperNEAT remains excluded.
 
 **3.6 closeout state:** S0–S5 are implemented; S6 is release CI/evidence and has not
 created a tag, remote push, or published package. See

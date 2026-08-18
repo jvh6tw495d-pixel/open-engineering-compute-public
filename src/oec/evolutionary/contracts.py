@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from enum import StrEnum
 from typing import Any, Literal
 
@@ -176,3 +177,71 @@ class BenchmarkSpec(BaseModel):
             if not self.multi_algorithms:
                 raise ValueError("multi_algorithms required for mode=multi")
         return self
+
+
+class NeatFitnessName(StrEnum):
+    """Closed NEAT fitness catalog (ADR 0044). No caller Python."""
+
+    XOR = "xor"
+    TABULAR_REGRESSION = "tabular_regression"
+    TABULAR_CLASSIFICATION = "tabular_classification"
+
+
+class NeatProblemSpec(BaseModel):
+    """NEAT problem: closed fitness + optional tabular arrays."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    fitness: NeatFitnessName
+    x: list[list[float]] | None = None
+    y: list[float] | None = None
+
+    @model_validator(mode="after")
+    def _closed(self) -> NeatProblemSpec:
+        if self.fitness == NeatFitnessName.XOR:
+            if self.x is not None or self.y is not None:
+                raise ValueError("xor fitness is closed; do not pass x/y")
+            return self
+        if self.x is None or self.y is None:
+            raise ValueError(f"{self.fitness.value} requires x and y")
+        if len(self.x) != len(self.y):
+            raise ValueError("x and y must have the same length")
+        if not self.x:
+            raise ValueError("x must be non-empty")
+        if len(self.x) > 2000:
+            raise ValueError("x has at most 2000 rows")
+        n_features = len(self.x[0])
+        if n_features < 1 or n_features > 32:
+            raise ValueError("each row of x must have 1–32 features")
+        for row in self.x:
+            if len(row) != n_features:
+                raise ValueError("x must be rectangular")
+            if any(not math.isfinite(v) for v in row):
+                raise ValueError("x must be finite")
+        if any(not math.isfinite(v) for v in self.y):
+            raise ValueError("y must be finite")
+        if self.fitness == NeatFitnessName.TABULAR_CLASSIFICATION:
+            for value in self.y:
+                if value < 0 or int(value) != value:
+                    raise ValueError("classification y must be non-negative integers")
+        return self
+
+
+class NeatAlgorithmSpec(BaseModel):
+    """Closed NEAT knobs (ADR 0044). Other neat-python keys stay at defaults."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    generations: int = Field(default=30, ge=1, le=500)
+    population: int = Field(default=50, ge=4, le=500)
+    seed: int = 42
+    compatibility_threshold: float = Field(default=3.0, gt=0.0, le=20.0)
+    compatibility_disjoint_coefficient: float = Field(default=1.0, ge=0.0, le=10.0)
+    compatibility_weight_coefficient: float = Field(default=0.5, ge=0.0, le=10.0)
+    conn_add_prob: float = Field(default=0.5, ge=0.0, le=1.0)
+    conn_delete_prob: float = Field(default=0.5, ge=0.0, le=1.0)
+    node_add_prob: float = Field(default=0.2, ge=0.0, le=1.0)
+    node_delete_prob: float = Field(default=0.2, ge=0.0, le=1.0)
+    num_hidden: int = Field(default=0, ge=0, le=16)
+    elitism: int = Field(default=2, ge=0, le=20)
+    feed_forward: bool = True

@@ -21,3 +21,9 @@ class NevergradNotAvailableError(OECError):
     """Raised when the optional ``nevergrad`` package is not installed (E4)."""
 
     default_code = "nevergrad_not_available"
+
+
+class NeatNotAvailableError(OECError):
+    """Raised when the optional ``neat-python`` package is not installed (ADR 0044)."""
+
+    default_code = "neat_not_available"

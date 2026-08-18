@@ -38,6 +38,7 @@ evolutionary = [
     "pymoo>=0.6",
     "deap>=1.4",       # E3 genetic programming
     "nevergrad>=1.0",  # E4 black-box
+    "neat-python>=2.0,<3",  # ADR 0044 governed NEAT
 ]
 # W6 / ADR 0038 — optional; never pull into core deps
 foundation = [
@@ -128,6 +129,8 @@ module = [
   "trl.*",
   "art",
   "art.*",
+  "neat",
+  "neat.*",
 ]
 ignore_missing_imports = true
 

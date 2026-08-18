@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ``.train()`` still never auto-installs.
   ``build_full_stack_learning_experiment`` runs AG + NSGA-II + MLP +
   distill + hybrid + embed + PEFT/generate as one ``ExperimentSpec``.
+- **Governed NEAT (ADR 0044):** ``evolutionary.neat`` + ``run_neat()`` +
+  ``build_neat_experiment`` evolve topology under a closed fitness catalog
+  (``xor`` / ``tabular_regression`` / ``tabular_classification``). Backend is
+  ``neat-python`` on ``oec[evolutionary]`` (fail-closed). Result carries an
+  OEC-owned genotype IR. HyperNEAT stays excluded. NSGA-II/NSGA-III/MOEA/D
+  accept an explicit ``hv_reference`` so hypervolume is comparable.
 
 ### Fixed
 

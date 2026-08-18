@@ -1,0 +1,6 @@
+{
+  "fitness": "xor",
+  "generations": 15,
+  "population": 20,
+  "seed": 0
+}

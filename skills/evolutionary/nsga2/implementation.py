@@ -12,6 +12,7 @@ from oec.evolutionary.contracts import (
     MultiObjectiveProblemSpec,
     VariableSpec,
 )
+from oec.evolutionary.runtime import EvolutionaryRuntimeSpec
 from oec.kernel.evolutionary.errors import PymooNotAvailableError
 from oec.kernel.evolutionary.multiobjective import optimize_multi
 
@@ -31,8 +32,14 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
         seed=int(inputs.get("seed", 42)),
         n_partitions=int(inputs.get("n_partitions", 12)),
     )
+    runtime = None
+    if inputs.get("hv_reference") is not None:
+        runtime = EvolutionaryRuntimeSpec(
+            seed=int(inputs.get("seed", 42)),
+            hv_reference=[float(v) for v in inputs["hv_reference"]],
+        )
     try:
-        result = optimize_multi(problem, algorithm)
+        result = optimize_multi(problem, algorithm, runtime=runtime)
     except PymooNotAvailableError as exc:
         return {
             "result": {"error": exc.to_dict()},

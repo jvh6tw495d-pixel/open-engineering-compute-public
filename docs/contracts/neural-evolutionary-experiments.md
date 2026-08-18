@@ -78,7 +78,8 @@ Public declarative builders discoverable via MCP/CLI
 (`experiment.list_builders` / fail-closed `experiment.run` builder names):
 
 - `build_optimize_single_experiment` — extras: `evolutionary`
-- `build_nsga2_experiment` — extras: `evolutionary`
+- `build_nsga2_experiment` — extras: `evolutionary` (optional fixed `hv_reference`)
+- `build_neat_experiment` — extras: `evolutionary` (ADR 0044; closed fitness)
 - `build_hybrid_training_experiment` — extras: `neural`, `evolutionary`
 - plus W7 compositions such as `build_evo_sphere_experiment`
 
@@ -88,7 +89,10 @@ are **not** MCP builder names.
 
 ## Excluded / out of scope
 
-- **NEAT / HyperNEAT** — **excluded from 3.6 DoD** (ADR 0042; deferred since ADR 0037).
-  Existing neuroevolution remains `neural.training.neuroevolution` + hybrid (ADR 0033),
-  not topology-evolution genotype engines.
+- **NEAT** — **available post-3.6** (ADR 0044): skill `evolutionary.neat`,
+  kernel `run_neat()`, catalog builder `build_neat_experiment`. Closed fitness
+  (`xor` / tabular regression / classification); genotype IR in the result;
+  backend `neat-python` via `oec[evolutionary]`. 3.6 DoD itself excluded NEAT
+  (ADR 0042).
+- **HyperNEAT** — still excluded. Needs a future ADR.
 - Foundation models / HF — W6 / Scientific AI S1+

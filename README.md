@@ -127,7 +127,8 @@ pymoo / transformers.
 
 **3.6 S0–S5:** ADR freeze; governed PEFT/full fine-tune artifacts; tabular
 distillation and checkpoint hardening; fail-closed evolutionary/hybrid experiment
-builders (with NEAT excluded); and bounded, pinned, optional vision/VLM skills.
+builders; post-3.6 governed NEAT (ADR 0044; HyperNEAT still excluded); and
+bounded, pinned, optional vision/VLM skills.
 The core install remains free of torch, pymoo, Transformers, PEFT, and Pillow.
 
 **3.4.x baseline:** optional **Neural** / **Evolutionary** extras under ADR 0031–0033

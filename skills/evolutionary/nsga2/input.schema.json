@@ -25,7 +25,13 @@
     "generations": { "type": "integer", "minimum": 1, "default": 30 },
     "population": { "type": "integer", "minimum": 4, "default": 40 },
     "seed": { "type": "integer", "default": 42 },
-    "n_partitions": { "type": "integer", "minimum": 1, "default": 12 }
+    "n_partitions": { "type": "integer", "minimum": 1, "default": 12 },
+    "hv_reference": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "number" },
+      "description": "Fixed hypervolume reference (minimization). When omitted, ref is auto-scaled from the front."
+    }
   },
   "required": ["variables"],
   "additionalProperties": false

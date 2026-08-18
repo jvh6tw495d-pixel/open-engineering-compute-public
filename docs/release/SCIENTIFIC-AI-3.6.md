@@ -6,6 +6,10 @@
 **Governing ADRs:** [0040](../architecture/adr/0040-scientific-ai-completion.md),
 [0041](../architecture/adr/0041-peft-finetune-distill-contracts.md),
 [0042](../architecture/adr/0042-neat-exclusion-3.6.md)
+
+**Post-3.6:** [ADR 0044](../architecture/adr/0044-neat-governed-backend.md) re-opens
+**NEAT** (not HyperNEAT) as a governed optional path. This document remains the
+3.6 freeze record.
 **Principle:** **Backends compute. OEC defines the scientific contract.**
 
 ---

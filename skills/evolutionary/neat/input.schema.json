@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "evolutionary.neat input",
+  "type": "object",
+  "properties": {
+    "fitness": {
+      "type": "string",
+      "enum": ["xor", "tabular_regression", "tabular_classification"]
+    },
+    "x": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 32,
+        "items": { "type": "number" }
+      }
+    },
+    "y": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": { "type": "number" }
+    },
+    "generations": { "type": "integer", "minimum": 1, "maximum": 500, "default": 30 },
+    "population": { "type": "integer", "minimum": 4, "maximum": 500, "default": 50 },
+    "seed": { "type": "integer", "default": 42 },
+    "compatibility_threshold": { "type": "number", "exclusiveMinimum": 0, "default": 3.0 },
+    "conn_add_prob": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.5 },
+    "node_add_prob": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.2 },
+    "num_hidden": { "type": "integer", "minimum": 0, "maximum": 16, "default": 0 },
+    "elitism": { "type": "integer", "minimum": 0, "maximum": 20, "default": 2 },
+    "feed_forward": { "type": "boolean", "default": true }
+  },
+  "required": ["fitness"],
+  "additionalProperties": false
+}

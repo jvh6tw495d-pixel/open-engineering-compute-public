@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "evolutionary.neat output",
+  "type": "object",
+  "properties": {
+    "backend": { "type": "string" },
+    "algorithm": { "type": "string" },
+    "seed": { "type": "integer" },
+    "fitness": { "type": "string" },
+    "best_fitness": { "type": "number" },
+    "genotype": { "type": "object" },
+    "n_nodes": { "type": "integer" },
+    "n_connections": { "type": "integer" },
+    "n_enabled_connections": { "type": "integer" },
+    "n_species": { "type": "integer" },
+    "n_evaluations": { "type": "integer" },
+    "n_generations": { "type": "integer" },
+    "history_best": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "problem_fingerprint": { "type": "string" }
+  },
+  "required": ["backend", "algorithm", "best_fitness", "genotype", "seed"],
+  "additionalProperties": true
+}
