@@ -1,0 +1,10 @@
+{
+  "description": "Call a local vLLM server (must already be running)",
+  "input": {
+    "base_url": "http://127.0.0.1:8000",
+    "model_id": "facebook/opt-125m",
+    "prompt": "2+2=",
+    "max_new_tokens": 8,
+    "temperature": 0
+  }
+}

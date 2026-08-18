@@ -3,7 +3,7 @@
 **Updated:** 2026-08-17 (HyperNEAT ADR 0045 + `v3.6.1` — see
 [NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md))
 **Registry root:** `skills/`
-**Live load:** **154** skills across **28** domains, **0** contract-audit errors
+**Live load:** **155** skills across **28** domains, **0** contract-audit errors
 
 ## Summary
 
@@ -33,12 +33,12 @@
 | **evolutionary** | **17** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044) + HyperNEAT (ADR 0045), both **validated** |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
-| foundation | 6 | W6/S1 + S5 embed / generate / capabilities / PEFT / vision embed / VLM generate — **all 6 validated** |
-| **Total** | **154** | `experimental` except the 8 skills validated below |
+| foundation | 7 | W6/S1/S5 + vLLM remote client (ADR 0046) — **validated** |
+| **Total** | **155** | `experimental` except the 9 skills validated below |
 
 ### Validated skills (lifecycle: `experimental` → `validated`)
 
-Eight skills only — this is not a catalog-wide claim. Everything else in
+Nine skills only — this is not a catalog-wide claim. Everything else in
 this inventory stays `experimental`. Details:
 [NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md).
 
@@ -52,6 +52,7 @@ this inventory stays `experimental`. Details:
 | `foundation.capabilities` | 0.1.1 |
 | `foundation.vision_embed` | 0.1.1 |
 | `foundation.vlm_generate` | 0.1.1 |
+| `foundation.vllm_generate` | 0.1.0 |
 
 ## W1-MVP scientific core (no AI)
 

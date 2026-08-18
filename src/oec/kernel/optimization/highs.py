@@ -66,7 +66,7 @@ def _require_highspy() -> Any:
     except ImportError as exc:  # pragma: no cover
         raise HighsNotAvailableError(
             "HiGHS is not installed. Install with: uv sync --extra optimization "
-            "(or pip install 'oec[optimization]')",
+            "(or pip install 'open-engineering-compute[optimization]')",
             details={"package": "highspy"},
         ) from exc
     return highspy

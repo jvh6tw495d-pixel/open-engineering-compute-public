@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **PyPI project name** is ``open-engineering-compute`` (the name ``oec`` is
+  already taken by an unrelated Observatory for Economic Complexity wrapper).
+  Import and CLI stay ``oec``. See ``docs/release/PUBLISH-3.6.1.md``.
+- **vLLM remote client (ADR 0046):** ``foundation.vllm_generate`` talks to a
+  running OpenAI-compatible vLLM server over HTTP (stdlib ``urllib``). The
+  ``vllm`` package is **not** an OEC extra. Unreachable server fails closed.
+  llama.cpp / SGLang still out.
+
 ### Fixed
 
 ### Changed

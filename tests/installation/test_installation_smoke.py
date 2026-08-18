@@ -4,11 +4,11 @@ test about installation until a real execution command existed).
 
 Every other test in this suite runs against the source tree via
 ``uv run pytest`` (or imports ``oec`` directly from ``src/``) — none of
-them prove that ``pip install oec`` actually produces a working ``oec``
-command with all its runtime dependencies correctly declared. This
-test builds the real wheel, installs it into a throwaway venv, and
-invokes the *installed* console script as a subprocess, the way an
-actual user would.
+them prove that ``pip install open-engineering-compute`` (PyPI project name;
+the import stays ``oec``) actually produces a working ``oec`` command with
+all its runtime dependencies correctly declared. This test builds the real
+wheel, installs it into a throwaway venv, and invokes the *installed*
+console script as a subprocess, the way an actual user would.
 
 Slow (spawns ``uv build``/``uv venv``/``uv pip install``, each its own
 subprocess, then a fresh Python interpreter for every ``oec`` call) --

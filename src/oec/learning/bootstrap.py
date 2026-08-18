@@ -93,7 +93,9 @@ def find_oec_project(start: Path | None = None) -> Path | None:
     here = (start or Path.cwd()).resolve()
     for candidate in (here, *here.parents):
         pyproject = candidate / "pyproject.toml"
-        if pyproject.is_file() and 'name = "oec"' in pyproject.read_text(encoding="utf-8"):
+        if pyproject.is_file() and (
+            'name = "open-engineering-compute"' in pyproject.read_text(encoding="utf-8")
+        ):
             return candidate
     return None
 

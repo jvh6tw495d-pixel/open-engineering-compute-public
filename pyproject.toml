@@ -1,5 +1,5 @@
 [project]
-name = "oec"
+name = "open-engineering-compute"
 version = "3.6.1"
 description = "Open Engineering Compute — an open framework for executable, versioned and auditable engineering skills."
 readme = "README.md"
@@ -50,6 +50,10 @@ foundation = [
 # Unsloth / Axolotl / ART are NEVER extras:
 # Unsloth downgrades torch/transformers; Axolotl has no win_amd64 wheel;
 # ART PyPI name is openpipe-art (import art). Calling them never auto-installs.
+
+[project.urls]
+Homepage = "https://github.com/jvh6tw495d-pixel/open-engineering-compute-public"
+Repository = "https://github.com/jvh6tw495d-pixel/open-engineering-compute-public"
 
 [project.scripts]
 oec = "oec.cli.main:app"

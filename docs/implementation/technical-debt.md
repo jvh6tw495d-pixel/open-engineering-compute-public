@@ -27,7 +27,7 @@ closure below cites the commit/file that actually did it.
 |---|---|---|---|
 | D-AI-02 | P1 | Knowledge distillation skill missing | **3.6 S2** — `neural.distill` + builder; ADR 0041 |
 | D-AI-03 | P2 | VLM / multimodal foundation path missing | **3.6 S5** — ADR 0040 D3 |
-| D-AI-04 | P2 | vLLM / llama.cpp / SGLang adapters not planned for 3.6 | **Debt only** — HF Transformers is the 3.6 inference backend; ADR 0040 D2 |
+| D-AI-04 | P2 | vLLM / llama.cpp / SGLang adapters | **vLLM client closed 2026-08-17** — ADR 0046 (`foundation.vllm_generate`, HTTP only; engine not vendored). **llama.cpp / SGLang remain out.** |
 | D-AI-05 | P3 | NEAT / HyperNEAT productization | **Closed 2026-08-17** — NEAT ADR 0044; HyperNEAT ADR 0045 (`evolutionary.hyperneat`, fixed `layered_1d` substrate). **ES-HyperNEAT remains excluded.** |
 | D-AI-06 | P2 | Neural checkpoint/file reload + industrial status promotion incomplete | **3.6 S3** — SCIENTIFIC-AI-3.6 |
 | D-AI-07 | P2 | Optional CI job for `neural`/`evolutionary`/`foundation` extras | **3.6 S6** |
