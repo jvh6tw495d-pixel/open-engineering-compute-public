@@ -471,7 +471,7 @@ def server_api(
     """Run the REST API (ADR 0015) with uvicorn.
 
     Requires the ``api`` extra (``uv sync --extra api`` /
-    ``pip install 'oec[api]'``) — ``fastapi``/``uvicorn`` are optional
+    ``pip install 'open-engineering-compute[api]'``) — ``fastapi``/``uvicorn`` are optional
     dependencies, not part of the base install.
     """
     _require_skills_root(skills_root)
@@ -482,7 +482,7 @@ def server_api(
     except ImportError as exc:
         error_console.print(
             "[bold red]error[/bold red]: the REST API requires the 'api' extra "
-            "(uv sync --extra api / pip install 'oec[api]')"
+            "(uv sync --extra api / pip install 'open-engineering-compute[api]')"
         )
         if _debug:
             raise
@@ -496,7 +496,7 @@ def server_mcp(skills_root: SkillsRootOption = Path("skills")) -> None:
     """Run the MCP server (ADR 0015) over stdio.
 
     Requires the ``mcp`` extra (``uv sync --extra mcp`` /
-    ``pip install 'oec[mcp]'``) — the ``mcp`` package is an optional
+    ``pip install 'open-engineering-compute[mcp]'``) — the ``mcp`` package is an optional
     dependency, not part of the base install.
     """
     _require_skills_root(skills_root)
@@ -505,7 +505,7 @@ def server_mcp(skills_root: SkillsRootOption = Path("skills")) -> None:
     except ImportError as exc:
         error_console.print(
             "[bold red]error[/bold red]: the MCP server requires the 'mcp' extra "
-            "(uv sync --extra mcp / pip install 'oec[mcp]')"
+            "(uv sync --extra mcp / pip install 'open-engineering-compute[mcp]')"
         )
         if _debug:
             raise

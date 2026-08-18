@@ -17,6 +17,7 @@ from oec.foundation.contracts import (
     TrainingArtifact,
     TrainingBudgetSpec,
     TrainingDatasetSpec,
+    VllmGenerateSpec,
 )
 from oec.foundation.errors import (
     AdapterNotFoundError,
@@ -24,6 +25,7 @@ from oec.foundation.errors import (
     FoundationError,
     PeftNotAvailableError,
     TransformersNotAvailableError,
+    VllmUnreachableError,
 )
 from oec.foundation.runtime import (
     embed_texts,
@@ -51,6 +53,8 @@ __all__ = [
     "TrainingBudgetSpec",
     "TrainingDatasetSpec",
     "TransformersNotAvailableError",
+    "VllmGenerateSpec",
+    "VllmUnreachableError",
     "embed_texts",
     "foundation_capabilities",
     "generate_text",

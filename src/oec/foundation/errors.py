@@ -22,7 +22,7 @@ class TransformersNotAvailableError(FoundationError):
         self,
         message: str = (
             "Hugging Face transformers is not installed. "
-            "Install with: pip install 'oec[foundation]'"
+            "Install with: pip install 'open-engineering-compute[foundation]'"
         ),
         *,
         details: dict[str, Any] | None = None,
@@ -37,7 +37,10 @@ class PeftNotAvailableError(FoundationError):
 
     def __init__(
         self,
-        message: str = ("peft is not installed. Install with: pip install 'oec[foundation]'"),
+        message: str = (
+            "peft is not installed. "
+            "Install with: pip install 'open-engineering-compute[foundation]'"
+        ),
         *,
         details: dict[str, Any] | None = None,
     ) -> None:
@@ -88,7 +91,7 @@ class PillowNotAvailableError(FoundationError):
         self,
         message: str = (
             "Pillow is not installed. Image decode requires the foundation extra: "
-            "pip install 'oec[foundation]'"
+            "pip install 'open-engineering-compute[foundation]'"
         ),
         *,
         details: dict[str, Any] | None = None,
@@ -121,6 +124,25 @@ class ModelRevisionRequiredError(FoundationError):
             "remote Hugging Face model requires an immutable revision "
             "(or an existing local model path for local-only mode)"
         ),
+        *,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message, details=details or {})
+
+
+class VllmUnreachableError(FoundationError):
+    """Raised when the configured vLLM HTTP server cannot be reached (ADR 0046).
+
+    Fail-closed: connect failures, timeouts, non-2xx responses, and payloads
+    that don't parse as an OpenAI-compatible completions response all raise
+    this — never a fabricated ``text``.
+    """
+
+    default_code = "vllm_unreachable"
+
+    def __init__(
+        self,
+        message: str = "vLLM server is unreachable or returned an invalid response",
         *,
         details: dict[str, Any] | None = None,
     ) -> None:

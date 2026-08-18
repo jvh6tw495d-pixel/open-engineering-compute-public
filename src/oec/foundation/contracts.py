@@ -18,6 +18,7 @@ class EmbeddingBackend(StrEnum):
 
 class GenerationBackend(StrEnum):
     TRANSFORMERS = "transformers"
+    VLLM = "vllm"
 
 
 class PEFTMethod(StrEnum):
@@ -297,3 +298,40 @@ class VLMGenerationSpec(BaseModel):
     def _check_model_pin(self) -> VLMGenerationSpec:
         require_pinned_or_local_model(self.model)
         return self
+
+
+# ---------------------------------------------------------------------------
+# vLLM remote backend (ADR 0046) — HTTP client only, no vllm/openai package.
+# ---------------------------------------------------------------------------
+
+_HTTP_URL_SCHEMES: frozenset[str] = frozenset({"http", "https"})
+
+
+class VllmGenerateSpec(BaseModel):
+    """Governed request against a running OpenAI-compatible vLLM server.
+
+    Client only — no adapter/PEFT reload on this path (ADR 0046 D4); the
+    field is intentionally absent so ``extra="forbid"`` rejects it outright
+    rather than silently ignoring it.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["0.1.0"] = "0.1.0"
+    backend: GenerationBackend = GenerationBackend.VLLM
+    base_url: str = Field(min_length=1)
+    model_id: str = Field(min_length=1)
+    prompt: str = Field(min_length=1)
+    max_new_tokens: int = Field(default=32, ge=1, le=512)
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    seed: int | None = None
+
+    @field_validator("base_url")
+    @classmethod
+    def _check_base_url(cls, value: str) -> str:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(value)
+        if parsed.scheme not in _HTTP_URL_SCHEMES or not parsed.netloc:
+            raise ValueError("base_url must be an http:// or https:// URL")
+        return value

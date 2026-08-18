@@ -2,7 +2,8 @@
 
 **Rule:** calling Unsloth, Axolotl, or ART **never downloads or pip-installs
 anything**. A missing package raises `BackendNotAvailableError` with the
-exact install command. A core `pip install oec` only has contracts.
+exact install command. A core `pip install open-engineering-compute` (import
+remains `oec`) only has contracts.
 
 If you **want** the packages, run the explicit bootstrap (it does not
 run from `.train()` / `.finetune()`):

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "foundation.vllm_generate output",
+  "type": "object",
+  "properties": {
+    "backend": { "type": "string" },
+    "model_id": { "type": "string" },
+    "base_url": { "type": "string" },
+    "text": { "type": "string" },
+    "merit_owner": { "type": "string" }
+  },
+  "required": ["backend", "text"],
+  "additionalProperties": true
+}

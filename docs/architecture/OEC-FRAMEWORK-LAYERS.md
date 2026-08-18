@@ -68,8 +68,8 @@ OEC Architecture
 | Units, provenance, sandbox policy | Torch training loops |
 | Backend *capability* registration | Reimplementation of SciPy/PyTorch algorithms |
 
-**Install rule:** `pip install oec` (core) must run scientific skills **without**
-torch, pymoo, transformers, or HF.
+**Install rule:** `pip install open-engineering-compute` (core; import remains
+`oec`) must run scientific skills **without** torch, pymoo, transformers, or HF.
 
 ### 3.2 Applied Sciences
 
