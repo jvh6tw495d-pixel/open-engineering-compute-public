@@ -17,12 +17,19 @@ from oec.evolutionary.contracts import (
     MultiObjectiveAlgorithmName,
     MultiObjectiveAlgorithmSpec,
     MultiObjectiveProblemSpec,
+    NeatAlgorithmSpec,
+    NeatFitnessName,
+    NeatProblemSpec,
     VariableSpec,
 )
 from oec.evolutionary.results import (
     BenchmarkResult,
     EvolutionaryParetoResult,
     EvolutionaryResult,
+    NeatConnectionIR,
+    NeatGenotypeIR,
+    NeatNodeIR,
+    NeatResult,
 )
 from oec.evolutionary.runtime import (
     EvolutionaryRuntimeSpec,
@@ -47,5 +54,12 @@ __all__ = [
     "MultiObjectiveAlgorithmSpec",
     "MultiObjectiveProblemSpec",
     "MultiSeedReport",
+    "NeatAlgorithmSpec",
+    "NeatConnectionIR",
+    "NeatFitnessName",
+    "NeatGenotypeIR",
+    "NeatNodeIR",
+    "NeatProblemSpec",
+    "NeatResult",
     "VariableSpec",
 ]

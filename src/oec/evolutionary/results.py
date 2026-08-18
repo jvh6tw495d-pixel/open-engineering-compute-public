@@ -69,3 +69,68 @@ class BenchmarkResult(BaseModel):
     rows: list[dict[str, Any]] = Field(default_factory=list)
     summary: dict[str, Any] = Field(default_factory=dict)
     message: str = "ok"
+
+
+class NeatNodeIR(BaseModel):
+    """OEC-owned NEAT node (ADR 0044)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    id: int
+    kind: Literal["input", "hidden", "output"]
+    bias: float | None = None
+    response: float | None = None
+    activation: str | None = None
+    aggregation: str | None = None
+
+
+class NeatConnectionIR(BaseModel):
+    """OEC-owned NEAT connection (ADR 0044)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    source: int
+    target: int
+    weight: float
+    enabled: bool
+    innovation: int | None = None
+
+
+class NeatGenotypeIR(BaseModel):
+    """Serializable genotype. Never a neat-python genome object."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    nodes: tuple[NeatNodeIR, ...]
+    connections: tuple[NeatConnectionIR, ...]
+    n_inputs: int
+    n_outputs: int
+    feed_forward: bool = True
+    fitness: float | None = None
+    key: int | None = None
+
+
+class NeatResult(BaseModel):
+    """NEAT run payload serialized into ExecutionResult.result."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    backend: str = "neat-python"
+    backend_version: str | None = None
+    algorithm: str = "neat"
+    seed: int
+    deterministic_status: Literal["strict", "practical", "best_effort"] = "practical"
+    fitness: str
+    sense: Literal["max"] = "max"
+    best_fitness: float
+    genotype: NeatGenotypeIR
+    n_nodes: int
+    n_connections: int
+    n_enabled_connections: int
+    n_species: int = 0
+    n_evaluations: int = 0
+    n_generations: int = 0
+    history_best: list[float] = Field(default_factory=list)
+    problem_fingerprint: str
+    message: str = "ok"
+    runtime: dict[str, Any] | None = None

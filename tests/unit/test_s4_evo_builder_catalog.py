@@ -2,7 +2,7 @@
 
 Public declarative experiment builders from W5 must be discoverable only through
 ``list_cross_domain_builders`` / ``get_cross_domain_builder``. Helpers and
-non-catalog callables stay rejected. NEAT is not a builder (ADR 0042).
+non-catalog callables stay rejected. NEAT is catalogued (ADR 0044).
 """
 
 from __future__ import annotations
@@ -23,6 +23,10 @@ _S4_PUBLIC_EVO_BUILDERS: dict[str, dict[str, list[str]]] = {
         "extras": ["evolutionary"],
     },
     "build_nsga2_experiment": {
+        "domains": ["evolutionary"],
+        "extras": ["evolutionary"],
+    },
+    "build_neat_experiment": {
         "domains": ["evolutionary"],
         "extras": ["evolutionary"],
     },
@@ -79,6 +83,15 @@ def test_s4_get_builder_resolves_nsga2() -> None:
     assert isinstance(spec, ExperimentSpec)
     assert spec.required_extras == ("evolutionary",)
     assert spec.steps[0].skill_id == "evolutionary.nsga2"
+
+
+def test_s4_get_builder_resolves_neat() -> None:
+    fn = get_cross_domain_builder("build_neat_experiment")
+    assert callable(fn)
+    spec = fn(fitness="xor", generations=5, population=8, seed=1)
+    assert isinstance(spec, ExperimentSpec)
+    assert spec.required_extras == ("evolutionary",)
+    assert spec.steps[0].skill_id == "evolutionary.neat"
 
 
 def test_s4_get_builder_resolves_hybrid_training() -> None:

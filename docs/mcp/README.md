@@ -95,7 +95,7 @@ run another agent first and pass its result's `execution` back in.
 | `experiment.list_builders` | List cross-domain experiment builder names (domains + required extras). |
 | `experiment.run` | Multi-step `ExperimentSpec` runner (W2–W7, S1). Pass `spec` **or** `builder` + optional `builder_kwargs`. Returns `ExperimentRecord`. |
 | `list_agents` | Specialist-agent catalog. Preferred discovery entrypoint for hosts. |
-| `list_skills` | Raw skill catalog (151 skills / 28 domains, including 6 foundation skills). |
+| `list_skills` | Raw skill catalog (153 skills / 28 domains, including 6 foundation skills). |
 | `<skill_id>` | Run a specific low-level skill directly. `inputSchema` is the skill's own `input.schema.json`. Result is the full `ExecutionResult` JSON. |
 
 ### What’s new (3.5.0 W6–W8 baseline + 3.6 S0–S5)
@@ -103,7 +103,7 @@ run another agent first and pass its result's `execution` back in.
 1. **`agent.foundation`** + raw tools `foundation.embed`, `foundation.generate`, `foundation.capabilities` (demos: `embed`, `capabilities`, `generate`)
 2. **`experiment.list_builders`** + `experiment.run` with named W7 builders only (fail-closed catalog; not arbitrary module callables)
 3. **W3 physics skills** as raw tools (`waves.*`, `optics.*`, `em.*`, `statistical_physics.*`, …) routed via `agent.energy` / skill prefixes
-4. **Full skill catalog** auto-listed (151 skills / 28 domains with S5) — no hard-coded subset
+4. **Full skill catalog** auto-listed (153 skills / 28 domains with S5 + NEAT) — no hard-coded subset
 5. The 3.5.0 framework baseline established this MCP surface; restart MCP after upgrades to pick up the catalog.
 
 ### S1 (Scientific AI Completion, post-3.5.0)
@@ -118,8 +118,8 @@ run another agent first and pass its result's `execution` back in.
    `build_nsga2_experiment`, `build_hybrid_training_experiment` (domains + required
    extras accurate). Helpers and non-catalog factories remain rejected by
    `experiment.run`.
-10. **NEAT / HyperNEAT** stay **excluded** (ADR 0042) — no `evolutionary.neat` skill
-    or builder stubs.
+10. **NEAT** is available post-3.6 (ADR 0044) as `evolutionary.neat` +
+    `build_neat_experiment`. **HyperNEAT** stays excluded.
 
 ### S5 (VLM MVP, delivered)
 
@@ -127,8 +127,9 @@ run another agent first and pass its result's `execution` back in.
 
 ### S6 release-gate status
 
-The code baseline is `3.6.0`: S0–S5 are implemented and the catalog is **151 skills /
-28 domains / 6 foundation skills**. S6 adds a scheduled/manual optional-extras CI gate for
+The code baseline is `3.6.0`: S0–S5 are implemented. Post-3.6 NEAT (ADR 0044)
+brings the live catalog to **153 skills / 28 domains / 6 foundation skills**.
+S6 adds a scheduled/manual optional-extras CI gate for
 neural, evolutionary, and foundation markers. This is local release-readiness work only:
 no tag, remote push, or published package is claimed.
 

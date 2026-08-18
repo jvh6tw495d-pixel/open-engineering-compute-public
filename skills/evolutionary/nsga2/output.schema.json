@@ -12,6 +12,7 @@
     "nondominated_mask": { "type": "array" },
     "n_nondominated": { "type": "integer" },
     "hypervolume": { "type": ["number", "null"] },
+    "hv_reference": { "type": ["array", "null"], "items": { "type": "number" } },
     "problem_fingerprint": { "type": "string" }
   },
   "required": ["backend", "algorithm", "objective_vectors", "n_nondominated"],

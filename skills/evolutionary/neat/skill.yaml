@@ -1,0 +1,42 @@
+id: evolutionary.neat
+version: 0.1.0
+status: experimental
+domain: evolutionary
+title: NEAT topology evolution (neat-python)
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: neat_python_feedforward
+  version: 0.1.0
+  iterative: true
+
+execution:
+  deterministic: false
+  timeout_seconds: 180
+  network_access: false
+  filesystem_access: true
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: true
+
+references:
+  - "Stanley & Miikkulainen — Evolving Neural Networks through Augmenting Topologies"
+  - "neat-python — https://neat-python.readthedocs.io/"
+  - "ADR 0044 Governed NEAT Backend"
+
+tags:
+  - evolutionary
+  - neuroevolution
+  - neat
+  - experimental

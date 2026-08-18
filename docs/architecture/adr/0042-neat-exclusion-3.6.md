@@ -4,6 +4,7 @@
 - **Date:** 2026-08-12
 - **Phase:** Scientific AI S0 / S4
 - **Related:** ADR 0031, 0033, 0037, 0040
+- **See also:** ADR 0044 re-opens **NEAT** (not HyperNEAT) after the 3.6 freeze.
 
 ## Context
 

@@ -4,7 +4,7 @@ Declarative only: maps ``EvolutionaryProblemSpec`` / algorithm contracts into
 skill inputs. No arbitrary fitness Python (ADR 0031).
 
 Public builders are discoverable via the fail-closed cross-domain catalog (S4).
-NEAT / HyperNEAT remain **excluded** from 3.6 DoD (ADR 0042; deferred since ADR 0037).
+NEAT is available post-3.6 (ADR 0044). HyperNEAT remains excluded.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from oec.evolutionary.contracts import (
     MultiObjectiveAlgorithmName,
     MultiObjectiveAlgorithmSpec,
     MultiObjectiveProblemSpec,
+    NeatFitnessName,
     VariableSpec,
 )
 from oec.experiment.specs import (
@@ -141,6 +142,7 @@ def build_nsga2_experiment(
     seed: int = 0,
     experiment_id: str = "evolutionary.nsga2",
     title: str | None = None,
+    hv_reference: list[float] | None = None,
 ) -> ExperimentSpec:
     """NSGA-II multi-objective experiment (built-in ZDT-style problems)."""
     bi = (
@@ -164,6 +166,8 @@ def build_nsga2_experiment(
         "population": algo.budget.population,
         "seed": algo.seed,
     }
+    if hv_reference is not None:
+        inputs["hv_reference"] = [float(v) for v in hv_reference]
     return ExperimentSpec(
         id=experiment_id,
         title=title or "NSGA-II multi-objective (W5)",
@@ -279,6 +283,52 @@ def build_hybrid_training_experiment(
                 },
             ),
         ),
+    )
+
+
+def build_neat_experiment(
+    *,
+    fitness: NeatFitnessName | str = NeatFitnessName.XOR,
+    x: list[list[float]] | None = None,
+    y: list[float] | None = None,
+    generations: int = 20,
+    population: int = 30,
+    seed: int = 0,
+    experiment_id: str = "evolutionary.neat",
+    title: str | None = None,
+    min_fitness: float | None = None,
+) -> ExperimentSpec:
+    """Governed NEAT experiment (closed fitness catalog, ADR 0044)."""
+    fit = fitness if isinstance(fitness, NeatFitnessName) else NeatFitnessName(str(fitness))
+    inputs: dict[str, Any] = {
+        "fitness": fit.value,
+        "generations": int(generations),
+        "population": int(population),
+        "seed": int(seed),
+    }
+    if x is not None:
+        inputs["x"] = x
+    if y is not None:
+        inputs["y"] = y
+    metrics = (
+        MetricSpec(
+            name="best_fitness",
+            path="result.best_fitness",
+            step_id="neat",
+            direction=MetricDirection.MAXIMIZE,
+        ),
+    )
+    validation = ValidationSpec()
+    if min_fitness is not None:
+        validation = ValidationSpec(metric_min={"best_fitness": float(min_fitness)})
+    return ExperimentSpec(
+        id=experiment_id,
+        title=title or "NEAT topology evolution (ADR 0044)",
+        seed=seed,
+        required_extras=("evolutionary",),
+        metrics=metrics,
+        validation=validation,
+        steps=(ExperimentStep(step_id="neat", skill_id="evolutionary.neat", inputs=inputs),),
     )
 
 
