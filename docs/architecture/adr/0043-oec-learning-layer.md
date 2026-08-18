@@ -34,7 +34,6 @@ the public API.
 
 ## Non-goals
 
-- Kronos / temporal FMs
 - POST-OEC autonomous research harness
 - Foundation-model distillation beyond the tabular ``neural.distill_mlp`` path
 - Making Unsloth/Axolotl/ART structurally required

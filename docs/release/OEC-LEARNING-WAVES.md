@@ -10,8 +10,6 @@ integration-unverified adapters.
 
 Principle (unchanged): **OEC defines scientific contracts. External frameworks are replaceable backends.**
 
-Kronos is **out** of these waves (time-series FM later).
-
 ---
 
 ## 1. What 3.6 already covers vs the Learning spec
@@ -175,7 +173,6 @@ L1 Contracts
 
 ## 6. Non-goals (this programme)
 
-- Kronos / temporal FMs
 - POST-OEC autonomous research harness
 - Making Unsloth/Axolotl/ART structurally required
 - Replacing 3.6 skill engine

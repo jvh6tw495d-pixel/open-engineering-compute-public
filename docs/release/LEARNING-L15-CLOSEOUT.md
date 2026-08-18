@@ -14,4 +14,4 @@ See also `LEARNING-OPERATIONAL.md`.
 | L12 Worker | operational FineTune sequence + ExecutionResult evaluate |
 | L13–L14 | operational (suite + CI isolation/smoke) |
 
-Out of cut: Kronos, POST-OEC, FM text distillation.
+Out of cut: POST-OEC, FM text distillation.
