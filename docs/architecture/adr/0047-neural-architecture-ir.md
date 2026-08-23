@@ -5,7 +5,7 @@
 - **Updated:** 2026-08-23
 - **Phase:** post-3.6.1
 - **Related:** ADR 0031, 0032, 0033
-- **Source:** OEC Neural Architecture IR v0.2.4, waves A0–A8 landed
+- **Source:** OEC Neural Architecture IR v0.2.5, waves A0–A8 landed
 
 ## Context
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict
 
 from oec.neural.architecture.backends import (
+    JAX_BUILDABLE_BLOCK_IDS,
     KNOWN_MANIFEST_BACKENDS,
     TORCH_BUILDABLE_BLOCK_IDS,
 )
@@ -153,6 +154,11 @@ def _assert_backend_can_build(backend: str, specs_by_id: dict[str, BlockSpec]) -
         if backend == "torch" and spec_id not in TORCH_BUILDABLE_BLOCK_IDS:
             raise ArchitectureValidationError(
                 f"block {spec_id!r} has no torch builder; cannot manifest backend='torch'",
+                details={"block_id": spec_id, "backend": backend},
+            )
+        if backend == "jax" and spec_id not in JAX_BUILDABLE_BLOCK_IDS:
+            raise ArchitectureValidationError(
+                f"block {spec_id!r} has no jax builder; cannot manifest backend='jax'",
                 details={"block_id": spec_id, "backend": backend},
             )
 

@@ -34,6 +34,9 @@ optimization = [
 neural = [
     "torch>=2.2",
 ]
+jax = [
+    "jax>=0.4",
+]
 evolutionary = [
     "pymoo>=0.6",
     "deap>=1.4",       # E3 genetic programming

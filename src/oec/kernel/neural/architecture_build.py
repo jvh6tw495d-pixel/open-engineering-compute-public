@@ -43,14 +43,18 @@ def build_architecture(
     backend: str = "torch",
 ) -> Any:
     """Materialize a strict linear chain (with named-port joins). Forks,
-    disconnected components, and blocks without a torch builder fail closed.
+    disconnected components, and blocks without a builder fail closed.
     """
-    if backend != "torch":
+    if backend not in {"torch", "jax"}:
         raise ValueError(f"unsupported architecture backend {backend!r}")
     registry = registry or default_registry
     report = validate_for_backend(graph, backend, registry)
     if not report.valid:
         raise ArchitectureValidationError("; ".join(report.errors))
+    if backend == "jax":
+        from oec.kernel.neural.architecture_build_jax import build_architecture_jax
+
+        return build_architecture_jax(graph, registry)
     order = _require_linear_chain(graph, registry)
     node_map = {node.id: node for node in graph.nodes}
     for node_id in order:
@@ -179,7 +183,9 @@ def _build_block(torch: Any, nn: Any, block_id: str, config: dict[str, Any]) -> 
         return _gnn_block(torch, nn, block_id, config)
     if block_id in {"graph_global_pool", "graph_embedding_to_vector"}:
         return _graph_pool(nn, block_id)
-    raise ArchitectureValidationError(f"no torch builder for block {block_id!r}")
+    from oec.kernel.neural.architecture_zip_blocks import build_zip_block
+
+    return build_zip_block(torch, nn, block_id, config)
 
 
 def _linear_or_mlp(nn: Any, block_id: str, config: dict[str, Any]) -> Any:

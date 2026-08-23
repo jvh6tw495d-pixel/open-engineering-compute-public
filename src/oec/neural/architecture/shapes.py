@@ -49,6 +49,24 @@ INPUT_DIM_KEY: dict[str, str] = {
     "cross_attention": "d_model",
     "local_attention": "d_model",
     "linear_attention": "d_model",
+    "glu": "in_features",
+    "hybrid_kan": "in_features",
+    "lif_spike": "features",
+    "residual_stack": "in_features",
+    "bottleneck": "in_features",
+    "fusion": "in_features",
+    "encoder_decoder": "in_features",
+    "vae": "in_features",
+    "gan_generator": "in_features",
+    "gan_discriminator": "in_features",
+    "moe": "in_features",
+    "siamese": "in_features",
+    "diffusion_denoiser": "in_features",
+    "residual_conv": "in_channels",
+    "conv3d": "in_channels",
+    "inception": "in_channels",
+    "dense_block": "in_channels",
+    "message_passing_stack": "input_size",
 }
 
 # block_id -> config key for the tensor leaving port "out"
@@ -85,6 +103,24 @@ OUTPUT_DIM_KEY: dict[str, str] = {
     "cross_attention": "d_model",
     "local_attention": "d_model",
     "linear_attention": "d_model",
+    "glu": "in_features",
+    "hybrid_kan": "out_features",
+    "lif_spike": "features",
+    "residual_stack": "in_features",
+    "bottleneck": "in_features",
+    "fusion": "out_features",
+    "encoder_decoder": "out_features",
+    "vae": "out_features",
+    "gan_generator": "out_features",
+    "gan_discriminator": "out_features",
+    "moe": "out_features",
+    "siamese": "out_features",
+    "diffusion_denoiser": "in_features",
+    "residual_conv": "out_channels",
+    "conv3d": "out_channels",
+    "inception": "out_channels",
+    "dense_block": "out_channels",
+    "message_passing_stack": "hidden_dim",
 }
 
 _NAMED_INPUT_DIM_KEY: dict[tuple[str, str], str] = {
@@ -92,6 +128,10 @@ _NAMED_INPUT_DIM_KEY: dict[tuple[str, str], str] = {
     ("cross_attention", "context"): "d_model",
     ("deeponet", "branch"): "branch_dim",
     ("deeponet", "trunk"): "trunk_dim",
+    ("fusion", "a"): "in_features",
+    ("fusion", "b"): "in_features",
+    ("siamese", "left"): "in_features",
+    ("siamese", "right"): "in_features",
 }
 
 # Adapters that keep the feature/channel/d_model integer while changing rank.
@@ -100,6 +140,7 @@ PRESERVES_FEATURE_DIM: frozenset[str] = frozenset(
     {
         "global_avg_pool_1d",
         "global_avg_pool_2d",
+        "global_avg_pool_3d",
         "sequence_pool",
         "vector_to_sequence",
         "graph_global_pool",
