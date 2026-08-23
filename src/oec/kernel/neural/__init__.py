@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from oec.kernel.neural.architecture_build import build_architecture
 from oec.kernel.neural.autoencoder import train_autoencoder
 from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.kernel.neural.evolutionary_training import (
@@ -19,6 +20,7 @@ from oec.kernel.neural.transformer import train_transformer_sequence
 __all__ = [
     "TorchNotAvailableError",
     "benchmark_training_strategies",
+    "build_architecture",
     "count_parameters",
     "evaluate_mlp",
     "hybrid_evolutionary_train",
