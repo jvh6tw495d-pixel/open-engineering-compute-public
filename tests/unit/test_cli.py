@@ -12,7 +12,8 @@ runner = CliRunner()
 def test_version_command_prints_the_installed_version() -> None:
     result = runner.invoke(app, ["version"])
     assert result.exit_code == 0
-    assert __version__ in result.stdout
+    assert __version__ == "3.6.2"
+    assert result.stdout.strip() == "3.6.2"
 
 
 def test_skills_list_shows_registered_skills(tmp_path: Path) -> None:

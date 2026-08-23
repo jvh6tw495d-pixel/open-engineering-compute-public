@@ -526,6 +526,25 @@ def test_local_and_linear_attention_keep_sequence_rank() -> None:
     for graph in (local, linear):
         out = build_architecture(graph)(torch.zeros(2, 7, 8))
         assert tuple(out.shape) == (2, 7, 8)
+    one = build_architecture(
+        ArchitectureGraph(
+            nodes=(
+                NodeGene(id="a", block_id="linear_attention", config={"d_model": 8, "nhead": 1}),
+            ),
+            edges=(),
+        )
+    )
+    two = build_architecture(linear)
+
+    def _nhead(module: object) -> int:
+        for child in module.modules():  # type: ignore[union-attr]
+            nhead = getattr(child, "nhead", None)
+            if type(nhead) is int:
+                return nhead
+        raise AssertionError("linear_attention module did not expose nhead")
+
+    assert _nhead(one) == 1
+    assert _nhead(two) == 2
 
 
 @pytest.mark.neural

@@ -14,9 +14,18 @@ from oec.neural.architecture.backends import (
     KNOWN_MANIFEST_BACKENDS,
     TORCH_BUILDABLE_BLOCK_IDS,
 )
-from oec.neural.architecture.errors import ArchitectureValidationError, RegistrySealedError
-from oec.neural.architecture.graph import ARCHITECTURE_COMPATIBILITY_VERSION, ArchitectureGraph
+from oec.neural.architecture.errors import (
+    ArchitectureValidationError,
+    RegistrySealedError,
+    UnknownBlockError,
+)
+from oec.neural.architecture.graph import (
+    ARCHITECTURE_COMPATIBILITY_VERSION,
+    ArchitectureGraph,
+    ArchitectureValidationReport,
+)
 from oec.neural.architecture.registry import BlockRegistry
+from oec.neural.architecture.shapes import graph_dim_errors
 from oec.neural.architecture.specs import KNOWN_PARAMETER_KINDS, BlockSpec
 
 COMPATIBILITY_VERSION = ARCHITECTURE_COMPATIBILITY_VERSION
@@ -72,14 +81,14 @@ def manifest_for_graph(
             f"unknown architecture manifest backend {backend!r}",
             details={"backend": backend, "known": sorted(KNOWN_MANIFEST_BACKENDS)},
         )
-    report = graph.validate_graph(registry)
+    report = validate_for_backend(graph, backend, registry)
     if not report.valid:
         raise ArchitectureValidationError(
-            "cannot manifest an invalid architecture graph: " + "; ".join(report.errors),
+            "cannot manifest an architecture graph the backend cannot execute: "
+            + "; ".join(report.errors),
             details={"errors": list(report.errors)},
         )
     specs_by_id = {node.block_id: registry.get(node.block_id) for node in graph.nodes}
-    _assert_backend_can_build(backend, specs_by_id)
     experimental_ids = sorted(spec_id for spec_id, spec in specs_by_id.items() if spec.experimental)
     return ArchitectureManifest(
         graph_fingerprint=graph.fingerprint(registry),
@@ -90,6 +99,42 @@ def manifest_for_graph(
         experimental_flags_used=tuple(experimental_ids),
         created_at=created_at,
         provenance=provenance or ArchitectureProvenance(),
+    )
+
+
+def validate_for_backend(
+    graph: ArchitectureGraph,
+    backend: str,
+    registry: BlockRegistry,
+) -> ArchitectureValidationReport:
+    """Graph + A7 topology + port dims + builder coverage. Core-safe (no torch)."""
+    if backend not in KNOWN_MANIFEST_BACKENDS:
+        return ArchitectureValidationReport(
+            valid=False,
+            errors=(f"unknown architecture backend {backend!r}",),
+        )
+    report = graph.validate_graph(registry)
+    errors = list(report.errors)
+    warnings = list(report.warnings)
+    errors.extend(graph.a7_chain_errors(registry))
+    errors.extend(graph_dim_errors(graph, registry))
+    try:
+        specs_by_id = {node.block_id: registry.get(node.block_id) for node in graph.nodes}
+        _assert_backend_can_build(backend, specs_by_id)
+    except (ArchitectureValidationError, UnknownBlockError) as exc:
+        message = exc.message if isinstance(exc, ArchitectureValidationError) else str(exc)
+        errors.append(message)
+    # de-dupe while preserving order
+    seen: set[str] = set()
+    unique: list[str] = []
+    for item in errors:
+        if item not in seen:
+            seen.add(item)
+            unique.append(item)
+    return ArchitectureValidationReport(
+        valid=not unique,
+        errors=tuple(unique),
+        warnings=tuple(sorted(set(warnings))),
     )
 
 

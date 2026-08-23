@@ -17,7 +17,7 @@ from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.neural.architecture import default_registry
 from oec.neural.architecture.backends import TORCH_BUILDABLE_BLOCK_IDS
 from oec.neural.architecture.errors import ArchitectureValidationError
-from oec.neural.architecture.graph import ArchitectureGraph, EdgeGene
+from oec.neural.architecture.graph import ArchitectureGraph
 from oec.neural.architecture.registry import BlockRegistry
 from oec.neural.architecture.types import NeuralFamily
 
@@ -77,59 +77,10 @@ def build_architecture(
 
 
 def _require_linear_chain(graph: ArchitectureGraph, registry: BlockRegistry) -> list[str]:
-    ids = [node.id for node in graph.nodes]
-    if not ids:
-        raise ArchitectureValidationError("empty architecture graph is not supported in A7")
-    node_map = {node.id: node for node in graph.nodes}
-    incoming: dict[str, list[EdgeGene]] = {node_id: [] for node_id in ids}
-    outgoing: dict[str, list[str]] = {node_id: [] for node_id in ids}
-    for edge in graph.edges:
-        if edge.source not in incoming or edge.target not in incoming:
-            raise ArchitectureValidationError(
-                f"unknown edge {edge.source}->{edge.target} in A7 linear chain"
-            )
-        outgoing[edge.source].append(edge.target)
-        incoming[edge.target].append(edge)
-
-    if any(len(dsts) > 1 for dsts in outgoing.values()):
-        raise ArchitectureValidationError("forked graphs are not supported in A7")
-
-    def arity(node_id: str) -> int:
-        spec = registry.get(node_map[node_id].block_id)
-        return max(len(spec.input_ports), 1)
-
-    for node_id, edges_in in incoming.items():
-        expected = arity(node_id)
-        if expected <= 1:
-            if len(edges_in) > 1:
-                raise ArchitectureValidationError("branched graphs are not supported in A7")
-        elif edges_in and len(edges_in) != expected:
-            raise ArchitectureValidationError(
-                f"node {node_id!r} requires {expected} named inputs; got {len(edges_in)}"
-            )
-
-    roots = [node_id for node_id, edges_in in incoming.items() if not edges_in]
-    sinks = [node_id for node_id, dsts in outgoing.items() if not dsts]
-    if not roots or len(sinks) != 1:
-        raise ArchitectureValidationError("architecture graph is not a linear chain in A7")
-
-    indegree_remaining = {node_id: len(edges_in) for node_id, edges_in in incoming.items()}
-    order: list[str] = []
-    queue = list(roots)
-    seen: set[str] = set()
-    while queue:
-        current = queue.pop(0)
-        if current in seen:
-            raise ArchitectureValidationError("architecture graph is not a valid DAG")
-        seen.add(current)
-        order.append(current)
-        for nxt in outgoing[current]:
-            indegree_remaining[nxt] -= 1
-            if indegree_remaining[nxt] == 0:
-                queue.append(nxt)
-    if len(order) != len(ids):
-        raise ArchitectureValidationError("disconnected architecture graph is not supported in A7")
-    return order
+    errors = graph.a7_chain_errors(registry)
+    if errors:
+        raise ArchitectureValidationError("; ".join(errors))
+    return graph.topological_order()
 
 
 def _build_block(torch: Any, nn: Any, block_id: str, config: dict[str, Any]) -> Any:
@@ -408,22 +359,38 @@ def _local_attention(nn: Any, config: dict[str, Any]) -> Any:
 
 def _linear_attention(nn: Any, config: dict[str, Any]) -> Any:
     d_model = int(config.get("d_model", 16))
+    nhead = int(config.get("nhead", 2))
+    if nhead < 1 or d_model % nhead != 0:
+        raise ArchitectureValidationError(
+            f"linear_attention requires d_model % nhead == 0 (d_model={d_model}, nhead={nhead})"
+        )
+    head_dim = d_model // nhead
 
     class LinearAttention(nn.Module):  # type: ignore[misc]
         def __init__(self) -> None:
             super().__init__()
+            self.nhead = nhead
+            self.head_dim = head_dim
             self.q = nn.Linear(d_model, d_model)
             self.k = nn.Linear(d_model, d_model)
             self.v = nn.Linear(d_model, d_model)
+            self.out = nn.Linear(d_model, d_model)
+
+        def _heads(self, tensor: Any) -> Any:
+            batch, length, _dim = tensor.shape
+            return tensor.view(batch, length, self.nhead, self.head_dim).transpose(1, 2)
 
         def forward(self, x: Any) -> Any:
-            query = nn.functional.elu(self.q(x)) + 1.0
-            key = nn.functional.elu(self.k(x)) + 1.0
-            value = self.v(x)
+            query = self._heads(nn.functional.elu(self.q(x)) + 1.0)
+            key = self._heads(nn.functional.elu(self.k(x)) + 1.0)
+            value = self._heads(self.v(x))
             kv = key.transpose(-2, -1) @ value
             out = query @ kv
-            denom = query @ key.sum(dim=1).unsqueeze(-1)
-            return out / denom.clamp(min=1e-6)
+            denom = query @ key.sum(dim=2).unsqueeze(-1)
+            out = out / denom.clamp(min=1e-6)
+            batch, _heads, length, _dim = out.shape
+            merged = out.transpose(1, 2).contiguous().view(batch, length, d_model)
+            return self.out(merged)
 
     return LinearAttention()
 

@@ -1,7 +1,12 @@
 """Closed mutation/crossover on ArchitectureGraph (ADR 0047 follow-on).
 
 No free Python fitness. Operators are a closed catalog. Offspring that fail
-``validate_graph`` are rejected. TITAN is not involved.
+``validate_for_backend`` are rejected. TITAN is not involved.
+
+Crossover policy: ``one_point_chain`` only crosses two linear chains of the
+**same** ``NeuralFamily``, same graph ``version``, against the same sealed
+catalog. The cut is in topological order. The stitch copies the left
+output dim onto the right input dim when both sides declare a signature.
 """
 
 from __future__ import annotations
@@ -9,10 +14,19 @@ from __future__ import annotations
 import random
 from typing import Literal
 
+from oec.neural.architecture.compatibility import check_connection
 from oec.neural.architecture.default_catalog import default_registry
 from oec.neural.architecture.errors import ArchitectureValidationError
+from oec.neural.architecture.governance import validate_for_backend
 from oec.neural.architecture.graph import ArchitectureGraph, EdgeGene, NodeGene
 from oec.neural.architecture.registry import BlockRegistry
+from oec.neural.architecture.shapes import (
+    OUTPUT_DIM_KEY,
+    input_dim_key,
+    output_dim_key,
+    propagate_output_width,
+)
+from oec.neural.architecture.types import NeuralFamily
 
 MutationOperator = Literal["widen", "deepen", "swap_activation"]
 CrossoverOperator = Literal["one_point_chain"]
@@ -20,6 +34,11 @@ CrossoverOperator = Literal["one_point_chain"]
 _WIDTH_LADDER = (8, 16, 32, 64)
 _ACTIVATIONS = ("relu", "gelu", "silu", "tanh")
 _WIDTH_KEYS = ("hidden_dim", "out_features", "out_channels", "d_model")
+
+# Explicit closed table: a family only crosses itself.
+CROSSABLE_FAMILIES: dict[NeuralFamily, frozenset[NeuralFamily]] = {
+    family: frozenset({family}) for family in NeuralFamily
+}
 
 
 def mutate_graph(
@@ -30,11 +49,7 @@ def mutate_graph(
     registry: BlockRegistry | None = None,
 ) -> ArchitectureGraph:
     registry = registry or default_registry
-    report = graph.validate_graph(registry)
-    if not report.valid:
-        raise ArchitectureValidationError(
-            "cannot mutate an invalid architecture graph: " + "; ".join(report.errors)
-        )
+    _require_backend_ready(graph, registry, "cannot mutate")
     rng = random.Random(int(seed))
     if operator == "widen":
         child = _widen(graph, rng)
@@ -47,11 +62,7 @@ def mutate_graph(
             f"unknown mutation operator {operator!r}",
             details={"known": ["widen", "deepen", "swap_activation"]},
         )
-    child_report = child.validate_graph(registry)
-    if not child_report.valid:
-        raise ArchitectureValidationError(
-            "mutation produced an invalid graph: " + "; ".join(child_report.errors)
-        )
+    _require_backend_ready(child, registry, "mutation produced")
     return child
 
 
@@ -65,24 +76,24 @@ def crossover_graphs(
 ) -> ArchitectureGraph:
     registry = registry or default_registry
     for graph, label in ((first, "first"), (second, "second")):
-        report = graph.validate_graph(registry)
-        if not report.valid:
-            raise ArchitectureValidationError(
-                f"cannot cross {label} parent: " + "; ".join(report.errors)
-            )
+        _require_backend_ready(graph, registry, f"cannot cross {label} parent")
     if operator != "one_point_chain":
         raise ArchitectureValidationError(
             f"unknown crossover operator {operator!r}",
             details={"known": ["one_point_chain"]},
         )
     rng = random.Random(int(seed))
-    child = _one_point_chain(first, second, rng)
-    child_report = child.validate_graph(registry)
-    if not child_report.valid:
-        raise ArchitectureValidationError(
-            "crossover produced an invalid graph: " + "; ".join(child_report.errors)
-        )
+    child = _one_point_chain(first, second, rng, registry)
+    _require_backend_ready(child, registry, "crossover produced")
     return child
+
+
+def _require_backend_ready(graph: ArchitectureGraph, registry: BlockRegistry, prefix: str) -> None:
+    report = validate_for_backend(graph, "torch", registry)
+    if not report.valid:
+        raise ArchitectureValidationError(
+            f"{prefix} an invalid architecture graph: " + "; ".join(report.errors)
+        )
 
 
 def _widen(graph: ArchitectureGraph, rng: random.Random) -> ArchitectureGraph:
@@ -96,7 +107,7 @@ def _widen(graph: ArchitectureGraph, rng: random.Random) -> ArchitectureGraph:
     target = rng.choice(candidates)
     bumped: str | None = None
     new_width: int | None = None
-    nodes = []
+    nodes: list[NodeGene] = []
     for node in graph.nodes:
         if node.id != target.id:
             nodes.append(node)
@@ -114,27 +125,12 @@ def _widen(graph: ArchitectureGraph, rng: random.Random) -> ArchitectureGraph:
         if bumped is None or new_width is None:
             raise ArchitectureValidationError("widen could not bump any width on the selected node")
         nodes.append(NodeGene(id=node.id, block_id=node.block_id, config=cfg))
-    if bumped == "out_features" and new_width is not None:
-        nodes = _align_next_in_features(graph, target.id, new_width, tuple(nodes))
+    if new_width is None:
+        raise ArchitectureValidationError("widen could not bump any width on the selected node")
+    out_key = output_dim_key(target.block_id)
+    if bumped == out_key or bumped == "d_model":
+        nodes = propagate_output_width(tuple(nodes), graph.edges, target.id, new_width)
     return ArchitectureGraph(nodes=tuple(nodes), edges=graph.edges, version=graph.version)
-
-
-def _align_next_in_features(
-    graph: ArchitectureGraph,
-    source_id: str,
-    width: int,
-    nodes: tuple[NodeGene, ...],
-) -> list[NodeGene]:
-    successors = {edge.target for edge in graph.edges if edge.source == source_id}
-    aligned = []
-    for node in nodes:
-        if node.id in successors and "in_features" in node.config:
-            cfg = dict(node.config)
-            cfg["in_features"] = width
-            aligned.append(NodeGene(id=node.id, block_id=node.block_id, config=cfg))
-        else:
-            aligned.append(node)
-    return aligned
 
 
 def _next_width(current: int) -> int | None:
@@ -165,7 +161,6 @@ def _deepen(graph: ArchitectureGraph) -> ArchitectureGraph:
         nodes.append(node)
         if node.id == anchor.id:
             nodes.append(inserted)
-    outgoing = [edge.target for edge in graph.edges if edge.source == anchor.id]
     edges = []
     for edge in graph.edges:
         if edge.source == anchor.id:
@@ -180,9 +175,9 @@ def _deepen(graph: ArchitectureGraph) -> ArchitectureGraph:
         else:
             edges.append(edge)
     edges.append(EdgeGene(source=anchor.id, target=new_id))
-    if not outgoing and len(graph.nodes) == 1:
-        return ArchitectureGraph(nodes=tuple(nodes), edges=tuple(edges), version=graph.version)
-    return ArchitectureGraph(nodes=tuple(nodes), edges=tuple(edges), version=graph.version)
+    child = ArchitectureGraph(nodes=tuple(nodes), edges=tuple(edges), version=graph.version)
+    aligned = propagate_output_width(child.nodes, child.edges, new_id, width)
+    return ArchitectureGraph(nodes=tuple(aligned), edges=child.edges, version=child.version)
 
 
 def _swap_activation(graph: ArchitectureGraph, rng: random.Random) -> ArchitectureGraph:
@@ -206,28 +201,19 @@ def _swap_activation(graph: ArchitectureGraph, rng: random.Random) -> Architectu
     return ArchitectureGraph(nodes=tuple(nodes), edges=graph.edges, version=graph.version)
 
 
-def _one_point_chain(
-    first: ArchitectureGraph,
-    second: ArchitectureGraph,
-    rng: random.Random,
-) -> ArchitectureGraph:
-    if not _is_linear_chain(first) or not _is_linear_chain(second):
-        raise ArchitectureValidationError("one_point_chain requires two linear-chain parents")
-    limit = min(len(first.nodes), len(second.nodes))
-    if limit < 2:
+def _family_of(graph: ArchitectureGraph, registry: BlockRegistry) -> NeuralFamily:
+    families = {registry.get(node.block_id).family for node in graph.nodes}
+    if len(families) != 1:
         raise ArchitectureValidationError(
-            "one_point_chain requires parents with at least two nodes"
+            "one_point_chain requires a single NeuralFamily per parent; "
+            f"got {sorted(family.value for family in families)}"
         )
-    cut = rng.randint(1, limit - 1)
-    left = list(first.nodes[:cut])
-    right = list(second.nodes[cut:])
-    nodes = []
-    for i, node in enumerate([*left, *right]):
-        nodes.append(NodeGene(id=f"n{i}", block_id=node.block_id, config=dict(node.config)))
-    edges = tuple(
-        EdgeGene(source=nodes[i].id, target=nodes[i + 1].id) for i in range(len(nodes) - 1)
-    )
-    return ArchitectureGraph(nodes=tuple(nodes), edges=edges, version=first.version)
+    return next(iter(families))
+
+
+def _ordered_nodes(graph: ArchitectureGraph) -> list[NodeGene]:
+    node_map = {node.id: node for node in graph.nodes}
+    return [node_map[node_id] for node_id in graph.topological_order()]
 
 
 def _is_linear_chain(graph: ArchitectureGraph) -> bool:
@@ -242,3 +228,60 @@ def _is_linear_chain(graph: ArchitectureGraph) -> bool:
         outgoing[edge.source].append(edge.target)
         incoming[edge.target].append(edge.source)
     return all(len(outgoing[i]) <= 1 and len(incoming[i]) <= 1 for i in ids)
+
+
+def _one_point_chain(
+    first: ArchitectureGraph,
+    second: ArchitectureGraph,
+    rng: random.Random,
+    registry: BlockRegistry,
+) -> ArchitectureGraph:
+    if first.version != second.version:
+        raise ArchitectureValidationError("one_point_chain requires parents with the same version")
+    if not _is_linear_chain(first) or not _is_linear_chain(second):
+        raise ArchitectureValidationError("one_point_chain requires two linear-chain parents")
+    left_family = _family_of(first, registry)
+    right_family = _family_of(second, registry)
+    allowed = CROSSABLE_FAMILIES.get(left_family, frozenset())
+    if right_family not in allowed:
+        raise ArchitectureValidationError(
+            f"one_point_chain cannot cross {left_family.value} with {right_family.value}",
+            details={
+                "left": left_family.value,
+                "right": right_family.value,
+                "crossable": sorted(family.value for family in allowed),
+            },
+        )
+    first_nodes = _ordered_nodes(first)
+    second_nodes = _ordered_nodes(second)
+    limit = min(len(first_nodes), len(second_nodes))
+    if limit < 2:
+        raise ArchitectureValidationError(
+            "one_point_chain requires parents with at least two nodes"
+        )
+    cut = rng.randint(1, limit - 1)
+    left = first_nodes[:cut]
+    right = second_nodes[cut:]
+    left_spec = registry.get(left[-1].block_id)
+    right_spec = registry.get(right[0].block_id)
+    compatibility = check_connection(left_spec, right_spec, registry)
+    if not compatibility.compatible:
+        raise ArchitectureValidationError(
+            "one_point_chain cut is not kind-compatible: " + compatibility.reason
+        )
+    stitched_right = list(right)
+    out_key = OUTPUT_DIM_KEY.get(left[-1].block_id)
+    in_key = input_dim_key(right[0].block_id, "in")
+    if out_key is not None and in_key is not None:
+        width = left[-1].config.get(out_key)
+        if type(width) is int:
+            cfg = dict(right[0].config)
+            cfg[in_key] = width
+            stitched_right[0] = NodeGene(id=right[0].id, block_id=right[0].block_id, config=cfg)
+    nodes = []
+    for i, node in enumerate([*left, *stitched_right]):
+        nodes.append(NodeGene(id=f"n{i}", block_id=node.block_id, config=dict(node.config)))
+    edges = tuple(
+        EdgeGene(source=nodes[i].id, target=nodes[i + 1].id) for i in range(len(nodes) - 1)
+    )
+    return ArchitectureGraph(nodes=tuple(nodes), edges=edges, version=first.version)

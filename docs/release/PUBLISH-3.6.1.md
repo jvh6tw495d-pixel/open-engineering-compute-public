@@ -1,7 +1,7 @@
-# Publish OEC to PyPI (human) — **DEFERRED**
+# Publish OEC 3.6.1 to PyPI — superseded
 
-**Do not upload.** Owner parked PyPI for now. `v3.6.2` is a git tag only.
-Resume only with an explicit ask plus `UV_PUBLISH_TOKEN`.
+**Superseded by** [`PUBLISH-3.6.2.md`](PUBLISH-3.6.2.md). Do not follow the
+3.6.1 artifact names below. PyPI upload remains **DEFERRED**.
 
 ---
 

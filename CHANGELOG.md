@@ -17,6 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   ``CPPN(x,y,x,y)`` leaf-centre heuristic is gone. Result IR is
   discriminated (``kind=es_hyperneat``, no fake ``hidden_width``).
   Recurrent CPPNs are rejected on this substrate.
+- **Runtime version:** ``oec.__version__`` / CLI / API / MCP report
+  **3.6.2** (from ``importlib.metadata``, fallback ``3.6.2``).
+- **Architecture operators:** ``widen`` propagates output dims onto
+  successor input keys (channels, ``d_model``, ``hidden_dim``).
+  ``one_point_chain`` cuts in topological order, same family only, and
+  stitches the cut dim. ``validate_for_backend`` (A7 + shapes) gates
+  mutation, crossover, and manifests.
+- **HyperNEAT CPPN** is feed-forward only. Classification remaps labels
+  to ``0..K-1`` and caps ``K`` at 16.
+- **``linear_attention``** is real ELU+1 multi-head (``nhead`` changes
+  the computation).
 
 ### Changed
 
