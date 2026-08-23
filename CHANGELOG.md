@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   is a core-safe catalog of blocks, explicit adapters, compatibility checks,
   and a DAG ``ArchitectureGraph`` with a deterministic fingerprint. No torch
   on import. Existing neural skills/runtime are unchanged.
+- **Architecture IR A5+A7:** ``graph_for_skill()`` maps current neural family
+  skills onto the DAG; ``build_architecture(..., backend="torch")`` materializes
+  sequential graphs. KAN/GNN fail closed (no fake modules).
 
 ### Fixed
 

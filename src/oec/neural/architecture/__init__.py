@@ -16,6 +16,7 @@ from oec.neural.architecture.graph import (
     NodeGene,
 )
 from oec.neural.architecture.registry import BlockRegistry
+from oec.neural.architecture.skill_map import graph_for_skill, mapped_skill_ids
 from oec.neural.architecture.specs import BlockParameterSpec, BlockSpec, CompatibilityResult
 from oec.neural.architecture.taxonomy import ArchitectureActivationName, MotifName
 from oec.neural.architecture.types import BlockCategory, NeuralFamily, TensorKind
@@ -39,5 +40,7 @@ __all__ = [
     "UnknownBlockError",
     "check_connection",
     "default_registry",
+    "graph_for_skill",
     "make_default_registry",
+    "mapped_skill_ids",
 ]
