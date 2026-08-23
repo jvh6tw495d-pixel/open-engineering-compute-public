@@ -240,33 +240,77 @@ Architecture IR continua importável sem torch.
 
 `torch` só é requerido no builder.
 
-A7 aceita somente **cadeia linear estrita** (um root, um sink, `edges == nodes - 1`,
-sem forks/joins/componentes desconectados). Grafos ramificados falham fechado.
-Blocos sem builder (KAN/GNN/A6 extras) falham fechado **antes** do import torch.
+A7 aceita **cadeia linear estrita** (um root, um sink, sem forks/skips extras/
+componentes desconectados), com uma exceção: um nó cujo bloco declara arity > 1
+portas de entrada (`cross_attention`) pode ter indegree == arity ("named
+join") — ver "Também landed" abaixo. Fora essa exceção, grafos ramificados
+falham fechado.
+
+KAN, GNN (`gcn`/`graphsage`/`gat`) e FNO (`fno`/`fno_2d`) têm builders
+honestos nesta wave (basis B-spline/RBF real, `build_gnn` reutilizado com
+`edge_index` obrigatório em todo nó de grafo, rfft/irfft rank-preserving).
+Continuam fail-closed, sem builder, **antes** do import torch:
+`local_attention`, `linear_attention`, `neural_ode`, `deeponet`, `pinn_motif`.
 
 ---
 
-## Wave A8 — Governance
+## Wave A8 — Governance (landed)
 
-Adicionar:
+`oec.neural.architecture.governance`:
 
-- manifest;
-- provenance;
-- architecture fingerprint;
-- registry version;
-- compatibility version;
-- experimental/stable status;
-- audit de catálogo.
+- `ArchitectureManifest` (graph fingerprint, registry version, catalog hash,
+  `compatibility_version`, backend, experimental flags used, optional
+  `created_at`, closed-key `ArchitectureProvenance`) via `manifest_for_graph()`;
+- `audit_catalog()` — duplicate ids, experimental blocks missing
+  `backend_requirements`, unknown parameter kinds, unsealed registry, missing
+  `input_ports`, experimental/stable id partition. Fail-closed: unsealed
+  registry and missing `backend_requirements` are **errors** (`valid=False`),
+  not warnings;
+- `manifest_for_graph()` fails closed: requires a **sealed** registry,
+  requires `graph.validate_graph()` to pass, and closes `backend` to a known
+  set (`RegistrySealedError` / `ArchitectureValidationError`);
+- `compatibility_version` is part of the fingerprint canonical payload
+  (catalog 0.2.1 → 0.2.2 → 0.2.3, the second bump for `output_ports`).
 
 Fingerprint:
 
 ```text
-sha256(canonical ArchitectureGraph JSON)
+sha256(canonical ArchitectureGraph JSON)  # includes compatibility_version
 ```
 
 ### Gate
 
-Mesma arquitetura → mesmo fingerprint.
+Mesma arquitetura + mesmo catálogo selado → mesmo fingerprint. **Landed.**
+
+Também landed nesta wave (fora do escopo original de A8, mas dependente dela):
+
+- **Named-port wiring:** `EdgeGene.target_port`/`source_port`; `validate_graph`
+  exige que todo `input_port` declarado seja conectado exatamente uma vez;
+  `check_connection` verifica apenas tensor kind (arity é checado no grafo).
+  `cross_attention` prova o caso: dois roots nomeados (`query`, `context`)
+  convergem via named join.
+- **A7 torch builders expandidos:** `kan` (B-spline/RBF honesto), `gcn`/
+  `graphsage`/`gat` (via `oec.kernel.neural.gnn`, `graph_global_pool` real),
+  `fno`/`fno_2d`, `cross_attention`, e os extras A6 honestos (geglu, highway,
+  residual_gated, depthwise/separable/dilated/grouped conv,
+  squeeze_excitation, self_attention, swiglu, residual_mlp,
+  vector_to_sequence, tcn). `local_attention`, `linear_attention`,
+  `neural_ode`, `deeponet`, `pinn_motif` continuam fail-closed.
+- **A5 hidden_dims N-layer:** `graph_for_skill("neural.mlp.*")` expande
+  `hidden_dims` multi-largura em uma cadeia `linear` honesta em vez de
+  espremer na primeira largura; autoencoders multi-largura preservam todas
+  as larguras declaradas.
+- **A8+ search:** `oec.neural.architecture.search.search_graphs()` — busca
+  core-safe sobre família fechada de candidatos (MLP/CNN1d/LSTM), objetivo
+  fechado e built-in (`objective: Literal["param_count"]`, estimativa de
+  parâmetros — sem callback de fitness de nenhum tipo), independente de
+  `neural.search_architecture` (ADR 0033) e **não é TITAN**.
+- **A8+ port e attention hardening:** `BlockSpec.output_ports` fecha
+  `EdgeGene.source_port` (`source_port` desconhecido falha fechado);
+  `d_model`/`nhead` exigem `d_model % nhead == 0` e `nhead <= d_model` em
+  `validate_config`, antes do torch; blocos de grafo (`gcn`/`graphsage`/
+  `gat`) sempre recebem `edge_index`, inclusive fora da raiz da cadeia;
+  `fno`/`fno_2d` rejeitam rank incorreto explicitamente.
 
 ---
 

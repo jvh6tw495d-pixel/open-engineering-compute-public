@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from oec.neural.architecture import check_connection, default_registry
+from oec.neural.architecture import (
+    ArchitectureGraph,
+    EdgeGene,
+    NodeGene,
+    check_connection,
+    default_registry,
+)
 from oec.neural.architecture.types import NeuralFamily, TensorKind
 
 _A6_IDS = (
@@ -25,7 +31,7 @@ _A6_IDS = (
 
 
 def test_registry_version_a6() -> None:
-    assert default_registry.version == "0.2.1"
+    assert default_registry.version == "0.2.3"
 
 
 def test_all_a6_ids_registered() -> None:
@@ -68,14 +74,44 @@ def test_highway_vector_to_vector() -> None:
     assert "pinn_motif" in ids
 
 
-def test_cross_attention_rejects_unary_edge() -> None:
+def test_cross_attention_edge_is_kind_compatible() -> None:
+    # Arity is a graph-level concern (see test_cross_attention_rejects_unary_wiring
+    # below); a single edge is fine on tensor kind alone.
     result = check_connection(
         default_registry.get("transformer_encoder"),
         default_registry.get("cross_attention"),
         default_registry,
     )
-    assert not result.compatible
-    assert "named ports" in result.reason
+    assert result.compatible
+
+
+def test_cross_attention_rejects_unary_wiring() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="enc", block_id="transformer_encoder"),
+            NodeGene(id="cross", block_id="cross_attention"),
+        ),
+        edges=(EdgeGene(source="enc", target="cross", target_port="query"),),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("missing wiring for ports" in error for error in report.errors)
+
+
+def test_cross_attention_named_ports_validate() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="query_src", block_id="transformer_encoder"),
+            NodeGene(id="context_src", block_id="transformer_encoder"),
+            NodeGene(id="cross", block_id="cross_attention"),
+        ),
+        edges=(
+            EdgeGene(source="query_src", target="cross", target_port="query"),
+            EdgeGene(source="context_src", target="cross", target_port="context"),
+        ),
+    )
+    report = graph.validate_graph(default_registry)
+    assert report.valid, report.errors
 
 
 def test_geglu_is_rank_preserving_sequence() -> None:

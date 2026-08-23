@@ -1,4 +1,4 @@
-"""Default governed block catalog v0.2.1 (ADR 0047). Declarative only."""
+"""Default governed block catalog v0.2.3 (ADR 0047). Declarative only."""
 
 from __future__ import annotations
 
@@ -19,6 +19,12 @@ BASE_BLOCKS = (
             BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="out_features", kind="int", required=True, minimum=1),
             BlockParameterSpec(name="bias", kind="bool", default=True),
+            BlockParameterSpec(
+                name="activation",
+                kind="enum",
+                default="none",
+                choices=("relu", "gelu", "silu", "mish", "tanh", "none"),
+            ),
         ),
         capabilities=frozenset({"dense", "projection"}),
         experimental=False,
@@ -51,7 +57,12 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
+        parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+        ),
         capabilities=frozenset({"dense", "residual"}),
+        backend_requirements=("torch",),
     ),
     BlockSpec(
         id="swiglu",
@@ -60,8 +71,12 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
-        parameters=(BlockParameterSpec(name="hidden_dim", kind="int", default=128, minimum=8),),
+        parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=128, minimum=8),
+        ),
         capabilities=frozenset({"gated"}),
+        backend_requirements=("torch",),
     ),
     BlockSpec(
         id="conv1d",
@@ -131,12 +146,14 @@ BASE_BLOCKS = (
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
         parameters=(
+            BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="hidden_dim", kind="int", default=32, minimum=1),
             BlockParameterSpec(name="n_layers", kind="int", default=1, minimum=1),
             BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
         ),
         capabilities=frozenset({"temporal", "dilated_conv"}),
         experimental=False,
+        backend_requirements=("torch",),
     ),
     BlockSpec(
         id="self_attention",
@@ -145,7 +162,12 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="d_model", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="nhead", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"attention"}),
+        backend_requirements=("torch",),
     ),
     BlockSpec(
         id="transformer_encoder",
@@ -171,6 +193,8 @@ BASE_BLOCKS = (
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
         parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="out_features", kind="int", default=8, minimum=1),
             BlockParameterSpec(
                 name="basis",
                 kind="enum",
@@ -180,9 +204,9 @@ BASE_BLOCKS = (
             BlockParameterSpec(name="grid_size", kind="int", default=8, minimum=2, maximum=128),
         ),
         capabilities=frozenset({"functional_edges"}),
-        backend_requirements=("future-kan-backend",),
+        backend_requirements=("torch",),
         experimental=True,
-        notes="Declarative catalog entry only in IR v0.1.",
+        notes="Honest B-spline/RBF basis KAN layer; no MLP+GELU stand-in.",
     ),
     BlockSpec(
         id="gcn",
@@ -192,11 +216,13 @@ BASE_BLOCKS = (
         input_kinds=frozenset({TensorKind.GRAPH, TensorKind.NODE_FEATURES}),
         output_kind=TensorKind.NODE_FEATURES,
         parameters=(
+            BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
             BlockParameterSpec(name="n_layers", kind="int", default=2, minimum=1),
         ),
         capabilities=frozenset({"message_passing"}),
         experimental=False,
+        backend_requirements=("torch",),
     ),
     BlockSpec(
         id="graphsage",
@@ -206,11 +232,13 @@ BASE_BLOCKS = (
         input_kinds=frozenset({TensorKind.GRAPH, TensorKind.NODE_FEATURES}),
         output_kind=TensorKind.NODE_FEATURES,
         parameters=(
+            BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
             BlockParameterSpec(name="n_layers", kind="int", default=2, minimum=1),
         ),
         capabilities=frozenset({"message_passing", "aggregation"}),
         experimental=False,
+        backend_requirements=("torch",),
     ),
     BlockSpec(
         id="gat",
@@ -220,12 +248,14 @@ BASE_BLOCKS = (
         input_kinds=frozenset({TensorKind.GRAPH, TensorKind.NODE_FEATURES}),
         output_kind=TensorKind.NODE_FEATURES,
         parameters=(
+            BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
             BlockParameterSpec(name="n_layers", kind="int", default=2, minimum=1),
             BlockParameterSpec(name="heads", kind="int", default=2, minimum=1),
         ),
         capabilities=frozenset({"message_passing", "attention"}),
         experimental=False,
+        backend_requirements=("torch",),
     ),
     BlockSpec(
         id="encoder",
@@ -266,6 +296,10 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+        ),
         capabilities=frozenset({"gated"}),
         backend_requirements=("torch",),
         notes="Rank-preserving gated unit; VECTOR is not a silent SEQUENCE.",
@@ -277,6 +311,7 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
+        parameters=(BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),),
         capabilities=frozenset({"gated", "residual"}),
         backend_requirements=("torch",),
     ),
@@ -287,6 +322,7 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
+        parameters=(BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),),
         capabilities=frozenset({"gated"}),
         backend_requirements=("torch",),
     ),
@@ -297,6 +333,10 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.IMAGE_2D, TensorKind.FEATURE_MAP_2D}),
         output_kind=TensorKind.FEATURE_MAP_2D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
+        ),
         capabilities=frozenset({"local_receptive_field", "depthwise"}),
         backend_requirements=("torch",),
     ),
@@ -307,6 +347,11 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.IMAGE_2D, TensorKind.FEATURE_MAP_2D}),
         output_kind=TensorKind.FEATURE_MAP_2D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="out_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
+        ),
         capabilities=frozenset({"local_receptive_field", "separable"}),
         backend_requirements=("torch",),
     ),
@@ -317,6 +362,12 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.FEATURE_MAP_1D, TensorKind.SEQUENCE}),
         output_kind=TensorKind.FEATURE_MAP_1D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="out_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
+            BlockParameterSpec(name="dilation", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"dilated_conv"}),
         backend_requirements=("torch",),
     ),
@@ -327,6 +378,12 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.IMAGE_2D, TensorKind.FEATURE_MAP_2D}),
         output_kind=TensorKind.FEATURE_MAP_2D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="out_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
+            BlockParameterSpec(name="groups", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"local_receptive_field", "grouped"}),
         backend_requirements=("torch",),
     ),
@@ -337,6 +394,10 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.FEATURE_MAP_2D}),
         output_kind=TensorKind.FEATURE_MAP_2D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="reduction", kind="int", default=4, minimum=1),
+        ),
         capabilities=frozenset({"channel_attention"}),
         backend_requirements=("torch",),
     ),
@@ -348,6 +409,10 @@ A6_BLOCKS = (
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
         input_ports=("query", "context"),
+        parameters=(
+            BlockParameterSpec(name="d_model", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="nhead", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"attention", "cross"}),
         backend_requirements=("torch",),
         notes="Named ports required; unary sequential edges fail closed.",
@@ -391,10 +456,15 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.FEATURE_MAP_1D}),
         output_kind=TensorKind.FEATURE_MAP_1D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="out_channels", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="modes", kind="int", default=4, minimum=1),
+        ),
         capabilities=frozenset({"spectral"}),
-        backend_requirements=("future-neural-operator",),
+        backend_requirements=("torch",),
         experimental=True,
-        notes="1D operator; use fno_2d for FEATURE_MAP_2D.",
+        notes="rfft -> truncated-mode linear -> irfft; rank preserving. Use fno_2d for 2D.",
     ),
     BlockSpec(
         id="fno_2d",
@@ -403,10 +473,15 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.FEATURE_MAP_2D}),
         output_kind=TensorKind.FEATURE_MAP_2D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="out_channels", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="modes", kind="int", default=4, minimum=1),
+        ),
         capabilities=frozenset({"spectral"}),
-        backend_requirements=("future-neural-operator",),
+        backend_requirements=("torch",),
         experimental=True,
-        notes="Catalog only; no torch builder in A7.",
+        notes="rfft2 -> truncated-mode linear -> irfft2; rank preserving.",
     ),
     BlockSpec(
         id="deeponet",
@@ -435,7 +510,7 @@ A6_BLOCKS = (
 
 
 def make_default_registry() -> BlockRegistry:
-    registry = BlockRegistry(version="0.2.1")
+    registry = BlockRegistry(version="0.2.3")
     registry.register_many(BASE_BLOCKS)
     registry.register_many(ADAPTER_SPECS)
     registry.register_many(A6_BLOCKS)

@@ -95,6 +95,7 @@ class BlockRegistry:
             payload["input_kinds"] = sorted(payload["input_kinds"])
             payload["capabilities"] = sorted(payload["capabilities"])
             payload["input_ports"] = [*payload["input_ports"]]
+            payload["output_ports"] = sorted(payload["output_ports"])
             blocks.append(payload)
         return tuple(blocks)
 

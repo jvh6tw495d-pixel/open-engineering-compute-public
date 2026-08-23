@@ -80,6 +80,21 @@ def _first_hidden_dim(inputs: dict[str, Any], default: int | None) -> int | None
     return default
 
 
+def _hidden_dims_list(inputs: dict[str, Any]) -> list[int]:
+    raw = inputs.get("hidden_dims")
+    if not isinstance(raw, list):
+        return []
+    widths: list[int] = []
+    for item in raw:
+        value = _as_int(item)
+        if value is None:
+            raise ArchitectureValidationError(
+                "hidden_dims entries must be int", details={"hidden_dims": raw}
+            )
+        widths.append(value)
+    return widths
+
+
 def _map_activation(inputs: dict[str, Any], default: str | None) -> str | None:
     if "activation" not in inputs:
         return default
@@ -97,7 +112,41 @@ def _map_activation(inputs: dict[str, Any], default: str | None) -> str | None:
     return raw
 
 
+def _resolve_out_features(inputs: dict[str, Any], *, classifier: bool) -> int:
+    if classifier:
+        return _as_int(inputs.get("n_classes")) or 2
+    return _as_int(inputs.get("n_classes")) or 1
+
+
+def _mlp_chain(
+    inputs: dict[str, Any], *, classifier: bool, hidden_dims: list[int]
+) -> ArchitectureGraph:
+    """Expand hidden_dims=[h0, h1, ...] into an honest N-layer linear chain.
+
+    A single ``mlp`` block cannot represent more than one hidden width, so
+    multi-width MLPs are built as sequential ``linear`` nodes with the
+    activation applied per-layer (last layer is a plain projection).
+    """
+    width = _infer_vector_width(inputs.get("x"))
+    activation = _map_activation(inputs, "relu") or "relu"
+    out_features = _resolve_out_features(inputs, classifier=classifier)
+    widths = [*hidden_dims, out_features]
+    nodes = []
+    prev = width
+    for i, out_w in enumerate(widths):
+        cfg: dict[str, Any] = {"out_features": out_w}
+        if prev is not None:
+            cfg["in_features"] = prev
+        cfg["activation"] = activation if i < len(widths) - 1 else "none"
+        nodes.append(NodeGene(id=f"linear_{i}", block_id="linear", config=cfg))
+        prev = out_w
+    return _chain(tuple(nodes))
+
+
 def _mlp(inputs: dict[str, Any], *, classifier: bool) -> ArchitectureGraph:
+    hidden_dims = _hidden_dims_list(inputs)
+    if len(hidden_dims) > 1:
+        return _mlp_chain(inputs, classifier=classifier, hidden_dims=hidden_dims)
     cfg: dict[str, Any] = {}
     width = _infer_vector_width(inputs.get("x"))
     if width is not None:
@@ -126,9 +175,48 @@ def _mlp(inputs: dict[str, Any], *, classifier: bool) -> ArchitectureGraph:
     return ArchitectureGraph(nodes=(NodeGene(id="mlp", block_id="mlp", config=cfg),), edges=())
 
 
+def _autoencoder_chain(width: int | None, hidden_dims: list[int], latent: int) -> ArchitectureGraph:
+    """Honest multi-width autoencoder: every declared hidden width becomes its
+    own linear layer in the encoder/decoder, none are silently dropped."""
+    entry = width if width is not None else hidden_dims[0]
+    encoder_sizes = [entry, *hidden_dims, latent]
+    decoder_sizes = [latent, *reversed(hidden_dims), entry]
+    nodes = []
+    for i in range(len(encoder_sizes) - 1):
+        act = "relu" if i < len(encoder_sizes) - 2 else "none"
+        nodes.append(
+            NodeGene(
+                id=f"encoder_{i}",
+                block_id="linear",
+                config={
+                    "in_features": encoder_sizes[i],
+                    "out_features": encoder_sizes[i + 1],
+                    "activation": act,
+                },
+            )
+        )
+    for i in range(len(decoder_sizes) - 1):
+        act = "relu" if i < len(decoder_sizes) - 2 else "none"
+        nodes.append(
+            NodeGene(
+                id=f"decoder_{i}",
+                block_id="linear",
+                config={
+                    "in_features": decoder_sizes[i],
+                    "out_features": decoder_sizes[i + 1],
+                    "activation": act,
+                },
+            )
+        )
+    return _chain(tuple(nodes))
+
+
 def _autoencoder(inputs: dict[str, Any]) -> ArchitectureGraph:
     width = _infer_vector_width(inputs.get("x"))
     latent = _as_int(inputs.get("latent_dim")) or 8
+    hidden_dims = _hidden_dims_list(inputs)
+    if len(hidden_dims) > 1:
+        return _autoencoder_chain(width, hidden_dims, latent)
     encoder: dict[str, Any] = {"out_features": latent}
     decoder: dict[str, Any] = {"in_features": latent}
     if width is not None:
@@ -232,6 +320,7 @@ def _gnn(inputs: dict[str, Any], block_id: str) -> ArchitectureGraph:
         body["heads"] = heads
     width = _infer_vector_width(inputs.get("node_features"))
     if width is not None:
+        body["input_size"] = width
         head["in_features"] = hidden or width
     head["out_features"] = _as_int(inputs.get("n_classes")) or 1
     return _chain(

@@ -60,12 +60,56 @@ def test_mlp_classifier_translates_architectural_inputs() -> None:
             "epochs": 5,
         },
     )
-    cfg = dict(graph.nodes[0].config)
-    assert cfg["in_features"] == 4
-    assert cfg["hidden_dim"] == 32
-    assert cfg["out_features"] == 3
-    assert cfg["activation"] == "relu"
-    assert "epochs" not in cfg
+    # Multi-width hidden_dims expand into an honest N-layer linear chain
+    # rather than squashing to a single mlp block (ADR 0047 A5 follow-up).
+    blocks = [node.block_id for node in graph.nodes]
+    assert blocks == ["linear", "linear", "linear"]
+    cfgs = [dict(node.config) for node in graph.nodes]
+    assert cfgs[0]["in_features"] == 4
+    assert cfgs[0]["out_features"] == 32
+    assert cfgs[0]["activation"] == "relu"
+    assert cfgs[1]["in_features"] == 32
+    assert cfgs[1]["out_features"] == 16
+    assert cfgs[1]["activation"] == "relu"
+    assert cfgs[2]["in_features"] == 16
+    assert cfgs[2]["out_features"] == 3
+    assert cfgs[2]["activation"] == "none"
+    assert all("epochs" not in cfg for cfg in cfgs)
+    assert graph.validate_graph(default_registry).valid
+
+
+def test_single_hidden_dim_still_uses_single_mlp_block() -> None:
+    graph = graph_for_skill(
+        "neural.mlp.classifier",
+        {"x": [[0.0, 1.0, 2.0, 3.0]], "hidden_dims": [32], "n_classes": 3},
+    )
+    assert [node.block_id for node in graph.nodes] == ["mlp"]
+    assert dict(graph.nodes[0].config)["hidden_dim"] == 32
+    assert graph.validate_graph(default_registry).valid
+
+
+def test_two_width_regressor_chain_validates() -> None:
+    graph = graph_for_skill(
+        "neural.mlp.regressor",
+        {"x": [[0.0, 1.0, 2.0, 3.0]], "hidden_dims": [16, 8]},
+    )
+    assert len(graph.nodes) == 3
+    assert graph.validate_graph(default_registry).valid
+
+
+def test_autoencoder_multi_width_reflects_all_widths_honestly() -> None:
+    graph = graph_for_skill(
+        "neural.autoencoder.basic",
+        {"x": [[0.0] * 10], "hidden_dims": [8, 4], "latent_dim": 2},
+    )
+    encoder_widths = [
+        dict(node.config)["out_features"] for node in graph.nodes if node.id.startswith("encoder_")
+    ]
+    decoder_widths = [
+        dict(node.config)["out_features"] for node in graph.nodes if node.id.startswith("decoder_")
+    ]
+    assert encoder_widths == [8, 4, 2]
+    assert decoder_widths == [4, 8, 10]
     assert graph.validate_graph(default_registry).valid
 
 

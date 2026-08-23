@@ -26,14 +26,14 @@ def check_connection(
     target: BlockSpec,
     registry: BlockRegistry,
 ) -> CompatibilityResult:
-    if len(target.input_ports) != 1:
-        return CompatibilityResult(
-            compatible=False,
-            reason=(
-                f"{target.id} requires named ports {list(target.input_ports)}; "
-                "unary sequential edges are not representable"
-            ),
-        )
+    """Tensor-kind compatibility for a single edge.
+
+    Arity (how many named ports a multi-port target needs wired, and by
+    whom) is a graph-level concern checked by
+    ``ArchitectureGraph.validate_graph``, not here — a single edge into a
+    multi-port block (e.g. cross_attention's ``query``) is compatible as
+    long as the tensor kind matches.
+    """
     if target.accepts(source.output_kind):
         return CompatibilityResult(
             compatible=True,
