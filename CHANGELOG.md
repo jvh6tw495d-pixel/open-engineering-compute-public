@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Architecture IR A5+A7:** ``graph_for_skill()`` maps current neural family
   skills onto the DAG; ``build_architecture(..., backend="torch")`` materializes
   sequential graphs. KAN/GNN fail closed (no fake modules).
+- **Architecture IR A6:** extra governed blocks (GEGLU, highway, depthwise/
+  separable conv, squeeze-excitation, extra attention, NeuralODE/FNO/DeepONet/
+  PINN motifs) with explicit ``backend_requirements``. Catalog version 0.2.0.
 
 ### Fixed
 
