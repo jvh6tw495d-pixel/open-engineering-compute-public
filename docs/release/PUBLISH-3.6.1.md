@@ -1,6 +1,11 @@
-# Publish OEC 3.6.1 to PyPI (human)
+# Publish OEC to PyPI (human) — **DEFERRED**
 
-Short runbook. `oec` is **already taken** on PyPI (Observatory for Economic
+**Do not upload.** Owner parked PyPI for now. `v3.6.2` is a git tag only.
+Resume only with an explicit ask plus `UV_PUBLISH_TOKEN`.
+
+---
+
+Short runbook for when publish is un-parked. `oec` is **already taken** on PyPI (Observatory for Economic
 Complexity, PyPI user `yahiaali`, `0.3.0`) — the PyPI **project** name for
 this package is `open-engineering-compute`. The **import package** stays
 `oec` (`import oec`, `from oec.sdk import Engine`), and the installed CLI
@@ -31,7 +36,7 @@ uploading:
 
 ```powershell
 uv venv .venv-publish-check
-uv pip install --python .venv-publish-check dist/open_engineering_compute-3.6.1-py3-none-any.whl
+uv pip install --python .venv-publish-check dist/open_engineering_compute-3.6.2-py3-none-any.whl
 .venv-publish-check\Scripts\oec.exe version
 ```
 
@@ -48,7 +53,7 @@ project, not `oec`.
 uv publish
 
 # or twine
-uv run twine upload dist/open_engineering_compute-3.6.1*
+uv run twine upload dist/open_engineering_compute-3.6.2*
 ```
 
 ## Install (what users run)
@@ -63,6 +68,7 @@ rename.
 
 ## Do not
 
+- Do not upload while this runbook is marked **DEFERRED**.
 - Do not `pip install oec` expecting this project — that PyPI name belongs to
   a different, unrelated package.
 - Do not rename the import package (`src/oec`) or the CLI script (`oec`).

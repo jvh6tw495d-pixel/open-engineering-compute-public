@@ -36,6 +36,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Package version **3.6.1 → 3.6.2**.
 
+### Notes
+
+- **PyPI upload is deferred.** 3.6.2 is a git tag/cut only. Do not
+  ``uv publish`` / ``twine upload`` until the owner provides a token and
+  asks again. The distribution name remains ``open-engineering-compute``
+  (``pip install oec`` is a different project).
+
 ### Also in this cut (previously Unreleased on 3.6.1)
 
 The following 3.6.1 follow-on work ships in 3.6.2:
