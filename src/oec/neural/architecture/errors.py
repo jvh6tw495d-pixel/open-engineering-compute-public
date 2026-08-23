@@ -17,5 +17,9 @@ class DuplicateBlockError(OECError):
     default_code = "duplicate_architecture_block"
 
 
+class RegistrySealedError(OECError):
+    default_code = "architecture_registry_sealed"
+
+
 class ArchitectureValidationError(OECError):
     default_code = "architecture_validation_error"

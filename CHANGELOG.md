@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sequential graphs. KAN/GNN fail closed (no fake modules).
 - **Architecture IR A6:** extra governed blocks (GEGLU, highway, depthwise/
   separable conv, squeeze-excitation, extra attention, NeuralODE/FNO/DeepONet/
-  PINN motifs) with explicit ``backend_requirements``. Catalog version 0.2.0.
+  PINN motifs) with explicit ``backend_requirements``. Catalog version 0.2.1.
 
 ### Fixed
 
@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   A7 ``build_architecture`` accepts only a strict linear chain (empty, forks,
   joins, skips and disconnected graphs fail closed) and rejects blocks without
   a torch builder before importing torch.
+- **Architecture IR majors (Sol audit):** fingerprint is JSON-finite and
+  default-normalized and includes catalog hash; ``default_registry`` is sealed;
+  A5 translates architectural skill fields; GEGLU/FNO/cross-attention tensor
+  contracts match rank/arity; ADR 0047 records A5–A7.
 
 ### Changed
 
