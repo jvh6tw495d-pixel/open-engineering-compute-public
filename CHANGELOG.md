@@ -23,8 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   successor input keys (channels, ``d_model``, ``hidden_dim``).
   ``one_point_chain`` cuts in topological order, same family only, and
   stitches the cut dim. ``validate_for_backend`` (A7 + shapes) gates
-  mutation, crossover, manifests, and ``build_architecture``. Adapter
-  edges (flatten/pools) are runtime-shaped and do not fail dim proof.
+  mutation, crossover, manifests, and ``build_architecture``.
+  Feature-dim-preserving adapters (global/sequence/graph pool) carry the
+  integer to the next signed block; ``flatten`` stays unproven.
 - **HyperNEAT CPPN** is feed-forward only. Classification remaps labels
   to ``0..K-1`` and caps ``K`` at 16.
 - **``linear_attention``** is real ELU+1 multi-head (``nhead`` changes

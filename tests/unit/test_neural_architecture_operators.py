@@ -131,6 +131,44 @@ def test_crossover_rejects_family_mix() -> None:
         crossover_graphs(_linear_chain(), conv)
 
 
+def _cnn_pool_mlp(*, conv_out: int, head_in: int) -> ArchitectureGraph:
+    return ArchitectureGraph(
+        nodes=(
+            NodeGene(
+                id="conv",
+                block_id="conv1d",
+                config={"in_channels": 1, "out_channels": conv_out, "kernel_size": 3},
+            ),
+            NodeGene(id="pool", block_id="global_avg_pool_1d"),
+            NodeGene(
+                id="head",
+                block_id="mlp",
+                config={"in_features": head_in, "hidden_dim": 64, "out_features": 64},
+            ),
+        ),
+        edges=(
+            EdgeGene(source="conv", target="pool"),
+            EdgeGene(source="pool", target="head"),
+        ),
+    )
+
+
+def test_widen_glues_conv_channels_through_pool_to_mlp() -> None:
+    parent = _cnn_pool_mlp(conv_out=8, head_in=8)
+    child = mutate_graph(parent, operator="widen", seed=0)
+    node_map = {node.id: node for node in child.nodes}
+    assert int(node_map["conv"].config["out_channels"]) == 16
+    assert int(node_map["head"].config["in_features"]) == 16
+    assert validate_for_backend(child, "torch", default_registry).valid
+
+
+def test_validate_for_backend_rejects_pool_then_mismatched_head() -> None:
+    graph = _cnn_pool_mlp(conv_out=16, head_in=8)
+    report = validate_for_backend(graph, "torch", default_registry)
+    assert not report.valid
+    assert any("pool" in err or "~>" in err or "mismatch" in err for err in report.errors)
+
+
 def test_validate_for_backend_allows_runtime_shaped_adapters() -> None:
     from oec.neural.architecture.skill_map import graph_for_skill
 
