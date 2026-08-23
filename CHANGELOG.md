@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   running OpenAI-compatible vLLM server over HTTP (stdlib ``urllib``). The
   ``vllm`` package is **not** an OEC extra. Unreachable server fails closed.
   llama.cpp / SGLang still out.
+- **Neural Architecture IR (ADR 0047, waves A0–A4):** ``oec.neural.architecture``
+  is a core-safe catalog of blocks, explicit adapters, compatibility checks,
+  and a DAG ``ArchitectureGraph`` with a deterministic fingerprint. No torch
+  on import. Existing neural skills/runtime are unchanged.
 
 ### Fixed
 

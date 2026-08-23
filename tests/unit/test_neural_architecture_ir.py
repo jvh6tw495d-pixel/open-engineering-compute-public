@@ -1,0 +1,162 @@
+"""Neural Architecture IR A0–A4 (ADR 0047). Core-safe, no torch."""
+
+from __future__ import annotations
+
+import pytest
+
+from oec.neural.architecture import (
+    ArchitectureGraph,
+    DuplicateBlockError,
+    EdgeGene,
+    NeuralFamily,
+    NodeGene,
+    TensorKind,
+    UnknownBlockError,
+    check_connection,
+    default_registry,
+)
+
+
+def test_import_does_not_require_torch() -> None:
+    import oec.neural.architecture as arch
+
+    assert "torch" not in getattr(arch, "__dict__", {})
+    assert arch.default_registry.version == "0.1.0"
+
+
+def test_default_registry_has_expected_families() -> None:
+    assert default_registry.by_family(NeuralFamily.FEEDFORWARD)
+    assert default_registry.by_family(NeuralFamily.GRAPH)
+    assert default_registry.by_family(NeuralFamily.KAN)
+
+
+def test_vector_to_vector_candidates_include_mlp_and_kan() -> None:
+    ids = {
+        spec.id
+        for spec in default_registry.compatible_blocks(
+            input_kind=TensorKind.VECTOR,
+            output_kind=TensorKind.VECTOR,
+        )
+    }
+    assert "mlp" in ids
+    assert "kan" in ids
+
+
+def test_duplicate_registration_fails() -> None:
+    registry = type(default_registry)(version="test")
+    spec = default_registry.get("mlp")
+    registry.register(spec)
+    with pytest.raises(DuplicateBlockError):
+        registry.register(spec)
+
+
+def test_unknown_block_fails_closed() -> None:
+    with pytest.raises(UnknownBlockError):
+        default_registry.get("not_a_block")
+
+
+def test_snapshot_is_sorted_and_serializable() -> None:
+    snap = default_registry.snapshot()
+    ids = [row["id"] for row in snap.blocks]
+    assert ids == sorted(ids)
+    assert snap.version == "0.1.0"
+
+
+def test_conv2d_to_kan_requires_adapter() -> None:
+    result = check_connection(
+        default_registry.get("conv2d"),
+        default_registry.get("kan"),
+        default_registry,
+    )
+    assert not result.compatible
+    assert "global_avg_pool_2d" in result.suggested_adapters
+    assert "flatten" in result.suggested_adapters
+
+
+def test_transformer_to_sequence_pool_is_valid() -> None:
+    result = check_connection(
+        default_registry.get("transformer_encoder"),
+        default_registry.get("sequence_pool"),
+        default_registry,
+    )
+    assert result.compatible
+
+
+def test_graph_pool_chain() -> None:
+    first = check_connection(
+        default_registry.get("gcn"),
+        default_registry.get("graph_global_pool"),
+        default_registry,
+    )
+    second = check_connection(
+        default_registry.get("graph_global_pool"),
+        default_registry.get("graph_embedding_to_vector"),
+        default_registry,
+    )
+    third = check_connection(
+        default_registry.get("graph_embedding_to_vector"),
+        default_registry.get("mlp"),
+        default_registry,
+    )
+    assert first.compatible
+    assert second.compatible
+    assert third.compatible
+
+
+def test_valid_conv_to_kan_graph_with_adapter() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="conv", block_id="conv2d"),
+            NodeGene(id="pool", block_id="global_avg_pool_2d"),
+            NodeGene(id="kan", block_id="kan"),
+        ),
+        edges=(
+            EdgeGene(source="conv", target="pool"),
+            EdgeGene(source="pool", target="kan"),
+        ),
+    )
+    report = graph.validate_graph(default_registry)
+    assert report.valid, report.errors
+    assert any("experimental block: kan" in warning for warning in report.warnings)
+
+
+def test_invalid_direct_conv_to_kan_graph() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="conv", block_id="conv2d"),
+            NodeGene(id="kan", block_id="kan"),
+        ),
+        edges=(EdgeGene(source="conv", target="kan"),),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("global_avg_pool_2d" in error for error in report.errors)
+
+
+def test_cycle_fails() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="a", block_id="mlp"),
+            NodeGene(id="b", block_id="mlp"),
+        ),
+        edges=(
+            EdgeGene(source="a", target="b"),
+            EdgeGene(source="b", target="a"),
+        ),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert "architecture graph is not a valid DAG" in report.errors
+
+
+def test_fingerprint_is_order_stable() -> None:
+    first = ArchitectureGraph(
+        nodes=(NodeGene(id="x", block_id="mlp"), NodeGene(id="y", block_id="kan")),
+        edges=(EdgeGene(source="x", target="y"),),
+    )
+    second = ArchitectureGraph(
+        nodes=(NodeGene(id="y", block_id="kan"), NodeGene(id="x", block_id="mlp")),
+        edges=(EdgeGene(source="x", target="y"),),
+    )
+    assert first.fingerprint() == second.fingerprint()
+    assert len(first.fingerprint()) == 64
