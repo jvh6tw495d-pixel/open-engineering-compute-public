@@ -1,4 +1,4 @@
-"""evolutionary.hyperneat — CPPN + fixed substrate (ADR 0045)."""
+"""evolutionary.hyperneat — CPPN + closed substrate (ADR 0045 / 0048)."""
 
 from __future__ import annotations
 
@@ -33,6 +33,8 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             es_max_depth=int(inputs.get("es_max_depth", 3)),
             es_variance_threshold=float(inputs.get("es_variance_threshold", 0.05)),
             es_max_hidden=int(inputs.get("es_max_hidden", 16)),
+            es_band_threshold=float(inputs.get("es_band_threshold", 0.3)),
+            es_max_iteration=int(inputs.get("es_max_iteration", 1)),
         )
         result = run_hyperneat(problem, algorithm)
     except NeatNotAvailableError as exc:

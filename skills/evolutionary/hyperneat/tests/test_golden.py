@@ -53,3 +53,6 @@ def test_es_quadtree_runs_xor() -> None:
     assert "error" not in result
     assert result["algorithm"] == "es_hyperneat"
     assert result["substrate"]["name"] == "es_quadtree"
+    assert result["substrate"]["kind"] == "es_hyperneat"
+    assert result["substrate"]["extraction"] == "gauci_quadtree"
+    assert result["substrate"]["hidden_layers"] is None

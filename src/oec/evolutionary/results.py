@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class EvolutionaryResult(BaseModel):
@@ -148,18 +148,42 @@ class HyperNeatSubstrateNodeIR(BaseModel):
 
 
 class HyperNeatSubstrateIR(BaseModel):
-    """OEC-owned substrate after CPPN expression (ADR 0045)."""
+    """OEC-owned substrate after CPPN expression (ADR 0045 / 0048)."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     name: str
+    kind: Literal["layered_1d", "es_hyperneat"]
+    extraction: Literal["cartesian", "gauci_quadtree"]
     nodes: tuple[HyperNeatSubstrateNodeIR, ...]
     connections: tuple[NeatConnectionIR, ...]
     n_inputs: int
     n_outputs: int
-    hidden_layers: int
-    hidden_width: int
+    hidden_layers: int | None = None
+    hidden_width: int | None = None
+    actual_hidden: int = 0
     weight_threshold: float
+    max_depth: int | None = None
+    variance_threshold: float | None = None
+    band_threshold: float | None = None
+    max_iteration: int | None = None
+    n_iterations_used: int | None = None
+
+    @model_validator(mode="after")
+    def _kind_matches_fields(self) -> HyperNeatSubstrateIR:
+        if self.kind == "es_hyperneat":
+            if self.extraction != "gauci_quadtree":
+                raise ValueError("es_hyperneat extraction must be gauci_quadtree")
+            if self.hidden_layers is not None or self.hidden_width is not None:
+                raise ValueError("es_hyperneat must not set hidden_layers/hidden_width")
+            if self.max_depth is None or self.band_threshold is None:
+                raise ValueError("es_hyperneat requires max_depth and band_threshold")
+            return self
+        if self.extraction != "cartesian":
+            raise ValueError("layered_1d extraction must be cartesian")
+        if self.hidden_layers is None or self.hidden_width is None:
+            raise ValueError("layered_1d requires hidden_layers and hidden_width")
+        return self
 
 
 class HyperNeatResult(BaseModel):

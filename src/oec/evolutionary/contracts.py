@@ -264,3 +264,13 @@ class HyperNeatAlgorithmSpec(NeatAlgorithmSpec):
     es_max_depth: int = Field(default=3, ge=1, le=5)
     es_variance_threshold: float = Field(default=0.05, ge=0.0, le=1.0)
     es_max_hidden: int = Field(default=16, ge=4, le=64)
+    es_band_threshold: float = Field(default=0.3, ge=0.0, le=1.0)
+    es_max_iteration: int = Field(default=1, ge=1, le=4)
+
+    @model_validator(mode="after")
+    def _es_requires_feed_forward(self) -> HyperNeatAlgorithmSpec:
+        if self.substrate is HyperNeatSubstrateName.ES_QUADTREE and not self.feed_forward:
+            raise ValueError(
+                "es_quadtree requires feed_forward=True (CPPN queries must be order-independent)"
+            )
+        return self
