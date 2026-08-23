@@ -24,7 +24,8 @@ uv lock
 uv build
 ```
 
-This produces `dist/open_engineering_compute-3.6.1-py3-none-any.whl` and the
+Current package version is **3.6.2**. This produces
+`dist/open_engineering_compute-3.6.2-py3-none-any.whl` and the
 matching sdist. Confirm the wheel exists and installs correctly before
 uploading:
 

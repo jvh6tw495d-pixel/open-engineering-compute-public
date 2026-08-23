@@ -5,7 +5,7 @@
 - **Phase:** post-3.6 (Scientific AI follow-on)
 - **Related:** ADR 0031, 0042, 0044
 - **Supersedes (partially):** ADR 0044 §5 — re-opens **HyperNEAT** under the
-  same fail-closed rules as NEAT. **ES-HyperNEAT** stays excluded.
+  same fail-closed rules as NEAT. **ES-HyperNEAT** is ADR 0048.
 
 ## Context
 
@@ -27,8 +27,8 @@ free Python fitness or a leaky backend object.
    classification). No caller Python.
 4. **Substrate catalog (closed):** `layered_1d` only — inputs at x=−1,
    optional hidden columns, outputs at x=+1. Hidden layer count and width
-   are bounded knobs, not free layouts. ES-HyperNEAT (evolved substrate)
-   is out.
+   are bounded knobs, not free layouts. ES-HyperNEAT is ADR 0048
+   (`es_quadtree`).
 5. **CPPN IR** is the existing `NeatGenotypeIR`. The result also carries an
    OEC-owned **substrate IR** (node coordinates + expressed weights).
    Callers never receive a neat-python genome.
@@ -39,4 +39,4 @@ free Python fitness or a leaky backend object.
 
 - Capability matrices list HyperNEAT as available (optional extra).
 - D-AI-05 is closed for both NEAT and HyperNEAT.
-- ES-HyperNEAT still needs a future ADR.
+- ES-HyperNEAT: see ADR 0048.

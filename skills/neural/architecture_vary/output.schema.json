@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "graph": { "type": "object" },
+    "fingerprint": { "type": "string" },
+    "operator": { "type": "string" },
+    "seed": { "type": "integer" }
+  },
+  "required": ["graph", "fingerprint", "operator"],
+  "additionalProperties": true
+}

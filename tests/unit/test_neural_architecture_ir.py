@@ -30,7 +30,7 @@ def test_import_does_not_require_torch() -> None:
     import oec.neural.architecture as arch
 
     assert "torch" not in getattr(arch, "__dict__", {})
-    assert arch.default_registry.version == "0.2.3"
+    assert arch.default_registry.version == "0.2.4"
 
 
 def test_architecture_import_does_not_load_torch_in_clean_process() -> None:
@@ -171,7 +171,7 @@ def test_snapshot_is_sorted_and_serializable() -> None:
     snap = default_registry.snapshot()
     ids = [row["id"] for row in snap.blocks]
     assert ids == sorted(ids)
-    assert snap.version == "0.2.3"
+    assert snap.version == "0.2.4"
 
 
 def test_conv2d_to_kan_requires_adapter() -> None:

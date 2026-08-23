@@ -1,4 +1,4 @@
-"""Governed HyperNEAT: NEAT-evolved CPPN + fixed substrate (ADR 0045)."""
+"""Governed HyperNEAT / ES-HyperNEAT: NEAT-evolved CPPN + closed substrate (ADR 0045/0048)."""
 
 from __future__ import annotations
 
@@ -62,6 +62,82 @@ def _layered_1d(
     return nodes
 
 
+def _variance(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    mean = sum(values) / len(values)
+    return sum((item - mean) ** 2 for item in values) / len(values)
+
+
+def _cppn_value(net: Any, x: float, y: float) -> float:
+    raw = float(net.activate((x, y, x, y))[0])
+    return raw if math.isfinite(raw) else 0.0
+
+
+def _es_hidden_points(
+    net: Any,
+    *,
+    max_depth: int,
+    variance_threshold: float,
+    weight_threshold: float,
+    max_hidden: int,
+) -> list[tuple[float, float]]:
+    """Quadtree discovery of hidden substrate points (ES-HyperNEAT, ADR 0048).
+
+    Inputs/outputs stay on the layered_1d columns. Hidden neurons are leaf
+    centres of a bounded quadtree over x∈(-0.8,0.8), y∈[-1,1], subdivided
+    when CPPN corner variance exceeds the threshold.
+    """
+    points: list[tuple[float, float]] = []
+
+    def rec(x0: float, y0: float, x1: float, y1: float, depth: int) -> None:
+        if len(points) >= max_hidden:
+            return
+        corners = ((x0, y0), (x1, y0), (x0, y1), (x1, y1))
+        vals = [_cppn_value(net, x, y) for x, y in corners]
+        width = x1 - x0
+        if depth < max_depth and _variance(vals) >= variance_threshold and width > 1e-3:
+            mx = (x0 + x1) / 2.0
+            my = (y0 + y1) / 2.0
+            rec(x0, y0, mx, my, depth + 1)
+            rec(mx, y0, x1, my, depth + 1)
+            rec(x0, my, mx, y1, depth + 1)
+            rec(mx, my, x1, y1, depth + 1)
+            return
+        cx = (x0 + x1) / 2.0
+        cy = (y0 + y1) / 2.0
+        if abs(cx) >= 0.95:
+            return
+        if abs(_cppn_value(net, cx, cy)) >= weight_threshold:
+            points.append((cx, cy))
+
+    rec(-0.8, -1.0, 0.8, 1.0, 0)
+    return points[:max_hidden]
+
+
+def _es_nodes(
+    n_in: int, n_out: int, hidden_xy: list[tuple[float, float]]
+) -> list[HyperNeatSubstrateNodeIR]:
+    nodes: list[HyperNeatSubstrateNodeIR] = []
+    nid = 0
+    for y in _ys(n_in):
+        nodes.append(HyperNeatSubstrateNodeIR(id=nid, kind="input", x=-1.0, y=y))
+        nid += 1
+    for x, y in hidden_xy:
+        nodes.append(HyperNeatSubstrateNodeIR(id=nid, kind="hidden", x=x, y=y))
+        nid += 1
+    for y in _ys(n_out):
+        nodes.append(HyperNeatSubstrateNodeIR(id=nid, kind="output", x=1.0, y=y))
+        nid += 1
+    return nodes
+
+
+def _make_cppn(neat: Any, genome: Any, config: Any, feed_forward: bool) -> Any:
+    if feed_forward:
+        return neat.nn.FeedForwardNetwork.create(genome, config)
+    return neat.nn.RecurrentNetwork.create(genome, config)
+
+
 def _express_substrate(
     neat: Any,
     genome: Any,
@@ -70,10 +146,7 @@ def _express_substrate(
     threshold: float,
     feed_forward: bool,
 ) -> list[NeatConnectionIR]:
-    if feed_forward:
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-    else:
-        net = neat.nn.RecurrentNetwork.create(genome, config)
+    net = _make_cppn(neat, genome, config, feed_forward)
     expressed: list[NeatConnectionIR] = []
     for src in nodes:
         for tgt in nodes:
@@ -159,14 +232,36 @@ def _score(
     return float(correct / len(problem.y))
 
 
+def _nodes_for_genome(
+    neat: Any,
+    genome: Any,
+    config: Any,
+    algorithm: HyperNeatAlgorithmSpec,
+    n_in: int,
+    n_out: int,
+) -> list[HyperNeatSubstrateNodeIR]:
+    if algorithm.substrate is HyperNeatSubstrateName.LAYERED_1D:
+        return _layered_1d(n_in, n_out, algorithm.hidden_layers, algorithm.hidden_width)
+    if algorithm.substrate is HyperNeatSubstrateName.ES_QUADTREE:
+        net = _make_cppn(neat, genome, config, algorithm.feed_forward)
+        hidden = _es_hidden_points(
+            net,
+            max_depth=algorithm.es_max_depth,
+            variance_threshold=algorithm.es_variance_threshold,
+            weight_threshold=algorithm.weight_threshold,
+            max_hidden=algorithm.es_max_hidden,
+        )
+        return _es_nodes(n_in, n_out, hidden)
+    raise ValueError(f"unsupported substrate {algorithm.substrate}")
+
+
 def run_hyperneat(problem: NeatProblemSpec, algorithm: HyperNeatAlgorithmSpec) -> HyperNeatResult:
-    """Evolve a CPPN that queries a closed substrate."""
-    if algorithm.substrate is not HyperNeatSubstrateName.LAYERED_1D:
+    """Evolve a CPPN that queries a closed substrate (fixed or ES-quadtree)."""
+    if algorithm.substrate not in HyperNeatSubstrateName:
         raise ValueError(f"unsupported substrate {algorithm.substrate}")
     neat = _require_neat()
     _seed_all(neat, algorithm.seed)
     n_in, n_out = _io_dims(problem)
-    nodes = _layered_1d(n_in, n_out, algorithm.hidden_layers, algorithm.hidden_width)
 
     with tempfile.TemporaryDirectory(prefix="oec-hyperneat-") as tmp:
         cfg_path = Path(tmp) / "cppn.cfg"
@@ -199,6 +294,7 @@ def run_hyperneat(problem: NeatProblemSpec, algorithm: HyperNeatAlgorithmSpec) -
             best = -math.inf
             for _gid, genome in genomes:
                 n_eval += 1
+                nodes = _nodes_for_genome(neat, genome, cfg, algorithm, n_in, n_out)
                 expressed = _express_substrate(
                     neat,
                     genome,
@@ -224,6 +320,7 @@ def run_hyperneat(problem: NeatProblemSpec, algorithm: HyperNeatAlgorithmSpec) -
     if species is not None:
         n_species = len(species)
 
+    nodes = _nodes_for_genome(neat, winner, config, algorithm, n_in, n_out)
     expressed = _express_substrate(
         neat,
         winner,
@@ -233,21 +330,30 @@ def run_hyperneat(problem: NeatProblemSpec, algorithm: HyperNeatAlgorithmSpec) -
         algorithm.feed_forward,
     )
     cppn = _genotype_ir(winner, n_inputs=4, n_outputs=1, feed_forward=algorithm.feed_forward)
+    n_hidden = sum(1 for node in nodes if node.kind == "hidden")
     substrate = HyperNeatSubstrateIR(
         name=algorithm.substrate.value,
         nodes=tuple(nodes),
         connections=tuple(expressed),
         n_inputs=n_in,
         n_outputs=n_out,
-        hidden_layers=algorithm.hidden_layers,
-        hidden_width=algorithm.hidden_width,
+        hidden_layers=algorithm.hidden_layers
+        if algorithm.substrate is HyperNeatSubstrateName.LAYERED_1D
+        else 0,
+        hidden_width=algorithm.hidden_width
+        if algorithm.substrate is HyperNeatSubstrateName.LAYERED_1D
+        else n_hidden,
         weight_threshold=algorithm.weight_threshold,
     )
     best_fit = float(winner.fitness) if winner.fitness is not None else float(history[-1])
     return HyperNeatResult(
         backend="neat-python",
         backend_version=_neat_version(),
-        algorithm="hyperneat",
+        algorithm=(
+            "es_hyperneat"
+            if algorithm.substrate is HyperNeatSubstrateName.ES_QUADTREE
+            else "hyperneat"
+        ),
         seed=algorithm.seed,
         fitness=problem.fitness.value,
         best_fitness=best_fit,
@@ -266,6 +372,9 @@ def run_hyperneat(problem: NeatProblemSpec, algorithm: HyperNeatAlgorithmSpec) -
                 "hidden_layers": algorithm.hidden_layers,
                 "hidden_width": algorithm.hidden_width,
                 "weight_threshold": algorithm.weight_threshold,
+                "es_max_depth": algorithm.es_max_depth,
+                "es_variance_threshold": algorithm.es_variance_threshold,
+                "es_max_hidden": algorithm.es_max_hidden,
             }
         ),
         message="ok",

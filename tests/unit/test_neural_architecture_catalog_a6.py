@@ -31,7 +31,7 @@ _A6_IDS = (
 
 
 def test_registry_version_a6() -> None:
-    assert default_registry.version == "0.2.3"
+    assert default_registry.version == "0.2.4"
 
 
 def test_all_a6_ids_registered() -> None:

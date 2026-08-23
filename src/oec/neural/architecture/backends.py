@@ -7,9 +7,7 @@ from __future__ import annotations
 
 KNOWN_MANIFEST_BACKENDS = frozenset({"torch"})
 
-# Blocks A7 can materialize for backend="torch". Catalog entries not in this
-# set (local_attention, linear_attention, neural_ode, deeponet, pinn_motif)
-# remain fail-closed and must not receive a torch manifest.
+# Blocks A7 can materialize for backend="torch".
 TORCH_BUILDABLE_BLOCK_IDS = frozenset(
     {
         "linear",
@@ -39,6 +37,11 @@ TORCH_BUILDABLE_BLOCK_IDS = frozenset(
         "residual_gated",
         "highway",
         "geglu",
+        "local_attention",
+        "linear_attention",
+        "neural_ode",
+        "deeponet",
+        "pinn_motif",
         "kan",
         "fno",
         "fno_2d",

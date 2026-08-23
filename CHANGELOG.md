@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+### Fixed
+
+### Changed
+
+## [3.6.2] - 2026-08-23
+
+**Tag:** `v3.6.2` (do not move `v3.6.1` / `v3.6.0-scientific-ai`)
+**Theme:** Architecture IR A8 closeout, ES-HyperNEAT, remaining A7 builders.
+
+### Added
+
+- **ES-HyperNEAT (ADR 0048):** ``evolutionary.hyperneat`` substrate
+  ``es_quadtree`` — bounded CPPN quadtree discovery of hidden neurons
+  (depth/variance/max-hidden caps). Same fitness catalog as NEAT. TITAN out.
+- **Architecture IR mutation/crossover:** closed operators ``widen``,
+  ``deepen``, ``swap_activation``, ``one_point_chain`` in
+  ``oec.neural.architecture.operators`` and skill ``neural.architecture_vary``.
+  Invalid offspring fail closed. No free Python fitness.
+- **A7 builders:** honest ``neural_ode`` (fixed-step Euler), ``deeponet``
+  (branch/trunk named ports), ``pinn_motif`` (MLP motif only — PDE residual
+  is not this IR), ``local_attention`` (block windows), ``linear_attention``
+  (ELU+1 feature map). Catalog **0.2.4**.
+
+### Changed
+
+- Package version **3.6.1 → 3.6.2**.
+
+### Also in this cut (previously Unreleased on 3.6.1)
+
+The following 3.6.1 follow-on work ships in 3.6.2:
+
 - **PyPI project name** is ``open-engineering-compute`` (the name ``oec`` is
   already taken by an unrelated Observatory for Economic Complexity wrapper).
   Import and CLI stay ``oec``. See ``docs/release/PUBLISH-3.6.1.md``.

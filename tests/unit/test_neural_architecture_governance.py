@@ -89,18 +89,43 @@ def test_manifest_rejects_unknown_backend() -> None:
 
 
 def test_manifest_rejects_future_backend_block() -> None:
-    graph = ArchitectureGraph(nodes=(NodeGene(id="ode", block_id="neural_ode"),), edges=())
+    registry = make_default_registry()
+    registry.register(
+        BlockSpec(
+            id="future_only",
+            display_name="Future Only",
+            family=NeuralFamily.FEEDFORWARD,
+            category=BlockCategory.BLOCK,
+            input_kinds=frozenset({TensorKind.VECTOR}),
+            output_kind=TensorKind.VECTOR,
+            backend_requirements=("future-xyz",),
+            experimental=True,
+        )
+    )
+    registry.seal()
+    graph = ArchitectureGraph(nodes=(NodeGene(id="f", block_id="future_only"),), edges=())
     with pytest.raises(ArchitectureValidationError, match="requires backends"):
-        manifest_for_graph(graph, default_registry, backend="torch")
+        manifest_for_graph(graph, registry, backend="torch")
 
 
 def test_manifest_rejects_torch_block_without_builder() -> None:
-    graph = ArchitectureGraph(
-        nodes=(NodeGene(id="loc", block_id="local_attention"),),
-        edges=(),
+    registry = make_default_registry()
+    registry.register(
+        BlockSpec(
+            id="catalog_only",
+            display_name="Catalog Only",
+            family=NeuralFamily.FEEDFORWARD,
+            category=BlockCategory.BLOCK,
+            input_kinds=frozenset({TensorKind.VECTOR}),
+            output_kind=TensorKind.VECTOR,
+            backend_requirements=("torch",),
+            experimental=True,
+        )
     )
+    registry.seal()
+    graph = ArchitectureGraph(nodes=(NodeGene(id="c", block_id="catalog_only"),), edges=())
     with pytest.raises(ArchitectureValidationError, match="no torch builder"):
-        manifest_for_graph(graph, default_registry, backend="torch")
+        manifest_for_graph(graph, registry, backend="torch")
 
 
 def test_audit_default_registry_is_sealed_and_typed_correctly() -> None:

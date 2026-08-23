@@ -29,6 +29,12 @@ def test_algorithm_defaults() -> None:
         HyperNeatAlgorithmSpec(hidden_layers=3)
 
 
+def test_es_quadtree_is_a_closed_substrate() -> None:
+    spec = HyperNeatAlgorithmSpec(substrate=HyperNeatSubstrateName.ES_QUADTREE, es_max_depth=2)
+    assert spec.substrate is HyperNeatSubstrateName.ES_QUADTREE
+    assert spec.es_max_hidden == 16
+
+
 def test_fail_closed_when_neat_missing(monkeypatch: pytest.MonkeyPatch) -> None:
     import sys
 
@@ -48,6 +54,33 @@ def test_builder_on_catalog() -> None:
     assert isinstance(spec, ExperimentSpec)
     assert spec.steps[0].skill_id == "evolutionary.hyperneat"
     assert spec.steps[0].inputs["substrate"] == "layered_1d"
+
+
+@pytest.mark.evolutionary
+def test_es_quadtree_xor_runs() -> None:
+    pytest.importorskip("neat")
+    from oec.kernel.evolutionary.hyperneat import run_hyperneat
+
+    result = run_hyperneat(
+        NeatProblemSpec(fitness=NeatFitnessName.XOR),
+        HyperNeatAlgorithmSpec(
+            substrate=HyperNeatSubstrateName.ES_QUADTREE,
+            generations=2,
+            population=6,
+            seed=1,
+            es_max_depth=2,
+            es_max_hidden=8,
+        ),
+    )
+    assert result.algorithm == "es_hyperneat"
+    assert result.substrate.name == "es_quadtree"
+    assert result.cppn.n_inputs == 4
+
+
+def test_builder_can_select_es_quadtree() -> None:
+    spec = build_hyperneat_experiment(fitness="xor", substrate="es_quadtree", generations=2)
+    assert spec.steps[0].inputs["substrate"] == "es_quadtree"
+    assert spec.steps[0].inputs["es_max_depth"] == 3
 
 
 def test_build_hyperneat_tabular_passes_arrays() -> None:

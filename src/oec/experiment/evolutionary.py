@@ -4,7 +4,7 @@ Declarative only: maps ``EvolutionaryProblemSpec`` / algorithm contracts into
 skill inputs. No arbitrary fitness Python (ADR 0031).
 
 Public builders are discoverable via the fail-closed cross-domain catalog (S4).
-NEAT is available post-3.6 (ADR 0044). HyperNEAT remains excluded.
+NEAT is available post-3.6 (ADR 0044). HyperNEAT / ES-HyperNEAT: ADR 0045/0048.
 """
 
 from __future__ import annotations
@@ -344,6 +344,10 @@ def build_hyperneat_experiment(
     hidden_layers: int = 1,
     hidden_width: int = 3,
     weight_threshold: float = 0.2,
+    substrate: HyperNeatSubstrateName | str = HyperNeatSubstrateName.LAYERED_1D,
+    es_max_depth: int = 3,
+    es_variance_threshold: float = 0.05,
+    es_max_hidden: int = 16,
     experiment_id: str = "evolutionary.hyperneat",
     title: str | None = None,
     min_fitness: float | None = None,
@@ -355,7 +359,14 @@ def build_hyperneat_experiment(
         "generations": int(generations),
         "population": int(population),
         "seed": int(seed),
-        "substrate": HyperNeatSubstrateName.LAYERED_1D.value,
+        "substrate": (
+            substrate.value
+            if isinstance(substrate, HyperNeatSubstrateName)
+            else HyperNeatSubstrateName(str(substrate)).value
+        ),
+        "es_max_depth": int(es_max_depth),
+        "es_variance_threshold": float(es_variance_threshold),
+        "es_max_hidden": int(es_max_hidden),
         "hidden_layers": int(hidden_layers),
         "hidden_width": int(hidden_width),
         "weight_threshold": float(weight_threshold),

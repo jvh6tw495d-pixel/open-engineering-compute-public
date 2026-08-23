@@ -88,8 +88,10 @@ one declarative, auditable architecture contract — without arbitrary
     fitness callback of any kind**: `search_graphs` never executes arbitrary
     Python to score a candidate, and never imports torch itself. This is
     independent of `neural.search_architecture` (ADR 0033's hybrid
-    evolutionary training-facet search, unchanged) and is **not** TITAN — no
-    mutation/crossover/population ecology.
+    evolutionary training-facet search, unchanged) and is **not** TITAN.
+    Closed mutation/crossover of `ArchitectureGraph` lives in
+    `oec.neural.architecture.operators` (`widen` / `deepen` /
+    `swap_activation` / `one_point_chain`).
 11. **A8+ port and attention hardening:** `BlockSpec.output_ports` (default
     `("out",)`) closes `EdgeGene.source_port`: `validate_graph` rejects an
     edge whose `source_port` is not in the source block's declared output
@@ -106,8 +108,7 @@ one declarative, auditable architecture contract — without arbitrary
 
 ## Non-goals
 
-TITAN, mutation/crossover, ES-HyperNEAT, evolvability/population ecology,
-autonomous research harness, fake NeuralODE/DeepONet/PINN builders.
+TITAN, evolvability/population ecology, autonomous research harness.
 
 ## Consequences
 

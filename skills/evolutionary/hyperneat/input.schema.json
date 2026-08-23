@@ -25,11 +25,18 @@
     "generations": { "type": "integer", "minimum": 1, "maximum": 500, "default": 30 },
     "population": { "type": "integer", "minimum": 4, "maximum": 500, "default": 50 },
     "seed": { "type": "integer", "default": 42 },
-    "substrate": { "type": "string", "enum": ["layered_1d"], "default": "layered_1d" },
+    "substrate": {
+      "type": "string",
+      "enum": ["layered_1d", "es_quadtree"],
+      "default": "layered_1d"
+    },
     "hidden_layers": { "type": "integer", "minimum": 0, "maximum": 2, "default": 1 },
     "hidden_width": { "type": "integer", "minimum": 1, "maximum": 16, "default": 3 },
     "weight_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.2 },
-    "feed_forward": { "type": "boolean", "default": true }
+    "feed_forward": { "type": "boolean", "default": true },
+    "es_max_depth": { "type": "integer", "minimum": 1, "maximum": 5, "default": 3 },
+    "es_variance_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.05 },
+    "es_max_hidden": { "type": "integer", "minimum": 4, "maximum": 64, "default": 16 }
   },
   "required": ["fitness"],
   "additionalProperties": false
