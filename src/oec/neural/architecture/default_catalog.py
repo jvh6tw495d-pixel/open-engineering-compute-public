@@ -1,4 +1,4 @@
-"""Default governed block catalog v0.2.3 (ADR 0047). Declarative only."""
+"""Default governed block catalog v0.2.4 (ADR 0047). Declarative only."""
 
 from __future__ import annotations
 
@@ -424,8 +424,14 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="d_model", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="nhead", kind="int", default=2, minimum=1),
+            BlockParameterSpec(name="window", kind="int", default=4, minimum=1),
+        ),
         capabilities=frozenset({"attention", "local"}),
         backend_requirements=("torch",),
+        notes="Block-local windowed attention; not global.",
     ),
     BlockSpec(
         id="linear_attention",
@@ -434,8 +440,13 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="d_model", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="nhead", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"attention", "linear"}),
         backend_requirements=("torch",),
+        notes="Feature-map linear attention (ELU+1); not softmax attention.",
     ),
     BlockSpec(
         id="neural_ode",
@@ -444,10 +455,15 @@ A6_BLOCKS = (
         category=BlockCategory.MOTIF,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
+        parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="steps", kind="int", default=4, minimum=1, maximum=64),
+        ),
         capabilities=frozenset({"continuous_dynamics"}),
-        backend_requirements=("future-neural-ode",),
+        backend_requirements=("torch",),
         experimental=True,
-        notes="Catalog only; no torch builder in A7.",
+        notes="Fixed-step Euler residual ODE. Not adaptive dopri5.",
     ),
     BlockSpec(
         id="fno",
@@ -488,11 +504,19 @@ A6_BLOCKS = (
         display_name="DeepONet",
         family=NeuralFamily.NEURAL_OPERATOR,
         category=BlockCategory.BLOCK,
-        input_kinds=frozenset({TensorKind.VECTOR, TensorKind.SEQUENCE}),
+        input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
+        input_ports=("branch", "trunk"),
+        parameters=(
+            BlockParameterSpec(name="branch_dim", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="trunk_dim", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="p", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+        ),
         capabilities=frozenset({"operator"}),
-        backend_requirements=("future-neural-operator",),
+        backend_requirements=("torch",),
         experimental=True,
+        notes="Branch/trunk inner-product DeepONet. Named ports required.",
     ),
     BlockSpec(
         id="pinn_motif",
@@ -501,16 +525,22 @@ A6_BLOCKS = (
         category=BlockCategory.MOTIF,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
+        parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="out_features", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="n_layers", kind="int", default=2, minimum=1, maximum=8),
+        ),
         capabilities=frozenset({"physics_informed"}),
-        backend_requirements=("future-pinn",),
+        backend_requirements=("torch",),
         experimental=True,
-        notes="Catalog motif only; residual PDE loss is not this IR.",
+        notes="MLP motif only. PDE residual/collocation loss is not this IR.",
     ),
 )
 
 
 def make_default_registry() -> BlockRegistry:
-    registry = BlockRegistry(version="0.2.3")
+    registry = BlockRegistry(version="0.2.4")
     registry.register_many(BASE_BLOCKS)
     registry.register_many(ADAPTER_SPECS)
     registry.register_many(A6_BLOCKS)

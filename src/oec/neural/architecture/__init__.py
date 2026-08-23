@@ -25,7 +25,9 @@ from oec.neural.architecture.graph import (
     EdgeGene,
     NodeGene,
 )
+from oec.neural.architecture.operators import crossover_graphs, mutate_graph
 from oec.neural.architecture.registry import BlockRegistry
+from oec.neural.architecture.search import search_graphs
 from oec.neural.architecture.skill_map import graph_for_skill, mapped_skill_ids
 from oec.neural.architecture.specs import BlockParameterSpec, BlockSpec, CompatibilityResult
 from oec.neural.architecture.taxonomy import ArchitectureActivationName, MotifName
@@ -56,9 +58,12 @@ __all__ = [
     "UnknownFamilyError",
     "audit_catalog",
     "check_connection",
+    "crossover_graphs",
     "default_registry",
     "graph_for_skill",
     "make_default_registry",
     "manifest_for_graph",
     "mapped_skill_ids",
+    "mutate_graph",
+    "search_graphs",
 ]

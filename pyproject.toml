@@ -1,6 +1,6 @@
 [project]
 name = "open-engineering-compute"
-version = "3.6.1"
+version = "3.6.2"
 description = "Open Engineering Compute — an open framework for executable, versioned and auditable engineering skills."
 readme = "README.md"
 requires-python = ">=3.12"

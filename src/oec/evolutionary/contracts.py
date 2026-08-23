@@ -248,15 +248,19 @@ class NeatAlgorithmSpec(BaseModel):
 
 
 class HyperNeatSubstrateName(StrEnum):
-    """Closed HyperNEAT substrate catalog (ADR 0045)."""
+    """Closed HyperNEAT substrate catalog (ADR 0045 / 0048)."""
 
     LAYERED_1D = "layered_1d"
+    ES_QUADTREE = "es_quadtree"
 
 
 class HyperNeatAlgorithmSpec(NeatAlgorithmSpec):
-    """NEAT knobs plus a fixed substrate and expression threshold."""
+    """NEAT knobs plus a closed substrate and expression threshold."""
 
     substrate: HyperNeatSubstrateName = HyperNeatSubstrateName.LAYERED_1D
     hidden_layers: int = Field(default=1, ge=0, le=2)
     hidden_width: int = Field(default=3, ge=1, le=16)
     weight_threshold: float = Field(default=0.2, ge=0.0, le=1.0)
+    es_max_depth: int = Field(default=3, ge=1, le=5)
+    es_variance_threshold: float = Field(default=0.05, ge=0.0, le=1.0)
+    es_max_hidden: int = Field(default=16, ge=4, le=64)

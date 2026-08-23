@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "neural.architecture_vary input",
+  "type": "object",
+  "properties": {
+    "mode": { "type": "string", "enum": ["mutate", "crossover"] },
+    "operator": {
+      "type": "string",
+      "enum": ["widen", "deepen", "swap_activation", "one_point_chain"]
+    },
+    "seed": { "type": "integer", "default": 0 },
+    "graph": { "type": "object" },
+    "first": { "type": "object" },
+    "second": { "type": "object" }
+  },
+  "required": ["mode", "operator"],
+  "additionalProperties": false
+}

@@ -335,9 +335,6 @@ PR-7: A8 governance
 Explicitamente fora:
 
 - TITAN;
-- architecture search;
-- mutation;
-- crossover;
 - HST;
 - evolvability;
 - population ecology;

@@ -1,9 +1,8 @@
 # Skill inventory
 
-**Updated:** 2026-08-17 (HyperNEAT ADR 0045 + `v3.6.1` — see
-[NEAT-LLM-CLOSEOUT.md](../release/NEAT-LLM-CLOSEOUT.md))
+**Updated:** 2026-08-23 (ES-HyperNEAT ADR 0048 + architecture_vary)
 **Registry root:** `skills/`
-**Live load:** **155** skills across **28** domains, **0** contract-audit errors
+**Live load:** **156** skills across **28** domains, **0** contract-audit errors
 
 ## Summary
 
@@ -29,12 +28,12 @@
 | chemistry | 8 | + vanthoff, hess_enthalpy (W3) |
 | waves / optics / em / statistical_physics | 6 | W3 foundations |
 | multiphysics | 2 | |
-| **neural** | **26** | ADR 0031/0032 + **0033 training/search** |
-| **evolutionary** | **17** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044) + HyperNEAT (ADR 0045), both **validated** |
+| **neural** | **27** | ADR 0031/0032 + **0033 training/search** + architecture_vary |
+| **evolutionary** | **17** | pymoo/DEAP/Nevergrad + NEAT (ADR 0044) + HyperNEAT/ES-HyperNEAT (ADR 0045/0048) |
 | **hybrid** | **2** | X2 surrogate + hyperparams |
 | **scientific** | **1** | X3 method_select |
 | foundation | 7 | W6/S1/S5 + vLLM remote client (ADR 0046) — **validated** |
-| **Total** | **155** | `experimental` except the 9 skills validated below |
+| **Total** | **156** | `experimental` except the 9 skills validated below |
 
 ### Validated skills (lifecycle: `experimental` → `validated`)
 

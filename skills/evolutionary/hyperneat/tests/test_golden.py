@@ -35,3 +35,21 @@ def test_runs_xor() -> None:
     assert result["substrate"]["n_outputs"] == 1
     assert isinstance(result["best_fitness"], float)
     assert result["n_cppn_nodes"] >= 5
+
+
+def test_es_quadtree_runs_xor() -> None:
+    out = implementation.execute(
+        {
+            "fitness": "xor",
+            "generations": 2,
+            "population": 6,
+            "seed": 1,
+            "substrate": "es_quadtree",
+            "es_max_depth": 2,
+            "es_max_hidden": 8,
+        }
+    )
+    result = out["result"]
+    assert "error" not in result
+    assert result["algorithm"] == "es_hyperneat"
+    assert result["substrate"]["name"] == "es_quadtree"

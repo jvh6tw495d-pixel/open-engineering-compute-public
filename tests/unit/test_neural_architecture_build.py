@@ -10,14 +10,6 @@ from oec.neural.architecture import ArchitectureGraph, EdgeGene, NodeGene, defau
 from oec.neural.architecture.errors import ArchitectureValidationError
 from oec.neural.architecture.skill_map import graph_for_skill
 
-_NO_TORCH_BUILDER = (
-    "local_attention",
-    "linear_attention",
-    "neural_ode",
-    "deeponet",
-    "pinn_motif",
-)
-
 
 def test_fail_closed_without_torch(monkeypatch: pytest.MonkeyPatch) -> None:
     import oec.kernel.neural.architecture_build as build_mod
@@ -37,10 +29,9 @@ def test_unknown_backend_fails() -> None:
         build_architecture(graph, backend="jax")
 
 
-@pytest.mark.parametrize("block_id", _NO_TORCH_BUILDER)
-def test_unsupported_blocks_fail_closed_without_torch(block_id: str) -> None:
-    graph = ArchitectureGraph(nodes=(NodeGene(id="n", block_id=block_id),), edges=())
-    with pytest.raises(ArchitectureValidationError, match="no torch builder"):
+def test_unknown_block_still_has_no_torch_builder() -> None:
+    graph = ArchitectureGraph(nodes=(NodeGene(id="n", block_id="not_a_block"),), edges=())
+    with pytest.raises(ArchitectureValidationError):
         build_architecture(graph)
 
 
@@ -473,3 +464,97 @@ def test_fno_2d_rejects_wrong_rank_input() -> None:
     assert out.dim() == 4
     with pytest.raises(ArchitectureValidationError, match="rank"):
         model(torch.randn(2, 2, 8))
+
+
+@pytest.mark.neural
+def test_neural_ode_euler_preserves_vector() -> None:
+    pytest.importorskip("torch")
+    import torch
+
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(
+                id="ode",
+                block_id="neural_ode",
+                config={"in_features": 4, "hidden_dim": 8, "steps": 3},
+            ),
+        ),
+        edges=(),
+    )
+    out = build_architecture(graph)(torch.zeros(2, 4))
+    assert tuple(out.shape) == (2, 4)
+
+
+@pytest.mark.neural
+def test_pinn_motif_is_mlp_shaped() -> None:
+    pytest.importorskip("torch")
+    import torch
+
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(
+                id="pinn",
+                block_id="pinn_motif",
+                config={"in_features": 3, "hidden_dim": 8, "out_features": 1, "n_layers": 2},
+            ),
+        ),
+        edges=(),
+    )
+    out = build_architecture(graph)(torch.zeros(5, 3))
+    assert tuple(out.shape) == (5, 1)
+
+
+@pytest.mark.neural
+def test_local_and_linear_attention_keep_sequence_rank() -> None:
+    pytest.importorskip("torch")
+    import torch
+
+    local = ArchitectureGraph(
+        nodes=(
+            NodeGene(
+                id="a",
+                block_id="local_attention",
+                config={"d_model": 8, "nhead": 2, "window": 4},
+            ),
+        ),
+        edges=(),
+    )
+    linear = ArchitectureGraph(
+        nodes=(NodeGene(id="a", block_id="linear_attention", config={"d_model": 8, "nhead": 2}),),
+        edges=(),
+    )
+    for graph in (local, linear):
+        out = build_architecture(graph)(torch.zeros(2, 7, 8))
+        assert tuple(out.shape) == (2, 7, 8)
+
+
+@pytest.mark.neural
+def test_deeponet_named_ports() -> None:
+    pytest.importorskip("torch")
+    import torch
+
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(
+                id="b",
+                block_id="linear",
+                config={"in_features": 4, "out_features": 4, "activation": "none"},
+            ),
+            NodeGene(
+                id="t",
+                block_id="linear",
+                config={"in_features": 4, "out_features": 4, "activation": "none"},
+            ),
+            NodeGene(
+                id="op",
+                block_id="deeponet",
+                config={"branch_dim": 4, "trunk_dim": 4, "hidden_dim": 8, "p": 4},
+            ),
+        ),
+        edges=(
+            EdgeGene(source="b", target="op", target_port="branch"),
+            EdgeGene(source="t", target="op", target_port="trunk"),
+        ),
+    )
+    out = build_architecture(graph)(torch.zeros(3, 4))
+    assert tuple(out.shape) == (3, 1)

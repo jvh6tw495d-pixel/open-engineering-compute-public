@@ -213,6 +213,16 @@ def _build_block(torch: Any, nn: Any, block_id: str, config: dict[str, Any]) -> 
         return _fno_1d(torch, nn, config)
     if block_id == "fno_2d":
         return _fno_2d(torch, nn, config)
+    if block_id == "local_attention":
+        return _local_attention(nn, config)
+    if block_id == "linear_attention":
+        return _linear_attention(nn, config)
+    if block_id == "neural_ode":
+        return _neural_ode(nn, config)
+    if block_id == "deeponet":
+        return _deeponet(nn, config)
+    if block_id == "pinn_motif":
+        return _pinn_motif(nn, config)
     if block_id in {"gcn", "graphsage", "gat"}:
         return _gnn_block(torch, nn, block_id, config)
     if block_id in {"graph_global_pool", "graph_embedding_to_vector"}:
@@ -369,6 +379,108 @@ def _cross_attention(nn: Any, config: dict[str, Any]) -> Any:
             return out
 
     return CrossAttention()
+
+
+def _local_attention(nn: Any, config: dict[str, Any]) -> Any:
+    d_model = int(config.get("d_model", 16))
+    nhead = int(config.get("nhead", 2))
+    window = int(config.get("window", 4))
+
+    class LocalAttention(nn.Module):  # type: ignore[misc]
+        def __init__(self) -> None:
+            super().__init__()
+            self.attn = nn.MultiheadAttention(d_model, nhead, batch_first=True)
+            self.window = window
+
+        def forward(self, x: Any) -> Any:
+            batch, length, _dim = x.shape
+            pad = (self.window - length % self.window) % self.window
+            if pad:
+                x = nn.functional.pad(x, (0, 0, 0, pad))
+            n_win = x.shape[1] // self.window
+            windows = x.reshape(batch * n_win, self.window, _dim)
+            out, _weights = self.attn(windows, windows, windows)
+            out = out.reshape(batch, n_win * self.window, _dim)
+            return out[:, :length, :]
+
+    return LocalAttention()
+
+
+def _linear_attention(nn: Any, config: dict[str, Any]) -> Any:
+    d_model = int(config.get("d_model", 16))
+
+    class LinearAttention(nn.Module):  # type: ignore[misc]
+        def __init__(self) -> None:
+            super().__init__()
+            self.q = nn.Linear(d_model, d_model)
+            self.k = nn.Linear(d_model, d_model)
+            self.v = nn.Linear(d_model, d_model)
+
+        def forward(self, x: Any) -> Any:
+            query = nn.functional.elu(self.q(x)) + 1.0
+            key = nn.functional.elu(self.k(x)) + 1.0
+            value = self.v(x)
+            kv = key.transpose(-2, -1) @ value
+            out = query @ kv
+            denom = query @ key.sum(dim=1).unsqueeze(-1)
+            return out / denom.clamp(min=1e-6)
+
+    return LinearAttention()
+
+
+def _neural_ode(nn: Any, config: dict[str, Any]) -> Any:
+    dim = int(config.get("in_features", 8))
+    hidden = int(config.get("hidden_dim", 16))
+    steps = int(config.get("steps", 4))
+
+    class EulerODE(nn.Module):  # type: ignore[misc]
+        def __init__(self) -> None:
+            super().__init__()
+            self.net = nn.Sequential(nn.Linear(dim, hidden), nn.Tanh(), nn.Linear(hidden, dim))
+            self.steps = steps
+
+        def forward(self, x: Any) -> Any:
+            hidden_state = x
+            dt = 1.0 / float(self.steps)
+            for _ in range(self.steps):
+                hidden_state = hidden_state + dt * self.net(hidden_state)
+            return hidden_state
+
+    return EulerODE()
+
+
+def _deeponet(nn: Any, config: dict[str, Any]) -> Any:
+    branch_dim = int(config.get("branch_dim", 8))
+    trunk_dim = int(config.get("trunk_dim", 8))
+    hidden = int(config.get("hidden_dim", 16))
+    rank = int(config.get("p", 8))
+
+    class DeepONet(nn.Module):  # type: ignore[misc]
+        def __init__(self) -> None:
+            super().__init__()
+            self.branch = nn.Sequential(
+                nn.Linear(branch_dim, hidden), nn.Tanh(), nn.Linear(hidden, rank)
+            )
+            self.trunk = nn.Sequential(
+                nn.Linear(trunk_dim, hidden), nn.Tanh(), nn.Linear(hidden, rank)
+            )
+
+        def forward(self, branch: Any, trunk: Any) -> Any:
+            return (self.branch(branch) * self.trunk(trunk)).sum(dim=-1, keepdim=True)
+
+    return DeepONet()
+
+
+def _pinn_motif(nn: Any, config: dict[str, Any]) -> Any:
+    in_f = int(config.get("in_features", 8))
+    hidden = int(config.get("hidden_dim", 16))
+    out_f = int(config.get("out_features", 1))
+    n_layers = int(config.get("n_layers", 2))
+    layers: list[Any] = [nn.Linear(in_f, hidden), nn.Tanh()]
+    for _ in range(max(n_layers - 1, 0)):
+        layers.extend([nn.Linear(hidden, hidden), nn.Tanh()])
+    layers.append(nn.Linear(hidden, out_f))
+    return nn.Sequential(*layers)
 
 
 def _swiglu(nn: Any, config: dict[str, Any]) -> Any:

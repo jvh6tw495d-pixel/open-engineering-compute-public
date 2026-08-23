@@ -1,0 +1,40 @@
+id: neural.architecture_vary
+version: 0.1.0
+status: experimental
+domain: neural
+title: Architecture IR mutate / crossover
+
+entrypoint:
+  module: implementation
+  function: execute
+
+schemas:
+  input: input.schema.json
+  output: output.schema.json
+
+method:
+  id: architecture_ir_closed_operators
+  version: 0.1.0
+  iterative: false
+
+execution:
+  deterministic: true
+  timeout_seconds: 30
+  network_access: false
+  filesystem_access: false
+
+validation:
+  schema: true
+  dimensional: false
+  mathematical: true
+  physical: false
+  numerical: false
+
+references:
+  - "ADR 0047 Neural Architecture IR"
+  - "Closed mutation/crossover catalog — no TITAN"
+
+tags:
+  - neural
+  - architecture
+  - experimental

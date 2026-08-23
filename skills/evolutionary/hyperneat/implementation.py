@@ -30,6 +30,9 @@ def execute(inputs: dict[str, Any]) -> dict[str, Any]:
             hidden_width=int(inputs.get("hidden_width", 3)),
             weight_threshold=float(inputs.get("weight_threshold", 0.2)),
             feed_forward=bool(inputs.get("feed_forward", True)),
+            es_max_depth=int(inputs.get("es_max_depth", 3)),
+            es_variance_threshold=float(inputs.get("es_variance_threshold", 0.05)),
+            es_max_hidden=int(inputs.get("es_max_hidden", 16)),
         )
         result = run_hyperneat(problem, algorithm)
     except NeatNotAvailableError as exc:

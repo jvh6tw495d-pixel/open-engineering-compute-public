@@ -1,8 +1,8 @@
 id: evolutionary.hyperneat
-version: 0.1.0
+version: 0.2.0
 status: validated
 domain: evolutionary
-title: HyperNEAT (CPPN + fixed substrate)
+title: HyperNEAT / ES-HyperNEAT (CPPN + closed substrate)
 
 entrypoint:
   module: implementation
@@ -13,8 +13,8 @@ schemas:
   output: output.schema.json
 
 method:
-  id: hyperneat_layered_1d
-  version: 0.1.0
+  id: hyperneat_closed_substrate
+  version: 0.2.0
   iterative: true
 
 execution:
@@ -33,6 +33,8 @@ validation:
 references:
   - "Stanley, D'Ambrosio & Gauci — HyperNEAT"
   - "ADR 0045 Governed HyperNEAT Backend"
+  - "ADR 0048 Governed ES-HyperNEAT"
+  - "Gauci & Stanley — ES-HyperNEAT"
   - "neat-python — https://neat-python.readthedocs.io/"
 
 tags:
