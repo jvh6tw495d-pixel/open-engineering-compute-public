@@ -100,7 +100,12 @@ def _widen(graph: ArchitectureGraph, rng: random.Random) -> ArchitectureGraph:
     candidates = [
         node
         for node in graph.nodes
-        if any(key in node.config and isinstance(node.config[key], int) for key in _WIDTH_KEYS)
+        if any(
+            key in node.config
+            and type(node.config[key]) is int
+            and _next_width(int(node.config[key])) is not None
+            for key in _WIDTH_KEYS
+        )
     ]
     if not candidates:
         raise ArchitectureValidationError("widen requires an int width field on some node")
