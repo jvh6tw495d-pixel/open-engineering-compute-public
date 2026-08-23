@@ -249,8 +249,11 @@ falham fechado.
 KAN, GNN (`gcn`/`graphsage`/`gat`) e FNO (`fno`/`fno_2d`) têm builders
 honestos nesta wave (basis B-spline/RBF real, `build_gnn` reutilizado com
 `edge_index` obrigatório em todo nó de grafo, rfft/irfft rank-preserving).
-Continuam fail-closed, sem builder, **antes** do import torch:
-`local_attention`, `linear_attention`, `neural_ode`, `deeponet`, `pinn_motif`.
+Torch builders also cover `local_attention`, `linear_attention`,
+`neural_ode`, `deeponet`, `pinn_motif`, and zip leftovers (`glu`,
+`residual_conv`, `conv3d`, `hybrid_kan`, `lif_spike`, motifs/macros).
+JAX is a second optional backend (`uv sync --extra jax`); GNN/attention/FNO
+stay torch-only.
 
 ---
 
@@ -294,8 +297,8 @@ Também landed nesta wave (fora do escopo original de A8, mas dependente dela):
   `fno`/`fno_2d`, `cross_attention`, e os extras A6 honestos (geglu, highway,
   residual_gated, depthwise/separable/dilated/grouped conv,
   squeeze_excitation, self_attention, swiglu, residual_mlp,
-  vector_to_sequence, tcn). `local_attention`, `linear_attention`,
-  `neural_ode`, `deeponet`, `pinn_motif` continuam fail-closed.
+  vector_to_sequence, tcn, zip leftovers). All A6 scientific blocks have
+  torch builders. JAX covers a documented subset.
 - **A5 hidden_dims N-layer:** `graph_for_skill("neural.mlp.*")` expande
   `hidden_dims` multi-largura em uma cadeia `linear` honesta em vez de
   espremer na primeira largura; autoencoders multi-largura preservam todas

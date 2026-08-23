@@ -26,7 +26,7 @@ def test_fail_closed_without_torch(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_unknown_backend_fails() -> None:
     graph = ArchitectureGraph(nodes=(NodeGene(id="mlp", block_id="mlp"),), edges=())
     with pytest.raises(ValueError, match="unsupported architecture backend"):
-        build_architecture(graph, backend="jax")
+        build_architecture(graph, backend="titan")
 
 
 def test_unknown_block_still_has_no_torch_builder() -> None:
@@ -545,6 +545,98 @@ def test_local_and_linear_attention_keep_sequence_rank() -> None:
 
     assert _nhead(one) == 1
     assert _nhead(two) == 2
+
+
+@pytest.mark.neural
+def test_zip_leftover_blocks_forward() -> None:
+    pytest.importorskip("torch")
+    import torch
+
+    glu = build_architecture(
+        ArchitectureGraph(
+            nodes=(NodeGene(id="g", block_id="glu", config={"in_features": 8, "hidden_dim": 16}),),
+            edges=(),
+        )
+    )
+    assert tuple(glu(torch.zeros(2, 8)).shape) == (2, 8)
+
+    conv3 = build_architecture(
+        ArchitectureGraph(
+            nodes=(
+                NodeGene(
+                    id="c",
+                    block_id="conv3d",
+                    config={"in_channels": 1, "out_channels": 4, "kernel_size": 3},
+                ),
+            ),
+            edges=(),
+        )
+    )
+    assert tuple(conv3(torch.zeros(2, 1, 5, 5, 5)).shape) == (2, 4, 5, 5, 5)
+
+    hybrid = build_architecture(
+        ArchitectureGraph(
+            nodes=(
+                NodeGene(
+                    id="k",
+                    block_id="hybrid_kan",
+                    config={"in_features": 4, "out_features": 3, "basis": "rbf", "grid_size": 4},
+                ),
+            ),
+            edges=(),
+        )
+    )
+    assert tuple(hybrid(torch.zeros(2, 4)).shape) == (2, 3)
+
+    lif = build_architecture(
+        ArchitectureGraph(
+            nodes=(NodeGene(id="s", block_id="lif_spike", config={"features": 4, "decay": 0.5}),),
+            edges=(),
+        )
+    )
+    assert tuple(lif(torch.ones(2, 3, 4)).shape) == (2, 3, 4)
+
+    vae = build_architecture(
+        ArchitectureGraph(
+            nodes=(
+                NodeGene(
+                    id="v",
+                    block_id="vae",
+                    config={"in_features": 8, "latent_dim": 2, "out_features": 8},
+                ),
+            ),
+            edges=(),
+        )
+    )
+    assert tuple(vae(torch.zeros(4, 8)).shape) == (4, 8)
+
+    moe = build_architecture(
+        ArchitectureGraph(
+            nodes=(
+                NodeGene(
+                    id="m",
+                    block_id="moe",
+                    config={"in_features": 6, "hidden_dim": 8, "out_features": 3, "n_experts": 3},
+                ),
+            ),
+            edges=(),
+        )
+    )
+    assert tuple(moe(torch.zeros(2, 6)).shape) == (2, 3)
+
+    res = build_architecture(
+        ArchitectureGraph(
+            nodes=(
+                NodeGene(
+                    id="r",
+                    block_id="residual_conv",
+                    config={"in_channels": 3, "out_channels": 3, "kernel_size": 3},
+                ),
+            ),
+            edges=(),
+        )
+    )
+    assert tuple(res(torch.zeros(1, 3, 8, 8)).shape) == (1, 3, 8, 8)
 
 
 @pytest.mark.neural

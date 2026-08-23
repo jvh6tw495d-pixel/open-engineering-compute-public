@@ -5,7 +5,7 @@ Core-safe — no torch import. Keep in sync with ``architecture_build``.
 
 from __future__ import annotations
 
-KNOWN_MANIFEST_BACKENDS = frozenset({"torch"})
+KNOWN_MANIFEST_BACKENDS = frozenset({"torch", "jax"})
 
 # Blocks A7 can materialize for backend="torch".
 TORCH_BUILDABLE_BLOCK_IDS = frozenset(
@@ -50,5 +50,61 @@ TORCH_BUILDABLE_BLOCK_IDS = frozenset(
         "gat",
         "graph_global_pool",
         "graph_embedding_to_vector",
+        "global_avg_pool_3d",
+        "glu",
+        "residual_conv",
+        "conv3d",
+        "hybrid_kan",
+        "lif_spike",
+        "residual_stack",
+        "bottleneck",
+        "inception",
+        "dense_block",
+        "fusion",
+        "message_passing_stack",
+        "encoder_decoder",
+        "vae",
+        "gan_generator",
+        "gan_discriminator",
+        "moe",
+        "siamese",
+        "diffusion_denoiser",
+    }
+)
+
+# Honest JAX subset — no GNN/attention/FNO in this cut.
+JAX_BUILDABLE_BLOCK_IDS = frozenset(
+    {
+        "linear",
+        "mlp",
+        "encoder",
+        "decoder",
+        "flatten",
+        "global_avg_pool_1d",
+        "global_avg_pool_2d",
+        "global_avg_pool_3d",
+        "sequence_pool",
+        "vector_to_sequence",
+        "conv1d",
+        "conv2d",
+        "conv3d",
+        "glu",
+        "residual_mlp",
+        "residual_conv",
+        "residual_stack",
+        "bottleneck",
+        "highway",
+        "hybrid_kan",
+        "lif_spike",
+        "inception",
+        "dense_block",
+        "fusion",
+        "encoder_decoder",
+        "vae",
+        "gan_generator",
+        "gan_discriminator",
+        "moe",
+        "siamese",
+        "diffusion_denoiser",
     }
 )

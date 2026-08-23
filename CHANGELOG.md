@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Architecture IR catalog 0.2.5 (zip leftovers):** ``glu``,
+  ``residual_conv``, ``conv3d``, ``hybrid_kan``, ``lif_spike``,
+  motifs (``residual_stack``, ``bottleneck``, ``inception``,
+  ``dense_block``, ``fusion``, ``message_passing_stack``) and macros
+  (``encoder_decoder``, ``vae``, ``gan_generator`` /
+  ``gan_discriminator``, ``moe``, ``siamese``, ``diffusion_denoiser``).
+  Honest torch builders. Optional ``oec[jax]`` builder (fail-closed,
+  no jax on IR import). TITAN still out. Adversarial/KL/sampler losses
+  are not this IR.
+
 ### Fixed
 
 - **ES-HyperNEAT (ADR 0048):** ``es_quadtree`` now implements the Gauci &

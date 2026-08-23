@@ -41,6 +41,16 @@ ADAPTER_SPECS = (
         experimental=False,
     ),
     BlockSpec(
+        id="global_avg_pool_3d",
+        display_name="Global Average Pool 3D",
+        family=NeuralFamily.STRUCTURAL,
+        category=BlockCategory.ADAPTER,
+        input_kinds=frozenset({TensorKind.FEATURE_MAP_3D, TensorKind.VOLUME_3D}),
+        output_kind=TensorKind.VECTOR,
+        experimental=False,
+        notes="Mean over D,H,W so conv3d can feed VECTOR blocks.",
+    ),
+    BlockSpec(
         id="sequence_pool",
         display_name="Sequence Pool",
         family=NeuralFamily.STRUCTURAL,

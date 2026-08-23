@@ -112,7 +112,7 @@ def test_manifest_rejects_invalid_graph() -> None:
 
 def test_manifest_rejects_unknown_backend() -> None:
     with pytest.raises(ArchitectureValidationError, match="backend"):
-        manifest_for_graph(_mlp_graph(), default_registry, backend="jax")
+        manifest_for_graph(_mlp_graph(), default_registry, backend="titan")
 
 
 def test_manifest_rejects_future_backend_block() -> None:
