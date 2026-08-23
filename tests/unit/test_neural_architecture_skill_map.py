@@ -44,9 +44,14 @@ def test_unknown_skill_fails_closed() -> None:
 
 
 def test_all_mapped_graphs_validate() -> None:
+    from oec.neural.architecture import validate_for_backend
+
     for skill_id in mapped_skill_ids():
-        report = graph_for_skill(skill_id).validate_graph(default_registry)
+        graph = graph_for_skill(skill_id)
+        report = graph.validate_graph(default_registry)
         assert report.valid, (skill_id, report.errors)
+        backend = validate_for_backend(graph, "torch", default_registry)
+        assert backend.valid, (skill_id, backend.errors)
 
 
 def test_mlp_classifier_translates_architectural_inputs() -> None:

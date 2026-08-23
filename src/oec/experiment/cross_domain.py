@@ -766,7 +766,7 @@ def build_root_bind_to_distribution_experiment(
 # MCP/CLI only expose this catalog (fail-closed). Helpers such as
 # sphere_problem_2d / problem_to_optimize_inputs / build_mlp_regressor_* stay out.
 # S4: public W5 evolutionary + hybrid experiment builders are catalogued here.
-# NEAT is catalogued post-3.6 (ADR 0044). HyperNEAT remains excluded.
+# NEAT / HyperNEAT / ES-HyperNEAT: ADR 0044 / 0045 / 0048.
 _CROSS_DOMAIN_BUILDER_CATALOG: dict[str, dict[str, Any]] = {
     "build_physics_kinematics_experiment": {
         "fn": build_physics_kinematics_experiment,

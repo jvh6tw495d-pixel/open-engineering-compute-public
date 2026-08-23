@@ -10,4 +10,4 @@ title: Architecture IR mutate / crossover
 
 Closed mutation (`widen`, `deepen`, `swap_activation`) and crossover
 (`one_point_chain`) over `ArchitectureGraph`. No free Python fitness,
-no TITAN. Offspring that fail `validate_graph` are rejected.
+no TITAN. Offspring that fail `validate_for_backend` are rejected.

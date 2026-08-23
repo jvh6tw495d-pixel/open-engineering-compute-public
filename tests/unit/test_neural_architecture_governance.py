@@ -77,6 +77,20 @@ def test_manifest_rejects_unsealed_registry() -> None:
         manifest_for_graph(_mlp_graph(), registry)
 
 
+def test_build_architecture_rejects_dimension_mismatch() -> None:
+    from oec.kernel.neural.architecture_build import build_architecture
+
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="a", block_id="linear", config={"in_features": 4, "out_features": 16}),
+            NodeGene(id="b", block_id="linear", config={"in_features": 8, "out_features": 2}),
+        ),
+        edges=(EdgeGene(source="a", target="b"),),
+    )
+    with pytest.raises(ArchitectureValidationError, match="dim mismatch"):
+        build_architecture(graph)
+
+
 def test_manifest_rejects_dimension_mismatch() -> None:
     graph = ArchitectureGraph(
         nodes=(

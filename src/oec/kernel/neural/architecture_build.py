@@ -17,6 +17,7 @@ from oec.kernel.neural.errors import TorchNotAvailableError
 from oec.neural.architecture import default_registry
 from oec.neural.architecture.backends import TORCH_BUILDABLE_BLOCK_IDS
 from oec.neural.architecture.errors import ArchitectureValidationError
+from oec.neural.architecture.governance import validate_for_backend
 from oec.neural.architecture.graph import ArchitectureGraph
 from oec.neural.architecture.registry import BlockRegistry
 from oec.neural.architecture.types import NeuralFamily
@@ -47,7 +48,7 @@ def build_architecture(
     if backend != "torch":
         raise ValueError(f"unsupported architecture backend {backend!r}")
     registry = registry or default_registry
-    report = graph.validate_graph(registry)
+    report = validate_for_backend(graph, backend, registry)
     if not report.valid:
         raise ArchitectureValidationError("; ".join(report.errors))
     order = _require_linear_chain(graph, registry)
