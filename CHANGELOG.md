@@ -22,23 +22,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   on import. Existing neural skills/runtime are unchanged.
 - **Architecture IR A5+A7:** ``graph_for_skill()`` maps current neural family
   skills onto the DAG; ``build_architecture(..., backend="torch")`` materializes
-  sequential graphs. KAN/GNN fail closed (no fake modules).
+  sequential graphs. KAN/GNN initially failed closed (no fake modules) —
+  superseded within this same wave once honest torch builders for both
+  landed; see the *A7 torch builders expanded* entry below.
 - **Architecture IR A6:** extra governed blocks (GEGLU, highway, depthwise/
   separable conv, squeeze-excitation, extra attention, NeuralODE/FNO/DeepONet/
   PINN motifs) with explicit ``backend_requirements``. Catalog version 0.2.1.
+- **Architecture IR named-port wiring:** ``EdgeGene.target_port``/``source_port``
+  (default ``"in"``/``"out"``); ``validate_graph`` requires every declared
+  input port of a target node to be wired exactly once (root nodes with a
+  single ``"in"`` port are exempt — they take their tensor from outside the
+  graph). ``check_connection`` now checks tensor-kind compatibility only;
+  arity is a graph-level concern. A7's builder keeps a strict linear chain
+  by default, with one exception: a node whose block declares arity > 1
+  input ports (``cross_attention``) may have indegree == arity ("named
+  joins"). ``cross_attention`` is the proof: ``transformer_encoder`` (query)
+  and ``self_attention`` (context) converge on one ``cross_attention`` join;
+  a unary wiring still fails closed.
+- **Architecture IR A7 torch builders expanded:** honest builders for ``kan``
+  (B-spline/RBF basis, no MLP+GELU stand-in), ``gcn``/``graphsage``/``gat``
+  (reusing ``oec.kernel.neural.gnn.build_gnn``; ``graph_global_pool`` now
+  actually means-over-nodes instead of ``nn.Identity``, and fails closed if
+  ``edge_index`` is missing), ``fno``/``fno_2d`` (rfft → truncated-mode
+  linear → irfft, rank-preserving), ``cross_attention``
+  (``nn.MultiheadAttention``, ``forward(query, context)``), and the honest
+  A6 extras (geglu, highway, residual_gated, depthwise/separable/dilated/
+  grouped conv, squeeze_excitation, self_attention, swiglu, residual_mlp,
+  vector_to_sequence, tcn). ``local_attention``, ``linear_attention``,
+  ``neural_ode``, ``deeponet``, ``pinn_motif`` remain fail-closed — no torch
+  builder, no ``nn.Identity`` stand-in.
+- **Architecture IR A5 hidden_dims N-layer chain:**
+  ``graph_for_skill("neural.mlp.*")`` expands a multi-width ``hidden_dims``
+  into an honest N-layer ``linear`` chain (per-layer activation, last layer
+  a plain projection) instead of squashing to the first width on a single
+  ``mlp`` block; a single hidden width still uses one ``mlp`` block.
+  Multi-width autoencoders reflect every declared width in the
+  encoder/decoder chain instead of silently dropping the extras.
+- **Architecture IR A8 governance:** ``oec.neural.architecture.governance``
+  adds ``ArchitectureManifest`` (graph fingerprint, registry version,
+  catalog hash, a closed ``compatibility_version`` constant, backend,
+  experimental block ids used, optional ``created_at``, closed-key
+  ``ArchitectureProvenance``) via ``manifest_for_graph()``, and
+  ``audit_catalog()`` — duplicate ids, experimental blocks missing
+  ``backend_requirements``, unknown parameter kinds, an unsealed registry,
+  missing ``input_ports``, plus an experimental/stable id partition.
+  ``compatibility_version`` is part of the fingerprint's canonical payload;
+  catalog bumped 0.2.1 → 0.2.2 for the payload change. Same graph + same
+  sealed catalog still → same fingerprint.
+- **Architecture IR NAS (not TITAN):**
+  ``oec.neural.architecture.search.search_graphs()`` is a core-safe,
+  IR-governed search over a closed candidate family (sequential
+  MLP/CNN1d/LSTM graphs, widths/depths from a closed, runtime-validated list
+  of ints); every candidate is validated against the catalog. The objective
+  is closed and built-in only — a static parameter-count estimate. There is
+  no caller-supplied fitness callback of any kind: the search never executes
+  arbitrary Python to score a candidate, and never imports torch itself.
+  Independent of ``neural.search_architecture`` (ADR 0033's hybrid
+  evolutionary training-facet search, unchanged); no mutation/crossover
+  operators.
 
 ### Fixed
 
 - **Architecture IR fail-closed (Sol audit):** unknown ``NeuralFamily`` raises
   ``UnknownFamilyError``; ``NodeGene.config`` is validated against
   ``BlockParameterSpec`` (unknown keys, missing required, type/range/choices);
-  A7 ``build_architecture`` accepts only a strict linear chain (empty, forks,
-  joins, skips and disconnected graphs fail closed) and rejects blocks without
-  a torch builder before importing torch.
+  A7 ``build_architecture`` accepts a strict linear chain (empty, forks,
+  skips and disconnected graphs fail closed) with one named-join exception
+  for arity>1 (``cross_attention``); blocks without a torch builder fail
+  closed before importing torch.
 - **Architecture IR majors (Sol audit):** fingerprint is JSON-finite and
   default-normalized and includes catalog hash; ``default_registry`` is sealed;
   A5 translates architectural skill fields; GEGLU/FNO/cross-attention tensor
   contracts match rank/arity; ADR 0047 records A5–A7.
+- **Architecture IR A8 majors (Sol audit round 2):** ``search_graphs()`` no
+  longer accepts a caller-supplied fitness callback of any kind; the LSTM
+  parameter estimate now counts both bias vectors per layer (``bias_ih`` and
+  ``bias_hh``). ``manifest_for_graph()`` and ``audit_catalog()`` are now
+  actually fail-closed — unsealed registry, invalid graph, unknown backend,
+  and an experimental block missing ``backend_requirements`` are hard errors,
+  not warnings. ``BlockSpec.output_ports`` closes ``EdgeGene.source_port``: an
+  unknown ``source_port`` fails closed instead of silently matching (catalog
+  bumped 0.2.2 → 0.2.3). ``output_ports`` is locked to ``('out',)`` until a
+  multi-output protocol exists. ``manifest_for_graph(backend='torch')``
+  refuses blocks whose ``backend_requirements`` exclude torch or that have
+  no A7 builder (e.g. ``neural_ode``). GNN blocks now receive ``edge_index`` at every
+  position in a chain, not only at the root. ``d_model``/``nhead`` mismatches
+  fail closed in the IR before torch is imported. ``fno``/``fno_2d`` reject
+  wrong-rank input explicitly instead of raising an opaque torch error.
 
 ### Changed
 

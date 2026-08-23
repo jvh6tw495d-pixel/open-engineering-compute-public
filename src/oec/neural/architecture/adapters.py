@@ -56,6 +56,7 @@ ADAPTER_SPECS = (
         category=BlockCategory.ADAPTER,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.SEQUENCE,
+        experimental=False,
     ),
     BlockSpec(
         id="graph_global_pool",

@@ -11,6 +11,14 @@ from oec.neural.architecture.errors import (
     UnknownBlockError,
     UnknownFamilyError,
 )
+from oec.neural.architecture.governance import (
+    COMPATIBILITY_VERSION,
+    ArchitectureManifest,
+    ArchitectureProvenance,
+    CatalogAuditReport,
+    audit_catalog,
+    manifest_for_graph,
+)
 from oec.neural.architecture.graph import (
     ArchitectureGraph,
     ArchitectureValidationReport,
@@ -24,14 +32,18 @@ from oec.neural.architecture.taxonomy import ArchitectureActivationName, MotifNa
 from oec.neural.architecture.types import BlockCategory, NeuralFamily, TensorKind
 
 __all__ = [
+    "COMPATIBILITY_VERSION",
     "ArchitectureActivationName",
     "ArchitectureGraph",
+    "ArchitectureManifest",
+    "ArchitectureProvenance",
     "ArchitectureValidationError",
     "ArchitectureValidationReport",
     "BlockCategory",
     "BlockParameterSpec",
     "BlockRegistry",
     "BlockSpec",
+    "CatalogAuditReport",
     "CompatibilityResult",
     "DuplicateBlockError",
     "EdgeGene",
@@ -42,9 +54,11 @@ __all__ = [
     "TensorKind",
     "UnknownBlockError",
     "UnknownFamilyError",
+    "audit_catalog",
     "check_connection",
     "default_registry",
     "graph_for_skill",
     "make_default_registry",
+    "manifest_for_graph",
     "mapped_skill_ids",
 ]

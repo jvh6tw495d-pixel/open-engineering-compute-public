@@ -18,6 +18,8 @@ from oec.neural.architecture.errors import (
 )
 from oec.neural.architecture.registry import BlockRegistry
 
+ARCHITECTURE_COMPATIBILITY_VERSION = "1.0"
+
 
 class FrozenConfig(dict[str, Any]):
     """JSON-finite node config that rejects in-place mutation."""
@@ -76,6 +78,8 @@ class EdgeGene(BaseModel):
 
     source: str
     target: str
+    source_port: str = "out"
+    target_port: str = "in"
 
 
 class ArchitectureValidationReport(BaseModel):
@@ -168,6 +172,12 @@ class ArchitectureGraph(BaseModel):
                 target_spec = registry.get(node_map[edge.target].block_id)
             except UnknownBlockError:
                 continue
+            if edge.source_port not in source_spec.output_ports:
+                errors.append(
+                    f"edge {edge.source}->{edge.target} has unknown source_port "
+                    f"{edge.source_port!r}; block {source_spec.id!r} declares "
+                    f"output_ports={list(source_spec.output_ports)}"
+                )
             result = check_connection(source_spec, target_spec, registry)
             if not result.compatible:
                 suffix = ""
@@ -177,6 +187,8 @@ class ArchitectureGraph(BaseModel):
                     f"incompatible edge {edge.source}->{edge.target}: {result.reason}{suffix}"
                 )
 
+        errors.extend(self._port_wiring_errors(node_map, registry))
+
         if not self._is_dag():
             errors.append("architecture graph is not a valid DAG")
 
@@ -185,6 +197,46 @@ class ArchitectureGraph(BaseModel):
             errors=tuple(errors),
             warnings=tuple(sorted(set(warnings))),
         )
+
+    def _port_wiring_errors(
+        self, node_map: dict[str, NodeGene], registry: BlockRegistry
+    ) -> list[str]:
+        """Every declared input port of a target node must be wired exactly once.
+
+        A node with zero incoming edges and a single ("in") port is a graph
+        root that receives its tensor from outside the graph, so it is exempt.
+        A node with arity > 1 (named joins, e.g. cross_attention) is never
+        exempt: all of its ports must come from graph edges.
+        """
+        incoming: dict[str, list[EdgeGene]] = {}
+        for edge in self.edges:
+            incoming.setdefault(edge.target, []).append(edge)
+
+        errors: list[str] = []
+        for node_id, node in node_map.items():
+            try:
+                spec = registry.get(node.block_id)
+            except UnknownBlockError:
+                continue
+            expected_ports = spec.input_ports
+            edges_in = incoming.get(node_id, [])
+            if not edges_in and len(expected_ports) <= 1:
+                continue
+            port_counts: dict[str, int] = {}
+            for edge in edges_in:
+                port_counts[edge.target_port] = port_counts.get(edge.target_port, 0) + 1
+            missing = [port for port in expected_ports if port not in port_counts]
+            extra = sorted(port for port in port_counts if port not in expected_ports)
+            duplicate = sorted(
+                port for port, count in port_counts.items() if count > 1 and port in expected_ports
+            )
+            if missing:
+                errors.append(f"node {node_id} is missing wiring for ports {missing}")
+            if extra:
+                errors.append(f"node {node_id} has edges to unknown ports {extra}")
+            if duplicate:
+                errors.append(f"node {node_id} has ports wired more than once: {duplicate}")
+        return errors
 
     def canonical_dict(self, registry: BlockRegistry | None = None) -> dict[str, Any]:
         if registry is None:
@@ -202,12 +254,21 @@ class ArchitectureGraph(BaseModel):
             nodes.append({"id": node.id, "block_id": node.block_id, "config": config})
         return {
             "version": self.version,
+            "compatibility_version": ARCHITECTURE_COMPATIBILITY_VERSION,
             "registry_version": registry.version,
             "catalog_hash": registry.catalog_hash(),
             "nodes": nodes,
             "edges": [
-                {"source": edge.source, "target": edge.target}
-                for edge in sorted(self.edges, key=lambda item: (item.source, item.target))
+                {
+                    "source": edge.source,
+                    "target": edge.target,
+                    "source_port": edge.source_port,
+                    "target_port": edge.target_port,
+                }
+                for edge in sorted(
+                    self.edges,
+                    key=lambda item: (item.source, item.target, item.source_port, item.target_port),
+                )
             ],
         }
 

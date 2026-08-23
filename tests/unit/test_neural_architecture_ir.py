@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import subprocess
+import sys
+
 import pytest
 from pydantic import ValidationError
 
 from oec.neural.architecture import (
     ArchitectureGraph,
+    BlockCategory,
+    BlockSpec,
     DuplicateBlockError,
     EdgeGene,
     NeuralFamily,
@@ -25,7 +30,24 @@ def test_import_does_not_require_torch() -> None:
     import oec.neural.architecture as arch
 
     assert "torch" not in getattr(arch, "__dict__", {})
-    assert arch.default_registry.version == "0.2.1"
+    assert arch.default_registry.version == "0.2.3"
+
+
+def test_architecture_import_does_not_load_torch_in_clean_process() -> None:
+    code = (
+        "import sys; "
+        "assert 'torch' not in sys.modules; "
+        "import oec.neural.architecture as arch; "
+        "assert 'torch' not in sys.modules; "
+        "assert 'torch' not in arch.__dict__"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_default_registry_has_expected_families() -> None:
@@ -119,11 +141,37 @@ def test_config_type_and_range_fail_closed() -> None:
         assert any(needle in error for error in report.errors)
 
 
+def test_attention_head_split_mismatch_fails_closed_before_torch() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(
+                id="t",
+                block_id="transformer_encoder",
+                config={"d_model": 10, "nhead": 3, "dim_feedforward": 16, "num_layers": 1},
+            ),
+        ),
+        edges=(),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("nhead" in error for error in report.errors)
+
+
+def test_attention_head_exceeding_d_model_fails_closed() -> None:
+    graph = ArchitectureGraph(
+        nodes=(NodeGene(id="s", block_id="self_attention", config={"d_model": 4, "nhead": 8}),),
+        edges=(),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("nhead" in error for error in report.errors)
+
+
 def test_snapshot_is_sorted_and_serializable() -> None:
     snap = default_registry.snapshot()
     ids = [row["id"] for row in snap.blocks]
     assert ids == sorted(ids)
-    assert snap.version == "0.2.1"
+    assert snap.version == "0.2.3"
 
 
 def test_conv2d_to_kan_requires_adapter() -> None:
@@ -275,6 +323,50 @@ def test_default_registry_is_sealed() -> None:
     assert not cloned.sealed
     with pytest.raises(DuplicateBlockError):
         cloned.register(spec)
+
+
+def test_unknown_source_port_fails_closed() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="a", block_id="mlp"),
+            NodeGene(id="b", block_id="mlp"),
+        ),
+        edges=(EdgeGene(source="a", target="b", source_port="inexistente"),),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("source_port" in error for error in report.errors)
+
+
+def test_output_ports_locked_to_out() -> None:
+    with pytest.raises(ValidationError, match="output_ports"):
+        BlockSpec(
+            id="two_outs",
+            display_name="Two Outs",
+            family=NeuralFamily.FEEDFORWARD,
+            category=BlockCategory.BLOCK,
+            input_kinds=frozenset({TensorKind.VECTOR}),
+            output_kind=TensorKind.VECTOR,
+            output_ports=("left", "right"),
+        )
+
+
+def test_default_source_port_is_valid() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="a", block_id="mlp"),
+            NodeGene(id="b", block_id="mlp"),
+        ),
+        edges=(EdgeGene(source="a", target="b"),),
+    )
+    report = graph.validate_graph(default_registry)
+    assert report.valid, report.errors
+
+
+def test_snapshot_includes_sorted_output_ports() -> None:
+    snap = default_registry.snapshot()
+    row = next(r for r in snap.blocks if r["id"] == "linear")
+    assert row["output_ports"] == ["out"]
 
 
 def test_orphan_nodes_fail_validation() -> None:
