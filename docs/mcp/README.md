@@ -119,7 +119,7 @@ run another agent first and pass its result's `execution` back in.
    extras accurate). Helpers and non-catalog factories remain rejected by
    `experiment.run`.
 10. **NEAT** is available post-3.6 (ADR 0044) as `evolutionary.neat` +
-    `build_neat_experiment`. **HyperNEAT** stays excluded.
+    `build_neat_experiment`. **HyperNEAT / ES-HyperNEAT** are ADR 0045/0048.
 
 ### S5 (VLM MVP, delivered)
 
@@ -127,8 +127,9 @@ run another agent first and pass its result's `execution` back in.
 
 ### S6 release-gate status
 
-The code baseline is `3.6.0`: S0–S5 are implemented. Post-3.6 NEAT (ADR 0044)
-brings the live catalog to **153 skills / 28 domains / 6 foundation skills**.
+The 3.6 DoD freeze is `3.6.0`. Post-3.6 cuts on this tree include NEAT,
+HyperNEAT/ES-HyperNEAT, Architecture IR, and runtime **3.6.2**. S0–S5 are
+implemented. The live catalog is larger than the 3.6 freeze.
 S6 adds a scheduled/manual optional-extras CI gate for
 neural, evolutionary, and foundation markers. This is local release-readiness work only:
 no tag, remote push, or published package is claimed.

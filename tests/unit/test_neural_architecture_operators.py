@@ -131,6 +131,16 @@ def test_crossover_rejects_family_mix() -> None:
         crossover_graphs(_linear_chain(), conv)
 
 
+def test_validate_for_backend_allows_runtime_shaped_adapters() -> None:
+    from oec.neural.architecture.skill_map import graph_for_skill
+
+    cnn = graph_for_skill("neural.cnn1d")
+    report = validate_for_backend(cnn, "torch", default_registry)
+    assert report.valid, report.errors
+    gat = graph_for_skill("neural.gat")
+    assert validate_for_backend(gat, "torch", default_registry).valid, gat
+
+
 def test_validate_for_backend_rejects_fork() -> None:
     forked = ArchitectureGraph(
         nodes=(

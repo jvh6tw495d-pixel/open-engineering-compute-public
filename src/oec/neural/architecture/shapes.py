@@ -1,10 +1,9 @@
 """Closed per-block feature-dim signatures (ADR 0047). Core-safe, no torch.
 
 An edge is dimensionally proven when both endpoints declare a feature-dim
-key and the integers match. Adapters without a dim key (flatten, pools)
-are runtime-shaped: they do not prove or refute a number. A declared dim
-on one side and a missing dim on the other is unprovable and fails closed
-when the missing side is a block that *has* a signature (miswired port).
+key and the integers match. If either endpoint has no signature (flatten,
+pools, other adapters), the edge is runtime-shaped and is not proven or
+refuted here. A declared key whose config integer is missing still fails.
 """
 
 from __future__ import annotations
@@ -125,16 +124,11 @@ def edge_dim_error(
 ) -> str | None:
     out_key = output_dim_key(source.block_id, edge.source_port)
     in_key = input_dim_key(target.block_id, edge.target_port)
+    if out_key is None or in_key is None:
+        # Adapter / pool / flatten: runtime-shaped. No integer to prove.
+        return None
     out_dim = _int_config(source.config, out_key)
     in_dim = _int_config(target.config, in_key)
-    if out_key is None and in_key is None:
-        return None
-    if out_key is None or in_key is None:
-        missing = "source output" if out_key is None else "target input"
-        return (
-            f"unprovable dim on {edge.source}->{edge.target} "
-            f"(port {edge.target_port}): {missing} has no feature-dim signature"
-        )
     if out_dim is None or in_dim is None:
         return (
             f"unprovable dim on {edge.source}->{edge.target}: "

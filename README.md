@@ -8,7 +8,7 @@
 
 # Open Engineering Compute (OEC)
 
-> **Status:** **`oec==3.6.0` Scientific AI Completion code baseline** (S0–S5 complete; S6 release gate/CI pending).
+> **Status:** git cut **3.6.2** (Scientific AI 3.6 freeze remains `v3.6.0-scientific-ai`; do not move that tag). S0–S5 complete; PyPI upload deferred.
 > Skill catalog: **151** skills / **28** domains, including **6 foundation** skills (extras optional).
 > Framework notes: [FRAMEWORK-3.5.0.md](docs/release/FRAMEWORK-3.5.0.md).
 > Scientific AI completion (3.6): [SCIENTIFIC-AI-3.6.md](docs/release/SCIENTIFIC-AI-3.6.md).
