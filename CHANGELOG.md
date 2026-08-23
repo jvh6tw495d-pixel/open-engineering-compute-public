@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Architecture IR fail-closed (Sol audit):** unknown ``NeuralFamily`` raises
+  ``UnknownFamilyError``; ``NodeGene.config`` is validated against
+  ``BlockParameterSpec`` (unknown keys, missing required, type/range/choices);
+  A7 ``build_architecture`` accepts only a strict linear chain (empty, forks,
+  joins, skips and disconnected graphs fail closed) and rejects blocks without
+  a torch builder before importing torch.
+
 ### Changed
 
 ## [3.6.1] - 2026-08-17

@@ -1,7 +1,7 @@
 """Build a torch.nn.Module from ArchitectureGraph (ADR 0047 wave A7).
 
 Torch is imported only inside ``build_architecture``. The architecture IR
-package stays core-safe.
+package stays core-safe. A7 materializes a strict linear chain only.
 """
 
 from __future__ import annotations
@@ -14,17 +14,23 @@ from oec.neural.architecture.errors import ArchitectureValidationError
 from oec.neural.architecture.graph import ArchitectureGraph
 from oec.neural.architecture.registry import BlockRegistry
 
-_UNSUPPORTED = frozenset(
+_TORCH_BUILDERS = frozenset(
     {
-        "kan",
-        "gcn",
-        "graphsage",
-        "gat",
-        "swiglu",
-        "residual_mlp",
-        "self_attention",
-        "tcn",
-        "vector_to_sequence",
+        "linear",
+        "mlp",
+        "encoder",
+        "decoder",
+        "flatten",
+        "global_avg_pool_1d",
+        "global_avg_pool_2d",
+        "sequence_pool",
+        "conv1d",
+        "conv2d",
+        "lstm",
+        "gru",
+        "transformer_encoder",
+        "graph_global_pool",
+        "graph_embedding_to_vector",
     }
 )
 
@@ -46,64 +52,84 @@ def build_architecture(
     *,
     backend: str = "torch",
 ) -> Any:
-    """Materialize a sequential DAG. Branched graphs and KAN/GNN fail closed."""
+    """Materialize a strict linear chain. Forks, joins, and KAN/GNN fail closed."""
     if backend != "torch":
         raise ValueError(f"unsupported architecture backend {backend!r}")
     registry = registry or default_registry
     report = graph.validate_graph(registry)
     if not report.valid:
         raise ArchitectureValidationError("; ".join(report.errors))
-    torch, nn = _require_torch()
-    order = _topo_order(graph)
-    modules: dict[str, Any] = {}
+    order = _require_linear_chain(graph)
+    node_map = {node.id: node for node in graph.nodes}
     for node_id in order:
-        node = next(n for n in graph.nodes if n.id == node_id)
-        if node.block_id in _UNSUPPORTED:
+        block_id = node_map[node_id].block_id
+        if block_id not in _TORCH_BUILDERS:
             raise ArchitectureValidationError(
-                f"block {node.block_id!r} has no torch builder in A7 "
+                f"block {block_id!r} has no torch builder in A7 "
                 f"(missing backend or not in this wave)"
             )
-        modules[node_id] = _build_block(nn, node.block_id, dict(node.config))
-    return _graph_sequential(nn, graph, order, modules)
+    torch, nn = _require_torch()
+    modules: dict[str, Any] = {}
+    for node_id in order:
+        node = node_map[node_id]
+        spec = registry.get(node.block_id)
+        modules[node_id] = _build_block(nn, node.block_id, spec.validate_config(node.config))
+    return _graph_sequential(nn, order, modules)
 
 
-def _topo_order(graph: ArchitectureGraph) -> list[str]:
+def _require_linear_chain(graph: ArchitectureGraph) -> list[str]:
     ids = [node.id for node in graph.nodes]
-    indegree = {node_id: 0 for node_id in ids}
-    outgoing: dict[str, list[str]] = {node_id: [] for node_id in ids}
+    if not ids:
+        raise ArchitectureValidationError("empty architecture graph is not supported in A7")
     incoming: dict[str, list[str]] = {node_id: [] for node_id in ids}
+    outgoing: dict[str, list[str]] = {node_id: [] for node_id in ids}
     for edge in graph.edges:
+        if edge.source not in incoming or edge.target not in incoming:
+            raise ArchitectureValidationError(
+                f"unknown edge {edge.source}->{edge.target} in A7 linear chain"
+            )
         outgoing[edge.source].append(edge.target)
         incoming[edge.target].append(edge.source)
-        indegree[edge.target] += 1
     if any(len(srcs) > 1 for srcs in incoming.values()):
         raise ArchitectureValidationError("branched graphs are not supported in A7")
-    queue = [node_id for node_id, deg in indegree.items() if deg == 0]
+    if any(len(dsts) > 1 for dsts in outgoing.values()):
+        raise ArchitectureValidationError("forked graphs are not supported in A7")
+    if len(graph.edges) != len(ids) - 1:
+        raise ArchitectureValidationError("architecture graph is not a linear chain in A7")
+    roots = [node_id for node_id, srcs in incoming.items() if not srcs]
+    sinks = [node_id for node_id, dsts in outgoing.items() if not dsts]
+    if len(roots) != 1 or len(sinks) != 1:
+        raise ArchitectureValidationError("architecture graph is not a linear chain in A7")
     order: list[str] = []
-    while queue:
-        current = queue.pop(0)
+    current = roots[0]
+    seen: set[str] = set()
+    while True:
+        if current in seen:
+            raise ArchitectureValidationError("architecture graph is not a valid DAG")
+        seen.add(current)
         order.append(current)
-        for nxt in outgoing[current]:
-            indegree[nxt] -= 1
-            if indegree[nxt] == 0:
-                queue.append(nxt)
+        nxts = outgoing[current]
+        if not nxts:
+            break
+        current = nxts[0]
     if len(order) != len(ids):
-        raise ArchitectureValidationError("architecture graph is not a valid DAG")
+        raise ArchitectureValidationError("disconnected architecture graph is not supported in A7")
     return order
 
 
 def _build_block(nn: Any, block_id: str, config: dict[str, Any]) -> Any:
     if block_id in {"linear", "mlp"}:
-        in_f = int(config.get("in_features") or config.get("input_dim") or 8)
-        hidden = int(config.get("hidden_dim") or config.get("out_features") or 16)
-        out_f = int(config.get("out_features") or config.get("output_dim") or hidden)
+        in_f = int(config["in_features"])
+        hidden = int(config["hidden_dim"]) if block_id == "mlp" else in_f
+        out_f = int(config["out_features"]) if "out_features" in config else hidden
         if block_id == "linear":
-            return nn.Linear(in_f, int(config.get("out_features") or out_f))
+            return nn.Linear(in_f, out_f, bias=bool(config.get("bias", True)))
         return nn.Sequential(nn.Linear(in_f, hidden), nn.GELU(), nn.Linear(hidden, out_f))
     if block_id in {"encoder", "decoder"}:
-        in_f = int(config.get("in_features") or 8)
-        out_f = int(config.get("out_features") or 4)
-        return nn.Sequential(nn.Linear(in_f, out_f), nn.GELU())
+        return nn.Sequential(
+            nn.Linear(int(config["in_features"]), int(config["out_features"])),
+            nn.GELU(),
+        )
     if block_id == "flatten":
         return nn.Flatten()
     if block_id == "global_avg_pool_1d":
@@ -114,31 +140,30 @@ def _build_block(nn: Any, block_id: str, config: dict[str, Any]) -> Any:
         return _sequence_pool(nn)
     if block_id == "conv1d":
         return nn.Conv1d(
-            int(config.get("in_channels") or 1),
-            int(config.get("out_channels") or 8),
-            kernel_size=int(config.get("kernel_size") or 3),
+            int(config["in_channels"]),
+            int(config["out_channels"]),
+            kernel_size=int(config["kernel_size"]),
             padding=1,
         )
     if block_id == "conv2d":
         return nn.Conv2d(
-            int(config.get("in_channels") or 1),
-            int(config.get("out_channels") or 8),
-            kernel_size=int(config.get("kernel_size") or 3),
+            int(config["in_channels"]),
+            int(config["out_channels"]),
+            kernel_size=int(config["kernel_size"]),
             padding=1,
         )
     if block_id in {"lstm", "gru"}:
-        hidden = int(config.get("hidden_dim") or 16)
+        hidden = int(config["hidden_dim"])
         cls = nn.LSTM if block_id == "lstm" else nn.GRU
-        return cls(int(config.get("input_size") or 8), hidden, batch_first=True)
+        return cls(int(config["input_size"]), hidden, batch_first=True)
     if block_id == "transformer_encoder":
-        d_model = int(config.get("d_model") or 16)
         layer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=int(config.get("nhead") or 2),
-            dim_feedforward=int(config.get("dim_feedforward") or 32),
+            d_model=int(config["d_model"]),
+            nhead=int(config["nhead"]),
+            dim_feedforward=int(config["dim_feedforward"]),
             batch_first=True,
         )
-        return nn.TransformerEncoder(layer, num_layers=int(config.get("num_layers") or 1))
+        return nn.TransformerEncoder(layer, num_layers=int(config["num_layers"]))
     if block_id in {"graph_global_pool", "graph_embedding_to_vector"}:
         return nn.Identity()
     raise ArchitectureValidationError(f"no torch builder for block {block_id!r}")
@@ -170,7 +195,6 @@ def _sequence_pool(nn: Any) -> Any:
 
 def _graph_sequential(
     nn: Any,
-    graph: ArchitectureGraph,
     order: list[str],
     modules: dict[str, Any],
 ) -> Any:
@@ -178,23 +202,17 @@ def _graph_sequential(
         def __init__(self) -> None:
             super().__init__()
             self._order = list(order)
-            incoming: dict[str, list[str]] = {node.id: [] for node in graph.nodes}
-            for edge in graph.edges:
-                incoming[edge.target].append(edge.source)
-            self._incoming = incoming
             for node_id, module in modules.items():
                 self.add_module(node_id, module)
 
         def forward(self, x: Any) -> Any:
-            values: dict[str, Any] = {}
+            current = x
             for node_id in self._order:
-                srcs = self._incoming[node_id]
-                inp = x if not srcs else values[srcs[0]]
                 module = getattr(self, node_id)
-                out = module(inp) if not isinstance(module, tuple) else module[0](inp)
+                out = module(current) if not isinstance(module, tuple) else module[0](current)
                 if isinstance(out, tuple):
                     out = out[0]
-                values[node_id] = out
-            return values[self._order[-1]]
+                current = out
+            return current
 
     return GraphSequential()

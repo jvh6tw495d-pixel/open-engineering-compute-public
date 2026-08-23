@@ -8,6 +8,7 @@ from oec.neural.architecture.errors import (
     ArchitectureValidationError,
     DuplicateBlockError,
     UnknownBlockError,
+    UnknownFamilyError,
 )
 from oec.neural.architecture.graph import (
     ArchitectureGraph,
@@ -38,6 +39,7 @@ __all__ = [
     "NodeGene",
     "TensorKind",
     "UnknownBlockError",
+    "UnknownFamilyError",
     "check_connection",
     "default_registry",
     "graph_for_skill",

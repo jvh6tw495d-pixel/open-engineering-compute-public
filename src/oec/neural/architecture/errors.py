@@ -9,6 +9,10 @@ class UnknownBlockError(OECError):
     default_code = "unknown_architecture_block"
 
 
+class UnknownFamilyError(OECError):
+    default_code = "unknown_architecture_family"
+
+
 class DuplicateBlockError(OECError):
     default_code = "duplicate_architecture_block"
 

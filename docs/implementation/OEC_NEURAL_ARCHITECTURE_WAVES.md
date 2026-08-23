@@ -238,6 +238,10 @@ Architecture IR continua importável sem torch.
 
 `torch` só é requerido no builder.
 
+A7 aceita somente **cadeia linear estrita** (um root, um sink, `edges == nodes - 1`,
+sem forks/joins/componentes desconectados). Grafos ramificados falham fechado.
+Blocos sem builder (KAN/GNN/A6 extras) falham fechado **antes** do import torch.
+
 ---
 
 ## Wave A8 — Governance
