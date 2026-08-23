@@ -93,6 +93,10 @@ class ArchitectureGraph(BaseModel):
                 continue
             if spec.experimental:
                 warnings.append(f"experimental block: {node.block_id}")
+            try:
+                spec.validate_config(node.config)
+            except ArchitectureValidationError as exc:
+                errors.append(exc.message)
 
         for edge in self.edges:
             if edge.source not in node_map:

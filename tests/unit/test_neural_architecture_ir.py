@@ -12,6 +12,7 @@ from oec.neural.architecture import (
     NodeGene,
     TensorKind,
     UnknownBlockError,
+    UnknownFamilyError,
     check_connection,
     default_registry,
 )
@@ -51,8 +52,68 @@ def test_duplicate_registration_fails() -> None:
 
 
 def test_unknown_block_fails_closed() -> None:
-    with pytest.raises(UnknownBlockError):
+    with pytest.raises(UnknownBlockError) as exc:
         default_registry.get("not_a_block")
+    assert exc.value.code == "unknown_architecture_block"
+
+
+def test_unknown_family_string_fails_closed() -> None:
+    with pytest.raises(UnknownFamilyError) as exc:
+        default_registry.by_family("unknown")
+    assert exc.value.code == "unknown_architecture_family"
+    assert exc.value.details["family"] == "unknown"
+
+
+def test_unknown_family_wrong_type_fails_closed() -> None:
+    with pytest.raises(UnknownFamilyError) as exc:
+        default_registry.by_family(123)
+    assert exc.value.code == "unknown_architecture_family"
+    assert exc.value.details["type"] == "int"
+
+
+def test_known_family_without_blocks_is_empty() -> None:
+    assert default_registry.by_family(NeuralFamily.SPIKING) == ()
+    assert default_registry.by_family("feedforward")
+
+
+def test_missing_required_parameter_fails_closed() -> None:
+    graph = ArchitectureGraph(nodes=(NodeGene(id="lin", block_id="linear"),), edges=())
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("out_features" in error for error in report.errors)
+
+
+def test_unknown_config_key_fails_closed() -> None:
+    graph = ArchitectureGraph(
+        nodes=(NodeGene(id="mlp", block_id="mlp", config={"typo_dim": 4}),),
+        edges=(),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("unknown config keys" in error for error in report.errors)
+
+
+def test_config_type_and_range_fail_closed() -> None:
+    wrong_type = ArchitectureGraph(
+        nodes=(NodeGene(id="mlp", block_id="mlp", config={"hidden_dim": "wide"}),),
+        edges=(),
+    )
+    too_small = ArchitectureGraph(
+        nodes=(NodeGene(id="mlp", block_id="mlp", config={"hidden_dim": 1}),),
+        edges=(),
+    )
+    bad_choice = ArchitectureGraph(
+        nodes=(NodeGene(id="mlp", block_id="mlp", config={"activation": "not_an_act"}),),
+        edges=(),
+    )
+    for graph, needle in (
+        (wrong_type, "must be int"),
+        (too_small, "below minimum"),
+        (bad_choice, "not in choices"),
+    ):
+        report = graph.validate_graph(default_registry)
+        assert not report.valid
+        assert any(needle in error for error in report.errors)
 
 
 def test_snapshot_is_sorted_and_serializable() -> None:

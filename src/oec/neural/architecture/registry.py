@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from oec.neural.architecture.errors import DuplicateBlockError, UnknownBlockError
+from oec.neural.architecture.errors import (
+    DuplicateBlockError,
+    UnknownBlockError,
+    UnknownFamilyError,
+)
 from oec.neural.architecture.specs import BlockSpec, RegistrySnapshot
 from oec.neural.architecture.types import NeuralFamily, TensorKind
 
@@ -32,8 +36,9 @@ class BlockRegistry:
     def list(self) -> tuple[BlockSpec, ...]:
         return tuple(self._blocks[key] for key in sorted(self._blocks))
 
-    def by_family(self, family: NeuralFamily) -> tuple[BlockSpec, ...]:
-        return tuple(spec for spec in self.list() if spec.family == family)
+    def by_family(self, family: object) -> tuple[BlockSpec, ...]:
+        resolved = _require_family(family)
+        return tuple(spec for spec in self.list() if spec.family == resolved)
 
     def compatible_blocks(
         self,
@@ -58,3 +63,20 @@ class BlockRegistry:
             payload["capabilities"] = sorted(payload["capabilities"])
             blocks.append(payload)
         return RegistrySnapshot(version=self.version, blocks=tuple(blocks))
+
+
+def _require_family(family: object) -> NeuralFamily:
+    if isinstance(family, NeuralFamily):
+        return family
+    if isinstance(family, str):
+        try:
+            return NeuralFamily(family)
+        except ValueError as exc:
+            raise UnknownFamilyError(
+                f"unknown neural family: {family!r}",
+                details={"family": family},
+            ) from exc
+    raise UnknownFamilyError(
+        f"unknown neural family: {family!r}",
+        details={"family": repr(family), "type": type(family).__name__},
+    )

@@ -16,6 +16,7 @@ BASE_BLOCKS = (
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
         parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="out_features", kind="int", required=True, minimum=1),
             BlockParameterSpec(name="bias", kind="bool", default=True),
         ),
@@ -30,7 +31,9 @@ BASE_BLOCKS = (
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
         parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="hidden_dim", kind="int", default=128, minimum=8),
+            BlockParameterSpec(name="out_features", kind="int", minimum=1),
             BlockParameterSpec(
                 name="activation",
                 kind="enum",
@@ -67,6 +70,11 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.IMAGE_1D, TensorKind.FEATURE_MAP_1D}),
         output_kind=TensorKind.FEATURE_MAP_1D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="out_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
+        ),
         capabilities=frozenset({"local_receptive_field"}),
         experimental=False,
     ),
@@ -77,7 +85,13 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.IMAGE_2D, TensorKind.FEATURE_MAP_2D}),
         output_kind=TensorKind.FEATURE_MAP_2D,
+        parameters=(
+            BlockParameterSpec(name="in_channels", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="out_channels", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
+        ),
         capabilities=frozenset({"local_receptive_field"}),
+        experimental=False,
     ),
     BlockSpec(
         id="lstm",
@@ -86,6 +100,10 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+        ),
         capabilities=frozenset({"recurrent", "gated"}),
         experimental=False,
     ),
@@ -96,6 +114,10 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+        ),
         capabilities=frozenset({"recurrent", "gated"}),
         experimental=False,
     ),
@@ -125,6 +147,12 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="d_model", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="nhead", kind="int", default=2, minimum=1),
+            BlockParameterSpec(name="dim_feedforward", kind="int", default=32, minimum=1),
+            BlockParameterSpec(name="num_layers", kind="int", default=1, minimum=1),
+        ),
         capabilities=frozenset({"attention", "residual", "feedforward"}),
         experimental=False,
     ),
@@ -186,6 +214,10 @@ BASE_BLOCKS = (
         category=BlockCategory.MOTIF,
         input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.LATENT,
+        parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="out_features", kind="int", default=4, minimum=1),
+        ),
         capabilities=frozenset({"representation_learning"}),
         experimental=False,
     ),
@@ -196,6 +228,10 @@ BASE_BLOCKS = (
         category=BlockCategory.MOTIF,
         input_kinds=frozenset({TensorKind.LATENT}),
         output_kind=TensorKind.VECTOR,
+        parameters=(
+            BlockParameterSpec(name="in_features", kind="int", default=8, minimum=1),
+            BlockParameterSpec(name="out_features", kind="int", default=4, minimum=1),
+        ),
         capabilities=frozenset({"reconstruction"}),
         experimental=False,
     ),
