@@ -187,6 +187,9 @@ class NeatFitnessName(StrEnum):
     TABULAR_CLASSIFICATION = "tabular_classification"
 
 
+MAX_NEAT_CLASSES = 16
+
+
 class NeatProblemSpec(BaseModel):
     """NEAT problem: closed fitness + optional tabular arrays."""
 
@@ -195,6 +198,39 @@ class NeatProblemSpec(BaseModel):
     fitness: NeatFitnessName
     x: list[list[float]] | None = None
     y: list[float] | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _remap_classification_labels(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        fitness = data.get("fitness")
+        if fitness not in (
+            NeatFitnessName.TABULAR_CLASSIFICATION,
+            NeatFitnessName.TABULAR_CLASSIFICATION.value,
+        ):
+            return data
+        raw_y = data.get("y")
+        if not isinstance(raw_y, list) or not raw_y:
+            return data
+        try:
+            if any(float(value) < 0 or int(value) != value for value in raw_y):
+                return data
+            labels = [int(value) for value in raw_y]
+        except (TypeError, ValueError):
+            return data
+        unique = sorted(set(labels))
+        if any(value < 0 for value in unique):
+            return data
+        if len(unique) < 2:
+            raise ValueError("classification requires at least two classes")
+        if len(unique) > MAX_NEAT_CLASSES:
+            raise ValueError(f"classification supports at most {MAX_NEAT_CLASSES} classes")
+        mapping = {old: index for index, old in enumerate(unique)}
+        remapped = [float(mapping[int(value)]) for value in raw_y]
+        updated = dict(data)
+        updated["y"] = remapped
+        return updated
 
     @model_validator(mode="after")
     def _closed(self) -> NeatProblemSpec:
@@ -268,9 +304,10 @@ class HyperNeatAlgorithmSpec(NeatAlgorithmSpec):
     es_max_iteration: int = Field(default=1, ge=1, le=4)
 
     @model_validator(mode="after")
-    def _es_requires_feed_forward(self) -> HyperNeatAlgorithmSpec:
-        if self.substrate is HyperNeatSubstrateName.ES_QUADTREE and not self.feed_forward:
+    def _cppn_must_be_feed_forward(self) -> HyperNeatAlgorithmSpec:
+        if not self.feed_forward:
             raise ValueError(
-                "es_quadtree requires feed_forward=True (CPPN queries must be order-independent)"
+                "HyperNEAT/ES-HyperNEAT require feed_forward=True "
+                "(CPPN queries must be order-independent)"
             )
         return self

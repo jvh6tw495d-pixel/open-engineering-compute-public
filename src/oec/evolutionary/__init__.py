@@ -7,6 +7,7 @@ Algorithms live in ``oec.kernel.evolutionary``; pymoo is an optional extra
 from __future__ import annotations
 
 from oec.evolutionary.contracts import (
+    MAX_NEAT_CLASSES,
     AlgorithmName,
     BenchmarkSpec,
     BudgetSpec,
@@ -60,6 +61,7 @@ __all__ = [
     "HyperNeatSubstrateName",
     "HyperNeatSubstrateNodeIR",
     "InequalityConstraintSpec",
+    "MAX_NEAT_CLASSES",
     "MultiObjectiveAlgorithmName",
     "MultiObjectiveAlgorithmSpec",
     "MultiObjectiveProblemSpec",

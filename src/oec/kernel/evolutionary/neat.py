@@ -62,7 +62,7 @@ def _io_dims(problem: NeatProblemSpec) -> tuple[int, int]:
     if problem.fitness == NeatFitnessName.TABULAR_REGRESSION:
         return n_in, 1
     labels = [int(v) for v in problem.y]
-    n_classes = max(labels) + 1 if labels else 1
+    n_classes = (max(labels) + 1) if labels else 1
     n_out = 1 if n_classes <= 2 else n_classes
     return n_in, n_out
 

@@ -5,7 +5,7 @@
 - **Updated:** 2026-08-23
 - **Phase:** post-3.6.1
 - **Related:** ADR 0031, 0032, 0033
-- **Source:** OEC Neural Architecture IR v0.2.3, waves A0–A8 landed
+- **Source:** OEC Neural Architecture IR v0.2.4, waves A0–A8 landed
 
 ## Context
 
@@ -53,9 +53,11 @@ one declarative, auditable architecture contract — without arbitrary
    (`nn.MultiheadAttention`, `forward(query, context)`), and the honest A6
    extras (geglu, highway, residual_gated, depthwise/separable/dilated/
    grouped conv, squeeze_excitation, self_attention, swiglu, residual_mlp,
-   vector_to_sequence, tcn). `local_attention`, `linear_attention`,
-   `neural_ode`, `deeponet`, and `pinn_motif` remain fail-closed — no torch
-   builder, no `nn.Identity` stand-in. `graph_for_skill("neural.mlp.*")`
+   vector_to_sequence, tcn). Catalog **0.2.4** also materializes honest
+   `local_attention` (block windows), `linear_attention` (ELU+1, split
+   across `nhead`), `neural_ode` (fixed-step Euler), `deeponet` (named
+   branch/trunk ports), and `pinn_motif` (MLP motif only).
+   `graph_for_skill("neural.mlp.*")`
    expands multi-width `hidden_dims` into an honest N-layer `linear` chain
    (activation applied per layer, last layer is a plain projection) instead
    of squashing to a single `mlp` block; a single hidden width still uses
@@ -72,10 +74,11 @@ one declarative, auditable architecture contract — without arbitrary
    `compatibility_version` is part of the fingerprint's canonical payload
    (catalog bumped 0.2.1 → 0.2.2 for the payload change). Same graph + same
    sealed catalog still → same fingerprint. `manifest_for_graph()` fails
-   closed: it requires a **sealed** registry, requires the graph to
-   `validate_graph()` clean, and closes `backend` to a known set — a
-   manifest can never certify an invalid graph or a mutable/unknown-backend
-   catalog. `audit_catalog()` fails closed too: an unsealed registry and an
+   closed: it requires a **sealed** registry, requires
+   `validate_for_backend()` (A7 topology, feature-dim signatures, torch
+   builder coverage) to pass, and closes `backend` to a known set — a
+   manifest can never certify a graph the backend cannot execute or a
+   mutable/unknown-backend catalog. `audit_catalog()` fails closed too: an unsealed registry and an
    experimental block missing `backend_requirements` are **errors**
    (`valid=False`), not warnings.
 10. **A8+ search:** `oec.neural.architecture.search.search_graphs()` is a

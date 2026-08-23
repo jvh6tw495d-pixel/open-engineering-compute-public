@@ -149,15 +149,11 @@ def test_es_ir_rejects_layered_width_fields() -> None:
         )
 
 
-def test_es_spec_rejects_recurrent_cppn() -> None:
+def test_hyperneat_rejects_recurrent_cppn() -> None:
+    with pytest.raises(ValueError, match="feed_forward"):
+        HyperNeatAlgorithmSpec(feed_forward=False)
     with pytest.raises(ValueError, match="feed_forward"):
         HyperNeatAlgorithmSpec(
             substrate=HyperNeatSubstrateName.ES_QUADTREE,
             feed_forward=False,
         )
-
-
-def test_layered_spec_still_allows_recurrent_flag() -> None:
-    spec = HyperNeatAlgorithmSpec(feed_forward=False)
-    assert spec.substrate is HyperNeatSubstrateName.LAYERED_1D
-    assert spec.feed_forward is False

@@ -9,6 +9,7 @@ from oec.neural.architecture import (
     ArchitectureGraph,
     ArchitectureProvenance,
     ArchitectureValidationError,
+    EdgeGene,
     NodeGene,
     RegistrySealedError,
     audit_catalog,
@@ -74,6 +75,18 @@ def test_manifest_rejects_unsealed_registry() -> None:
     assert not registry.sealed
     with pytest.raises(RegistrySealedError):
         manifest_for_graph(_mlp_graph(), registry)
+
+
+def test_manifest_rejects_dimension_mismatch() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="a", block_id="linear", config={"in_features": 4, "out_features": 16}),
+            NodeGene(id="b", block_id="linear", config={"in_features": 8, "out_features": 2}),
+        ),
+        edges=(EdgeGene(source="a", target="b"),),
+    )
+    with pytest.raises(ArchitectureValidationError, match="dim mismatch"):
+        manifest_for_graph(graph, default_registry)
 
 
 def test_manifest_rejects_invalid_graph() -> None:

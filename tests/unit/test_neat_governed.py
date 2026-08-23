@@ -39,6 +39,24 @@ def test_classification_rejects_fractional_labels() -> None:
         )
 
 
+def test_classification_remaps_and_caps_classes() -> None:
+    from oec.evolutionary.contracts import MAX_NEAT_CLASSES
+
+    spec = NeatProblemSpec(
+        fitness=NeatFitnessName.TABULAR_CLASSIFICATION,
+        x=[[0.0], [1.0], [2.0]],
+        y=[2.0, 7.0, 2.0],
+    )
+    assert spec.y == [0.0, 1.0, 0.0]
+    too_many = list(range(MAX_NEAT_CLASSES + 1))
+    with pytest.raises(ValueError, match="at most"):
+        NeatProblemSpec(
+            fitness=NeatFitnessName.TABULAR_CLASSIFICATION,
+            x=[[float(i)] for i in too_many],
+            y=[float(i) for i in too_many],
+        )
+
+
 def test_algorithm_bounds() -> None:
     spec = NeatAlgorithmSpec(generations=8, population=12, seed=3)
     assert spec.feed_forward is True

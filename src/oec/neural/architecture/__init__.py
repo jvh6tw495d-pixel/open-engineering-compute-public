@@ -18,6 +18,7 @@ from oec.neural.architecture.governance import (
     CatalogAuditReport,
     audit_catalog,
     manifest_for_graph,
+    validate_for_backend,
 )
 from oec.neural.architecture.graph import (
     ArchitectureGraph,
@@ -66,4 +67,5 @@ __all__ = [
     "mapped_skill_ids",
     "mutate_graph",
     "search_graphs",
+    "validate_for_backend",
 ]

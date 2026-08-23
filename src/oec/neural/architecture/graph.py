@@ -198,6 +198,80 @@ class ArchitectureGraph(BaseModel):
             warnings=tuple(sorted(set(warnings))),
         )
 
+    def topological_order(self) -> list[str]:
+        """Kahn order of node ids. Raises if the graph is not a DAG."""
+        node_map = self._node_map()
+        indegree = {node_id: 0 for node_id in node_map}
+        adjacency: dict[str, list[str]] = {node_id: [] for node_id in node_map}
+        for edge in self.edges:
+            if edge.source not in node_map or edge.target not in node_map:
+                raise ArchitectureValidationError(f"unknown edge {edge.source}->{edge.target}")
+            adjacency[edge.source].append(edge.target)
+            indegree[edge.target] += 1
+        queue = [node_id for node_id, degree in indegree.items() if degree == 0]
+        order: list[str] = []
+        seen: set[str] = set()
+        while queue:
+            current = queue.pop(0)
+            if current in seen:
+                raise ArchitectureValidationError("architecture graph is not a valid DAG")
+            seen.add(current)
+            order.append(current)
+            for nxt in adjacency[current]:
+                indegree[nxt] -= 1
+                if indegree[nxt] == 0:
+                    queue.append(nxt)
+        if len(order) != len(node_map):
+            raise ArchitectureValidationError("architecture graph is not a valid DAG")
+        return order
+
+    def a7_chain_errors(self, registry: BlockRegistry) -> list[str]:
+        """A7 torch topology: linear chain with named-port joins, no forks."""
+        ids = [node.id for node in self.nodes]
+        if not ids:
+            return ["empty architecture graph is not supported in A7"]
+        node_map = {node.id: node for node in self.nodes}
+        incoming: dict[str, list[EdgeGene]] = {node_id: [] for node_id in ids}
+        outgoing: dict[str, list[str]] = {node_id: [] for node_id in ids}
+        errors: list[str] = []
+        for edge in self.edges:
+            if edge.source not in incoming or edge.target not in incoming:
+                errors.append(f"unknown edge {edge.source}->{edge.target} in A7 linear chain")
+                continue
+            outgoing[edge.source].append(edge.target)
+            incoming[edge.target].append(edge)
+        if any(len(dsts) > 1 for dsts in outgoing.values()):
+            errors.append("forked graphs are not supported in A7")
+
+        def arity(node_id: str) -> int:
+            spec = registry.get(node_map[node_id].block_id)
+            return max(len(spec.input_ports), 1)
+
+        for node_id, edges_in in incoming.items():
+            try:
+                expected = arity(node_id)
+            except UnknownBlockError:
+                continue
+            if expected <= 1:
+                if len(edges_in) > 1:
+                    errors.append("branched graphs are not supported in A7")
+            elif edges_in and len(edges_in) != expected:
+                errors.append(
+                    f"node {node_id!r} requires {expected} named inputs; got {len(edges_in)}"
+                )
+        roots = [node_id for node_id, edges_in in incoming.items() if not edges_in]
+        sinks = [node_id for node_id, dsts in outgoing.items() if not dsts]
+        if not roots or len(sinks) != 1:
+            errors.append("architecture graph is not a linear chain in A7")
+        try:
+            order = self.topological_order()
+        except ArchitectureValidationError as exc:
+            errors.append(exc.message)
+            return errors
+        if len(order) != len(ids):
+            errors.append("disconnected architecture graph is not supported in A7")
+        return errors
+
     def _port_wiring_errors(
         self, node_map: dict[str, NodeGene], registry: BlockRegistry
     ) -> list[str]:
