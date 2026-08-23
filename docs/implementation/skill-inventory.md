@@ -94,8 +94,8 @@ above are on the fail-closed cross-domain catalog
 
 See ADR 0037 · `docs/contracts/neural-evolutionary-experiments.md`.
 **3.6 DoD excluded NEAT / HyperNEAT** (ADR 0042). **Post-3.6:** NEAT (ADR 0044)
-and HyperNEAT (ADR 0045, fixed `layered_1d` substrate) are **validated**.
-ES-HyperNEAT remains excluded.
+HyperNEAT (ADR 0045, fixed `layered_1d` substrate), and ES-HyperNEAT
+(ADR 0048, Gauci `es_quadtree`) are **validated**.
 
 **3.6 closeout state:** S0–S5 are implemented; S6 is release CI/evidence and has not
 created a tag, remote push, or published package. See

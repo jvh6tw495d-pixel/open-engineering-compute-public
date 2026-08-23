@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **ES-HyperNEAT (ADR 0048):** ``es_quadtree`` now implements the Gauci &
+  Stanley loop (per-source 4D connectivity-pattern quadtree, extraction,
+  band pruning, hidden-as-source iteration). The previous global
+  ``CPPN(x,y,x,y)`` leaf-centre heuristic is gone. Result IR is
+  discriminated (``kind=es_hyperneat``, no fake ``hidden_width``).
+  Recurrent CPPNs are rejected on this substrate.
+
 ### Changed
 
 ## [3.6.2] - 2026-08-23

@@ -96,7 +96,7 @@ are **not** MCP builder names.
   (ADR 0042).
 - **HyperNEAT** — **available post-3.6** (ADR 0045): skill `evolutionary.hyperneat`,
   kernel `run_hyperneat()`, catalog builder `build_hyperneat_experiment`.
-  Closed `layered_1d` substrate; same fitness catalog as NEAT. **ES-HyperNEAT**
-  still excluded.
+  Closed `layered_1d` substrate; same fitness catalog as NEAT.
+  **ES-HyperNEAT** is ADR 0048 (`es_quadtree`, Gauci loop).
 
 - Foundation models / HF — W6 / Scientific AI S1+

@@ -33,6 +33,9 @@ def test_es_quadtree_is_a_closed_substrate() -> None:
     spec = HyperNeatAlgorithmSpec(substrate=HyperNeatSubstrateName.ES_QUADTREE, es_max_depth=2)
     assert spec.substrate is HyperNeatSubstrateName.ES_QUADTREE
     assert spec.es_max_hidden == 16
+    assert spec.es_band_threshold == 0.3
+    assert spec.es_max_iteration == 1
+    assert spec.feed_forward is True
 
 
 def test_fail_closed_when_neat_missing(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -74,13 +77,22 @@ def test_es_quadtree_xor_runs() -> None:
     )
     assert result.algorithm == "es_hyperneat"
     assert result.substrate.name == "es_quadtree"
+    assert result.substrate.kind == "es_hyperneat"
+    assert result.substrate.extraction == "gauci_quadtree"
+    assert result.substrate.hidden_layers is None
+    assert result.substrate.hidden_width is None
+    assert result.substrate.max_depth == 2
+    assert result.substrate.band_threshold == 0.3
     assert result.cppn.n_inputs == 4
+    assert result.cppn.feed_forward is True
 
 
 def test_builder_can_select_es_quadtree() -> None:
     spec = build_hyperneat_experiment(fitness="xor", substrate="es_quadtree", generations=2)
     assert spec.steps[0].inputs["substrate"] == "es_quadtree"
     assert spec.steps[0].inputs["es_max_depth"] == 3
+    assert spec.steps[0].inputs["es_band_threshold"] == 0.3
+    assert spec.steps[0].inputs["es_max_iteration"] == 1
 
 
 def test_build_hyperneat_tabular_passes_arrays() -> None:

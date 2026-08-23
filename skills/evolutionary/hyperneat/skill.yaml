@@ -1,5 +1,5 @@
 id: evolutionary.hyperneat
-version: 0.2.0
+version: 0.3.0
 status: validated
 domain: evolutionary
 title: HyperNEAT / ES-HyperNEAT (CPPN + closed substrate)
@@ -14,7 +14,7 @@ schemas:
 
 method:
   id: hyperneat_closed_substrate
-  version: 0.2.0
+  version: 0.3.0
   iterative: true
 
 execution:

@@ -36,7 +36,9 @@
     "feed_forward": { "type": "boolean", "default": true },
     "es_max_depth": { "type": "integer", "minimum": 1, "maximum": 5, "default": 3 },
     "es_variance_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.05 },
-    "es_max_hidden": { "type": "integer", "minimum": 4, "maximum": 64, "default": 16 }
+    "es_max_hidden": { "type": "integer", "minimum": 4, "maximum": 64, "default": 16 },
+    "es_band_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.3 },
+    "es_max_iteration": { "type": "integer", "minimum": 1, "maximum": 4, "default": 1 }
   },
   "required": ["fitness"],
   "additionalProperties": false
