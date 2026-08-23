@@ -124,7 +124,8 @@ def _build_block(nn: Any, block_id: str, config: dict[str, Any]) -> Any:
         out_f = int(config["out_features"]) if "out_features" in config else hidden
         if block_id == "linear":
             return nn.Linear(in_f, out_f, bias=bool(config.get("bias", True)))
-        return nn.Sequential(nn.Linear(in_f, hidden), nn.GELU(), nn.Linear(hidden, out_f))
+        act = _activation(nn, str(config.get("activation", "gelu")))
+        return nn.Sequential(nn.Linear(in_f, hidden), act, nn.Linear(hidden, out_f))
     if block_id in {"encoder", "decoder"}:
         return nn.Sequential(
             nn.Linear(int(config["in_features"]), int(config["out_features"])),
@@ -155,7 +156,12 @@ def _build_block(nn: Any, block_id: str, config: dict[str, Any]) -> Any:
     if block_id in {"lstm", "gru"}:
         hidden = int(config["hidden_dim"])
         cls = nn.LSTM if block_id == "lstm" else nn.GRU
-        return cls(int(config["input_size"]), hidden, batch_first=True)
+        return cls(
+            int(config["input_size"]),
+            hidden,
+            num_layers=int(config["n_layers"]),
+            batch_first=True,
+        )
     if block_id == "transformer_encoder":
         layer = nn.TransformerEncoderLayer(
             d_model=int(config["d_model"]),
@@ -167,6 +173,20 @@ def _build_block(nn: Any, block_id: str, config: dict[str, Any]) -> Any:
     if block_id in {"graph_global_pool", "graph_embedding_to_vector"}:
         return nn.Identity()
     raise ArchitectureValidationError(f"no torch builder for block {block_id!r}")
+
+
+def _activation(nn: Any, name: str) -> Any:
+    table = {
+        "relu": nn.ReLU,
+        "gelu": nn.GELU,
+        "silu": nn.SiLU,
+        "mish": nn.Mish,
+        "tanh": nn.Tanh,
+    }
+    cls = table.get(name)
+    if cls is None:
+        raise ArchitectureValidationError(f"unsupported activation {name!r}")
+    return cls()
 
 
 def _gap1d(nn: Any) -> Any:

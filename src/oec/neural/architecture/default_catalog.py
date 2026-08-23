@@ -1,4 +1,4 @@
-"""Default governed block catalog v0.1.0 (ADR 0047). Declarative only."""
+"""Default governed block catalog v0.2.1 (ADR 0047). Declarative only."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ BASE_BLOCKS = (
         display_name="SwiGLU",
         family=NeuralFamily.FEEDFORWARD,
         category=BlockCategory.BLOCK,
-        input_kinds=frozenset({TensorKind.VECTOR, TensorKind.SEQUENCE}),
+        input_kinds=frozenset({TensorKind.VECTOR}),
         output_kind=TensorKind.VECTOR,
         parameters=(BlockParameterSpec(name="hidden_dim", kind="int", default=128, minimum=8),),
         capabilities=frozenset({"gated"}),
@@ -103,6 +103,7 @@ BASE_BLOCKS = (
         parameters=(
             BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="n_layers", kind="int", default=1, minimum=1),
         ),
         capabilities=frozenset({"recurrent", "gated"}),
         experimental=False,
@@ -117,6 +118,7 @@ BASE_BLOCKS = (
         parameters=(
             BlockParameterSpec(name="input_size", kind="int", default=8, minimum=1),
             BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="n_layers", kind="int", default=1, minimum=1),
         ),
         capabilities=frozenset({"recurrent", "gated"}),
         experimental=False,
@@ -128,6 +130,11 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        parameters=(
+            BlockParameterSpec(name="hidden_dim", kind="int", default=32, minimum=1),
+            BlockParameterSpec(name="n_layers", kind="int", default=1, minimum=1),
+            BlockParameterSpec(name="kernel_size", kind="int", default=3, minimum=1),
+        ),
         capabilities=frozenset({"temporal", "dilated_conv"}),
         experimental=False,
     ),
@@ -184,6 +191,10 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.GRAPH, TensorKind.NODE_FEATURES}),
         output_kind=TensorKind.NODE_FEATURES,
+        parameters=(
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="n_layers", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"message_passing"}),
         experimental=False,
     ),
@@ -194,6 +205,10 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.GRAPH, TensorKind.NODE_FEATURES}),
         output_kind=TensorKind.NODE_FEATURES,
+        parameters=(
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="n_layers", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"message_passing", "aggregation"}),
         experimental=False,
     ),
@@ -204,6 +219,11 @@ BASE_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.GRAPH, TensorKind.NODE_FEATURES}),
         output_kind=TensorKind.NODE_FEATURES,
+        parameters=(
+            BlockParameterSpec(name="hidden_dim", kind="int", default=16, minimum=1),
+            BlockParameterSpec(name="n_layers", kind="int", default=2, minimum=1),
+            BlockParameterSpec(name="heads", kind="int", default=2, minimum=1),
+        ),
         capabilities=frozenset({"message_passing", "attention"}),
         experimental=False,
     ),
@@ -244,10 +264,11 @@ A6_BLOCKS = (
         display_name="GEGLU",
         family=NeuralFamily.FEEDFORWARD,
         category=BlockCategory.BLOCK,
-        input_kinds=frozenset({TensorKind.VECTOR, TensorKind.SEQUENCE}),
+        input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
         capabilities=frozenset({"gated"}),
         backend_requirements=("torch",),
+        notes="Rank-preserving gated unit; VECTOR is not a silent SEQUENCE.",
     ),
     BlockSpec(
         id="residual_gated",
@@ -326,8 +347,10 @@ A6_BLOCKS = (
         category=BlockCategory.BLOCK,
         input_kinds=frozenset({TensorKind.SEQUENCE}),
         output_kind=TensorKind.SEQUENCE,
+        input_ports=("query", "context"),
         capabilities=frozenset({"attention", "cross"}),
         backend_requirements=("torch",),
+        notes="Named ports required; unary sequential edges fail closed.",
     ),
     BlockSpec(
         id="local_attention",
@@ -363,14 +386,27 @@ A6_BLOCKS = (
     ),
     BlockSpec(
         id="fno",
-        display_name="Fourier Neural Operator",
+        display_name="Fourier Neural Operator 1D",
         family=NeuralFamily.NEURAL_OPERATOR,
         category=BlockCategory.BLOCK,
-        input_kinds=frozenset({TensorKind.FEATURE_MAP_1D, TensorKind.FEATURE_MAP_2D}),
+        input_kinds=frozenset({TensorKind.FEATURE_MAP_1D}),
         output_kind=TensorKind.FEATURE_MAP_1D,
         capabilities=frozenset({"spectral"}),
         backend_requirements=("future-neural-operator",),
         experimental=True,
+        notes="1D operator; use fno_2d for FEATURE_MAP_2D.",
+    ),
+    BlockSpec(
+        id="fno_2d",
+        display_name="Fourier Neural Operator 2D",
+        family=NeuralFamily.NEURAL_OPERATOR,
+        category=BlockCategory.BLOCK,
+        input_kinds=frozenset({TensorKind.FEATURE_MAP_2D}),
+        output_kind=TensorKind.FEATURE_MAP_2D,
+        capabilities=frozenset({"spectral"}),
+        backend_requirements=("future-neural-operator",),
+        experimental=True,
+        notes="Catalog only; no torch builder in A7.",
     ),
     BlockSpec(
         id="deeponet",
@@ -399,7 +435,7 @@ A6_BLOCKS = (
 
 
 def make_default_registry() -> BlockRegistry:
-    registry = BlockRegistry(version="0.2.0")
+    registry = BlockRegistry(version="0.2.1")
     registry.register_many(BASE_BLOCKS)
     registry.register_many(ADAPTER_SPECS)
     registry.register_many(A6_BLOCKS)
@@ -407,3 +443,4 @@ def make_default_registry() -> BlockRegistry:
 
 
 default_registry = make_default_registry()
+default_registry.seal()

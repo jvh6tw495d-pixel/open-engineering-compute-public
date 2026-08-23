@@ -78,15 +78,13 @@ IDs estáveis e documentados.
 - linear
 - mlp
 - residual_mlp
-- glu
 - swiglu
 - conv1d
 - conv2d
-- residual_conv
 - lstm
 - gru
 - tcn
-- attention
+- self_attention
 - transformer_encoder
 - kan
 - gcn
@@ -135,9 +133,10 @@ GNN → graph_global_pool → MLP = valid
 - `EdgeGene`
 - `ArchitectureGraph`
 - DAG check;
-- orphan check;
+- orphan check (isolated nodes when `len(nodes) > 1`);
 - connection compatibility check;
-- deterministic serialization.
+- JSON-finite config;
+- deterministic fingerprint (normalized defaults + catalog hash).
 
 ### Gate
 
@@ -162,9 +161,9 @@ neural.graphsage
 neural.gat
 ```
 
-para `BlockSpec` / `ArchitectureGraph`.
-
-Sem alterar comportamento numérico.
+para `BlockSpec` / `ArchitectureGraph`, traduzindo parâmetros
+arquiteturais (não epochs/lr/seed). Sem alterar comportamento numérico
+das skills.
 
 ### Gate
 
@@ -203,9 +202,12 @@ Golden atual continua verde.
 ### Continuous / scientific
 
 - NeuralODE
-- FNO
+- FNO 1D (`fno`) e FNO 2D (`fno_2d`)
 - DeepONet
 - PINN motif
+
+GEGLU é SEQUENCE→SEQUENCE. `cross_attention` exige portas nomeadas
+`(query, context)` e não entra em cadeia unária.
 
 ### Gate
 

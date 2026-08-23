@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from oec.neural.architecture import (
     ArchitectureGraph,
@@ -10,11 +11,13 @@ from oec.neural.architecture import (
     EdgeGene,
     NeuralFamily,
     NodeGene,
+    RegistrySealedError,
     TensorKind,
     UnknownBlockError,
     UnknownFamilyError,
     check_connection,
     default_registry,
+    make_default_registry,
 )
 
 
@@ -22,7 +25,7 @@ def test_import_does_not_require_torch() -> None:
     import oec.neural.architecture as arch
 
     assert "torch" not in getattr(arch, "__dict__", {})
-    assert arch.default_registry.version == "0.2.0"
+    assert arch.default_registry.version == "0.2.1"
 
 
 def test_default_registry_has_expected_families() -> None:
@@ -120,7 +123,7 @@ def test_snapshot_is_sorted_and_serializable() -> None:
     snap = default_registry.snapshot()
     ids = [row["id"] for row in snap.blocks]
     assert ids == sorted(ids)
-    assert snap.version == "0.2.0"
+    assert snap.version == "0.2.1"
 
 
 def test_conv2d_to_kan_requires_adapter() -> None:
@@ -221,3 +224,67 @@ def test_fingerprint_is_order_stable() -> None:
     )
     assert first.fingerprint() == second.fingerprint()
     assert len(first.fingerprint()) == 64
+
+
+def test_fingerprint_normalizes_defaults() -> None:
+    empty = ArchitectureGraph(nodes=(NodeGene(id="mlp", block_id="mlp"),), edges=())
+    explicit = ArchitectureGraph(
+        nodes=(
+            NodeGene(
+                id="mlp",
+                block_id="mlp",
+                config={
+                    "in_features": 8,
+                    "hidden_dim": 128,
+                    "activation": "gelu",
+                },
+            ),
+        ),
+        edges=(),
+    )
+    assert empty.fingerprint() == explicit.fingerprint()
+
+
+def test_fingerprint_includes_catalog_hash() -> None:
+    graph = ArchitectureGraph(nodes=(NodeGene(id="mlp", block_id="mlp"),), edges=())
+    payload = graph.canonical_dict()
+    assert payload["registry_version"] == default_registry.version
+    assert payload["catalog_hash"] == default_registry.catalog_hash()
+    cloned = make_default_registry()
+    cloned.version = "9.9.9"
+    assert graph.fingerprint(cloned) != graph.fingerprint()
+
+
+def test_non_finite_config_fails_closed() -> None:
+    with pytest.raises(ValidationError, match="non-finite"):
+        NodeGene(id="mlp", block_id="mlp", config={"hidden_dim": float("nan")})
+
+
+def test_config_is_immutable() -> None:
+    node = NodeGene(id="mlp", block_id="mlp", config={"hidden_dim": 16})
+    with pytest.raises(TypeError):
+        node.config["hidden_dim"] = 32  # type: ignore[index]
+
+
+def test_default_registry_is_sealed() -> None:
+    spec = default_registry.get("mlp")
+    with pytest.raises(RegistrySealedError) as exc:
+        default_registry.register(spec)
+    assert exc.value.code == "architecture_registry_sealed"
+    cloned = default_registry.clone()
+    assert not cloned.sealed
+    with pytest.raises(DuplicateBlockError):
+        cloned.register(spec)
+
+
+def test_orphan_nodes_fail_validation() -> None:
+    graph = ArchitectureGraph(
+        nodes=(
+            NodeGene(id="a", block_id="mlp"),
+            NodeGene(id="b", block_id="mlp"),
+        ),
+        edges=(),
+    )
+    report = graph.validate_graph(default_registry)
+    assert not report.valid
+    assert any("orphan node" in error for error in report.errors)

@@ -26,6 +26,14 @@ def check_connection(
     target: BlockSpec,
     registry: BlockRegistry,
 ) -> CompatibilityResult:
+    if len(target.input_ports) != 1:
+        return CompatibilityResult(
+            compatible=False,
+            reason=(
+                f"{target.id} requires named ports {list(target.input_ports)}; "
+                "unary sequential edges are not representable"
+            ),
+        )
     if target.accepts(source.output_kind):
         return CompatibilityResult(
             compatible=True,

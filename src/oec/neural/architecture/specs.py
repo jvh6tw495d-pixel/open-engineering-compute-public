@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -34,13 +35,14 @@ class BlockSpec(BaseModel):
     parameters: tuple[BlockParameterSpec, ...] = ()
     capabilities: frozenset[str] = frozenset()
     backend_requirements: tuple[str, ...] = ()
+    input_ports: tuple[str, ...] = ("in",)
     experimental: bool = True
     notes: str = ""
 
     def accepts(self, kind: TensorKind) -> bool:
         return TensorKind.ANY in self.input_kinds or kind in self.input_kinds
 
-    def validate_config(self, config: dict[str, Any] | None) -> dict[str, Any]:
+    def validate_config(self, config: Mapping[str, Any] | None) -> dict[str, Any]:
         """Fail-closed against ``parameters``; materialize declared defaults."""
         raw = dict(config or {})
         declared = {item.name: item for item in self.parameters}

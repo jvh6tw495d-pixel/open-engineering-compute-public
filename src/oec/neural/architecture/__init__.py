@@ -7,6 +7,7 @@ from oec.neural.architecture.default_catalog import default_registry, make_defau
 from oec.neural.architecture.errors import (
     ArchitectureValidationError,
     DuplicateBlockError,
+    RegistrySealedError,
     UnknownBlockError,
     UnknownFamilyError,
 )
@@ -37,6 +38,7 @@ __all__ = [
     "MotifName",
     "NeuralFamily",
     "NodeGene",
+    "RegistrySealedError",
     "TensorKind",
     "UnknownBlockError",
     "UnknownFamilyError",

@@ -25,7 +25,7 @@ _A6_IDS = (
 
 
 def test_registry_version_a6() -> None:
-    assert default_registry.version == "0.2.0"
+    assert default_registry.version == "0.2.1"
 
 
 def test_all_a6_ids_registered() -> None:
@@ -68,10 +68,28 @@ def test_highway_vector_to_vector() -> None:
     assert "pinn_motif" in ids
 
 
-def test_cross_attention_after_transformer() -> None:
+def test_cross_attention_rejects_unary_edge() -> None:
     result = check_connection(
         default_registry.get("transformer_encoder"),
         default_registry.get("cross_attention"),
         default_registry,
     )
-    assert result.compatible
+    assert not result.compatible
+    assert "named ports" in result.reason
+
+
+def test_geglu_is_rank_preserving_sequence() -> None:
+    spec = default_registry.get("geglu")
+    assert spec.input_kinds == frozenset({TensorKind.SEQUENCE})
+    assert spec.output_kind == TensorKind.SEQUENCE
+    assert not spec.accepts(TensorKind.VECTOR)
+
+
+def test_fno_is_split_by_rank() -> None:
+    fno = default_registry.get("fno")
+    fno_2d = default_registry.get("fno_2d")
+    assert fno.input_kinds == frozenset({TensorKind.FEATURE_MAP_1D})
+    assert fno.output_kind == TensorKind.FEATURE_MAP_1D
+    assert fno_2d.input_kinds == frozenset({TensorKind.FEATURE_MAP_2D})
+    assert fno_2d.output_kind == TensorKind.FEATURE_MAP_2D
+    assert not fno.accepts(TensorKind.FEATURE_MAP_2D)

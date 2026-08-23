@@ -33,6 +33,7 @@ _NO_TORCH_BUILDER = (
     "linear_attention",
     "neural_ode",
     "fno",
+    "fno_2d",
     "deeponet",
     "pinn_motif",
 )
@@ -131,7 +132,7 @@ def test_disconnected_nodes_fail_closed() -> None:
         ),
         edges=(),
     )
-    with pytest.raises(ArchitectureValidationError, match="linear chain"):
+    with pytest.raises(ArchitectureValidationError, match="orphan"):
         build_architecture(graph)
 
 
@@ -160,16 +161,15 @@ def test_cnn1d_mapped_skill_forward() -> None:
     pytest.importorskip("torch")
     import torch
 
-    graph = graph_for_skill("neural.cnn1d")
-    nodes = []
-    for node in graph.nodes:
-        cfg = dict(node.config)
-        if node.block_id == "conv1d":
-            cfg.update({"in_channels": 1, "out_channels": 4, "kernel_size": 3})
-        if node.block_id == "mlp":
-            cfg.update({"in_features": 4, "hidden_dim": 8, "out_features": 1})
-        nodes.append(NodeGene(id=node.id, block_id=node.block_id, config=cfg))
-    built = ArchitectureGraph(nodes=tuple(nodes), edges=graph.edges)
-    model = build_architecture(built)
+    graph = graph_for_skill(
+        "neural.cnn1d",
+        {
+            "x": [[[0.0] * 16], [[0.0] * 16]],
+            "hidden": 8,
+            "kernel_size": 3,
+            "n_classes": 1,
+        },
+    )
+    model = build_architecture(graph)
     out = model(torch.zeros(2, 1, 16))
     assert tuple(out.shape) == (2, 1)
